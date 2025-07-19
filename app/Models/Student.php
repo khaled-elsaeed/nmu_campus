@@ -22,7 +22,6 @@ class Student extends Model
         'academic_email',
         'phone',
         'date_of_birth',
-        'gender',
         'academic_year',
         'faculty_id',
         'program_id',

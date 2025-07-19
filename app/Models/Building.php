@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Building extends Model
 {
@@ -41,5 +42,15 @@ class Building extends Model
     public function apartments(): HasMany
     {
         return $this->hasMany(Apartment::class);
+    }
+
+    /**
+     * Get the rooms for the building through apartments.
+     *
+     * @return HasManyThrough
+     */
+    public function rooms(): HasManyThrough
+    {
+        return $this->hasManyThrough(Room::class, Apartment::class);
     }
 }

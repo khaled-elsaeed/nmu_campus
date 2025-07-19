@@ -91,7 +91,7 @@
             ['data' => 'faculty', 'name' => 'faculty'],
             ['data' => 'department', 'name' => 'department'],
             ['data' => 'notes', 'name' => 'notes'],
-            ['data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false]
+            ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false]
         ]"
         :ajax-url="route('resident.staff.datatable')"
         :table-id="'staff-table'"
@@ -211,10 +211,23 @@
 
 @push('scripts')
 <script>
+/**
+ * Staff Management Page JS
+ *
+ * Structure:
+ * - Utils: Common utility functions
+ * - ApiService: Handles all AJAX requests
+ * - SelectManager: Handles dropdown population
+ * - StaffManager: Handles CRUD and actions for staff
+ * - SearchManager: Handles advanced search
+ * - StatsManager: Handles statistics cards
+ * - StaffApp: Initializes all managers
+ */
+
 // ===========================
-// CONSTANTS AND CONFIGURATION
+// ROUTES CONSTANTS
 // ===========================
-const ROUTES = {
+var ROUTES = {
   staff: {
     show: '{{ route('resident.staff.show', ':id') }}',
     store: '{{ route('resident.staff.store') }}',
@@ -236,22 +249,40 @@ const ROUTES = {
 // ===========================
 // UTILITY FUNCTIONS
 // ===========================
-const Utils = {
-  showError(message) {
+var Utils = {
+  /**
+   * Show an error alert
+   * @param {string} message
+   */
+  showError: function(message) {
     Swal.fire({ title: 'Error', html: message, icon: 'error' });
   },
-  showSuccess(message) {
+  /**
+   * Show a success toast message
+   * @param {string} message
+   */
+  showSuccess: function(message) {
     Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: message, showConfirmButton: false, timer: 2500, timerProgressBar: true });
   },
-  replaceRouteId(route, id) {
+  /**
+   * Replace :id in a route string
+   * @param {string} route
+   * @param {string|number} id
+   * @returns {string}
+   */
+  replaceRouteId: function(route, id) {
     return route.replace(':id', id);
   },
-  toggleLoadingState(id, show) {
-    const loader = document.getElementById(id + '-loader');
-    const valueEl = document.getElementById(id + '-value');
-    const lastUpdatedLoader = document.getElementById(id + '-last-updated-loader');
-    const lastUpdatedEl = document.getElementById(id + '-last-updated');
-
+  /**
+   * Toggle loading state for a stat card
+   * @param {string} id
+   * @param {boolean} show
+   */
+  toggleLoadingState: function(id, show) {
+    var loader = document.getElementById(id + '-loader');
+    var valueEl = document.getElementById(id + '-value');
+    var lastUpdatedLoader = document.getElementById(id + '-last-updated-loader');
+    var lastUpdatedEl = document.getElementById(id + '-last-updated');
     if (loader) loader.classList.toggle('d-none', !show);
     if (valueEl) valueEl.classList.toggle('d-none', show);
     if (lastUpdatedLoader) lastUpdatedLoader.classList.toggle('d-none', !show);
@@ -260,170 +291,209 @@ const Utils = {
 };
 
 // ===========================
-// API SERVICE LAYER
+// API SERVICE
 // ===========================
-const ApiService = {
-  request(options) { return $.ajax(options); },
-  fetchStaff(id) {
-    return ApiService.request({
-      url: Utils.replaceRouteId(ROUTES.staff.show, id),
-      method: 'GET'
-    });
+var ApiService = {
+  /**
+   * Generic AJAX request
+   * @param {object} options
+   * @returns {jqXHR}
+   */
+  request: function(options) { return $.ajax(options); },
+  /**
+   * Fetch a staff by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  fetchStaff: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.staff.show, id), method: 'GET' });
   },
-  saveStaff(data, id = null) {
-    const url = id ? Utils.replaceRouteId(ROUTES.staff.update, id) : ROUTES.staff.store;
-    const method = id ? 'PUT' : 'POST';
-    return ApiService.request({ url, method, data });
+  /**
+   * Save (create or update) a staff
+   * @param {object} data
+   * @param {string|number|null} id
+   * @returns {jqXHR}
+   */
+  saveStaff: function(data, id) {
+    var url = id ? Utils.replaceRouteId(ROUTES.staff.update, id) : ROUTES.staff.store;
+    var method = id ? 'PUT' : 'POST';
+    return this.request({ url: url, method: method, data: data });
   },
-  deleteStaff(id) {
-    return ApiService.request({
-      url: Utils.replaceRouteId(ROUTES.staff.destroy, id),
-      method: 'DELETE'
-    });
+  /**
+   * Delete a staff by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  deleteStaff: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.staff.destroy, id), method: 'DELETE' });
   },
-  fetchDepartments() {
-    return ApiService.request({
-      url: ROUTES.departments.all,
-      method: 'GET'
-    });
+  /**
+   * Fetch all departments
+   * @returns {jqXHR}
+   */
+  fetchDepartments: function() {
+    return this.request({ url: ROUTES.departments.all, method: 'GET' });
   },
-  fetchCategories() {
-    return ApiService.request({
-      url: ROUTES.categories.all,
-      method: 'GET'
-    });
+  /**
+   * Fetch all categories
+   * @returns {jqXHR}
+   */
+  fetchCategories: function() {
+    return this.request({ url: ROUTES.categories.all, method: 'GET' });
   },
-  fetchFaculties() {
-    return ApiService.request({
-      url: ROUTES.faculties.all,
-      method: 'GET'
-    });
+  /**
+   * Fetch all faculties
+   * @returns {jqXHR}
+   */
+  fetchFaculties: function() {
+    return this.request({ url: ROUTES.faculties.all, method: 'GET' });
   }
 };
 
 // ===========================
-// SELECT MANAGEMENT
+// SELECT MANAGER
 // ===========================
-const SelectManager = {
-  // Modal form selects
-  populateModalDepartments() {
-    const $select = $('#staff_department_id');
+var SelectManager = {
+  /**
+   * Populate departments in modal
+   */
+  populateModalDepartments: function() {
+    var $select = $('#staff_department_id');
     $select.empty().append('<option value="">Select Department</option>');
     ApiService.fetchDepartments()
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          response.data.forEach(dep => {
-            $select.append(`<option value="${dep.id}">${dep.name}</option>`);
+          response.data.forEach(function(dep) {
+            $select.append('<option value="' + dep.id + '">' + dep.name + '</option>');
           });
         }
       })
-      .fail(() => {
+      .fail(function() {
         $('#staffModal').modal('hide');
         $select.empty().append('<option value="">Error loading departments</option>');
       });
   },
-  populateModalCategories() {
-    const $select = $('#staff_category_id');
+  /**
+   * Populate categories in modal
+   */
+  populateModalCategories: function() {
+    var $select = $('#staff_category_id');
     $select.empty().append('<option value="">Select Category</option>');
     ApiService.fetchCategories()
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          response.data.forEach(cat => {
-            $select.append(`<option value="${cat.id}">${cat.name}</option>`);
+          response.data.forEach(function(cat) {
+            $select.append('<option value="' + cat.id + '">' + cat.name + '</option>');
           });
         }
       })
-      .fail(() => {
+      .fail(function() {
         $('#staffModal').modal('hide');
         $select.empty().append('<option value="">Error loading categories</option>');
       });
   },
-  populateModalFaculties() {
-    const $select = $('#staff_faculty_id');
+  /**
+   * Populate faculties in modal
+   */
+  populateModalFaculties: function() {
+    var $select = $('#staff_faculty_id');
     $select.empty().append('<option value="">Select Faculty</option>');
     ApiService.fetchFaculties()
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          response.data.forEach(faculty => {
-            $select.append(`<option value="${faculty.id}">${faculty.name}</option>`);
+          response.data.forEach(function(faculty) {
+            $select.append('<option value="' + faculty.id + '">' + faculty.name + '</option>');
           });
         }
       })
-      .fail(() => {
+      .fail(function() {
         $('#staffModal').modal('hide');
         $select.empty().append('<option value="">Error loading faculties</option>');
       });
   },
-  // Search filter selects
-  populateSearchDepartments() {
-    const $select = $('#search_department_id');
+  /**
+   * Populate departments in search
+   */
+  populateSearchDepartments: function() {
+    var $select = $('#search_department_id');
     $select.empty().append('<option value="">All Departments</option>');
     ApiService.fetchDepartments()
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          response.data.forEach(dep => {
-            $select.append(`<option value="${dep.id}">${dep.name}</option>`);
+          response.data.forEach(function(dep) {
+            $select.append('<option value="' + dep.id + '">' + dep.name + '</option>');
           });
         }
       })
-      .fail(() => {
+      .fail(function() {
         $select.empty().append('<option value="">Error loading departments</option>');
       });
   },
-  populateSearchCategories() {
-    const $select = $('#search_category_id');
+  /**
+   * Populate categories in search
+   */
+  populateSearchCategories: function() {
+    var $select = $('#search_category_id');
     $select.empty().append('<option value="">All Categories</option>');
     ApiService.fetchCategories()
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          response.data.forEach(cat => {
-            $select.append(`<option value="${cat.id}">${cat.name}</option>`);
+          response.data.forEach(function(cat) {
+            $select.append('<option value="' + cat.id + '">' + cat.name + '</option>');
           });
         }
       })
-      .fail(() => {
+      .fail(function() {
         $select.empty().append('<option value="">Error loading categories</option>');
       });
   },
-  init() {
-    // Initialize modal selects
+  /**
+   * Initialize select manager
+   */
+  init: function() {
     this.populateModalDepartments();
     this.populateModalCategories();
     this.populateModalFaculties();
-    // Initialize search selects
     this.populateSearchDepartments();
     this.populateSearchCategories();
   }
 };
 
 // ===========================
-// STAFF CRUD & MODALS
+// STAFF MANAGER
 // ===========================
-let currentStaffId = null;
-
-const StaffManager = {
-  handleAddStaff() {
+var StaffManager = {
+  currentStaffId: null,
+  /**
+   * Bind add staff button
+   */
+  handleAdd: function() {
+    var self = this;
     $(document).on('click', '#addStaffBtn', function() {
-      currentStaffId = null;
+      self.currentStaffId = null;
       $('#staffModal .modal-title').text('Add Staff');
       $('#staffForm')[0].reset();
       $('#staffModal').modal('show');
     });
   },
-  handleEditStaff() {
+  /**
+   * Bind edit staff button
+   */
+  handleEdit: function() {
+    var self = this;
     $(document).on('click', '.editStaffBtn', function() {
-      const staffId = $(this).data('id');
-      currentStaffId = staffId;
+      var staffId = $(this).data('id');
+      self.currentStaffId = staffId;
       $('#staffModal .modal-title').text('Edit Staff');
       ApiService.fetchStaff(staffId)
-        .done((response) => {
+        .done(function(response) {
           if (response.success) {
-            const staff = response.data;
+            var staff = response.data;
             $('#staff_name_en').val(staff.name_en);
             $('#staff_name_ar').val(staff.name_ar);
             $('#staff_email').val(staff.email);
             $('#staff_gender').val(staff.gender);
-            $('#staff_password').val(''); // Clear password for edit
+            $('#staff_password').val('');
             $('#staff_category_id').val(staff.staff_category_id);
             $('#staff_faculty_id').val(staff.faculty_id);
             $('#staff_department_id').val(staff.department_id);
@@ -431,39 +501,45 @@ const StaffManager = {
             $('#staffModal').modal('show');
           }
         })
-        .fail(() => {
+        .fail(function() {
           $('#staffModal').modal('hide');
           Utils.showError('Failed to load staff data');
         });
     });
   },
-  handleViewStaff() {
+  /**
+   * Bind view staff button
+   */
+  handleView: function() {
     $(document).on('click', '.viewStaffBtn', function() {
-      const staffId = $(this).data('id');
+      var staffId = $(this).data('id');
       ApiService.fetchStaff(staffId)
-        .done((response) => {
+        .done(function(response) {
           if (response.success) {
-            const staff = response.data;
+            var staff = response.data;
             $('#view-staff-staff-id').text(staff.staff_id);
-            $('#view-staff-name').text(staff.name_en); // Display name_en
+            $('#view-staff-name').text(staff.name_en);
             $('#view-staff-phone').text(staff.phone);
             $('#view-staff-gender').text(staff.gender);
-            $('#view-staff-department').text(staff.department?.name ?? 'N/A');
-            $('#view-staff-category').text(staff.category?.name ?? 'N/A');
+            $('#view-staff-department').text(staff.department && staff.department.name ? staff.department.name : 'N/A');
+            $('#view-staff-category').text(staff.category && staff.category.name ? staff.category.name : 'N/A');
             $('#view-staff-is-active').text(staff.active ? 'Active' : 'Inactive');
             $('#view-staff-created').text(new Date(staff.created_at).toLocaleString());
             $('#viewStaffModal').modal('show');
           }
         })
-        .fail(() => {
+        .fail(function() {
           $('#viewStaffModal').modal('hide');
           Utils.showError('Failed to load staff data');
         });
     });
   },
-  handleDeleteStaff() {
+  /**
+   * Bind delete staff button
+   */
+  handleDelete: function() {
     $(document).on('click', '.deleteStaffBtn', function() {
-      const staffId = $(this).data('id');
+      var staffId = $(this).data('id');
       Swal.fire({
         title: 'Are you sure?',
         text: "You won't be able to revert this!",
@@ -472,45 +548,68 @@ const StaffManager = {
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
         confirmButtonText: 'Yes, delete it!'
-      }).then((result) => {
+      }).then(function(result) {
         if (result.isConfirmed) {
           ApiService.deleteStaff(staffId)
-            .done(() => {
+            .done(function() {
               $('#staff-table').DataTable().ajax.reload(null, false);
               Utils.showSuccess('Staff has been deleted.');
             })
-            .fail((xhr) => {
-              const message = xhr.responseJSON?.message || 'Failed to delete staff.';
+            .fail(function(xhr) {
+              var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to delete staff.';
               Utils.showError(message);
             });
         }
       });
     });
   },
-  handleFormSubmit() {
+  /**
+   * Bind form submit
+   */
+  handleFormSubmit: function() {
+    var self = this;
     $('#staffForm').on('submit', function(e) {
       e.preventDefault();
-      const formData = $(this).serialize();
-      ApiService.saveStaff(formData, currentStaffId)
-        .done(() => {
+      var formData = $(this).serialize();
+      ApiService.saveStaff(formData, self.currentStaffId)
+        .done(function() {
           $('#staffModal').modal('hide');
           $('#staff-table').DataTable().ajax.reload(null, false);
           Utils.showSuccess('Staff has been saved successfully.');
         })
-        .fail((xhr) => {
+        .fail(function(xhr) {
           $('#staffModal').modal('hide');
-          const message = xhr.responseJSON?.message || 'An error occurred. Please check your input.';
+          var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred. Please check your input.';
           Utils.showError(message);
         });
     });
+  },
+  /**
+   * Initialize all staff manager handlers
+   */
+  init: function() {
+    this.handleAdd();
+    this.handleEdit();
+    this.handleView();
+    this.handleDelete();
+    this.handleFormSubmit();
   }
 };
 
 // ===========================
-// SEARCH FUNCTIONALITY
+// SEARCH MANAGER
 // ===========================
-const SearchManager = {
-  initializeAdvancedSearch() {
+var SearchManager = {
+  /**
+   * Initialize advanced search
+   */
+  init: function() {
+    this.bindEvents();
+  },
+  /**
+   * Bind search and clear events
+   */
+  bindEvents: function() {
     $('#search_staff_id, #search_name, #search_gender, #search_active, #search_department_id, #search_category_id').on('keyup change', function() {
       $('#staff-table').DataTable().ajax.reload();
     });
@@ -522,61 +621,95 @@ const SearchManager = {
 };
 
 // ===========================
-// STATISTICS MANAGEMENT
+// STATISTICS MANAGER
 // ===========================
-const StatsManager = {
-  loadStats() {
-    Utils.toggleLoadingState('staff', true);
-    Utils.toggleLoadingState('staff-male', true);
-    Utils.toggleLoadingState('staff-female', true);
+var StatsManager = {
+  /**
+   * Initialize statistics cards
+   */
+  init: function() {
+    this.load();
+  },
+  /**
+   * Load statistics data
+   */
+  load: function() {
+    this.toggleAllLoadingStates(true);
     $.ajax({ url: '{{ route('resident.staff.stats') }}', method: 'GET' })
-      .done((response) => {
-        if (response.success) {
-          // Total staff
-          $('#staff-value').text(response.data.total.count ?? '--');
-          $('#staff-last-updated').text(response.data.total.lastUpdateTime ?? '--');
-          // Male staff
-          $('#staff-male-value').text(response.data.male.count ?? '--');
-          $('#staff-male-last-updated').text(response.data.male.lastUpdateTime ?? '--');
-          // Female staff
-          $('#staff-female-value').text(response.data.female.count ?? '--');
-          $('#staff-female-last-updated').text(response.data.female.lastUpdateTime ?? '--');
-        } else {
-          $('#staff-value, #staff-male-value, #staff-female-value').text('N/A');
-          $('#staff-last-updated, #staff-male-last-updated, #staff-female-last-updated').text('N/A');
-        }
-        Utils.toggleLoadingState('staff', false);
-        Utils.toggleLoadingState('staff-male', false);
-        Utils.toggleLoadingState('staff-female', false);
-      })
-      .fail(() => {
-        $('#staff-value, #staff-male-value, #staff-female-value').text('N/A');
-        $('#staff-last-updated, #staff-male-last-updated, #staff-female-last-updated').text('N/A');
-        Utils.toggleLoadingState('staff', false);
-        Utils.toggleLoadingState('staff-male', false);
-        Utils.toggleLoadingState('staff-female', false);
-        Utils.showError('Failed to load staff statistics');
-      });
+      .done(this.handleSuccess.bind(this))
+      .fail(this.handleError.bind(this))
+      .always(this.toggleAllLoadingStates.bind(this, false));
+  },
+  /**
+   * Handle successful stats fetch
+   * @param {object} response
+   */
+  handleSuccess: function(response) {
+    if (response.success) {
+      let stats = response.data;
+      this.updateStatElement('staff', stats.total.count, stats.total.lastUpdateTime);
+      this.updateStatElement('staff-male', stats.male.count, stats.male.lastUpdateTime);
+      this.updateStatElement('staff-female', stats.female.count, stats.female.lastUpdateTime);
+    } else {
+      this.setAllStatsToNA();
+    }
+  },
+  /**
+   * Handle error in stats fetch
+   */
+  handleError: function() {
+    this.setAllStatsToNA();
+    Utils.showError('Failed to load staff statistics');
+  },
+  /**
+   * Update a single stat card
+   * @param {string} elementId
+   * @param {string|number} value
+   * @param {string} lastUpdateTime
+   */
+  updateStatElement: function(elementId, value, lastUpdateTime) {
+    $('#' + elementId + '-value').text(value ?? '0');
+    $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--');
+  },
+  /**
+   * Set all stat cards to N/A
+   */
+  setAllStatsToNA: function() {
+    ['staff', 'staff-male', 'staff-female'].forEach(function(elementId) {
+      $('#' + elementId + '-value').text('N/A');
+      $('#' + elementId + '-last-updated').text('N/A');
+    });
+  },
+  /**
+   * Toggle loading state for all stat cards
+   * @param {boolean} isLoading
+   */
+  toggleAllLoadingStates: function(isLoading) {
+    ['staff', 'staff-male', 'staff-female'].forEach(function(elementId) {
+      Utils.toggleLoadingState(elementId, isLoading);
+    });
   }
 };
 
 // ===========================
-// MAIN APPLICATION
+// MAIN APP INITIALIZER
 // ===========================
-const StaffApp = {
-  init() {
-    StaffManager.handleAddStaff();
-    StaffManager.handleEditStaff();
-    StaffManager.handleViewStaff();
-    StaffManager.handleDeleteStaff();
-    StaffManager.handleFormSubmit();
-    SearchManager.initializeAdvancedSearch();
+var StaffApp = {
+  /**
+   * Initialize all managers
+   */
+  init: function() {
+    StaffManager.init();
+    SearchManager.init();
     SelectManager.init();
-    StatsManager.loadStats();
+    StatsManager.init();
   }
 };
 
-$(document).ready(() => {
+// ===========================
+// DOCUMENT READY
+// ===========================
+$(document).ready(function() {
   StaffApp.init();
 });
 </script>

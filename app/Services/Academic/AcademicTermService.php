@@ -3,14 +3,13 @@
 namespace App\Services\Academic;
 
 use App\Models\AcademicTerm;
-use App\Services\BaseService;
 use App\Batches\AcademicTermReservationActivationBatch;
 use App\Exceptions\BusinessValidationException;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Database\Eloquent\Builder;
 
-class AcademicTermService extends BaseService
+class AcademicTermService
 {
     /**
      * The model class to use for this service.
@@ -28,7 +27,7 @@ class AcademicTermService extends BaseService
     {
         $code = $this->generateCode($data['season'], $data['year']);
         
-        return $this->create([
+        return AcademicTerm::create([
             'season' => $data['season'],
             'year' => $data['year'],
             'code' => $code,
@@ -60,7 +59,7 @@ class AcademicTermService extends BaseService
             'end_date' => $data['end_date'] ?? null,
         ];
         
-        $this->update($term->id, $updateData);
+        $term->update($updateData);
         
         return $term->fresh();
     }
@@ -88,7 +87,7 @@ class AcademicTermService extends BaseService
         if ($term->reservations()->count() > 0) {
             throw new BusinessValidationException('Cannot delete term that has reservations assigned.');
         }
-        $this->delete($term->id);
+        $term->delete();
     }
 
     /**
@@ -198,8 +197,7 @@ class AcademicTermService extends BaseService
      */
     public function getAll(): array
     {
-        return AcademicTerm::where('active', true)
-            ->orderBy('year', 'desc')
+        return AcademicTerm::orderBy('year', 'desc')
             ->orderBy('season')
             ->get()
             ->map(function ($term) {
@@ -245,9 +243,9 @@ class AcademicTermService extends BaseService
      */
     public function getStats(): array
     {
-        $totalTerms = $this->count();
-        $activeTerms = $this->count(['active' => true]);
-        $inactiveTerms = $this->count(['active' => false]);
+        $totalTerms = AcademicTerm::count();
+        $activeTerms = AcademicTerm::where('active', true)->count();
+        $inactiveTerms = AcademicTerm::where('active', false)->count();
         $currentTerm = AcademicTerm::where('current', true)->first();
         $lastUpdateTime = formatDate(AcademicTerm::max('updated_at'));
 
@@ -278,16 +276,21 @@ class AcademicTermService extends BaseService
      */
     public function getDatatable(): JsonResponse
     {
-        $terms = AcademicTerm::with('reservations');
+        $terms = AcademicTerm::withCount('reservations');
 
         $terms = $this->applySearchFilters($terms);
 
         return DataTables::of($terms)
             ->addIndexColumn()
             ->addColumn('name', fn($term) => $term->name)
-            ->addColumn('reservations', fn($term) => $term->reservations->count())
+            ->addColumn('start_date', fn($term) => formatDate($term->start_date))
+            ->addColumn('end_date', fn($term) => formatDate($term->end_date))
+            ->addColumn('reservations', fn($term) => formatNumber($term->reservations_count))
             ->addColumn('status', fn($term) => $this->renderStatusBadge($term))
             ->addColumn('action', fn($term) => $this->renderActionButtons($term))
+            ->orderColumn('reservations', 'reservations_count $1')
+            ->orderColumn('start_date', 'start_date $1')
+            ->orderColumn('end_date', 'end_date $1')
             ->rawColumns(['status', 'current', 'action'])
             ->make(true);
     }

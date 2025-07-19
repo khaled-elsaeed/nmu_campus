@@ -2,120 +2,149 @@
 
 namespace App\Http\Controllers\Housing;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Services\ApartmentService;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\{Request, JsonResponse};
 use Illuminate\View\View;
+use App\Services\Housing\ApartmentService;
+use App\Models\Apartment;
+use App\Exceptions\BusinessValidationException;
+use Exception;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Housing\ApartmentStoreRequest;
+use App\Http\Requests\Housing\ApartmentUpdateRequest;
 
 class ApartmentController extends Controller
 {
+    /**
+     * ApartmentController constructor.
+     *
+     * @param ApartmentService $apartmentService
+     */
     public function __construct(protected ApartmentService $apartmentService)
     {}
 
-    public function index(Request $request): View
+    /**
+     * Display the apartment management page.
+     *
+     * @return View
+     */
+    public function index(): View
     {
         return view('housing.apartment');
     }
 
-    public function show($id): JsonResponse
-    {
-        try {
-            $apartment = $this->apartmentService->show($id);
-            if (!$apartment) {
-                return errorResponse('Apartment not found', [], 404);
-            }
-            return successResponse('Apartment fetched successfully', $apartment);
-        } catch (\Exception $e) {
-            logError('ApartmentController@show', $e, ['id' => $id]);
-            return errorResponse('Failed to fetch apartment', [$e->getMessage()]);
-        }
-    }
-
-    public function update(Request $request, $id): JsonResponse
-    {
-        try {
-            $validated = $request->all();
-            $apartment = $this->apartmentService->update($id, $validated);
-            return successResponse('Apartment updated successfully', $apartment);
-        } catch (\Exception $e) {
-            logError('ApartmentController@update', $e, ['id' => $id, 'request' => $request->all()]);
-            return errorResponse('Failed to update apartment', [$e->getMessage()]);
-        }
-    }
-
-    public function destroy($id): JsonResponse
-    {
-        try {
-            $deleted = $this->apartmentService->delete($id);
-            if (!$deleted) {
-                return errorResponse('Apartment not found', [], 404);
-            }
-            return successResponse('Apartment deleted successfully');
-        } catch (\Exception $e) {
-            logError('ApartmentController@destroy', $e, ['id' => $id]);
-            return errorResponse('Failed to delete apartment', [$e->getMessage()]);
-        }
-    }
-
+    /**
+     * Get apartment statistics.
+     *
+     * @return JsonResponse
+     */
     public function stats(): JsonResponse
     {
         try {
-            $stats = $this->apartmentService->stats();
-            return successResponse('Apartment stats fetched successfully', $stats);
-        } catch (\Exception $e) {
+            $stats = $this->apartmentService->getStats();
+            return successResponse('Stats fetched successfully.', $stats);
+        } catch (Exception $e) {
             logError('ApartmentController@stats', $e);
-            return errorResponse('Failed to fetch apartment stats', [$e->getMessage()]);
+            return errorResponse('Internal server error.', [], 500);
         }
     }
 
-    public function datatable(Request $request): JsonResponse
+    /**
+     * Get apartment data for DataTables.
+     *
+     * @return JsonResponse
+     */
+    public function datatable(): JsonResponse
     {
         try {
-            $result = $this->apartmentService->datatable($request->all());
-            return $result;
-        } catch (\Exception $e) {
-            logError('ApartmentController@datatable', $e, ['request' => $request->all()]);
-            return errorResponse('Failed to fetch apartment datatable', [$e->getMessage()]);
+            return $this->apartmentService->getDatatable();
+        } catch (Exception $e) {
+            logError('ApartmentController@datatable', $e);
+            return errorResponse('Internal server error.', [], 500);
         }
     }
 
+    /**
+     * Display the specified apartment.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function show($id): JsonResponse
+    {
+        try {
+            $apartment = $this->apartmentService->getApartment($id);
+            return successResponse('Apartment details fetched successfully.', $apartment);
+        } catch (Exception $e) {
+            logError('ApartmentController@show', $e, ['apartment_id' => $id]);
+            return errorResponse('Internal server error.', [], 500);
+        }
+    }
+
+
+    /**
+     * Remove the specified apartment.
+     *
+     * @param Apartment $apartment
+     * @return JsonResponse
+     */
+    public function destroy(Apartment $apartment): JsonResponse
+    {
+        try {
+            $this->apartmentService->deleteApartment($apartment);
+            return successResponse('Apartment deleted successfully.');
+        } catch (BusinessValidationException $e) {
+            return errorResponse($e->getMessage(), [], $e->getCode());
+        } catch (Exception $e) {
+            logError('ApartmentController@destroy', $e, ['apartment_id' => $apartment->id]);
+            return errorResponse('Internal server error.', [], 500);
+        }
+    }
+
+    /**
+     * Get all apartments (for dropdown and forms).
+     *
+     * @return JsonResponse
+     */
     public function all(): JsonResponse
     {
         try {
-            $apartments = $this->apartmentService->list();
-            return successResponse('Apartments fetched successfully', $apartments);
+            $apartments = $this->apartmentService->getAll();
+            return successResponse('Apartments fetched successfully.', $apartments);
         } catch (Exception $e) {
             logError('ApartmentController@all', $e);
-            return errorResponse('Failed to fetch apartments', [$e->getMessage()]);
+            return errorResponse('Internal server error.', [], 500);
         }
     }
 
-    public function activate($id):JsonResponse
+    /**
+     * Activate an apartment (set active = true)
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function activate($id): JsonResponse
     {
         try {
-            $apartment = $this->apartmentService->update($id, ['active' => true]);
-            if (!$apartment) {
-                return errorResponse('Apartment not found', [], 404);
-            }
-            return successResponse('Apartment activated successfully', $apartment);
-        } catch (\Exception $e) {
-            logError('ApartmentController@activate', $e, ['id' => $id]);
-            return errorResponse('Failed to activate apartment', [$e->getMessage()]);
+            $apartment = $this->apartmentService->setActive($id, true);
+            return successResponse('Apartment activated successfully.', $apartment);
+        } catch (Exception $e) {
+            logError('ApartmentController@activate', $e, ['apartment_id' => $id]);
+            return errorResponse('Failed to activate apartment.', [], 500);
         }
     }
 
+    /**
+     * Deactivate an apartment (set active = false)
+     * @param int $id
+     * @return JsonResponse
+     */
     public function deactivate($id): JsonResponse
     {
         try {
-            $apartment = $this->apartmentService->update($id, ['active' => false]);
-            if (!$apartment) {
-                return errorResponse('Apartment not found', [], 404);
-            }
-            return successResponse('Apartment deactivated successfully', $apartment);
-        } catch (\Exception $e) {
-            logError('ApartmentController@deactivate', $e, ['id' => $id]);
-            return errorResponse('Failed to deactivate apartment', [$e->getMessage()]);
+            $apartment = $this->apartmentService->setActive($id, false);
+            return successResponse('Apartment deactivated successfully.', $apartment);
+        } catch (Exception $e) {
+            logError('ApartmentController@deactivate', $e, ['apartment_id' => $id]);
+            return errorResponse('Failed to deactivate apartment.', [], 500);
         }
     }
 }

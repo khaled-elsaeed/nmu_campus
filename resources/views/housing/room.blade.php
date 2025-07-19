@@ -66,17 +66,17 @@
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable 
-        :headers="['Number', 'Apartment', 'Building', 'Type', 'Building Purpose', 'Gender Restriction', 'Available Capacity', 'Active', 'Actions']"
+        :headers="['Number', 'Apartment', 'Building', 'Type', 'Building', 'Gender', 'Available Capacity', 'Active', 'Actions']"
         :columns="[
-            ['data' => 'number', 'name' => 'room_number'],
-            ['data' => 'apartment', 'name' => 'apartment_number'],
-            ['data' => 'building', 'name' => 'building_number'],
+            ['data' => 'number', 'name' => 'number'],
+            ['data' => 'apartment_number', 'name' => 'apartment_number'],
+            ['data' => 'building_number', 'name' => 'building_number'],
             ['data' => 'type', 'name' => 'type'],
             ['data' => 'purpose', 'name' => 'purpose'],
-            ['data' => 'gender_restriction', 'name' => 'building_gender_restriction'],
+            ['data' => 'building_gender_restriction', 'name' => 'building_gender_restriction'],
             ['data' => 'available_capacity', 'name' => 'available_capacity'],
             ['data' => 'active', 'name' => 'active'],
-            ['data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false]
+            ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false]
         ]"
         :ajax-url="route('housing.rooms.datatable')"
         :table-id="'rooms-table'"
@@ -213,11 +213,23 @@
 
 @push('scripts')
 <script>
-  
+/**
+ * Room Management Page JS
+ *
+ * Structure:
+ * - Utils: Common utility functions
+ * - ApiService: Handles all AJAX requests
+ * - StatsManager: Handles statistics cards
+ * - RoomManager: Handles CRUD and actions for rooms
+ * - SearchManager: Handles advanced search
+ * - SelectManager: Handles dropdown population
+ * - RoomApp: Initializes all managers
+ */
+
 // ===========================
-// CONSTANTS AND CONFIGURATION
+// ROUTES CONSTANTS
 // ===========================
-const ROUTES = {
+var ROUTES = {
   rooms: {
     stats: '{{ route('housing.rooms.stats') }}',
     show: '{{ route('housing.rooms.show', ':id') }}',
@@ -235,66 +247,34 @@ const ROUTES = {
   }
 };
 
-const SELECTORS = {
-  stats: {
-    rooms: '#rooms',
-    roomsMale: '#rooms-male',
-    roomsFemale: '#rooms-female'
-  },
-  table: '#rooms-table',
-  modals: {
-    room: '#roomModal',
-    viewRoom: '#viewRoomModal'
-  },
-  forms: {
-    room: '#roomForm',
-    advancedSearch: '#advancedRoomSearch'
-  },
-  filters: {
-    building: '#search_building_id',
-    apartment: '#search_apartment_number',
-    gender: '#search_gender_restriction'
-  },
-  buttons: {
-    clearFilters: '#clearRoomFiltersBtn',
-    editRoom: '.editRoomBtn',
-    viewRoom: '.viewRoomBtn',
-    deleteRoom: '.deleteRoomBtn',
-    activateRoom: '.activateRoomBtn',
-    deactivateRoom: '.deactivateRoomBtn'
-  }
-};
-
 // ===========================
 // UTILITY FUNCTIONS
 // ===========================
-const Utils = {
-  showError(message) {
-    Swal.fire({ 
-      title: 'Error', 
-      html: message, 
-      icon: 'error' 
-    });
+var Utils = {
+  /**
+   * Show an error alert
+   * @param {string} message
+   */
+  showError: function(message) {
+    Swal.fire({ title: 'Error', html: message, icon: 'error' });
   },
-
-  showSuccess(message) {
-    Swal.fire({ 
-      toast: true, 
-      position: 'top-end', 
-      icon: 'success', 
-      title: message, 
-      showConfirmButton: false, 
-      timer: 2500, 
-      timerProgressBar: true 
-    });
+  /**
+   * Show a success toast message
+   * @param {string} message
+   */
+  showSuccess: function(message) {
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: message, showConfirmButton: false, timer: 2500, timerProgressBar: true });
   },
-
-  toggleLoadingState(elementId, isLoading) {
-    const $value = $(`#${elementId}-value`);
-    const $loader = $(`#${elementId}-loader`);
-    const $updated = $(`#${elementId}-last-updated`);
-    const $updatedLoader = $(`#${elementId}-last-updated-loader`);
-    
+  /**
+   * Toggle loading state for a stat card
+   * @param {string} elementId
+   * @param {boolean} isLoading
+   */
+  toggleLoadingState: function(elementId, isLoading) {
+    var $value = $('#' + elementId + '-value');
+    var $loader = $('#' + elementId + '-loader');
+    var $updated = $('#' + elementId + '-last-updated');
+    var $updatedLoader = $('#' + elementId + '-last-updated-loader');
     if (isLoading) {
       $value.addClass('d-none');
       $loader.removeClass('d-none');
@@ -307,17 +287,30 @@ const Utils = {
       $updatedLoader.addClass('d-none');
     }
   },
-
-  replaceRouteId(route, id) {
+  /**
+   * Replace :id in a route string
+   * @param {string} route
+   * @param {string|number} id
+   * @returns {string}
+   */
+  replaceRouteId: function(route, id) {
     return route.replace(':id', id);
   },
-
-  formatDate(dateString) {
+  /**
+   * Format a date string
+   * @param {string} dateString
+   * @returns {string}
+   */
+  formatDate: function(dateString) {
     return dateString ? new Date(dateString).toLocaleString() : '--';
   },
-
-  confirmAction(options = {}) {
-    const defaults = {
+  /**
+   * Show a confirmation dialog
+   * @param {object} options
+   * @returns {Promise}
+   */
+  confirmAction: function(options) {
+    var defaults = {
       title: 'Are you sure?',
       text: "You won't be able to revert this!",
       icon: 'warning',
@@ -326,236 +319,296 @@ const Utils = {
       cancelButtonColor: '#d33',
       confirmButtonText: 'Yes, do it!'
     };
-    
-    return Swal.fire({ ...defaults, ...options });
+    return Swal.fire(Object.assign({}, defaults, options));
   }
 };
 
 // ===========================
-// API SERVICE LAYER
+// API SERVICE
 // ===========================
-const ApiService = {
-  request: (options) => $.ajax(options),
-
-  fetchStats: () => ApiService.request({
-    url: ROUTES.rooms.stats,
-    method: 'GET'
-  }),
-
-  fetchRoom: (id) => ApiService.request({
-    url: Utils.replaceRouteId(ROUTES.rooms.show, id),
-    method: 'GET'
-  }),
-
-  saveRoom: (data, id) => ApiService.request({
-    url: Utils.replaceRouteId(ROUTES.rooms.update, id),
-    method: 'PUT',
-    data
-  }),
-
-  deleteRoom: (id) => ApiService.request({
-    url: Utils.replaceRouteId(ROUTES.rooms.destroy, id),
-    method: 'DELETE'
-  }),
-
-  activateRoom: (id) => ApiService.request({
-    url: Utils.replaceRouteId(ROUTES.rooms.activate, id),
-    method: 'PATCH'
-  }),
-
-  deactivateRoom: (id) => ApiService.request({
-    url: Utils.replaceRouteId(ROUTES.rooms.deactivate, id),
-    method: 'PATCH'
-  }),
-
-  fetchBuildings: () => ApiService.request({
-    url: ROUTES.buildings.all,
-    method: 'GET'
-  }),
-
-  fetchApartments: () => ApiService.request({
-    url: ROUTES.apartments.all,
-    method: 'GET'
-  })
+var ApiService = {
+  /**
+   * Generic AJAX request
+   * @param {object} options
+   * @returns {jqXHR}
+   */
+  request: function(options) {
+    return $.ajax(options);
+  },
+  /**
+   * Fetch room statistics
+   * @returns {jqXHR}
+   */
+  fetchStats: function() {
+    return this.request({ url: ROUTES.rooms.stats, method: 'GET' });
+  },
+  /**
+   * Fetch a single room by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  fetchRoom: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.rooms.show, id), method: 'GET' });
+  },
+  /**
+   * Save (update) a room
+   * @param {object} data
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  saveRoom: function(data, id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.rooms.update, id), method: 'PUT', data: data });
+  },
+  /**
+   * Delete a room by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  deleteRoom: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.rooms.destroy, id), method: 'DELETE' });
+  },
+  /**
+   * Activate a room by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  activateRoom: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.rooms.activate, id), method: 'PATCH' });
+  },
+  /**
+   * Deactivate a room by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  deactivateRoom: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.rooms.deactivate, id), method: 'PATCH' });
+  },
+  /**
+   * Fetch all buildings
+   * @returns {jqXHR}
+   */
+  fetchBuildings: function() {
+    return this.request({ url: ROUTES.buildings.all, method: 'GET' });
+  },
+  /**
+   * Fetch all apartments
+   * @returns {jqXHR}
+   */
+  fetchApartments: function() {
+    return this.request({ url: ROUTES.apartments.all, method: 'GET' });
+  }
 };
 
 // ===========================
-// STATISTICS MANAGEMENT
+// STATISTICS MANAGER
 // ===========================
-const StatsManager = {
-  init() {
-    this.loadStats();
+var StatsManager = {
+  /**
+   * Initialize statistics cards
+   */
+  init: function() {
+    this.load();
   },
-
-  loadStats() {
-    this.toggleAllStatsLoading(true);
-
+  /**
+   * Load statistics data
+   */
+  load: function() {
+    this.toggleAllLoadingStates(true);
     ApiService.fetchStats()
-      .done((response) => {
-        if (response.success) {
-          this.updateStatsDisplay(response.data);
-        } else {
-          this.setStatsError();
-        }
-        this.toggleAllStatsLoading(false);
-      })
-      .fail(() => {
-        this.setStatsError();
-        this.toggleAllStatsLoading(false);
-        Utils.showError('Failed to load room statistics');
-      });
+      .done(this.handleSuccess.bind(this))
+      .fail(this.handleError.bind(this))
+      .always(this.toggleAllLoadingStates.bind(this, false));
   },
-
-  updateStatsDisplay(data) {
-    // Total rooms
-    $('#rooms-value').text(data.total.count);
-    $('#rooms-last-updated').text(data.total.lastUpdateTime);
-    
-    // Male rooms
-    $('#rooms-male-value').text(data.male.count);
-    $('#rooms-male-last-updated').text(data.male.lastUpdateTime);
-    
-    // Female rooms
-    $('#rooms-female-value').text(data.female.count);
-    $('#rooms-female-last-updated').text(data.female.lastUpdateTime);
+  /**
+   * Handle successful stats fetch
+   * @param {object} response
+   */
+  handleSuccess: function(response) {
+    if (response.success) {
+      let stats = response.data;
+      this.updateStatElement('rooms', stats.total.total, stats.total.lastUpdateTime);
+      this.updateStatElement('rooms-male', stats.male.total, stats.male.lastUpdateTime);
+      this.updateStatElement('rooms-female', stats.female.total, stats.female.lastUpdateTime);
+    } else {
+      this.setAllStatsToNA();
+    }
   },
-
-  setStatsError() {
-    $('#rooms-value, #rooms-male-value, #rooms-female-value').text('N/A');
-    $('#rooms-last-updated, #rooms-male-last-updated, #rooms-female-last-updated').text('N/A');
+  /**
+   * Handle error in stats fetch
+   */
+  handleError: function() {
+    this.setAllStatsToNA();
+    Utils.showError('Failed to load room statistics');
   },
-
-  toggleAllStatsLoading(isLoading) {
-    Utils.toggleLoadingState('rooms', isLoading);
-    Utils.toggleLoadingState('rooms-male', isLoading);
-    Utils.toggleLoadingState('rooms-female', isLoading);
+  /**
+   * Update a single stat card
+   * @param {string} elementId
+   * @param {string|number} value
+   * @param {string} lastUpdateTime
+   */
+  updateStatElement: function(elementId, value, lastUpdateTime) {
+    $('#' + elementId + '-value').text(value ?? '0');
+    $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--');
+  },
+  /**
+   * Set all stat cards to N/A
+   */
+  setAllStatsToNA: function() {
+    ['rooms', 'rooms-male', 'rooms-female'].forEach(function(elementId) {
+      $('#' + elementId + '-value').text('N/A');
+      $('#' + elementId + '-last-updated').text('N/A');
+    });
+  },
+  /**
+   * Toggle loading state for all stat cards
+   * @param {boolean} isLoading
+   */
+  toggleAllLoadingStates: function(isLoading) {
+    ['rooms', 'rooms-male', 'rooms-female'].forEach(function(elementId) {
+      Utils.toggleLoadingState(elementId, isLoading);
+    });
   }
 };
 
 // ===========================
-// ROOM MANAGEMENT
+// ROOM MANAGER
 // ===========================
-const RoomManager = {
+var RoomManager = {
   currentRoomId: null,
-
-  init() {
+  /**
+   * Initialize room manager
+   */
+  init: function() {
     this.bindEvents();
   },
-
-  bindEvents() {
-    $(document).on('click', SELECTORS.buttons.editRoom, (e) => this.handleEditRoom(e));
-    $(document).on('click', SELECTORS.buttons.viewRoom, (e) => this.handleViewRoom(e));
-    $(document).on('click', SELECTORS.buttons.deleteRoom, (e) => this.handleDeleteRoom(e));
-    $(document).on('click', SELECTORS.buttons.activateRoom, (e) => this.handleActivateRoom(e));
-    $(document).on('click', SELECTORS.buttons.deactivateRoom, (e) => this.handleDeactivateRoom(e));
-    $(SELECTORS.forms.room).on('submit', (e) => this.handleFormSubmit(e));
+  /**
+   * Bind all room-related events
+   */
+  bindEvents: function() {
+    var self = this;
+    $(document).on('click', '.editRoomBtn', function(e) { self.handleEditRoom(e); });
+    $(document).on('click', '.viewRoomBtn', function(e) { self.handleViewRoom(e); });
+    $(document).on('click', '.deleteRoomBtn', function(e) { self.handleDeleteRoom(e); });
+    $(document).on('click', '.activateRoomBtn', function(e) { self.handleActivateRoom(e); });
+    $(document).on('click', '.deactivateRoomBtn', function(e) { self.handleDeactivateRoom(e); });
+    $('#roomForm').on('submit', function(e) { self.handleFormSubmit(e); });
   },
-
-  handleEditRoom(e) {
-    const roomId = $(e.currentTarget).data('id');
+  /**
+   * Handle edit room button click
+   */
+  handleEditRoom: function(e) {
+    var roomId = $(e.currentTarget).data('id');
     this.currentRoomId = roomId;
-    
     ApiService.fetchRoom(roomId)
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          this.populateEditForm(response.data);
-          $(SELECTORS.modals.room).modal('show');
+          RoomManager.populateEditForm(response.data);
+          $('#roomModal').modal('show');
         }
       })
-      .fail(() => {
-        $(SELECTORS.modals.room).modal('hide');
+      .fail(function() {
+        $('#roomModal').modal('hide');
         Utils.showError('Failed to load room data');
       });
   },
-
-  handleViewRoom(e) {
-    const roomId = $(e.currentTarget).data('id');
-    
+  /**
+   * Handle view room button click
+   */
+  handleViewRoom: function(e) {
+    var roomId = $(e.currentTarget).data('id');
     ApiService.fetchRoom(roomId)
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          this.populateViewModal(response.data);
-          $(SELECTORS.modals.viewRoom).modal('show');
+          RoomManager.populateViewModal(response.data);
+          $('#viewRoomModal').modal('show');
         }
       })
-      .fail(() => {
-        $(SELECTORS.modals.viewRoom).modal('hide');
+      .fail(function() {
+        $('#viewRoomModal').modal('hide');
         Utils.showError('Failed to load room data');
       });
   },
-
-  handleDeleteRoom(e) {
-    const roomId = $(e.currentTarget).data('id');
-    
+  /**
+   * Handle delete room button click
+   */
+  handleDeleteRoom: function(e) {
+    var roomId = $(e.currentTarget).data('id');
     Utils.confirmAction({
       title: 'Delete Room?',
       text: "You won't be able to revert this!",
       confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
+    }).then(function(result) {
       if (result.isConfirmed) {
-        this.deleteRoom(roomId);
+        RoomManager.deleteRoom(roomId);
       }
     });
   },
-
-  handleActivateRoom(e) {
+  /**
+   * Handle activate room button click
+   */
+  handleActivateRoom: function(e) {
     e.preventDefault();
-    const roomId = $(e.currentTarget).data('id');
-    
+    var roomId = $(e.currentTarget).data('id');
     Utils.confirmAction({
       title: 'Activate Room?',
       text: 'Are you sure you want to activate this room?',
       confirmButtonText: 'Yes, activate it!'
-    }).then((result) => {
+    }).then(function(result) {
       if (result.isConfirmed) {
-        this.toggleRoomStatus(roomId, true, $(e.currentTarget));
+        RoomManager.toggleRoomStatus(roomId, true, $(e.currentTarget));
       }
     });
   },
-
-  handleDeactivateRoom(e) {
+  /**
+   * Handle deactivate room button click
+   */
+  handleDeactivateRoom: function(e) {
     e.preventDefault();
-    const roomId = $(e.currentTarget).data('id');
-    
+    var roomId = $(e.currentTarget).data('id');
     Utils.confirmAction({
       title: 'Deactivate Room?',
       text: 'Are you sure you want to deactivate this room?',
       confirmButtonText: 'Yes, deactivate it!'
-    }).then((result) => {
+    }).then(function(result) {
       if (result.isConfirmed) {
-        this.toggleRoomStatus(roomId, false, $(e.currentTarget));
+        RoomManager.toggleRoomStatus(roomId, false, $(e.currentTarget));
       }
     });
   },
-
-  handleFormSubmit(e) {
+  /**
+   * Handle form submit
+   */
+  handleFormSubmit: function(e) {
     e.preventDefault();
-    const formData = $(e.currentTarget).serialize();
-    
+    var formData = $(e.currentTarget).serialize();
     ApiService.saveRoom(formData, this.currentRoomId)
-      .done(() => {
-        $(SELECTORS.modals.room).modal('hide');
-        this.reloadTable();
+      .done(function() {
+        $('#roomModal').modal('hide');
+        RoomManager.reloadTable();
         Utils.showSuccess('Room has been saved successfully.');
-        StatsManager.loadStats();
+        StatsManager.load();
       })
-      .fail((xhr) => {
-        $(SELECTORS.modals.room).modal('hide');
-        const message = xhr.responseJSON?.message || 'An error occurred. Please check your input.';
+      .fail(function(xhr) {
+        $('#roomModal').modal('hide');
+        var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred. Please check your input.';
         Utils.showError(message);
       });
   },
-
-  populateEditForm(room) {
+  /**
+   * Populate edit form
+   */
+  populateEditForm: function(room) {
     $('#type').val(room.type).prop('disabled', false);
     $('#purpose').val(room.purpose).prop('disabled', false);
     $('#room_description').val(room.description).prop('disabled', false);
   },
-
-  populateViewModal(room) {
-    $('#view-room-number').text(`Room ${room.number}`);
-    $('#view-room-apartment').text(`Apartment ${room.apartment}`);
-    $('#view-room-building').text(`Building ${room.building}`);
+  /**
+   * Populate view modal
+   */
+  populateViewModal: function(room) {
+    $('#view-room-number').text('Room ' + room.number);
+    $('#view-room-apartment').text('Apartment ' + room.apartment);
+    $('#view-room-building').text('Building ' + room.building);
     $('#view-room-type').text(room.type);
     $('#view-room-gender-restriction').text(room.gender_restriction);
     $('#view-room-is-active').text(room.active ? 'Active' : 'Inactive');
@@ -565,130 +618,146 @@ const RoomManager = {
     $('#view-room-current-occupancy').text(room.current_occupancy);
     $('#view-room-available-capacity').text(room.available_capacity);
   },
-
-  deleteRoom(roomId) {
+  /**
+   * Delete room
+   */
+  deleteRoom: function(roomId) {
     ApiService.deleteRoom(roomId)
-      .done(() => {
-        this.reloadTable();
+      .done(function() {
+        RoomManager.reloadTable();
         Utils.showSuccess('Room has been deleted.');
-        StatsManager.loadStats();
+        StatsManager.load();
       })
-      .fail((xhr) => {
-        const message = xhr.responseJSON?.message || 'Failed to delete room.';
+      .fail(function(xhr) {
+        var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to delete room.';
         Utils.showError(message);
       });
   },
-
-  toggleRoomStatus(roomId, isActivate, $button) {
-    const apiCall = isActivate ? ApiService.activateRoom : ApiService.deactivateRoom;
-    const successMessage = isActivate ? 'activated' : 'deactivated';
-    
+  /**
+   * Toggle room status (activate/deactivate)
+   */
+  toggleRoomStatus: function(roomId, isActivate, $button) {
+    var apiCall = isActivate ? ApiService.activateRoom : ApiService.deactivateRoom;
+    var successMessage = isActivate ? 'activated' : 'deactivated';
     $button.prop('disabled', true);
-    
     apiCall(roomId)
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          Utils.showSuccess(`Room ${successMessage} successfully`);
-          this.reloadTable();
+          Utils.showSuccess('Room ' + successMessage + ' successfully');
+          RoomManager.reloadTable();
         } else {
           Utils.showError(response.message || 'Operation failed');
         }
       })
-      .fail((xhr) => {
-        Utils.showError(xhr.responseJSON?.message || 'Operation failed');
+      .fail(function(xhr) {
+        Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Operation failed');
       })
-      .always(() => {
+      .always(function() {
         $button.prop('disabled', false);
       });
   },
-
-  reloadTable() {
-    $(SELECTORS.table).DataTable().ajax.reload(null, false);
+  /**
+   * Reload the rooms table
+   */
+  reloadTable: function() {
+    $('#rooms-table').DataTable().ajax.reload(null, false);
   }
 };
 
 // ===========================
-// SEARCH FUNCTIONALITY
+// SEARCH MANAGER
 // ===========================
-const SearchManager = {
-  init() {
+var SearchManager = {
+  /**
+   * Initialize search manager
+   */
+  init: function() {
     this.bindEvents();
   },
-
-  bindEvents() {
-    $(Object.values(SELECTORS.filters).join(', ')).on('keyup change', () => {
-      this.reloadTable();
-    });
-    
-    $(SELECTORS.buttons.clearFilters).on('click', () => {
-      this.clearFilters();
-    });
+  /**
+   * Bind search and clear events
+   */
+  bindEvents: function() {
+    var self = this;
+    $('#search_building_id, #search_apartment_number, #search_gender_restriction').on('keyup change', function() { self.reloadTable(); });
+    $('#clearRoomFiltersBtn').on('click', function() { self.clearFilters(); });
   },
-
-  clearFilters() {
-    $(Object.values(SELECTORS.filters).join(', ')).val('');
+  /**
+   * Clear all filters
+   */
+  clearFilters: function() {
+    $('#search_building_id, #search_apartment_number, #search_gender_restriction').val('');
     this.reloadTable();
   },
-
-  reloadTable() {
-    $(SELECTORS.table).DataTable().ajax.reload();
+  /**
+   * Reload the rooms table
+   */
+  reloadTable: function() {
+    $('#rooms-table').DataTable().ajax.reload();
   }
 };
 
 // ===========================
-// SELECT MANAGEMENT
+// SELECT MANAGER
 // ===========================
-const SelectManager = {
-  init() {
+var SelectManager = {
+  /**
+   * Initialize select manager
+   */
+  init: function() {
     this.populateBuildingSelect();
     this.populateApartmentSelect();
   },
-
-  populateBuildingSelect() {
+  /**
+   * Populate building select dropdown
+   */
+  populateBuildingSelect: function() {
     ApiService.fetchBuildings()
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          const $select = $(SELECTORS.filters.building);
+          var $select = $('#search_building_id');
           $select.empty().append('<option value="">All</option>');
-          
-          response.data.forEach(building => {
-            $select.append(`<option value="${building.id}">Building ${building.number}</option>`);
+          response.data.forEach(function(building) {
+            $select.append('<option value="' + building.id + '">Building ' + building.number + '</option>');
           });
         }
       })
-      .fail(() => {
+      .fail(function() {
         Utils.showError('Failed to load buildings');
       });
   },
-
-  populateApartmentSelect() {
+  /**
+   * Populate apartment select dropdown
+   */
+  populateApartmentSelect: function() {
     ApiService.fetchApartments()
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          const $select = $(SELECTORS.filters.apartment);
+          var $select = $('#search_apartment_number');
           $select.empty().append('<option value="">All</option>');
-          
-          const uniqueNumbers = new Set();
-          response.data.forEach(apartment => {
+          var uniqueNumbers = new Set();
+          response.data.forEach(function(apartment) {
             if (!uniqueNumbers.has(apartment.number)) {
               uniqueNumbers.add(apartment.number);
-              $select.append(`<option value="${apartment.number}">Apartment ${apartment.number}</option>`);
+              $select.append('<option value="' + apartment.number + '">Apartment ' + apartment.number + '</option>');
             }
           });
         }
       })
-      .fail(() => {
+      .fail(function() {
         Utils.showError('Failed to load apartments');
       });
   }
 };
 
 // ===========================
-// MAIN APPLICATION
+// MAIN APP INITIALIZER
 // ===========================
-const RoomApp = {
-  init() {
-    // Initialize all managers
+var RoomApp = {
+  /**
+   * Initialize all managers
+   */
+  init: function() {
     StatsManager.init();
     RoomManager.init();
     SearchManager.init();
@@ -699,7 +768,7 @@ const RoomApp = {
 // ===========================
 // DOCUMENT READY
 // ===========================
-$(document).ready(() => {
+$(document).ready(function() {
   RoomApp.init();
 });
   

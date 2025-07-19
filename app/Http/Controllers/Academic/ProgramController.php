@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers\Academic;
 
-use Illuminate\Http\{Request, JsonResponse};
+use Illuminate\Http\{JsonResponse, Request};
 use Illuminate\View\View;
 use App\Services\Academic\ProgramService;
 use App\Models\Program;
 use App\Exceptions\BusinessValidationException;
 use Exception;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Academic\ProgramStoreRequest;
+use App\Http\Requests\Academic\ProgramUpdateRequest;
 
 class ProgramController extends Controller
 {
@@ -64,19 +66,13 @@ class ProgramController extends Controller
     /**
      * Store a newly created program.
      *
-     * @param Request $request
+     * @param ProgramStoreRequest $request
      * @return JsonResponse
      */
-    public function store(Request $request): JsonResponse
+    public function store(ProgramStoreRequest $request): JsonResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:programs,code',
-            'faculty_id' => 'required|exists:faculties,id'
-        ]);
-
         try {
-            $validated = $request->all();
+            $validated = $request->validated();
             $program = $this->programService->createProgram($validated);
             return successResponse('Program created successfully.', $program);
         } catch (Exception $e) {
@@ -88,16 +84,16 @@ class ProgramController extends Controller
     /**
      * Display the specified program.
      *
-     * @param Program $program
+     * @param int $id
      * @return JsonResponse
      */
-    public function show(Program $program): JsonResponse
+    public function show($id): JsonResponse
     {
         try {
-            $program = $this->programService->getProgram($program);
+            $program = $this->programService->getProgram($id);
             return successResponse('Program details fetched successfully.', $program);
         } catch (Exception $e) {
-            logError('ProgramController@show', $e, ['program_id' => $program->id]);
+            logError('ProgramController@show', $e, ['program_id' => $id]);
             return errorResponse('Internal server error.', [], 500);
         }
     }
@@ -105,24 +101,18 @@ class ProgramController extends Controller
     /**
      * Update the specified program.
      *
-     * @param Request $request
-     * @param Program $program
+     * @param ProgramUpdateRequest $request
+     * @param int $id
      * @return JsonResponse
      */
-    public function update(Request $request, Program $program): JsonResponse
+    public function update(ProgramUpdateRequest $request, $id): JsonResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:programs,code,' . $program->id,
-            'faculty_id' => 'required|exists:faculties,id'
-        ]);
-
         try {
-            $validated = $request->all();
-            $program = $this->programService->updateProgram($program, $validated);
+            $validated = $request->validated();
+            $program = $this->programService->updateProgram(\App\Models\Program::findOrFail($id), $validated);
             return successResponse('Program updated successfully.', $program);
         } catch (Exception $e) {
-            logError('ProgramController@update', $e, ['program_id' => $program->id, 'request' => $request->all()]);
+            logError('ProgramController@update', $e, ['program_id' => $id, 'request' => $request->all()]);
             return errorResponse('Internal server error.', [], 500);
         }
     }
@@ -147,6 +137,22 @@ class ProgramController extends Controller
     }
 
     /**
+     * Get all programs (for dropdown and forms).
+     *
+     * @return JsonResponse
+     */
+    public function all(): JsonResponse
+    {
+        try {
+            $programs = $this->programService->getAll();
+            return successResponse('Programs fetched successfully.', $programs);
+        } catch (Exception $e) {
+            logError('ProgramController@all', $e);
+            return errorResponse('Internal server error.', [], 500);
+        }
+    }
+
+    /**
      * Get all faculties for dropdown.
      *
      * @return JsonResponse
@@ -158,22 +164,6 @@ class ProgramController extends Controller
             return successResponse('Faculties fetched successfully.', $faculties);
         } catch (Exception $e) {
             logError('ProgramController@getFaculties', $e);
-            return errorResponse('Internal server error.', [], 500);
-        }
-    }
-
-    /**
-     * Get all programs (for dropdown and forms).
-     *
-     * @return JsonResponse
-     */
-    public function all($id): JsonResponse
-    {
-        try {
-            $programs = $this->programService->getAll($id);
-            return successResponse('Programs fetched successfully.', $programs);
-        } catch (Exception $e) {
-            logError('ProgramController@all', $e);
             return errorResponse('Internal server error.', [], 500);
         }
     }

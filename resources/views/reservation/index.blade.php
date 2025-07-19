@@ -140,11 +140,23 @@
 
 @push('scripts')
 <script>
+/**
+ * Reservation Management Page JS
+ *
+ * Structure:
+ * - Utils: Common utility functions
+ * - ApiService: Handles all AJAX requests
+ * - StatsManager: Handles statistics cards
+ * - ReservationManager: Handles CRUD and actions for reservations
+ * - SearchManager: Handles advanced search
+ * - SelectManager: Handles dropdown population
+ * - ReservationApp: Initializes all managers
+ */
 
 // ===========================
-// CONSTANTS AND CONFIGURATION
+// ROUTES CONSTANTS
 // ===========================
-const ROUTES = {
+var ROUTES = {
   reservations: {
     stats: '{{ route("reservations.stats") }}',
     show: '{{ route("reservations.show", ":id") }}',
@@ -163,7 +175,7 @@ const ROUTES = {
   }
 };
 
-const SELECTORS = {
+var SELECTORS = {
   stats: {
     reservations: '#reservations',
     active: '#reservations-active',
@@ -188,14 +200,12 @@ const SELECTORS = {
     clearFilters: '#clearReservationFiltersBtn',
     viewReservation: '.viewReservationBtn',
     deleteReservation: '.deleteReservationBtn',
-    // activateReservation: '.activateReservationBtn', // Removed activateReservationBtn selector
   }
 };
 
-const MESSAGES = {
+var MESSAGES = {
   success: {
-    reservationDeleted: 'Reservation has been deleted.',
-    // reservationActivated: 'Reservation activated successfully.', // Removed reservationActivated message
+    reservationDeleted: 'Reservation has been deleted.'
   },
   error: {
     statsLoadFailed: 'Failed to load reservation statistics.',
@@ -212,12 +222,7 @@ const MESSAGES = {
       text: "You won't be able to revert this!",
       confirmButtonText: 'Yes, delete it!'
     },
-    // activateReservation: { // Removed activateReservation confirm message
-    //   title: 'Activate Reservation?',
-    //   text: 'Are you sure you want to activate this reservation?',
-    //   confirmButtonText: 'Yes, activate it!'
-    // },
-    cancelReservation: { // Added cancelReservation confirm message
+    cancelReservation: {
       title: 'Cancel Reservation?',
       text: 'Are you sure you want to cancel this reservation?',
       confirmButtonText: 'Yes, cancel it!'
@@ -228,33 +233,31 @@ const MESSAGES = {
 // ===========================
 // UTILITY FUNCTIONS
 // ===========================
-const Utils = {
-  showError(message) {
-    Swal.fire({ 
-      title: 'Error', 
-      html: message, 
-      icon: 'error' 
-    });
+var Utils = {
+  /**
+   * Show an error alert
+   * @param {string} message
+   */
+  showError: function(message) {
+    Swal.fire({ title: 'Error', html: message, icon: 'error' });
   },
-
-  showSuccess(message) {
-    Swal.fire({ 
-      toast: true, 
-      position: 'top-end', 
-      icon: 'success', 
-      title: message, 
-      showConfirmButton: false, 
-      timer: 2500, 
-      timerProgressBar: true 
-    });
+  /**
+   * Show a success toast message
+   * @param {string} message
+   */
+  showSuccess: function(message) {
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: message, showConfirmButton: false, timer: 2500, timerProgressBar: true });
   },
-
-  toggleLoadingState(elementId, isLoading) {
-    const $value = $(`#${elementId}-value`);
-    const $loader = $(`#${elementId}-loader`);
-    const $updated = $(`#${elementId}-last-updated`);
-    const $updatedLoader = $(`#${elementId}-last-updated-loader`);
-    
+  /**
+   * Toggle loading state for a stat card
+   * @param {string} elementId
+   * @param {boolean} isLoading
+   */
+  toggleLoadingState: function(elementId, isLoading) {
+    var $value = $('#' + elementId + '-value');
+    var $loader = $('#' + elementId + '-loader');
+    var $updated = $('#' + elementId + '-last-updated');
+    var $updatedLoader = $('#' + elementId + '-last-updated-loader');
     if (isLoading) {
       $value.addClass('d-none');
       $loader.removeClass('d-none');
@@ -267,17 +270,30 @@ const Utils = {
       $updatedLoader.addClass('d-none');
     }
   },
-
-  replaceRouteId(route, id) {
+  /**
+   * Replace :id in a route string
+   * @param {string} route
+   * @param {string|number} id
+   * @returns {string}
+   */
+  replaceRouteId: function(route, id) {
     return route.replace(':id', id);
   },
-
-  formatDate(dateString) {
+  /**
+   * Format a date string
+   * @param {string} dateString
+   * @returns {string}
+   */
+  formatDate: function(dateString) {
     return dateString ? new Date(dateString).toLocaleString() : '--';
   },
-
-  confirmAction(options = {}) {
-    const defaults = {
+  /**
+   * Show a confirmation dialog
+   * @param {object} options
+   * @returns {Promise}
+   */
+  confirmAction: function(options) {
+    var defaults = {
       title: 'Are you sure?',
       text: "You won't be able to revert this!",
       icon: 'warning',
@@ -286,210 +302,236 @@ const Utils = {
       cancelButtonColor: '#d33',
       confirmButtonText: 'Yes, do it!'
     };
-    return Swal.fire({ ...defaults, ...options });
+    return Swal.fire(Object.assign({}, defaults, options));
   },
-
-  getElementData(element, attribute) {
+  /**
+   * Get data attribute from element
+   * @param {HTMLElement} element
+   * @param {string} attribute
+   * @returns {*}
+   */
+  getElementData: function(element, attribute) {
     return $(element).data(attribute);
   },
-
-  disableButton($button, disabled = true) {
-    $button.prop('disabled', disabled);
+  /**
+   * Enable or disable a button
+   * @param {object} $button
+   * @param {boolean} disabled
+   */
+  disableButton: function($button, disabled) {
+    $button.prop('disabled', disabled === undefined ? true : disabled);
   }
 };
 
 // ===========================
-// API SERVICE LAYER
+// API SERVICE
 // ===========================
-const ApiService = {
-  request(options) {
+var ApiService = {
+  /**
+   * Generic AJAX request
+   * @param {object} options
+   * @returns {jqXHR}
+   */
+  request: function(options) {
     return $.ajax(options);
   },
-
-  fetchStats() {
-    return this.request({
-      url: ROUTES.reservations.stats,
-      method: 'GET'
-    });
+  /**
+   * Fetch reservation statistics
+   * @returns {jqXHR}
+   */
+  fetchStats: function() {
+    return this.request({ url: ROUTES.reservations.stats, method: 'GET' });
   },
-
-  fetchReservation(id) {
-    return this.request({
-      url: Utils.replaceRouteId(ROUTES.reservations.show, id),
-      method: 'GET'
-    });
+  /**
+   * Fetch a single reservation by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  fetchReservation: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.reservations.show, id), method: 'GET' });
   },
-
-  updateReservation(id, data) {
-    return this.request({
-      url: Utils.replaceRouteId(ROUTES.reservations.update, id),
-      method: 'PUT',
-      data
-    });
+  /**
+   * Update a reservation
+   * @param {string|number} id
+   * @param {object} data
+   * @returns {jqXHR}
+   */
+  updateReservation: function(id, data) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.reservations.update, id), method: 'PUT', data: data });
   },
-
-  deleteReservation(id) {
-    return this.request({
-      url: Utils.replaceRouteId(ROUTES.reservations.destroy, id),
-      method: 'DELETE'
-    });
+  /**
+   * Delete a reservation by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  deleteReservation: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.reservations.destroy, id), method: 'DELETE' });
   },
-
-  // activateReservation(id) { // Removed activateReservation API call
-  //   return this.request({
-  //     url: Utils.replaceRouteId(ROUTES.reservations.activate, id),
-  //     method: 'PATCH'
-  //   });
-  // },
-
-  fetchBuildings() {
-    return this.request({
-      url: ROUTES.buildings.all,
-      method: 'GET'
-    });
+  /**
+   * Fetch all buildings
+   * @returns {jqXHR}
+   */
+  fetchBuildings: function() {
+    return this.request({ url: ROUTES.buildings.all, method: 'GET' });
   },
-
-  fetchApartments(buildingId = null) {
-    const data = buildingId ? { building_id: buildingId } : {};
-    return this.request({
-      url: ROUTES.apartments.all,
-      method: 'GET',
-      data
-    });
+  /**
+   * Fetch all apartments for a building
+   * @param {string|number|null} buildingId
+   * @returns {jqXHR}
+   */
+  fetchApartments: function(buildingId) {
+    var data = buildingId ? { building_id: buildingId } : {};
+    return this.request({ url: ROUTES.apartments.all, method: 'GET', data: data });
   },
-
-  fetchRooms(apartmentId = null) {
-    const data = apartmentId ? { apartment_id: apartmentId } : {};
-    return this.request({
-      url: ROUTES.rooms.all,
-      method: 'GET',
-      data
-    });
+  /**
+   * Fetch all rooms for an apartment
+   * @param {string|number|null} apartmentId
+   * @returns {jqXHR}
+   */
+  fetchRooms: function(apartmentId) {
+    var data = apartmentId ? { apartment_id: apartmentId } : {};
+    return this.request({ url: ROUTES.rooms.all, method: 'GET', data: data });
   }
 };
 
 // ===========================
-// STATISTICS MANAGEMENT
+// STATISTICS MANAGER
 // ===========================
-const StatsManager = {
-  init() {
-    this.loadStats();
+var StatsManager = {
+  /**
+   * Initialize statistics cards
+   */
+  init: function() {
+    this.load();
   },
-
-  loadStats() {
-    this.toggleAllStatsLoading(true);
-    
+  /**
+   * Load statistics data
+   */
+  load: function() {
+    this.toggleAllLoadingStates(true);
     ApiService.fetchStats()
-      .done((response) => {
-        if (response.success) {
-          this.updateStatsDisplay(response.data);
-        } else {
-          this.setStatsError();
-        }
-      })
-      .fail(() => {
-        this.setStatsError();
-        Utils.showError(MESSAGES.error.statsLoadFailed);
-      })
-      .always(() => {
-        this.toggleAllStatsLoading(false);
-      });
+      .done(this.handleSuccess.bind(this))
+      .fail(this.handleError.bind(this))
+      .always(this.toggleAllLoadingStates.bind(this, false));
   },
-
-  updateStatsDisplay(data) {
-    this.updateSingleStat('reservations', data.total);
-    this.updateSingleStat('reservations-active', data.active);
-    this.updateSingleStat('reservations-inactive', data.inactive);
+  /**
+   * Handle successful stats fetch
+   * @param {object} response
+   */
+  handleSuccess: function(response) {
+    if (response.success) {
+      let stats = response.data;
+      this.updateStatElement('reservations', stats.total.count, stats.total.lastUpdateTime);
+      this.updateStatElement('reservations-active', stats.active.count, stats.active.lastUpdateTime);
+      this.updateStatElement('reservations-inactive', stats.inactive.count, stats.inactive.lastUpdateTime);
+    } else {
+      this.setAllStatsToNA();
+    }
   },
-
-  updateSingleStat(statId, data) {
-    $(`#${statId}-value`).text(data.count);
-    $(`#${statId}-last-updated`).text(data.lastUpdateTime);
+  /**
+   * Handle error in stats fetch
+   */
+  handleError: function() {
+    this.setAllStatsToNA();
+    Utils.showError('Failed to load reservation statistics');
   },
-
-  setStatsError() {
-    const statIds = ['reservations', 'reservations-active', 'reservations-inactive'];
-    statIds.forEach(id => {
-      $(`#${id}-value`).text('N/A');
-      $(`#${id}-last-updated`).text('N/A');
+  /**
+   * Update a single stat card
+   * @param {string} elementId
+   * @param {string|number} value
+   * @param {string} lastUpdateTime
+   */
+  updateStatElement: function(elementId, value, lastUpdateTime) {
+    $('#' + elementId + '-value').text(value ?? '0');
+    $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--');
+  },
+  /**
+   * Set all stat cards to N/A
+   */
+  setAllStatsToNA: function() {
+    ['reservations', 'reservations-active', 'reservations-inactive'].forEach(function(elementId) {
+      $('#' + elementId + '-value').text('N/A');
+      $('#' + elementId + '-last-updated').text('N/A');
     });
   },
-
-  toggleAllStatsLoading(isLoading) {
-    Utils.toggleLoadingState('reservations', isLoading);
-    Utils.toggleLoadingState('reservations-active', isLoading);
-    Utils.toggleLoadingState('reservations-inactive', isLoading);
+  /**
+   * Toggle loading state for all stat cards
+   * @param {boolean} isLoading
+   */
+  toggleAllLoadingStates: function(isLoading) {
+    ['reservations', 'reservations-active', 'reservations-inactive'].forEach(function(elementId) {
+      Utils.toggleLoadingState(elementId, isLoading);
+    });
   }
 };
 
 // ===========================
-// RESERVATION MANAGEMENT
+// RESERVATION MANAGER
 // ===========================
-const ReservationManager = {
-  init() {
+var ReservationManager = {
+  /**
+   * Initialize reservation manager
+   */
+  init: function() {
     this.bindEvents();
   },
-
-  bindEvents() {
+  /**
+   * Bind all reservation-related events
+   */
+  bindEvents: function() {
+    var self = this;
     $(document)
-      .on('click', SELECTORS.buttons.viewReservation, (e) => this.handleViewReservation(e))
-      .on('click', SELECTORS.buttons.deleteReservation, (e) => this.handleDeleteReservation(e)); // Removed activateReservation event handler
+      .on('click', SELECTORS.buttons.viewReservation, function(e) { self.handleViewReservation(e); })
+      .on('click', SELECTORS.buttons.deleteReservation, function(e) { self.handleDeleteReservation(e); });
   },
-
-  handleViewReservation(e) {
-    const reservationId = Utils.getElementData(e.currentTarget, 'id');
+  /**
+   * Handle view reservation button click
+   */
+  handleViewReservation: function(e) {
+    var reservationId = Utils.getElementData(e.currentTarget, 'id');
     this.viewReservation(reservationId);
   },
-
-  handleDeleteReservation(e) {
-    const reservationId = Utils.getElementData(e.currentTarget, 'id');
+  /**
+   * Handle delete reservation button click
+   */
+  handleDeleteReservation: function(e) {
+    var reservationId = Utils.getElementData(e.currentTarget, 'id');
     this.confirmAndDeleteReservation(reservationId);
   },
-
-  // handleActivateReservation(e) { // Removed handleActivateReservation
-  //   e.preventDefault();
-  //   const reservationId = Utils.getElementData(e.currentTarget, 'id');
-  //   this.confirmAndToggleReservationStatus(reservationId, true, $(e.currentTarget));
-  // },
-
-  viewReservation(reservationId) {
+  /**
+   * View reservation details
+   */
+  viewReservation: function(reservationId) {
     ApiService.fetchReservation(reservationId)
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          this.populateViewModal(response.data);
+          ReservationManager.populateViewModal(response.data);
           $(SELECTORS.modals.viewReservation).modal('show');
         } else {
           Utils.showError(response.message || MESSAGES.error.reservationLoadFailed);
         }
       })
-      .fail(() => {
+      .fail(function() {
         $(SELECTORS.modals.viewReservation).modal('hide');
         Utils.showError(MESSAGES.error.reservationLoadFailed);
       });
   },
-
-  confirmAndDeleteReservation(reservationId) {
+  /**
+   * Confirm and delete reservation
+   */
+  confirmAndDeleteReservation: function(reservationId) {
     Utils.confirmAction(MESSAGES.confirm.deleteReservation)
-      .then((result) => {
+      .then(function(result) {
         if (result.isConfirmed) {
-          this.deleteReservation(reservationId);
+          ReservationManager.deleteReservation(reservationId);
         }
       });
   },
-
-  // confirmAndToggleReservationStatus(reservationId, isActivate, $button) { // Removed confirm and toggle reservation status logic
-  //   const confirmMessage = isActivate ? MESSAGES.confirm.activateReservation : MESSAGES.confirm.cancelReservation;
-    
-  //   Utils.confirmAction(confirmMessage)
-  //     .then((result) => {
-  //       if (result.isConfirmed) {
-  //         this.toggleReservationStatus(reservationId, isActivate, $button);
-  //       }
-  //     });
-  // },
-
-  populateViewModal(reservation) {
-    const fields = [
+  /**
+   * Populate view modal with reservation data
+   */
+  populateViewModal: function(reservation) {
+    var fields = [
       { id: 'student', value: reservation.student_name },
       { id: 'room', value: reservation.room_number },
       { id: 'start-date', value: Utils.formatDate(reservation.start_date) },
@@ -497,194 +539,193 @@ const ReservationManager = {
       { id: 'status', value: reservation.status },
       { id: 'created', value: Utils.formatDate(reservation.created_at) }
     ];
-
-    fields.forEach(field => {
-      $(`#view-reservation-${field.id}`).text(field.value);
+    fields.forEach(function(field) {
+      $('#view-reservation-' + field.id).text(field.value);
     });
   },
-
-  deleteReservation(reservationId) {
+  /**
+   * Delete reservation
+   */
+  deleteReservation: function(reservationId) {
     ApiService.deleteReservation(reservationId)
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          this.reloadTable();
+          ReservationManager.reloadTable();
           Utils.showSuccess(MESSAGES.success.reservationDeleted);
-          StatsManager.loadStats();
+          StatsManager.load();
         } else {
           Utils.showError(response.message || MESSAGES.error.reservationDeleteFailed);
         }
       })
-      .fail((xhr) => {
-        const message = xhr.responseJSON?.message || MESSAGES.error.reservationDeleteFailed;
+      .fail(function(xhr) {
+        var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : MESSAGES.error.reservationDeleteFailed;
         Utils.showError(message);
       });
   },
-
-  // toggleReservationStatus(reservationId, isActivate, $button) { // Removed toggle reservation status logic
-  //   const apiCall = isActivate ? ApiService.activateReservation : ApiService.cancelReservation;
-  //   const successMessage = isActivate ? MESSAGES.success.reservationActivated : MESSAGES.success.reservationCancelled;
-    
-  //   Utils.disableButton($button, true);
-    
-  //   apiCall(reservationId)
-  //     .done((response) => {
-  //       if (response.success) {
-  //         Utils.showSuccess(successMessage);
-  //         this.reloadTable();
-  //         StatsManager.loadStats();
-  //       } else {
-  //         Utils.showError(response.message || MESSAGES.error.operationFailed);
-  //       }
-  //     })
-  //     .fail((xhr) => {
-  //       const message = xhr.responseJSON?.message || MESSAGES.error.operationFailed;
-  //       Utils.showError(message);
-  //     })
-  //     .always(() => {
-  //       Utils.disableButton($button, false);
-  //     });
-  // },
-
-  reloadTable() {
+  /**
+   * Reload the reservations table
+   */
+  reloadTable: function() {
     $(SELECTORS.table).DataTable().ajax.reload(null, false);
   }
 };
 
 // ===========================
-// SEARCH FUNCTIONALITY
+// SEARCH MANAGER
 // ===========================
-const SearchManager = {
-  init() {
+var SearchManager = {
+  /**
+   * Initialize search manager
+   */
+  init: function() {
     this.bindEvents();
   },
-
-  bindEvents() {
-    const filterSelectors = Object.values(SELECTORS.filters).join(', ');
-    
-    $(filterSelectors).on('keyup change', () => {
-      this.reloadTable();
-    });
-    
-    $(SELECTORS.buttons.clearFilters).on('click', () => {
-      this.clearFilters();
-    });
+  /**
+   * Bind search and clear events
+   */
+  bindEvents: function() {
+    var self = this;
+    var filterSelectors = Object.values(SELECTORS.filters).join(', ');
+    $(filterSelectors).on('keyup change', function() { self.reloadTable(); });
+    $(SELECTORS.buttons.clearFilters).on('click', function() { self.clearFilters(); });
   },
-
-  clearFilters() {
-    const filterSelectors = Object.values(SELECTORS.filters).join(', ');
+  /**
+   * Clear all filters
+   */
+  clearFilters: function() {
+    var filterSelectors = Object.values(SELECTORS.filters).join(', ');
     $(filterSelectors).val('');
     this.reloadTable();
   },
-
-  reloadTable() {
+  /**
+   * Reload the reservations table
+   */
+  reloadTable: function() {
     $(SELECTORS.table).DataTable().ajax.reload();
   }
 };
 
 // ===========================
-// SELECT MANAGEMENT
+// SELECT MANAGER
 // ===========================
-const SelectManager = {
-  init() {
+var SelectManager = {
+  /**
+   * Initialize select manager
+   */
+  init: function() {
     this.populateBuildingSelect();
     this.bindEvents();
   },
-
-  bindEvents() {
-    $(SELECTORS.filters.buildingId).on('change', (e) => {
-      const buildingId = $(e.target).val();
-      this.handleBuildingChange(buildingId);
+  /**
+   * Bind select change events
+   */
+  bindEvents: function() {
+    var self = this;
+    $(SELECTORS.filters.buildingId).on('change', function(e) {
+      var buildingId = $(e.target).val();
+      self.handleBuildingChange(buildingId);
     });
-    
-    $(SELECTORS.filters.apartmentNumber).on('change', (e) => {
-      const apartmentNumber = $(e.target).val();
-      this.handleApartmentChange(apartmentNumber);
+    $(SELECTORS.filters.apartmentNumber).on('change', function(e) {
+      var apartmentNumber = $(e.target).val();
+      self.handleApartmentChange(apartmentNumber);
     });
   },
-
-  handleBuildingChange(buildingId) {
+  /**
+   * Handle building change
+   */
+  handleBuildingChange: function(buildingId) {
     this.populateApartmentSelect(buildingId);
     this.clearRoomSelect();
   },
-
-  handleApartmentChange(apartmentNumber) {
+  /**
+   * Handle apartment change
+   */
+  handleApartmentChange: function(apartmentNumber) {
     this.populateRoomSelect(apartmentNumber);
   },
-
-  populateBuildingSelect() {
+  /**
+   * Populate building select dropdown
+   */
+  populateBuildingSelect: function() {
     ApiService.fetchBuildings()
-      .done((response) => {
+      .done(function(response) {
         if (response.success && response.data) {
-          this.populateSelect(SELECTORS.filters.buildingId, response.data, 'number', 'Select Building');
+          SelectManager.populateSelect(SELECTORS.filters.buildingId, response.data, 'number', 'Select Building');
         }
       })
-      .fail(() => {
+      .fail(function() {
         Utils.showError(MESSAGES.error.buildingsLoadFailed);
       });
   },
-
-  populateApartmentSelect(buildingId) {
+  /**
+   * Populate apartment select dropdown
+   */
+  populateApartmentSelect: function(buildingId) {
     if (!buildingId) {
       this.clearSelect(SELECTORS.filters.apartmentNumber, 'Select Apartment');
       return;
     }
-
     ApiService.fetchApartments(buildingId)
-      .done((response) => {
+      .done(function(response) {
         if (response.success && response.data) {
-          const filteredApartments = response.data.filter(apartment => apartment.building_id == buildingId);
-          this.populateSelect(SELECTORS.filters.apartmentNumber, filteredApartments, 'number', 'Select Apartment');
+          var filteredApartments = response.data.filter(function(apartment) { return apartment.building_id == buildingId; });
+          SelectManager.populateSelect(SELECTORS.filters.apartmentNumber, filteredApartments, 'number', 'Select Apartment');
         }
       })
-      .fail(() => {
+      .fail(function() {
         Utils.showError(MESSAGES.error.apartmentsLoadFailed);
       });
   },
-
-  populateRoomSelect(apartmentNumber) {
+  /**
+   * Populate room select dropdown
+   */
+  populateRoomSelect: function(apartmentNumber) {
     if (!apartmentNumber) {
       this.clearRoomSelect();
       return;
     }
-
     ApiService.fetchRooms(apartmentNumber)
-      .done((response) => {
+      .done(function(response) {
         if (response.success && response.data) {
-          this.populateSelect(SELECTORS.filters.roomNumber, response.data, 'number', 'Select Room');
+          SelectManager.populateSelect(SELECTORS.filters.roomNumber, response.data, 'number', 'Select Room');
         }
       })
-      .fail(() => {
+      .fail(function() {
         Utils.showError(MESSAGES.error.roomsLoadFailed);
       });
   },
-
-  populateSelect(selector, data, valueField, placeholder) {
-    const $select = $(selector);
-    $select.empty().append(`<option value="">${placeholder}</option>`);
-    
-    data.forEach(item => {
-      $select.append(`<option value="${item.id}">${item[valueField]}</option>`);
+  /**
+   * Populate a select dropdown with data
+   */
+  populateSelect: function(selector, data, valueField, placeholder) {
+    var $select = $(selector);
+    $select.empty().append('<option value="">' + placeholder + '</option>');
+    data.forEach(function(item) {
+      $select.append('<option value="' + item.id + '">' + item[valueField] + '</option>');
     });
   },
-
-  clearSelect(selector, placeholder) {
-    $(selector).empty().append(`<option value="">${placeholder}</option>`);
+  /**
+   * Clear a select dropdown
+   */
+  clearSelect: function(selector, placeholder) {
+    $(selector).empty().append('<option value="">' + placeholder + '</option>');
   },
-
-  clearRoomSelect() {
+  /**
+   * Clear room select dropdown
+   */
+  clearRoomSelect: function() {
     this.clearSelect(SELECTORS.filters.roomNumber, 'Select Room');
   }
 };
 
 // ===========================
-// MAIN APPLICATION
+// MAIN APP INITIALIZER
 // ===========================
-const ReservationApp = {
-  init() {
-    this.initializeManagers();
-  },
-
-  initializeManagers() {
+var ReservationApp = {
+  /**
+   * Initialize all managers
+   */
+  init: function() {
     StatsManager.init();
     ReservationManager.init();
     SearchManager.init();
@@ -695,7 +736,7 @@ const ReservationApp = {
 // ===========================
 // DOCUMENT READY
 // ===========================
-$(document).ready(() => {
+$(document).ready(function() {
   ReservationApp.init();
 });
 

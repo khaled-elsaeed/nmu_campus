@@ -86,16 +86,16 @@ class FacultyController extends Controller
     /**
      * Display the specified faculty.
      *
-     * @param Faculty $faculty
+     * @param int $id
      * @return JsonResponse
      */
-    public function show(Faculty $faculty): JsonResponse
+    public function show($id): JsonResponse
     {
         try {
-            $faculty = $this->facultyService->getFaculty($faculty);
+            $faculty = $this->facultyService->getFaculty($id);
             return successResponse('Faculty details fetched successfully.', $faculty);
         } catch (Exception $e) {
-            logError('FacultyController@show', $e, ['faculty_id' => $faculty->id]);
+            logError('FacultyController@show', $e, ['faculty_id' => $id]);
             return errorResponse('Internal server error.', [], 500);
         }
     }

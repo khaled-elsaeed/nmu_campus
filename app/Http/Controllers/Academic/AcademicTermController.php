@@ -209,7 +209,7 @@ class AcademicTermController extends Controller
      * @param int $id
      * @return JsonResponse
      */
-    public function activateTerm($id): JsonResponse
+    public function activate($id): JsonResponse
     {
         try {
             $term = $this->academicTermService->setActive($id, true);
@@ -225,7 +225,7 @@ class AcademicTermController extends Controller
      * @param int $id
      * @return JsonResponse
      */
-    public function deactivateTerm($id): JsonResponse
+    public function deactivate($id): JsonResponse
     {
         try {
             $term = $this->academicTermService->setActive($id, false);

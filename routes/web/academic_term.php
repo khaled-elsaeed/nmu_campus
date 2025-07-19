@@ -35,6 +35,6 @@ Route::prefix('academic-terms')
 
         Route::post('{term}/start', 'startTerm')->name('start');
         Route::post('{term}/end', 'endTerm')->name('end');
-        Route::post('{term}/activate', 'activateTerm')->name('activate');
-        Route::post('{term}/deactivate', 'deactivateTerm')->name('deactivate');
+        Route::patch('{term}/activate', 'activate')->name('activate');
+        Route::patch('{term}/deactivate', 'deactivate')->name('deactivate');
     });

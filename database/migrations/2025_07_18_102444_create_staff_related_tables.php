@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Create staff categories table
         Schema::create('staff_categories', function (Blueprint $table) {
             $table->id();
             $table->string('name_en')->unique();
@@ -20,6 +21,14 @@ return new class extends Migration
             $table->boolean('active')->default(true);
             $table->timestamps();
         });
+
+        // Create departments table
+        Schema::create('departments', function (Blueprint $table) {
+            $table->id();
+            $table->string('name_en')->unique();
+            $table->string('name_ar');
+            $table->timestamps();
+        });
     }
 
     /**
@@ -27,6 +36,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('departments');
         Schema::dropIfExists('staff_categories');
     }
 };

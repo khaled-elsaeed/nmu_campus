@@ -4,6 +4,7 @@
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
+
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-4">
@@ -63,15 +64,16 @@
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable 
-        :headers="['Number', 'Total Apartments', 'Total Rooms', 'Gender Restriction', 'Active', 'Created At', 'Actions']"
+        :headers="['Number', 'Total Apartments', 'Total Rooms', 'Has Double Room', 'Gender', 'Active', 'Created At', 'Actions']"
         :columns="[
             ['data' => 'number', 'name' => 'number'],
             ['data' => 'total_apartments', 'name' => 'total_apartments'],
             ['data' => 'total_rooms', 'name' => 'total_rooms'],
+            ['data' => 'has_double_rooms', 'name' => 'has_double_rooms'],
             ['data' => 'gender_restriction', 'name' => 'gender_restriction'],
             ['data' => 'active', 'name' => 'active'],
             ['data' => 'created_at', 'name' => 'created_at'],
-            ['data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false]
+            ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false]
         ]"
         :ajax-url="route('housing.buildings.datatable')"
         :table-id="'buildings-table'"
@@ -179,11 +181,21 @@
 
 @push('scripts')
 <script>
+/**
+ * Building Management Page JS
+ *
+ * Structure:
+ * - Utils: Common utility functions
+ * - ApiService: Handles all AJAX requests
+ * - StatsManager: Handles statistics cards
+ * - BuildingManager: Handles CRUD and actions for buildings
+ * - BuildingApp: Initializes all managers
+ */
 
 // ===========================
-// CONSTANTS AND CONFIGURATION
+// ROUTES CONSTANTS
 // ===========================
-const ROUTES = {
+var ROUTES = {
   buildings: {
     stats: '{{ route('housing.buildings.stats') }}',
     show: '{{ route('housing.buildings.show', ':id') }}',
@@ -198,33 +210,31 @@ const ROUTES = {
 // ===========================
 // UTILITY FUNCTIONS
 // ===========================
-const Utils = {
-  showError(message) {
-    Swal.fire({ 
-      title: 'Error', 
-      html: message, 
-      icon: 'error' 
-    });
+var Utils = {
+  /**
+   * Show an error alert
+   * @param {string} message
+   */
+  showError: function(message) {
+    Swal.fire({ title: 'Error', html: message, icon: 'error' });
   },
-
-  showSuccess(message) {
-    Swal.fire({ 
-      toast: true, 
-      position: 'top-end', 
-      icon: 'success', 
-      title: message, 
-      showConfirmButton: false, 
-      timer: 2500, 
-      timerProgressBar: true 
-    });
+  /**
+   * Show a success toast message
+   * @param {string} message
+   */
+  showSuccess: function(message) {
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: message, showConfirmButton: false, timer: 2500, timerProgressBar: true });
   },
-
-  toggleLoadingState(elementId, isLoading) {
-    const $value = $(`#${elementId}-value`);
-    const $loader = $(`#${elementId}-loader`);
-    const $updated = $(`#${elementId}-last-updated`);
-    const $updatedLoader = $(`#${elementId}-last-updated-loader`);
-    
+  /**
+   * Toggle loading state for a stat card
+   * @param {string} elementId
+   * @param {boolean} isLoading
+   */
+  toggleLoadingState: function(elementId, isLoading) {
+    var $value = $('#' + elementId + '-value');
+    var $loader = $('#' + elementId + '-loader');
+    var $updated = $('#' + elementId + '-last-updated');
+    var $updatedLoader = $('#' + elementId + '-last-updated-loader');
     if (isLoading) {
       $value.addClass('d-none');
       $loader.removeClass('d-none');
@@ -237,12 +247,21 @@ const Utils = {
       $updatedLoader.addClass('d-none');
     }
   },
-
-  replaceRouteId(route, id) {
+  /**
+   * Replace :id in a route string
+   * @param {string} route
+   * @param {string|number} id
+   * @returns {string}
+   */
+  replaceRouteId: function(route, id) {
     return route.replace(':id', id);
   },
-
-  showConfirmDialog(options) {
+  /**
+   * Show a confirmation dialog
+   * @param {object} options
+   * @returns {Promise}
+   */
+  showConfirmDialog: function(options) {
     return Swal.fire({
       title: options.title || 'Are you sure?',
       text: options.text || "You won't be able to revert this!",
@@ -253,15 +272,22 @@ const Utils = {
       confirmButtonText: options.confirmButtonText || 'Yes, proceed!'
     });
   },
-
-  resetForm(formId) {
-    $(`#${formId}`)[0].reset();
+  /**
+   * Reset a form by ID
+   * @param {string} formId
+   */
+  resetForm: function(formId) {
+    $('#' + formId)[0].reset();
   },
-
-  setFormData(formId, data) {
-    const form = $(`#${formId}`);
-    Object.keys(data).forEach(key => {
-      const element = form.find(`[name="${key}"]`);
+  /**
+   * Set form data by object
+   * @param {string} formId
+   * @param {object} data
+   */
+  setFormData: function(formId, data) {
+    var form = $('#' + formId);
+    Object.keys(data).forEach(function(key) {
+      var element = form.find('[name="' + key + '"]');
       if (element.length) {
         if (element.attr('type') === 'checkbox') {
           element.prop('checked', data[key]);
@@ -274,133 +300,163 @@ const Utils = {
 };
 
 // ===========================
-// API SERVICE LAYER
+// API SERVICE
 // ===========================
-const ApiService = {
-  request: (options) => $.ajax(options),
-
-  fetchStats: () => ApiService.request({
-    url: ROUTES.buildings.stats,
-    method: 'GET'
-  }),
-
-  fetchBuilding: (id) => ApiService.request({
-    url: Utils.replaceRouteId(ROUTES.buildings.show, id),
-    method: 'GET'
-  }),
-
-  saveBuilding: (data, id) => ApiService.request({
-    url: Utils.replaceRouteId(ROUTES.buildings.update, id),
-    method: 'PUT',
-    data
-  }),
-
-  createBuilding: (data) => ApiService.request({
-    url: ROUTES.buildings.store,
-    method: 'POST',
-    data
-  }),
-
-  deleteBuilding: (id) => ApiService.request({
-    url: Utils.replaceRouteId(ROUTES.buildings.destroy, id),
-    method: 'DELETE'
-  }),
-
-  activateBuilding: (id) => ApiService.request({
-    url: Utils.replaceRouteId(ROUTES.buildings.activate, id),
-    method: 'PATCH'
-  }),
-
-  deactivateBuilding: (id) => ApiService.request({
-    url: Utils.replaceRouteId(ROUTES.buildings.deactivate, id),
-    method: 'PATCH'
-  })
+var ApiService = {
+  /**
+   * Generic AJAX request
+   * @param {object} options
+   * @returns {jqXHR}
+   */
+  request: function(options) {
+    options.headers = options.headers || {};
+    options.headers['X-CSRF-TOKEN'] = $('meta[name="csrf-token"]').attr('content');
+    return $.ajax(options);
+  },
+  /**
+   * Fetch building statistics
+   * @returns {jqXHR}
+   */
+  fetchStats: function() {
+    return this.request({ url: ROUTES.buildings.stats, method: 'GET' });
+  },
+  /**
+   * Fetch a single building by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  fetchBuilding: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.buildings.show, id), method: 'GET' });
+  },
+  /**
+   * Save (update) a building
+   * @param {object} data
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  saveBuilding: function(data, id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.buildings.update, id), method: 'PUT', data: data });
+  },
+  /**
+   * Create a new building
+   * @param {object} data
+   * @returns {jqXHR}
+   */
+  createBuilding: function(data) {
+    return this.request({ url: ROUTES.buildings.store, method: 'POST', data: data });
+  },
+  /**
+   * Delete a building by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  deleteBuilding: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.buildings.destroy, id), method: 'DELETE' });
+  },
+  /**
+   * Activate a building by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  activateBuilding: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.buildings.activate, id), method: 'PATCH' });
+  },
+  /**
+   * Deactivate a building by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  deactivateBuilding: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.buildings.deactivate, id), method: 'PATCH' });
+  }
 };
 
 // ===========================
-// STATISTICS MANAGEMENT
+// STATISTICS MANAGER
 // ===========================
-const StatsManager = {
-  elements: {
-    buildings: 'buildings',
-    maleBuildings: 'buildings-male',
-    femaleBuildings: 'buildings-female'
+var StatsManager = {
+  /**
+   * Initialize statistics cards
+   */
+  init: function() {
+    this.load();
   },
-
-  init() {
-    this.loadStats();
-  },
-
-  loadStats() {
+  /**
+   * Load statistics data
+   */
+  load: function() {
     this.toggleAllLoadingStates(true);
-
     ApiService.fetchStats()
-      .done((response) => {
-        this.handleStatsSuccess(response);
-      })
-      .fail(() => {
-        this.handleStatsError();
-      })
-      .always(() => {
-        this.toggleAllLoadingStates(false);
-      });
+      .done(this.handleSuccess.bind(this))
+      .fail(this.handleError.bind(this))
+      .always(this.toggleAllLoadingStates.bind(this, false));
   },
-
-  handleStatsSuccess(response) {
+  /**
+   * Handle successful stats fetch
+   * @param {object} response
+   */
+  handleSuccess: function(response) {
     if (response.success) {
-      this.updateStatElement(this.elements.buildings, response.data.total);
-      this.updateStatElement(this.elements.maleBuildings, response.data.male);
-      this.updateStatElement(this.elements.femaleBuildings, response.data.female);
+      let stats = response.data;
+      this.updateStatElement('buildings', stats.total.total, stats.total.lastUpdateTime);
+      this.updateStatElement('buildings-male', stats.male.total, stats.male.lastUpdateTime);
+      this.updateStatElement('buildings-female', stats.female.total, stats.female.lastUpdateTime);
     } else {
       this.setAllStatsToNA();
     }
   },
-
-  handleStatsError() {
+  /**
+   * Handle error in stats fetch
+   */
+  handleError: function() {
     this.setAllStatsToNA();
     Utils.showError('Failed to load building statistics');
   },
-
-  updateStatElement(elementId, data) {
-    $(`#${elementId}-value`).text(data.count ?? 'N/A');
-    $(`#${elementId}-last-updated`).text(data.lastUpdateTime ?? 'N/A');
+  /**
+   * Update a single stat card
+   * @param {string} elementId
+   * @param {string|number} value
+   * @param {string} lastUpdateTime
+   */
+  updateStatElement: function(elementId, value, lastUpdateTime) {
+    $('#' + elementId + '-value').text(value ?? '0');
+    $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--');
   },
-
-  setAllStatsToNA() {
-    Object.values(this.elements).forEach(elementId => {
-      $(`#${elementId}-value`).text('N/A');
-      $(`#${elementId}-last-updated`).text('N/A');
+  /**
+   * Set all stat cards to N/A
+   */
+  setAllStatsToNA: function() {
+    ['buildings', 'buildings-male', 'buildings-female'].forEach(function(elementId) {
+      $('#' + elementId + '-value').text('N/A');
+      $('#' + elementId + '-last-updated').text('N/A');
     });
   },
-
-  toggleAllLoadingStates(isLoading) {
-    Object.values(this.elements).forEach(elementId => {
+  /**
+   * Toggle loading state for all stat cards
+   * @param {boolean} isLoading
+   */
+  toggleAllLoadingStates: function(isLoading) {
+    ['buildings', 'buildings-male', 'buildings-female'].forEach(function(elementId) {
       Utils.toggleLoadingState(elementId, isLoading);
     });
   }
 };
 
 // ===========================
-// BUILDING CRUD MANAGEMENT
+// BUILDING MANAGER
 // ===========================
-const BuildingManager = {
+var BuildingManager = {
   currentBuildingId: null,
-  elements: {
-    addBtn: '#addBuildingBtn',
-    form: '#buildingForm',
-    modal: '#buildingModal',
-    modalTitle: '#buildingModalTitle',
-    viewModal: '#viewBuildingModal',
-    table: '#buildings-table',
-    doubleRoomsCheckbox: '#has_double_rooms',
-    doubleRoomsSection: '#apartments-double-rooms-section'
-  },
-
-  init() {
+  /**
+   * Initialize building manager
+   */
+  init: function() {
     this.bindEvents();
   },
-
-  bindEvents() {
+  /**
+   * Bind all building-related events
+   */
+  bindEvents: function() {
     this.handleAddBuilding();
     this.handleEditBuilding();
     this.handleViewBuilding();
@@ -408,122 +464,201 @@ const BuildingManager = {
     this.handleFormSubmit();
     this.handleActivateDeactivate();
   },
-
-  handleAddBuilding() {
-    $(document).on('click', this.elements.addBtn, () => {
-      this.openModal('add');
+  /**
+   * Handle add building button click
+   */
+  handleAddBuilding: function() {
+    var self = this;
+    $(document).on('click', '#addBuildingBtn', function() {
+      self.openModal('add');
     });
   },
-
-  handleEditBuilding() {
-    $(document).on('click', '.editBuildingBtn', (e) => {
-      const buildingId = $(e.currentTarget).data('id');
-      this.openModal('edit', buildingId);
+  /**
+   * Handle edit building button click
+   */
+  handleEditBuilding: function() {
+    var self = this;
+    $(document).on('click', '.editBuildingBtn', function(e) {
+      var buildingId = $(e.currentTarget).data('id');
+      self.openModal('edit', buildingId);
     });
   },
-
-  handleViewBuilding() {
-    $(document).on('click', '.viewBuildingBtn', (e) => {
-      const buildingId = $(e.currentTarget).data('id');
-      this.viewBuilding(buildingId);
+  /**
+   * Handle view building button click
+   */
+  handleViewBuilding: function() {
+    $(document).on('click', '.viewBuildingBtn', function(e) {
+      var buildingId = $(e.currentTarget).data('id');
+      BuildingManager.viewBuilding(buildingId);
     });
   },
-
-  handleDeleteBuilding() {
-    $(document).on('click', '.deleteBuildingBtn', (e) => {
-      const buildingId = $(e.currentTarget).data('id');
-      this.deleteBuilding(buildingId);
+  /**
+   * Handle delete building button click
+   */
+  handleDeleteBuilding: function() {
+    $(document).on('click', '.deleteBuildingBtn', function(e) {
+      var buildingId = $(e.currentTarget).data('id');
+      BuildingManager.deleteBuilding(buildingId);
     });
   },
-
-  handleFormSubmit() {
-    $(this.elements.form).on('submit', (e) => {
+  /**
+   * Handle form submit
+   */
+  handleFormSubmit: function() {
+    var self = this;
+    $('#buildingForm').on('submit', function(e) {
       e.preventDefault();
-      this.saveBuilding();
+      self.saveBuilding();
     });
   },
-
-  handleActivateDeactivate() {
-    $(document).on('click', '.activateBuildingBtn, .deactivateBuildingBtn', (e) => {
+  /**
+   * Handle activate/deactivate building
+   */
+  handleActivateDeactivate: function() {
+    // Activate
+    $(document).on('click', '.activateBuildingBtn', function(e) {
       e.preventDefault();
-      const $btn = $(e.currentTarget);
-      const id = $btn.data('id');
-      const isActivate = $btn.hasClass('activateBuildingBtn');
-      this.toggleBuildingStatus(id, isActivate, $btn);
+      var $btn = $(e.currentTarget);
+      var id = $btn.data('id');
+      Swal.fire({
+        title: 'Activate Building?',
+        text: 'Are you sure you want to activate this building? This will make it available for use.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, activate!',
+        cancelButtonText: 'Cancel'
+      }).then(function(result) {
+        if (result.isConfirmed) {
+          $btn.prop('disabled', true);
+          ApiService.activateBuilding(id)
+            .done(function(response) {
+              Utils.showSuccess(response.message || 'Building activated successfully.');
+              $('#buildings-table').DataTable().ajax.reload(null, false);
+              StatsManager.load();
+            })
+            .fail(function(xhr) {
+              Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to activate building.');
+            })
+            .always(function() {
+              $btn.prop('disabled', false);
+            });
+        }
+      });
+    });
+    // Deactivate
+    $(document).on('click', '.deactivateBuildingBtn', function(e) {
+      e.preventDefault();
+      var $btn = $(e.currentTarget);
+      var id = $btn.data('id');
+      Swal.fire({
+        title: 'Deactivate Building?',
+        text: 'Are you sure you want to deactivate this building? This will make it unavailable for new reservations.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ffc107',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, deactivate!',
+        cancelButtonText: 'Cancel'
+      }).then(function(result) {
+        if (result.isConfirmed) {
+          $btn.prop('disabled', true);
+          ApiService.deactivateBuilding(id)
+            .done(function(response) {
+              Utils.showSuccess(response.message || 'Building deactivated successfully.');
+              $('#buildings-table').DataTable().ajax.reload(null, false);
+              StatsManager.load();
+            })
+            .fail(function(xhr) {
+              Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to deactivate building.');
+            })
+            .always(function() {
+              $btn.prop('disabled', false);
+            });
+        }
+      });
     });
   },
-
-  openModal(mode, buildingId = null) {
+  /**
+   * Open add/edit modal
+   */
+  openModal: function(mode, buildingId) {
     this.currentBuildingId = buildingId;
     this.resetModalState();
-
     if (mode === 'add') {
       this.setupAddModal();
     } else if (mode === 'edit') {
       this.setupEditModal(buildingId);
     }
   },
-
-  resetModalState() {
+  /**
+   * Reset modal state
+   */
+  resetModalState: function() {
     Utils.resetForm('buildingForm');
-    $(this.elements.doubleRoomsCheckbox).prop('checked', false);
-    $(this.elements.doubleRoomsSection).hide().empty();
-    $('.edit-hide').show().find('input[type="number"], select, textarea').prop('required', true).prop('disabled', false);
-    $(this.elements.doubleRoomsCheckbox).prop('required', false).prop('disabled', false);
+    $('#has_double_rooms').prop('checked', false);
   },
-
-  setupAddModal() {
-    $(this.elements.modalTitle).text('Add Building');
-    $(this.elements.modal).modal('show');
+  /**
+   * Setup add modal
+   */
+  setupAddModal: function() {
+    $('#buildingModalTitle').text('Add Building');
+    $('#buildingModal').modal('show');
   },
-
-  setupEditModal(buildingId) {
-    $(this.elements.modalTitle).text('Edit Building');
-    
+  /**
+   * Setup edit modal
+   */
+  setupEditModal: function(buildingId) {
+    $('#buildingModalTitle').text('Edit Building');
     ApiService.fetchBuilding(buildingId)
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          this.populateEditForm(response.data);
-          $(this.elements.modal).modal('show');
+          BuildingManager.populateEditForm(response.data);
+          $('#buildingModal').modal('show');
         }
       })
-      .fail(() => {
-        $(BuildingManager.elements.modal).modal('hide');
+      .fail(function() {
+        $('#buildingModal').modal('hide');
         Utils.showError('Failed to load building data');
       });
   },
-
-  populateEditForm(building) {
+  /**
+   * Populate edit form
+   */
+  populateEditForm: function(building) {
     $('#building_number').val(building.number).prop('disabled', false);
     $('#building_gender_restriction').val(building.gender_restriction).prop('disabled', false);
     $('#building_active').val(building.active).prop('disabled', false);
-    
     $('.edit-hide').hide().find('input, select, textarea').prop('required', false).prop('disabled', true);
-    $(this.elements.doubleRoomsCheckbox).prop('checked', building.has_double_rooms).prop('disabled', false);
-    
+    $('#has_double_rooms').prop('checked', building.has_double_rooms).prop('disabled', false);
     if (building.has_double_rooms) {
-      $(this.elements.doubleRoomsSection).show();
+      $('#apartments-double-rooms-section').show();
       DoubleRoomManager.renderDoubleRoomSelectors();
     } else {
-      $(this.elements.doubleRoomsSection).hide().empty();
+      $('#apartments-double-rooms-section').hide().empty();
     }
   },
-
-  viewBuilding(buildingId) {
+  /**
+   * View building details
+   */
+  viewBuilding: function(buildingId) {
     ApiService.fetchBuilding(buildingId)
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          this.populateViewModal(response.data);
-          $(this.elements.viewModal).modal('show');
+          BuildingManager.populateViewModal(response.data);
+          $('#viewBuildingModal').modal('show');
         }
       })
-      .fail(() => {
-        $(BuildingManager.elements.viewModal).modal('hide');
+      .fail(function() {
+        $('#viewBuildingModal').modal('hide');
         Utils.showError('Failed to load building data');
       });
   },
-
-  populateViewModal(building) {
+  /**
+   * Populate view modal
+   */
+  populateViewModal: function(building) {
     $('#view-building-number').text(building.number);
     $('#view-building-total-apartments').text(building.total_apartments);
     $('#view-building-total-rooms').text(building.total_rooms);
@@ -531,100 +666,69 @@ const BuildingManager = {
     $('#view-building-is-active').text(building.active ? 'Active' : 'Inactive');
     $('#view-building-created').text(new Date(building.created_at).toLocaleString());
   },
-
-  saveBuilding() {
-    const formData = $(this.elements.form).serialize();
-
-    let apiCall;
+  /**
+   * Save building
+   */
+  saveBuilding: function() {
+    var formData = $('#buildingForm').serialize();
+    var apiCall;
     if (this.currentBuildingId) {
-        // Edit mode
-        apiCall = ApiService.saveBuilding(formData, this.currentBuildingId);
+      apiCall = ApiService.saveBuilding(formData, this.currentBuildingId);
     } else {
-        // Add mode
-        apiCall = ApiService.createBuilding(formData);
+      apiCall = ApiService.createBuilding(formData);
     }
-
     apiCall
-      .done(() => {
-        this.handleSaveSuccess();
+      .done(function() {
+        BuildingManager.handleSaveSuccess();
       })
-      .fail((xhr) => {
-        this.handleSaveError(xhr);
+      .fail(function(xhr) {
+        BuildingManager.handleSaveError(xhr);
       });
   },
-
-  handleSaveSuccess() {
-    $(this.elements.modal).modal('hide');
-    $(this.elements.table).DataTable().ajax.reload(null, false);
+  /**
+   * Handle successful save
+   */
+  handleSaveSuccess: function() {
+    $('#buildingModal').modal('hide');
+    $('#buildings-table').DataTable().ajax.reload(null, false);
     Utils.showSuccess('Building has been saved successfully.');
-    StatsManager.loadStats();
+    StatsManager.load();
   },
-
-  handleSaveError(xhr) {
-    $(this.elements.modal).modal('hide');
-    const message = xhr.responseJSON?.message || 'An error occurred. Please check your input.';
+  /**
+   * Handle save error
+   */
+  handleSaveError: function(xhr) {
+    $('#buildingModal').modal('hide');
+    var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred. Please check your input.';
     Utils.showError(message);
   },
-
-  deleteBuilding(buildingId) {
+  /**
+   * Delete building
+   */
+  deleteBuilding: function(buildingId) {
     Utils.showConfirmDialog({
       title: 'Are you sure?',
       text: "You won't be able to revert this!",
       confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
+    }).then(function(result) {
       if (result.isConfirmed) {
-        this.performDelete(buildingId);
+        BuildingManager.performDelete(buildingId);
       }
     });
   },
-
-  performDelete(buildingId) {
+  /**
+   * Perform actual deletion
+   */
+  performDelete: function(buildingId) {
     ApiService.deleteBuilding(buildingId)
-      .done(() => {
-        $(this.elements.table).DataTable().ajax.reload(null, false);
+      .done(function() {
+        $('#buildings-table').DataTable().ajax.reload(null, false);
         Utils.showSuccess('Building has been deleted.');
-        StatsManager.loadStats();
+        StatsManager.load();
       })
-      .fail((xhr) => {
-        const message = xhr.responseJSON?.message || 'Failed to delete building.';
+      .fail(function(xhr) {
+        var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to delete building.';
         Utils.showError(message);
-      });
-  },
-
-  toggleBuildingStatus(id, isActivate, $btn) {
-    const action = isActivate ? 'activate' : 'deactivate';
-    const apiCall = isActivate ? ApiService.activateBuilding : ApiService.deactivateBuilding;
-    
-    const options = {
-      title: `${isActivate ? 'Activate' : 'Deactivate'} Building?`,
-      text: `Are you sure you want to ${action} this building?`,
-      confirmButtonText: `Yes, ${action} it!`
-    };
-
-    Utils.showConfirmDialog(options).then((result) => {
-      if (result.isConfirmed) {
-        this.performStatusToggle(id, isActivate, apiCall, $btn);
-      }
-    });
-  },
-
-  performStatusToggle(id, isActivate, apiCall, $btn) {
-    $btn.prop('disabled', true);
-    
-    apiCall(id)
-      .done((response) => {
-        if (response.success) {
-          Utils.showSuccess(`Building ${isActivate ? 'activated' : 'deactivated'} successfully`);
-          $(this.elements.table).DataTable().ajax.reload(null, false);
-        } else {
-          Utils.showError(response.message || 'Operation failed');
-        }
-      })
-      .fail((xhr) => {
-        Utils.showError(xhr.responseJSON?.message || 'Operation failed');
-      })
-      .always(() => {
-        $btn.prop('disabled', false);
       });
   }
 };
@@ -632,32 +736,35 @@ const BuildingManager = {
 // ===========================
 // SEARCH FUNCTIONALITY
 // ===========================
-const SearchManager = {
-  elements: {
-    filters: '#search_gender_restriction, #search_active',
-    clearBtn: '#clearBuildingFiltersBtn',
-    table: '#buildings-table'
-  },
-
-  init() {
+var SearchManager = {
+  /**
+   * Initialize search functionality
+   */
+  init: function() {
     this.bindEvents();
   },
-
-  bindEvents() {
+  /**
+   * Bind search events
+   */
+  bindEvents: function() {
     this.initializeAdvancedSearch();
     this.handleClearFilters();
   },
-
-  initializeAdvancedSearch() {
-    $(this.elements.filters).on('keyup change', () => {
-      $(this.elements.table).DataTable().ajax.reload();
+  /**
+   * Initialize advanced search event listeners
+   */
+  initializeAdvancedSearch: function() {
+    $('#search_gender_restriction, #search_active').on('keyup change', function() {
+      $('#buildings-table').DataTable().ajax.reload();
     });
   },
-
-  handleClearFilters() {
-    $(this.elements.clearBtn).on('click', () => {
-      $(this.elements.filters).val('');
-      $(this.elements.table).DataTable().ajax.reload();
+  /**
+   * Handle clear filters button click
+   */
+  handleClearFilters: function() {
+    $('#clearBuildingFiltersBtn').on('click', function() {
+      $('#search_gender_restriction, #search_active').val('');
+      $('#buildings-table').DataTable().ajax.reload();
     });
   }
 };
@@ -665,104 +772,112 @@ const SearchManager = {
 // ===========================
 // DOUBLE ROOM MANAGER
 // ===========================
-const DoubleRoomManager = {
-  elements: {
-    checkbox: '#has_double_rooms',
-    section: '#apartments-double-rooms-section',
-    modal: '#buildingModal',
-    totalApartments: '#building_total_apartments',
-    roomsPerApartment: '#building_rooms_per_apartment'
-  },
-
-  init() {
+var DoubleRoomManager = {
+  /**
+   * Initialize double room manager
+   */
+  init: function() {
     this.bindEvents();
   },
-
-  bindEvents() {
+  /**
+   * Bind double room related events
+   */
+  bindEvents: function() {
     this.handleDoubleRoomToggle();
     this.handleModalShow();
     this.handleInputChange();
     this.handleDocumentReady();
   },
-
-  handleDoubleRoomToggle() {
-    $(this.elements.checkbox).on('change', (e) => {
+  /**
+   * Handle double room toggle
+   */
+  handleDoubleRoomToggle: function() {
+    $('#has_double_rooms').on('change', function(e) {
       if ($(e.currentTarget).is(':checked')) {
-        this.showDoubleRoomSection();
+        DoubleRoomManager.showDoubleRoomSection();
       } else {
-        this.hideDoubleRoomSection();
+        DoubleRoomManager.hideDoubleRoomSection();
       }
     });
   },
-
-  handleModalShow() {
-    $(this.elements.modal).on('show.bs.modal', () => {
-      if ($(this.elements.checkbox).is(':checked')) {
-        this.showDoubleRoomSection();
+  /**
+   * Handle modal show event
+   */
+  handleModalShow: function() {
+    $('#buildingModal').on('show.bs.modal', function() {
+      if ($('#has_double_rooms').is(':checked')) {
+        DoubleRoomManager.showDoubleRoomSection();
       } else {
-        this.hideDoubleRoomSection();
+        DoubleRoomManager.hideDoubleRoomSection();
       }
     });
   },
-
-  handleInputChange() {
-    $(`${this.elements.totalApartments}, ${this.elements.roomsPerApartment}`).on('input', () => {
-      if ($(this.elements.checkbox).is(':checked')) {
-        this.renderDoubleRoomSelectors();
+  /**
+   * Handle input change
+   */
+  handleInputChange: function() {
+    $('#building_total_apartments, #building_rooms_per_apartment').on('input', function() {
+      if ($('#has_double_rooms').is(':checked')) {
+        DoubleRoomManager.renderDoubleRoomSelectors();
       }
     });
   },
-
-  handleDocumentReady() {
-    $(document).ready(() => {
-      if ($(this.elements.checkbox).is(':checked')) {
-        this.showDoubleRoomSection();
+  /**
+   * Handle document ready
+   */
+  handleDocumentReady: function() {
+    $(document).ready(function() {
+      if ($('#has_double_rooms').is(':checked')) {
+        DoubleRoomManager.showDoubleRoomSection();
       } else {
-        this.hideDoubleRoomSection();
+        DoubleRoomManager.hideDoubleRoomSection();
       }
     });
   },
-
-  showDoubleRoomSection() {
-    $(this.elements.section).show();
-    this.renderDoubleRoomSelectors();
+  /**
+   * Show double room section
+   */
+  showDoubleRoomSection: function() {
+    $('#apartments-double-rooms-section').show();
+    DoubleRoomManager.renderDoubleRoomSelectors();
   },
-
-  hideDoubleRoomSection() {
-    $(this.elements.section).hide().empty();
+  /**
+   * Hide double room section
+   */
+  hideDoubleRoomSection: function() {
+    $('#apartments-double-rooms-section').hide().empty();
   },
-
-  renderDoubleRoomSelectors() {
-    const totalApartments = parseInt($(this.elements.totalApartments).val());
-    const roomsPerApartment = parseInt($(this.elements.roomsPerApartment).val());
-    const $section = $(this.elements.section);
-    
+  /**
+   * Render double room selectors
+   */
+  renderDoubleRoomSelectors: function() {
+    var totalApartments = parseInt($('#building_total_apartments').val());
+    var roomsPerApartment = parseInt($('#building_rooms_per_apartment').val());
+    var $section = $('#apartments-double-rooms-section');
     $section.empty();
-    
     if (!totalApartments || !roomsPerApartment) return;
-    
-    const accordionHtml = this.generateAccordionHtml(totalApartments, roomsPerApartment);
-    const boxHtml = this.wrapInScrollableBox(accordionHtml);
-    
+    var accordionHtml = DoubleRoomManager.generateAccordionHtml(totalApartments, roomsPerApartment);
+    var boxHtml = DoubleRoomManager.wrapInScrollableBox(accordionHtml);
     $section.append(boxHtml);
   },
-
-  generateAccordionHtml(totalApartments, roomsPerApartment) {
-    let accordionHtml = '<div class="accordion" id="apartmentsAccordion">';
-    
-    for (let i = 1; i <= totalApartments; i++) {
-      accordionHtml += this.generateApartmentAccordionItem(i, roomsPerApartment);
+  /**
+   * Generate accordion HTML
+   */
+  generateAccordionHtml: function(totalApartments, roomsPerApartment) {
+    var accordionHtml = '<div class="accordion" id="apartmentsAccordion">';
+    for (var i = 1; i <= totalApartments; i++) {
+      accordionHtml += DoubleRoomManager.generateApartmentAccordionItem(i, roomsPerApartment);
     }
-    
     accordionHtml += '</div>';
     return accordionHtml;
   },
-
-  generateApartmentAccordionItem(apartmentNumber, roomsPerApartment) {
-    const collapseId = `apartment${apartmentNumber}Collapse`;
-    const headingId = `apartment${apartmentNumber}Heading`;
-    const checkboxes = this.generateRoomCheckboxes(apartmentNumber, roomsPerApartment);
-    
+  /**
+   * Generate single apartment accordion item
+   */
+  generateApartmentAccordionItem: function(apartmentNumber, roomsPerApartment) {
+    var collapseId = 'apartment' + apartmentNumber + 'Collapse';
+    var headingId = 'apartment' + apartmentNumber + 'Heading';
+    var checkboxes = DoubleRoomManager.generateRoomCheckboxes(apartmentNumber, roomsPerApartment);
     return `
       <div class="accordion-item">
         <h2 class="accordion-header" id="${headingId}">
@@ -778,11 +893,12 @@ const DoubleRoomManager = {
       </div>
     `;
   },
-
-  generateRoomCheckboxes(apartmentNumber, roomsPerApartment) {
-    let checkboxes = '';
-    
-    for (let j = 1; j <= roomsPerApartment; j++) {
+  /**
+   * Generate room checkboxes
+   */
+  generateRoomCheckboxes: function(apartmentNumber, roomsPerApartment) {
+    var checkboxes = '';
+    for (var j = 1; j <= roomsPerApartment; j++) {
       checkboxes += `
         <label class="me-2">
           <input type="checkbox" name="apartments[${apartmentNumber-1}][double_rooms][]" value="${j}"> 
@@ -790,11 +906,12 @@ const DoubleRoomManager = {
         </label>
       `;
     }
-    
     return checkboxes;
   },
-
-  wrapInScrollableBox(content) {
+  /**
+   * Wrap content in a scrollable box
+   */
+  wrapInScrollableBox: function(content) {
     return `
       <div class="card" style="max-height: 350px; overflow-y: auto; border: 1px solid #ddd;">
         <div class="card-body p-2">
@@ -808,8 +925,11 @@ const DoubleRoomManager = {
 // ===========================
 // MAIN APPLICATION
 // ===========================
-const BuildingApp = {
-  init() {
+var BuildingApp = {
+  /**
+   * Initialize the entire application
+   */
+  init: function() {
     StatsManager.init();
     BuildingManager.init();
     SearchManager.init();
@@ -820,7 +940,7 @@ const BuildingApp = {
 // ===========================
 // DOCUMENT READY
 // ===========================
-$(document).ready(() => {
+$(document).ready(function() {
   BuildingApp.init();
 });
 

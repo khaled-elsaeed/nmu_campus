@@ -92,7 +92,7 @@
             ['data' => 'gender', 'name' => 'gender'],
             ['data' => 'academic_year', 'name' => 'academic_year'],
             ['data' => 'faculty', 'name' => 'faculty'],
-            ['data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false]
+            ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false]
         ]"
         :ajax-url="route('resident.students.datatable')"
         :table-id="'students-table'"
@@ -265,11 +265,23 @@
 
 @push('scripts')
 <script>
+/**
+ * Student Management Page JS
+ *
+ * Structure:
+ * - Utils: Common utility functions
+ * - ApiService: Handles all AJAX requests
+ * - SelectManager: Handles dropdown population
+ * - StudentManager: Handles CRUD and actions for students
+ * - SearchManager: Handles advanced search
+ * - StatsManager: Handles statistics cards
+ * - StudentApp: Initializes all managers
+ */
 
 // ===========================
-// CONSTANTS AND CONFIGURATION
+// ROUTES CONSTANTS
 // ===========================
-const ROUTES = {
+var ROUTES = {
   students: {
     show: '{{ route('resident.students.show', ':id') }}',
     store: '{{ route('resident.students.store') }}',
@@ -294,22 +306,40 @@ const ROUTES = {
 // ===========================
 // UTILITY FUNCTIONS
 // ===========================
-const Utils = {
-  showError(message) {
+var Utils = {
+  /**
+   * Show an error alert
+   * @param {string} message
+   */
+  showError: function(message) {
     Swal.fire({ title: 'Error', html: message, icon: 'error' });
   },
-  showSuccess(message) {
+  /**
+   * Show a success toast message
+   * @param {string} message
+   */
+  showSuccess: function(message) {
     Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: message, showConfirmButton: false, timer: 2500, timerProgressBar: true });
   },
-  replaceRouteId(route, id) {
+  /**
+   * Replace :id in a route string
+   * @param {string} route
+   * @param {string|number} id
+   * @returns {string}
+   */
+  replaceRouteId: function(route, id) {
     return route.replace(':id', id);
   },
-  toggleLoadingState(id, show) {
-    const loader = document.getElementById(id + '-loader');
-    const valueEl = document.getElementById(id + '-value');
-    const lastUpdatedLoader = document.getElementById(id + '-last-updated-loader');
-    const lastUpdatedEl = document.getElementById(id + '-last-updated');
-
+  /**
+   * Toggle loading state for a stat card
+   * @param {string} id
+   * @param {boolean} show
+   */
+  toggleLoadingState: function(id, show) {
+    var loader = document.getElementById(id + '-loader');
+    var valueEl = document.getElementById(id + '-value');
+    var lastUpdatedLoader = document.getElementById(id + '-last-updated-loader');
+    var lastUpdatedEl = document.getElementById(id + '-last-updated');
     if (loader) loader.classList.toggle('d-none', !show);
     if (valueEl) valueEl.classList.toggle('d-none', show);
     if (lastUpdatedLoader) lastUpdatedLoader.classList.toggle('d-none', !show);
@@ -318,307 +348,325 @@ const Utils = {
 };
 
 // ===========================
-// API SERVICE LAYER
+// API SERVICE
 // ===========================
-const ApiService = {
-  request(options) { return $.ajax(options); },
-  fetchStudent(id) {
-    return ApiService.request({
-      url: Utils.replaceRouteId(ROUTES.students.show, id),
-      method: 'GET'
-    });
+var ApiService = {
+  /**
+   * Generic AJAX request
+   * @param {object} options
+   * @returns {jqXHR}
+   */
+  request: function(options) { return $.ajax(options); },
+  /**
+   * Fetch a student by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  fetchStudent: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.students.show, id), method: 'GET' });
   },
-  saveStudent(data, id = null) {
-    const url = id ? Utils.replaceRouteId(ROUTES.students.update, id) : ROUTES.students.store;
-    const method = id ? 'PUT' : 'POST';
-    return ApiService.request({ url, method, data });
+  /**
+   * Save (create or update) a student
+   * @param {object} data
+   * @param {string|number|null} id
+   * @returns {jqXHR}
+   */
+  saveStudent: function(data, id) {
+    var url = id ? Utils.replaceRouteId(ROUTES.students.update, id) : ROUTES.students.store;
+    var method = id ? 'PUT' : 'POST';
+    return this.request({ url: url, method: method, data: data });
   },
-  deleteStudent(id) {
-    return ApiService.request({
-      url: Utils.replaceRouteId(ROUTES.students.destroy, id),
-      method: 'DELETE'
-    });
+  /**
+   * Delete a student by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  deleteStudent: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.students.destroy, id), method: 'DELETE' });
   },
-  fetchGovernorates() {
-    return ApiService.request({
-      url: ROUTES.governorates.all,
-      method: 'GET'
-    });
+  /**
+   * Fetch all governorates
+   * @returns {jqXHR}
+   */
+  fetchGovernorates: function() {
+    return this.request({ url: ROUTES.governorates.all, method: 'GET' });
   },
-  fetchCities(governorateId) {
-    return ApiService.request({
-      url: Utils.replaceRouteId(ROUTES.cities.all, governorateId),
-      method: 'GET'
-    });
+  /**
+   * Fetch all cities for a governorate
+   * @param {string|number} governorateId
+   * @returns {jqXHR}
+   */
+  fetchCities: function(governorateId) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.cities.all, governorateId), method: 'GET' });
   },
-  fetchFaculties() {
-    return ApiService.request({
-      url: ROUTES.faculties.all,
-      method: 'GET'
-    });
+  /**
+   * Fetch all faculties
+   * @returns {jqXHR}
+   */
+  fetchFaculties: function() {
+    return this.request({ url: ROUTES.faculties.all, method: 'GET' });
   },
-  fetchPrograms(facultyId) {
-    return ApiService.request({
-      url: Utils.replaceRouteId(ROUTES.programs.all, facultyId),
-      method: 'GET'
-    });
+  /**
+   * Fetch all programs for a faculty
+   * @param {string|number} facultyId
+   * @returns {jqXHR}
+   */
+  fetchPrograms: function(facultyId) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.programs.all, facultyId), method: 'GET' });
   }
 };
 
 // ===========================
-// SELECT MANAGEMENT
+// SELECT MANAGER
 // ===========================
-const SelectManager = {
-  // Modal form selects
-  populateModalGovernorates() {
-    const $select = $('#student_governorate_id');
+var SelectManager = {
+  /**
+   * Populate governorates in modal
+   */
+  populateModalGovernorates: function() {
+    var $select = $('#student_governorate_id');
     $select.empty().append('<option value="">Select Governorate</option>');
-    
     ApiService.fetchGovernorates()
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          response.data.forEach(gov => {
-            $select.append(`<option value="${gov.id}">${gov.name}</option>`);
+          response.data.forEach(function(gov) {
+            $select.append('<option value="' + gov.id + '">' + gov.name + '</option>');
           });
         }
       })
-      .fail(() => {
+      .fail(function() {
         $('#studentModal').modal('hide');
         $select.empty().append('<option value="">Error loading governorates</option>');
       });
   },
-
-  populateModalCities(governorateId, selectedCityId = null) {
-    const $select = $('#student_city_id');
+  /**
+   * Populate cities in modal
+   */
+  populateModalCities: function(governorateId, selectedCityId) {
+    var $select = $('#student_city_id');
     $select.empty().append('<option value="">Loading cities...</option>');
-    
     if (!governorateId) {
       $select.empty().append('<option value="">Select Governorate first</option>');
       return;
     }
-
     ApiService.fetchCities(governorateId)
-      .done((response) => {
+      .done(function(response) {
         $select.empty().append('<option value="">Select City</option>');
         if (response.success) {
-          response.data.forEach(city => {
-            const selected = selectedCityId && city.id == selectedCityId ? 'selected' : '';
-            $select.append(`<option value="${city.id}" ${selected}>${city.name}</option>`);
+          response.data.forEach(function(city) {
+            var selected = selectedCityId && city.id == selectedCityId ? 'selected' : '';
+            $select.append('<option value="' + city.id + '" ' + selected + '>' + city.name + '</option>');
           });
         }
       })
-      .fail(() => {
+      .fail(function() {
         $('#studentModal').modal('hide');
         $select.empty().append('<option value="">Error loading cities</option>');
       });
   },
-
-  populateModalFaculties() {
-    const $select = $('#student_faculty_id');
+  /**
+   * Populate faculties in modal
+   */
+  populateModalFaculties: function() {
+    var $select = $('#student_faculty_id');
     $select.empty().append('<option value="">Select Faculty</option>');
-    
     ApiService.fetchFaculties()
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          response.data.forEach(faculty => {
-            $select.append(`<option value="${faculty.id}">${faculty.name}</option>`);
+          response.data.forEach(function(faculty) {
+            $select.append('<option value="' + faculty.id + '">' + faculty.name + '</option>');
           });
         }
       })
-      .fail(() => {
+      .fail(function() {
         $('#studentModal').modal('hide');
         $select.empty().append('<option value="">Error loading faculties</option>');
       });
   },
-
-  populateModalPrograms(facultyId, selectedProgramId = null) {
-    const $select = $('#student_program_id');
+  /**
+   * Populate programs in modal
+   */
+  populateModalPrograms: function(facultyId, selectedProgramId) {
+    var $select = $('#student_program_id');
     $select.empty().append('<option value="">Loading programs...</option>');
-    
     if (!facultyId) {
       $select.empty().append('<option value="">Select Faculty first</option>');
       return;
     }
-
     ApiService.fetchPrograms(facultyId)
-      .done((response) => {
+      .done(function(response) {
         $select.empty().append('<option value="">Select Program</option>');
         if (response.success) {
-          response.data.forEach(program => {
-            const selected = selectedProgramId && program.id == selectedProgramId ? 'selected' : '';
-            $select.append(`<option value="${program.id}" ${selected}>${program.name}</option>`);
+          response.data.forEach(function(program) {
+            var selected = selectedProgramId && program.id == selectedProgramId ? 'selected' : '';
+            $select.append('<option value="' + program.id + '" ' + selected + '>' + program.name + '</option>');
           });
         }
       })
-      .fail(() => {
+      .fail(function() {
         $('#studentModal').modal('hide');
         $select.empty().append('<option value="">Error loading programs</option>');
       });
   },
-
-  // Search filter selects
-  populateSearchGovernorates() {
-    const $select = $('#search_governorate_id');
+  /**
+   * Populate governorates in search
+   */
+  populateSearchGovernorates: function() {
+    var $select = $('#search_governorate_id');
     $select.empty().append('<option value="">All Governorates</option>');
-    
     ApiService.fetchGovernorates()
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          response.data.forEach(gov => {
-            $select.append(`<option value="${gov.id}">${gov.name}</option>`);
+          response.data.forEach(function(gov) {
+            $select.append('<option value="' + gov.id + '">' + gov.name + '</option>');
           });
         }
       })
-      .fail(() => {
+      .fail(function() {
         $select.empty().append('<option value="">Error loading governorates</option>');
       });
   },
-
-  populateSearchFaculties() {
-    const $select = $('#search_faculty_id');
+  /**
+   * Populate faculties in search
+   */
+  populateSearchFaculties: function() {
+    var $select = $('#search_faculty_id');
     $select.empty().append('<option value="">All Faculties</option>');
-    
     ApiService.fetchFaculties()
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          response.data.forEach(faculty => {
-            $select.append(`<option value="${faculty.id}">${faculty.name}</option>`);
+          response.data.forEach(function(faculty) {
+            $select.append('<option value="' + faculty.id + '">' + faculty.name + '</option>');
           });
         }
       })
-      .fail(() => {
+      .fail(function() {
         $select.empty().append('<option value="">Error loading faculties</option>');
       });
   },
-
-  setupDynamicSelects() {
-    // Governorate change -> update cities
+  /**
+   * Setup dynamic selects
+   */
+  setupDynamicSelects: function() {
     $('#student_governorate_id').on('change', function() {
-      const governorateId = $(this).val();
+      var governorateId = $(this).val();
       SelectManager.populateModalCities(governorateId);
     });
-
-    // Faculty change -> update programs
     $('#student_faculty_id').on('change', function() {
-      const facultyId = $(this).val();
+      var facultyId = $(this).val();
       SelectManager.populateModalPrograms(facultyId);
     });
   },
-
-  init() {
-    // Initialize modal selects
+  /**
+   * Initialize select manager
+   */
+  init: function() {
     this.populateModalGovernorates();
     this.populateModalFaculties();
-    
-    // Initialize search selects
     this.populateSearchGovernorates();
     this.populateSearchFaculties();
-    
-    // Setup dynamic behavior
     this.setupDynamicSelects();
   }
 };
 
 // ===========================
-// STUDENT CRUD & MODALS
+// STUDENT MANAGER
 // ===========================
-let currentStudentId = null;
-
-const StudentManager = {
-  handleAddStudent() {
+var StudentManager = {
+  currentStudentId: null,
+  /**
+   * Bind add student button
+   */
+  handleAdd: function() {
+    var self = this;
     $(document).on('click', '#addStudentBtn', function() {
-      currentStudentId = null;
+      self.currentStudentId = null;
       $('#studentModal .modal-title').text('Add Student');
       $('#studentForm')[0].reset();
-      
-      // Reset dependent selects
       $('#student_city_id').empty().append('<option value="">Select Governorate first</option>');
       $('#student_program_id').empty().append('<option value="">Select Faculty first</option>');
-      
       $('#studentModal').modal('show');
     });
   },
-
-  handleEditStudent() {
+  /**
+   * Bind edit student button
+   */
+  handleEdit: function() {
+    var self = this;
     $(document).on('click', '.editStudentBtn', function() {
-      const studentId = $(this).data('id');
-      currentStudentId = studentId;
+      var studentId = $(this).data('id');
+      self.currentStudentId = studentId;
       $('#studentModal .modal-title').text('Edit Student');
-      
       ApiService.fetchStudent(studentId)
-        .done((response) => {
+        .done(function(response) {
           if (response.success) {
-            const student = response.data;
-            
-            // Fill basic fields
+            var student = response.data;
             $('#student_academic_id').val(student.academic_id);
             $('#student_national_id').val(student.national_id);
             $('#student_name_en').val(student.name_en);
             $('#student_name_ar').val(student.name_ar);
             $('#student_academic_email').val(student.academic_email);
             $('#student_phone').val(student.phone);
-            // If student.date_of_birth is not in YYYY-MM-DD, convert it
-            let dob = student.date_of_birth ? student.date_of_birth.substring(0, 10) : '';
+            var dob = student.date_of_birth ? student.date_of_birth.substring(0, 10) : '';
             $('#student_date_of_birth').val(dob);
             $('#student_gender').val(student.gender);
             $('#student_academic_year').val(student.academic_year);
             $('#student_address').val(student.address);
             $('#student_is_profile_complete').val(student.is_profile_complete ? '1' : '0');
             $('#student_active').val(student.active ? '1' : '0');
-            
-            // Fill governorate and trigger city population
             $('#student_governorate_id').val(student.governorate_id);
             if (student.governorate_id) {
               SelectManager.populateModalCities(student.governorate_id, student.city_id);
             }
-            
-            // Fill faculty and trigger program population
             $('#student_faculty_id').val(student.faculty_id);
             if (student.faculty_id) {
               SelectManager.populateModalPrograms(student.faculty_id, student.program_id);
             }
-            
             $('#studentModal').modal('show');
           }
         })
-        .fail(() => {
+        .fail(function() {
           $('#studentModal').modal('hide');
           Utils.showError('Failed to load student data');
         });
     });
   },
-
-  handleViewStudent() {
+  /**
+   * Bind view student button
+   */
+  handleView: function() {
     $(document).on('click', '.viewStudentBtn', function() {
-      const studentId = $(this).data('id');
+      var studentId = $(this).data('id');
       ApiService.fetchStudent(studentId)
-        .done((response) => {
+        .done(function(response) {
           if (response.success) {
-            const student = response.data;
+            var student = response.data;
             $('#view-student-academic-id').text(student.academic_id);
             $('#view-student-name-en').text(student.name_en);
             $('#view-student-academic-email').text(student.academic_email);
             $('#view-student-phone').text(student.phone);
             $('#view-student-gender').text(student.gender);
             $('#view-student-academic-year').text(student.academic_year);
-            $('#view-student-faculty').text(student.faculty?.name ?? 'N/A');
-            $('#view-student-program').text(student.program?.name ?? 'N/A');
+            $('#view-student-faculty').text(student.faculty && student.faculty.name ? student.faculty.name : 'N/A');
+            $('#view-student-program').text(student.program && student.program.name ? student.program.name : 'N/A');
             $('#view-student-profile-complete').text(student.is_profile_complete ? 'Yes' : 'No');
             $('#view-student-is-active').text(student.active ? 'Active' : 'Inactive');
             $('#view-student-created').text(new Date(student.created_at).toLocaleString());
             $('#viewStudentModal').modal('show');
           }
         })
-        .fail(() => {
+        .fail(function() {
           $('#viewStudentModal').modal('hide');
           Utils.showError('Failed to load student data');
         });
     });
   },
-
-  handleDeleteStudent() {
+  /**
+   * Bind delete student button
+   */
+  handleDelete: function() {
     $(document).on('click', '.deleteStudentBtn', function() {
-      const studentId = $(this).data('id');
+      var studentId = $(this).data('id');
       Swal.fire({
         title: 'Are you sure?',
         text: "You won't be able to revert this!",
@@ -627,50 +675,71 @@ const StudentManager = {
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
         confirmButtonText: 'Yes, delete it!'
-      }).then((result) => {
+      }).then(function(result) {
         if (result.isConfirmed) {
           ApiService.deleteStudent(studentId)
-            .done(() => {
+            .done(function() {
               $('#students-table').DataTable().ajax.reload(null, false);
               Utils.showSuccess('Student has been deleted.');
             })
-            .fail((xhr) => {
-              const message = xhr.responseJSON?.message || 'Failed to delete student.';
+            .fail(function(xhr) {
+              var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to delete student.';
               Utils.showError(message);
             });
         }
       });
     });
   },
-
-  handleFormSubmit() {
+  /**
+   * Bind form submit
+   */
+  handleFormSubmit: function() {
+    var self = this;
     $('#studentForm').on('submit', function(e) {
       e.preventDefault();
-      const formData = $(this).serialize();
-      ApiService.saveStudent(formData, currentStudentId)
-        .done(() => {
+      var formData = $(this).serialize();
+      ApiService.saveStudent(formData, self.currentStudentId)
+        .done(function() {
           $('#studentModal').modal('hide');
           $('#students-table').DataTable().ajax.reload(null, false);
           Utils.showSuccess('Student has been saved successfully.');
         })
-        .fail((xhr) => {
+        .fail(function(xhr) {
           $('#studentModal').modal('hide');
-          const message = xhr.responseJSON?.message || 'An error occurred. Please check your input.';
+          var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred. Please check your input.';
           Utils.showError(message);
         });
     });
+  },
+  /**
+   * Initialize all student manager handlers
+   */
+  init: function() {
+    this.handleAdd();
+    this.handleEdit();
+    this.handleView();
+    this.handleDelete();
+    this.handleFormSubmit();
   }
 };
 
 // ===========================
-// SEARCH FUNCTIONALITY
+// SEARCH MANAGER
 // ===========================
-const SearchManager = {
-  initializeAdvancedSearch() {
+var SearchManager = {
+  /**
+   * Initialize advanced search
+   */
+  init: function() {
+    this.bindEvents();
+  },
+  /**
+   * Bind search and clear events
+   */
+  bindEvents: function() {
     $('#search_academic_id, #search_name_en, #search_gender, #search_active, #search_governorate_id, #search_faculty_id').on('keyup change', function() {
       $('#students-table').DataTable().ajax.reload();
     });
-    
     $('#clearStudentFiltersBtn').on('click', function() {
       $('#search_academic_id, #search_name_en, #search_gender, #search_active, #search_governorate_id, #search_faculty_id').val('');
       $('#students-table').DataTable().ajax.reload();
@@ -679,62 +748,95 @@ const SearchManager = {
 };
 
 // ===========================
-// STATISTICS MANAGEMENT
+// STATISTICS MANAGER
 // ===========================
-const StatsManager = {
-  loadStats() {
-    Utils.toggleLoadingState('students', true);
-    Utils.toggleLoadingState('students-male', true);
-    Utils.toggleLoadingState('students-female', true);
-
+var StatsManager = {
+  /**
+   * Initialize statistics cards
+   */
+  init: function() {
+    this.load();
+  },
+  /**
+   * Load statistics data
+   */
+  load: function() {
+    this.toggleAllLoadingStates(true);
     $.ajax({ url: '{{ route('resident.students.stats') }}', method: 'GET' })
-      .done((response) => {
-        if (response.success) {
-          // Total students
-          $('#students-value').text(response.data.total.count ?? '--');
-          $('#students-last-updated').text(response.data.total.lastUpdateTime ?? '--');
-          // Male students
-          $('#students-male-value').text(response.data.male.count ?? '--');
-          $('#students-male-last-updated').text(response.data.male.lastUpdateTime ?? '--');
-          // Female students
-          $('#students-female-value').text(response.data.female.count ?? '--');
-          $('#students-female-last-updated').text(response.data.female.lastUpdateTime ?? '--');
-        } else {
-          $('#students-value, #students-male-value, #students-female-value').text('N/A');
-          $('#students-last-updated, #students-male-last-updated, #students-female-last-updated').text('N/A');
-        }
-        Utils.toggleLoadingState('students', false);
-        Utils.toggleLoadingState('students-male', false);
-        Utils.toggleLoadingState('students-female', false);
-      })
-      .fail(() => {
-        $('#students-value, #students-male-value, #students-female-value').text('N/A');
-        $('#students-last-updated, #students-male-last-updated, #students-female-last-updated').text('N/A');
-        Utils.toggleLoadingState('students', false);
-        Utils.toggleLoadingState('students-male', false);
-        Utils.toggleLoadingState('students-female', false);
-        Utils.showError('Failed to load student statistics');
-      });
+      .done(this.handleSuccess.bind(this))
+      .fail(this.handleError.bind(this))
+      .always(this.toggleAllLoadingStates.bind(this, false));
+  },
+  /**
+   * Handle successful stats fetch
+   * @param {object} response
+   */
+  handleSuccess: function(response) {
+    if (response.success) {
+      let stats = response.data;
+      this.updateStatElement('students', stats.total.count, stats.total.lastUpdateTime);
+      this.updateStatElement('students-male', stats.male.count, stats.male.lastUpdateTime);
+      this.updateStatElement('students-female', stats.female.count, stats.female.lastUpdateTime);
+    } else {
+      this.setAllStatsToNA();
+    }
+  },
+  /**
+   * Handle error in stats fetch
+   */
+  handleError: function() {
+    this.setAllStatsToNA();
+    Utils.showError('Failed to load student statistics');
+  },
+  /**
+   * Update a single stat card
+   * @param {string} elementId
+   * @param {string|number} value
+   * @param {string} lastUpdateTime
+   */
+  updateStatElement: function(elementId, value, lastUpdateTime) {
+    $('#' + elementId + '-value').text(value ?? '0');
+    $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--');
+  },
+  /**
+   * Set all stat cards to N/A
+   */
+  setAllStatsToNA: function() {
+    ['students', 'students-male', 'students-female'].forEach(function(elementId) {
+      $('#' + elementId + '-value').text('N/A');
+      $('#' + elementId + '-last-updated').text('N/A');
+    });
+  },
+  /**
+   * Toggle loading state for all stat cards
+   * @param {boolean} isLoading
+   */
+  toggleAllLoadingStates: function(isLoading) {
+    ['students', 'students-male', 'students-female'].forEach(function(elementId) {
+      Utils.toggleLoadingState(elementId, isLoading);
+    });
   }
 };
 
 // ===========================
-// MAIN APPLICATION
+// MAIN APP INITIALIZER
 // ===========================
-const StudentApp = {
-  init() {
-    StudentManager.handleAddStudent();
-    StudentManager.handleEditStudent();
-    StudentManager.handleViewStudent();
-    StudentManager.handleDeleteStudent();
-    StudentManager.handleFormSubmit();
-    SearchManager.initializeAdvancedSearch();
+var StudentApp = {
+  /**
+   * Initialize all managers
+   */
+  init: function() {
+    StudentManager.init();
+    SearchManager.init();
     SelectManager.init();
-    StatsManager.loadStats();
+    StatsManager.init();
   }
 };
 
-$(document).ready(() => {
+// ===========================
+// DOCUMENT READY
+// ===========================
+$(document).ready(function() {
   StudentApp.init();
 });
 

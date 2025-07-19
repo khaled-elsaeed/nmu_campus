@@ -4,46 +4,19 @@ namespace App\Services\Resident;
 
 use App\Models\Staff;
 use App\Models\User;
+use App\Exceptions\BusinessValidationException;
+use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Builder;
 
 class StaffService
 {
-    protected $model = Staff::class;
-
     /**
-     * Get staff statistics including counts and last update times using raw SQL.
-     *
-     * @return array
+     * The model class to use for this service.
+     * @var string
      */
-    public function stats(): array
-    {
-        $stats = Staff::join('users', 'staff.user_id', '=', 'users.id')
-            ->selectRaw('
-                COUNT(staff.id) as total,
-                COUNT(CASE WHEN users.gender = "male" THEN 1 END) as male,
-                COUNT(CASE WHEN users.gender = "female" THEN 1 END) as female,
-                MAX(staff.updated_at) as last_update,
-                MAX(CASE WHEN users.gender = "male" THEN staff.updated_at END) as male_last_update,
-                MAX(CASE WHEN users.gender = "female" THEN staff.updated_at END) as female_last_update
-            ')
-            ->first();
-
-        return [
-            'total' => [
-                'count' => formatNumber($stats->total),
-                'lastUpdateTime' => formatDate($stats->last_update),
-            ],
-            'male' => [
-                'count' => formatNumber($stats->male),
-                'lastUpdateTime' => formatDate($stats->male_last_update),
-            ],
-            'female' => [
-                'count' => formatNumber($stats->female),
-                'lastUpdateTime' => formatDate($stats->female_last_update),
-            ],
-        ];
-    }
+    protected $model = Staff::class;
 
     /**
      * Create a new staff and associated user.
@@ -51,95 +24,241 @@ class StaffService
      * @param array $data
      * @return Staff
      */
-    public function create(array $data): Staff
+    public function createStaff(array $data): Staff
     {
         return DB::transaction(function () use ($data) {
-            $user = User::create([
-                'name_en' => $data['name_en'] ?? null,
-                'name_ar' => $data['name_ar'] ?? null,
-                'gender' => $data['gender'] ?? null,
-                'email' => $data['email'] ?? null,
-                'password' => $data['password'] ?? bcrypt('password'),
-            ]);
-            $staff = Staff::create([
-                'user_id' => $user->id,
-                'staff_category_id' => $data['staff_category_id'],
-                'faculty_id' => $data['faculty_id'],
-                'department_id' => $data['department_id'],
-                'notes' => $data['notes'] ?? null,
-            ]);
-            return $staff;
+            $user = $this->createUser($data);
+            $staff = $this->createStaffProfile($user, $data);
+            return $staff->fresh(['user', 'department', 'staffCategory', 'faculty']);
         });
     }
 
-    public function update($id, array $data): Staff
+    /**
+     * Create a new user for staff.
+     *
+     * @param array $data
+     * @return User
+     */
+    private function createUser(array $data): User
     {
-        return DB::transaction(function () use ($id, $data) {
-            $staff = Staff::findOrFail($id);
-            $user = $staff->user;
-            $user->update([
-                'name_en' => $data['name_en'] ?? $user->name_en,
-                'name_ar' => $data['name_ar'] ?? $user->name_ar,
-                'gender' => $data['gender'] ?? $user->gender,
-                'email' => $data['email'] ?? $user->email,
-            ]);
-            if (!empty($data['password'])) {
-                $user->update(['password' => bcrypt($data['password'])]);
-            }
-            $staff->update([
-                'staff_category_id' => $data['staff_category_id'],
-                'faculty_id' => $data['faculty_id'],
-                'department_id' => $data['department_id'],
-                'notes' => $data['notes'] ?? null,
-            ]);
-            return $staff;
+        return User::create([
+            'name_en' => $data['name_en'] ?? null,
+            'name_ar' => $data['name_ar'] ?? null,
+            'gender' => $data['gender'] ?? null,
+            'email' => $data['email'] ?? null,
+            'password' => $data['password'] ?? bcrypt('password'),
+        ]);
+    }
+
+    /**
+     * Create a staff profile for the user.
+     *
+     * @param User $user
+     * @param array $data
+     * @return Staff
+     */
+    private function createStaffProfile(User $user, array $data): Staff
+    {
+        return Staff::create([
+            'user_id' => $user->id,
+            'staff_category_id' => $data['staff_category_id'],
+            'faculty_id' => $data['faculty_id'],
+            'department_id' => $data['department_id'],
+            'notes' => $data['notes'] ?? null,
+        ]);
+    }
+
+    /**
+     * Update an existing staff and associated user.
+     *
+     * @param Staff $staff
+     * @param array $data
+     * @return Staff
+     */
+    public function updateStaff(Staff $staff, array $data): Staff
+    {
+        return DB::transaction(function () use ($staff, $data) {
+            $this->updateUser($staff->user, $data);
+            $this->updateStaffProfile($staff, $data);
+            return $staff->fresh(['user', 'department', 'staffCategory', 'faculty']);
         });
     }
 
-    public function delete($id): bool
+    /**
+     * Update the user associated with the staff.
+     *
+     * @param User $user
+     * @param array $data
+     * @return void
+     */
+    private function updateUser(User $user, array $data): void
     {
-        $staff = Staff::find($id);
-        if (!$staff) return false;
-        $staff->delete();
-        return true;
+        $user->update([
+            'name_en' => $data['name_en'] ?? $user->name_en,
+            'name_ar' => $data['name_ar'] ?? $user->name_ar,
+            'gender' => $data['gender'] ?? $user->gender,
+            'email' => $data['email'] ?? $user->email,
+        ]);
+        if (!empty($data['password'])) {
+            $user->update(['password' => bcrypt($data['password'])]);
+        }
     }
 
-    public function find($id): ?Staff
+    /**
+     * Update the staff profile.
+     *
+     * @param Staff $staff
+     * @param array $data
+     * @return void
+     */
+    private function updateStaffProfile(Staff $staff, array $data): void
     {
-        return Staff::with(['department', 'staffCategory', 'faculty', 'user'])->find($id);
+        $staff->update([
+            'staff_category_id' => $data['staff_category_id'],
+            'faculty_id' => $data['faculty_id'],
+            'department_id' => $data['department_id'],
+            'notes' => $data['notes'] ?? null,
+        ]);
     }
 
-    public function datatable(array $params)
+    /**
+     * Get a single staff with relationships.
+     *
+     * @param int $id
+     * @return Staff
+     */
+    public function getStaff($id): Staff
     {
-        $query = Staff::with(['department', 'staffCategory', 'faculty', 'user']);
-        // Optionally: add search filters here
-        return DataTables::eloquent($query)
-            ->addIndexColumn()
-            ->addColumn('department', function($staff) {
-                return $staff->department?->name ?? '-';
-            })
-            ->addColumn('category', function($staff) {
-                return $staff->staffCategory?->name ?? '-';
-            })
-            ->addColumn('faculty', function($staff) {
-                return $staff->faculty?->name ?? '-';
-            })
-            ->addColumn('name', function($staff) {
-                return $staff->user?->name_en ?? '-';
-            })
-            ->addColumn('gender', function($staff) {
-                return $staff->user?->gender ?? '-';
-            })
-            ->addColumn('actions', fn($staff) => 
-                view('components.ui.datatable.data-table-actions', [
-                    'mode' => 'dropdown',
+        return Staff::with(['user', 'department', 'staffCategory', 'faculty'])->findOrFail($id);
+    }
+
+    /**
+     * Delete a staff and associated user.
+     *
+     * @param Staff $staff
+     * @return void
+     * @throws BusinessValidationException
+     */
+    public function deleteStaff(Staff $staff): void
+    {
+        $user = $staff->user;
+        if ($user) {
+            $user->delete();
+        }
+    }
+
+    /**
+     * Get all staff (for dropdowns/forms).
+     *
+     * @return array
+     */
+    public function getAll(): array
+    {
+        return Staff::with(['user', 'department', 'staffCategory', 'faculty'])
+            ->get()
+            ->map(function ($staff) {
+                return [
                     'id' => $staff->id,
-                    'type' => 'Staff',
-                    'actions' => ['view', 'edit', 'delete'],
-                ])->render()
-            )
-            ->editColumn('created_at', fn($staff) => formatDate($staff->created_at))
-            ->rawColumns(['actions'])
+                    'name' => $staff->user?->name_en,
+                    'faculty' => $staff->faculty?->name,
+                    'department' => $staff->department?->name,
+                    'category' => $staff->staffCategory?->name,
+                ];
+            })->toArray();
+    }
+
+    /**
+     * Get staff statistics.
+     *
+     * @return array
+     */
+    public function getStats(): array
+    {
+        $totalStaff = Staff::count();
+        $maleStaff = Staff::whereHas('user', fn($q) => $q->where('gender', 'male'))->count();
+        $femaleStaff = Staff::whereHas('user', fn($q) => $q->where('gender', 'female'))->count();
+        $lastUpdateTime = formatDate(Staff::max('updated_at'));
+        $maleLastUpdate = formatDate(Staff::whereHas('user', fn($q) => $q->where('gender', 'male'))->max('updated_at'));
+        $femaleLastUpdate = formatDate(Staff::whereHas('user', fn($q) => $q->where('gender', 'female'))->max('updated_at'));
+        return [
+            'total' => [
+                'total' => formatNumber($totalStaff),
+                'lastUpdateTime' => $lastUpdateTime
+            ],
+            'male' => [
+                'total' => formatNumber($maleStaff),
+                'lastUpdateTime' => $maleLastUpdate
+            ],
+            'female' => [
+                'total' => formatNumber($femaleStaff),
+                'lastUpdateTime' => $femaleLastUpdate
+            ],
+        ];
+    }
+
+    /**
+     * Get staff data for DataTables.
+     *
+     * @return JsonResponse
+     */
+    public function getDatatable(): JsonResponse
+    {
+        $query = Staff::with(['user', 'department', 'staffCategory', 'faculty']);
+        $query = $this->applySearchFilters($query);
+        return DataTables::of($query)
+            ->addIndexColumn()
+            ->addColumn('name', fn($staff) => $staff->user?->name_en)
+            ->addColumn('faculty', fn($staff) => $staff->faculty?->name)
+            ->addColumn('department', fn($staff) => $staff->department?->name)
+            ->addColumn('category', fn($staff) => $staff->staffCategory?->name)
+            ->addColumn('gender', fn($staff) => $staff->user?->gender)
+            ->addColumn('created_at', fn($staff) => formatDate($staff->created_at))
+            ->addColumn('action', fn($staff) => $this->renderActionButtons($staff))
+            ->rawColumns(['action'])
             ->make(true);
+    }
+
+    /**
+     * Apply search filters to the query.
+     *
+     * @param Builder $query
+     * @return Builder
+     */
+    protected function applySearchFilters($query): Builder
+    {
+        if (request()->filled('search_name') && !empty(request('search_name'))) {
+            $search = mb_strtolower(request('search_name'));
+            $query->whereHas('user', function ($q) use ($search) {
+                $q->whereRaw('LOWER(name_en) LIKE ?', ['%' . $search . '%'])
+                  ->orWhereRaw('LOWER(name_ar) LIKE ?', ['%' . $search . '%']);
+            });
+        }
+        if (request()->filled('faculty_id')) {
+            $query->where('faculty_id', request('faculty_id'));
+        }
+        if (request()->filled('department_id')) {
+            $query->where('department_id', request('department_id'));
+        }
+        if (request()->filled('category_id')) {
+            $query->where('staff_category_id', request('category_id'));
+        }
+        return $query;
+    }
+
+    /**
+     * Render action buttons for datatable rows.
+     *
+     * @param Staff $staff
+     * @return string
+     */
+    protected function renderActionButtons($staff): string
+    {
+        return view('components.ui.datatable.data-table-actions', [
+            'mode' => 'dropdown',
+            'actions' => ['view', 'edit', 'delete'],
+            'id' => $staff->id,
+            'type' => 'Staff',
+            'singleActions' => []
+        ])->render();
     }
 } 

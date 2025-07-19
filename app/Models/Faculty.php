@@ -51,4 +51,14 @@ class Faculty extends Model
     {
         return $this->hasMany(Program::class);
     }
+
+    /**
+     * Get the students for the program.
+     *
+     * @return HasMany
+     */
+    public function students(): HasMany
+    {
+        return $this->hasMany(Student::class);
+    }
 }

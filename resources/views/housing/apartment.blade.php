@@ -56,6 +56,14 @@
                 <option value="mixed">Mixed</option>
             </select>
         </div>
+        <div class="col-md-4">
+            <label for="search_active" class="form-label">Active Status:</label>
+            <select class="form-control" id="search_active">
+                <option value="">All</option>
+                <option value="1">Active</option>
+                <option value="0">Inactive</option>
+            </select>
+        </div>
         <div class="w-100"></div>
         <button class="btn btn-outline-secondary mt-2 ms-2" id="clearApartmentFiltersBtn" type="button">
             <i class="bx bx-x"></i> Clear Filters
@@ -64,19 +72,19 @@
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable 
-        :headers="['Number', 'Building', 'Total Rooms', 'Gender Restriction', 'Active', 'Created At', 'Actions']"
+        :headers="['Number', 'Building', 'Total Rooms', 'Gender', 'Active', 'Created At', 'Actions']"
         :columns="[
-            ['data' => 'number', 'name' => 'apartment_number'],
-            ['data' => 'building', 'name' => 'building_number'],
+            ['data' => 'number', 'name' => 'number'],
+            ['data' => 'building_number', 'name' => 'building_number'],
             ['data' => 'total_rooms', 'name' => 'total_rooms'],
-            ['data' => 'gender_restriction', 'name' => 'building_gender_restriction'],
+            ['data' => 'building_gender_restriction', 'name' => 'building_gender_restriction'],
             ['data' => 'active', 'name' => 'active'],
             ['data' => 'created_at', 'name' => 'created_at'],
-            ['data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false]
+            ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false]
         ]"
         :ajax-url="route('housing.apartments.datatable')"
         :table-id="'apartments-table'"
-        :filter-fields="['search_apartment_number','search_building_id','search_gender_restriction']"
+        :filter-fields="['search_apartment_number','search_building_id','search_gender_restriction','search_active']"
     />
 
     {{-- ===== MODALS SECTION ===== --}}
@@ -125,10 +133,23 @@
 
 @push('scripts')
 <script>
+/**
+ * Apartment Management Page JS
+ *
+ * Structure:
+ * - Utils: Common utility functions
+ * - ApiService: Handles all AJAX requests
+ * - StatsManager: Handles statistics cards
+ * - ApartmentManager: Handles CRUD and actions for apartments
+ * - SearchManager: Handles advanced search
+ * - SelectManager: Handles dropdown population
+ * - ApartmentApp: Initializes all managers
+ */
+
 // ===========================
-// CONSTANTS AND CONFIGURATION
+// ROUTES CONSTANTS
 // ===========================
-const ROUTES = {
+var ROUTES = {
   apartments: {
     stats: '{{ route('housing.apartments.stats') }}',
     show: '{{ route('housing.apartments.show', ':id') }}',
@@ -144,31 +165,7 @@ const ROUTES = {
   }
 };
 
-const SELECTORS = {
-  table: '#apartments-table',
-  modals: {
-    view: '#viewApartmentModal'
-  },
-  buttons: {
-    view: '.viewApartmentBtn',
-    delete: '.deleteApartmentBtn',
-    activate: '.activateApartmentBtn',
-    deactivate: '.deactivateApartmentBtn',
-    clearFilters: '#clearApartmentFiltersBtn'
-  },
-  filters: {
-    apartmentNumber: '#search_apartment_number',
-    buildingId: '#search_building_id',
-    genderRestriction: '#search_gender_restriction'
-  },
-  stats: {
-    total: '#apartments',
-    male: '#apartments-male',
-    female: '#apartments-female'
-  }
-};
-
-const MESSAGES = {
+var MESSAGES = {
   confirm: {
     activate: {
       title: 'Activate Apartment?',
@@ -202,28 +199,27 @@ const MESSAGES = {
 // ===========================
 // UTILITY FUNCTIONS
 // ===========================
-const Utils = {
-  showError(message) {
-    Swal.fire({ 
-      title: 'Error', 
-      html: message, 
-      icon: 'error' 
-    });
+var Utils = {
+  /**
+   * Show an error alert
+   * @param {string} message
+   */
+  showError: function(message) {
+    Swal.fire({ title: 'Error', html: message, icon: 'error' });
   },
-
-  showSuccess(message) {
-    Swal.fire({ 
-      toast: true, 
-      position: 'top-end', 
-      icon: 'success', 
-      title: message, 
-      showConfirmButton: false, 
-      timer: 2500, 
-      timerProgressBar: true 
-    });
+  /**
+   * Show a success toast message
+   * @param {string} message
+   */
+  showSuccess: function(message) {
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: message, showConfirmButton: false, timer: 2500, timerProgressBar: true });
   },
-
-  showConfirm(options) {
+  /**
+   * Show a confirmation dialog
+   * @param {object} options
+   * @returns {Promise}
+   */
+  showConfirm: function(options) {
     return Swal.fire({
       title: options.title,
       text: options.text,
@@ -234,13 +230,16 @@ const Utils = {
       confirmButtonText: options.button
     });
   },
-
-  toggleLoadingState(elementId, isLoading) {
-    const $value = $(`#${elementId}-value`);
-    const $loader = $(`#${elementId}-loader`);
-    const $updated = $(`#${elementId}-last-updated`);
-    const $updatedLoader = $(`#${elementId}-last-updated-loader`);
-    
+  /**
+   * Toggle loading state for a stat card
+   * @param {string} elementId
+   * @param {boolean} isLoading
+   */
+  toggleLoadingState: function(elementId, isLoading) {
+    var $value = $('#' + elementId + '-value');
+    var $loader = $('#' + elementId + '-loader');
+    var $updated = $('#' + elementId + '-last-updated');
+    var $updatedLoader = $('#' + elementId + '-last-updated-loader');
     if (isLoading) {
       $value.addClass('d-none');
       $loader.removeClass('d-none');
@@ -253,231 +252,309 @@ const Utils = {
       $updatedLoader.addClass('d-none');
     }
   },
-
-  replaceRouteId(route, id) {
+  /**
+   * Replace :id in a route string
+   * @param {string} route
+   * @param {string|number} id
+   * @returns {string}
+   */
+  replaceRouteId: function(route, id) {
     return route.replace(':id', id);
   },
-
-  setElementText(selector, text) {
+  /**
+   * Set text for an element
+   * @param {string} selector
+   * @param {string} text
+   */
+  setElementText: function(selector, text) {
     $(selector).text(text || '--');
   },
-
-  formatDate(dateString) {
+  /**
+   * Format a date string
+   * @param {string} dateString
+   * @returns {string}
+   */
+  formatDate: function(dateString) {
     return new Date(dateString).toLocaleString();
   },
-
-  disableButton($button, disabled = true) {
-    $button.prop('disabled', disabled);
+  /**
+   * Enable or disable a button
+   * @param {object} $button
+   * @param {boolean} disabled
+   */
+  disableButton: function($button, disabled) {
+    $button.prop('disabled', disabled === undefined ? true : disabled);
   }
 };
 
 // ===========================
-// API SERVICE LAYER
+// API SERVICE
 // ===========================
-const ApiService = {
-  request: (options) => $.ajax(options),
-
-  fetchStats: () => ApiService.request({ 
-    url: ROUTES.apartments.stats, 
-    method: 'GET' 
-  }),
-
-  fetchApartment: (id) => ApiService.request({ 
-    url: Utils.replaceRouteId(ROUTES.apartments.show, id), 
-    method: 'GET' 
-  }),
-
-  saveApartment: (data, id) => ApiService.request({ 
-    url: Utils.replaceRouteId(ROUTES.apartments.update, id), 
-    method: 'PUT', 
-    data 
-  }),
-
-  deleteApartment: (id) => ApiService.request({ 
-    url: Utils.replaceRouteId(ROUTES.apartments.destroy, id), 
-    method: 'DELETE' 
-  }),
-
-  activateApartment: (id) => ApiService.request({
-    url: Utils.replaceRouteId(ROUTES.apartments.activate, id),
-    method: 'PATCH'
-  }),
-
-  deactivateApartment: (id) => ApiService.request({
-    url: Utils.replaceRouteId(ROUTES.apartments.deactivate, id),
-    method: 'PATCH'
-  }),
-
-  fetchBuildings: () => ApiService.request({ 
-    url: ROUTES.buildings.all, 
-    method: 'GET' 
-  }),
-
-  fetchApartments: () => ApiService.request({ 
-    url: ROUTES.apartments.all, 
-    method: 'GET' 
-  })
+var ApiService = {
+  /**
+   * Generic AJAX request
+   * @param {object} options
+   * @returns {jqXHR}
+   */
+  request: function(options) {
+    return $.ajax(options);
+  },
+  /**
+   * Fetch apartment statistics
+   * @returns {jqXHR}
+   */
+  fetchStats: function() {
+    return this.request({ url: ROUTES.apartments.stats, method: 'GET' });
+  },
+  /**
+   * Fetch a single apartment by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  fetchApartment: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.apartments.show, id), method: 'GET' });
+  },
+  /**
+   * Save (update) an apartment
+   * @param {object} data
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  saveApartment: function(data, id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.apartments.update, id), method: 'PUT', data: data });
+  },
+  /**
+   * Delete an apartment by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  deleteApartment: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.apartments.destroy, id), method: 'DELETE' });
+  },
+  /**
+   * Activate an apartment by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  activateApartment: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.apartments.activate, id), method: 'PATCH' });
+  },
+  /**
+   * Deactivate an apartment by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  deactivateApartment: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.apartments.deactivate, id), method: 'PATCH' });
+  },
+  /**
+   * Fetch all buildings
+   * @returns {jqXHR}
+   */
+  fetchBuildings: function() {
+    return this.request({ url: ROUTES.buildings.all, method: 'GET' });
+  },
+  /**
+   * Fetch all apartments
+   * @returns {jqXHR}
+   */
+  fetchApartments: function() {
+    return this.request({ url: ROUTES.apartments.all, method: 'GET' });
+  }
 };
 
 // ===========================
-// STATISTICS MANAGEMENT
+// STATISTICS MANAGER
 // ===========================
-const StatsManager = {
-  loadStats() {
-    this.toggleAllStatsLoading(true);
-    
-    ApiService.fetchStats()
-      .done((response) => {
-        if (response.success) {
-          this.updateStatsDisplay(response.data);
-        } else {
-          this.setStatsError();
-        }
-      })
-      .fail(() => {
-        this.setStatsError();
-        Utils.showError(MESSAGES.error.loadStats);
-      })
-      .always(() => {
-        this.toggleAllStatsLoading(false);
-      });
+var StatsManager = {
+  /**
+   * Initialize statistics cards
+   */
+  init: function() {
+    this.load();
   },
-
-  toggleAllStatsLoading(isLoading) {
-    const statsKeys = Object.keys(SELECTORS.stats);
-    statsKeys.forEach(key => {
-      const elementId = SELECTORS.stats[key].replace('#', '');
+  /**
+   * Load statistics data
+   */
+  load: function() {
+    this.toggleAllLoadingStates(true);
+    ApiService.fetchStats()
+      .done(this.handleSuccess.bind(this))
+      .fail(this.handleError.bind(this))
+      .always(this.toggleAllLoadingStates.bind(this, false));
+  },
+  /**
+   * Handle successful stats fetch
+   * @param {object} response
+   */
+  handleSuccess: function(response) {
+    if (response.success) {
+      let stats = response.data;
+      this.updateStatElement('apartments', stats.total.total, stats.total.lastUpdateTime);
+      this.updateStatElement('apartments-male', stats.male.total, stats.male.lastUpdateTime);
+      this.updateStatElement('apartments-female', stats.female.total, stats.female.lastUpdateTime);
+    } else {
+      this.setAllStatsToNA();
+    }
+  },
+  /**
+   * Handle error in stats fetch
+   */
+  handleError: function() {
+    this.setAllStatsToNA();
+    Utils.showError(MESSAGES.error.loadStats || 'Failed to load apartment statistics');
+  },
+  /**
+   * Update a single stat card
+   * @param {string} elementId
+   * @param {string|number} value
+   * @param {string} lastUpdateTime
+   */
+  updateStatElement: function(elementId, value, lastUpdateTime) {
+    $('#' + elementId + '-value').text(value ?? '0');
+    $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--');
+  },
+  /**
+   * Set all stat cards to N/A
+   */
+  setAllStatsToNA: function() {
+    ['apartments', 'apartments-male', 'apartments-female'].forEach(function(elementId) {
+      $('#' + elementId + '-value').text('N/A');
+      $('#' + elementId + '-last-updated').text('N/A');
+    });
+  },
+  /**
+   * Toggle loading state for all stat cards
+   * @param {boolean} isLoading
+   */
+  toggleAllLoadingStates: function(isLoading) {
+    ['apartments', 'apartments-male', 'apartments-female'].forEach(function(elementId) {
       Utils.toggleLoadingState(elementId, isLoading);
     });
-  },
-
-  updateStatsDisplay(data) {
-    this.updateSingleStat('total', data.total);
-    this.updateSingleStat('male', data.male);
-    this.updateSingleStat('female', data.female);
-  },
-
-  updateSingleStat(type, data) {
-    const elementId = SELECTORS.stats[type].replace('#', '');
-    Utils.setElementText(`#${elementId}-value`, data.count);
-    Utils.setElementText(`#${elementId}-last-updated`, data.lastUpdateTime);
-  },
-
-  setStatsError() {
-    const statsKeys = Object.keys(SELECTORS.stats);
-    statsKeys.forEach(key => {
-      const elementId = SELECTORS.stats[key].replace('#', '');
-      Utils.setElementText(`#${elementId}-value`, 'N/A');
-      Utils.setElementText(`#${elementId}-last-updated`, 'N/A');
-    });
   }
 };
 
 // ===========================
-// APARTMENT CRUD OPERATIONS
+// APARTMENT MANAGER
 // ===========================
-const ApartmentManager = {
-  init() {
+var ApartmentManager = {
+  /**
+   * Initialize apartment manager
+   */
+  init: function() {
     this.bindEvents();
   },
-
-  bindEvents() {
-    $(document).on('click', SELECTORS.buttons.view, (e) => this.handleViewApartment(e));
-    $(document).on('click', SELECTORS.buttons.delete, (e) => this.handleDeleteApartment(e));
-    $(document).on('click', SELECTORS.buttons.activate, (e) => this.handleActivateApartment(e));
-    $(document).on('click', SELECTORS.buttons.deactivate, (e) => this.handleDeactivateApartment(e));
+  /**
+   * Bind all apartment-related events
+   */
+  bindEvents: function() {
+    var self = this;
+    $(document).on('click', '.viewApartmentBtn', function(e) { self.handleViewApartment(e); });
+    $(document).on('click', '.deleteApartmentBtn', function(e) { self.handleDeleteApartment(e); });
+    $(document).on('click', '.activateApartmentBtn', function(e) { self.handleActivateApartment(e); });
+    $(document).on('click', '.deactivateApartmentBtn', function(e) { self.handleDeactivateApartment(e); });
   },
-
-  handleViewApartment(e) {
-    const apartmentId = $(e.currentTarget).data('id');
-    
+  /**
+   * Handle view apartment button click
+   */
+  handleViewApartment: function(e) {
+    var apartmentId = $(e.currentTarget).data('id');
     ApiService.fetchApartment(apartmentId)
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          this.populateViewModal(response.data);
-          $(SELECTORS.modals.view).modal('show');
+          ApartmentManager.populateViewModal(response.data);
+          $('#viewApartmentModal').modal('show');
         }
       })
-      .fail(() => {
-        $(SELECTORS.modals.view).modal('hide');
+      .fail(function() {
+        $('#viewApartmentModal').modal('hide');
         Utils.showError(MESSAGES.error.loadApartment);
       });
   },
-
-  handleDeleteApartment(e) {
-    const apartmentId = $(e.currentTarget).data('id');
-    
+  /**
+   * Handle delete apartment button click
+   */
+  handleDeleteApartment: function(e) {
+    var apartmentId = $(e.currentTarget).data('id');
     Utils.showConfirm(MESSAGES.confirm.delete)
-      .then((result) => {
+      .then(function(result) {
         if (result.isConfirmed) {
-          this.deleteApartment(apartmentId);
+          ApartmentManager.deleteApartment(apartmentId);
         }
       });
   },
-
-  handleActivateApartment(e) {
+  /**
+   * Handle activate apartment button click
+   */
+  handleActivateApartment: function(e) {
     e.preventDefault();
-    const $btn = $(e.currentTarget);
-    const id = $btn.data('id');
-    
-    this.toggleApartmentStatus(id, true, $btn);
+    var $btn = $(e.currentTarget);
+    var id = $btn.data('id');
+    ApartmentManager.toggleApartmentStatus(id, true, $btn);
   },
-
-  handleDeactivateApartment(e) {
+  /**
+   * Handle deactivate apartment button click
+   */
+  handleDeactivateApartment: function(e) {
     e.preventDefault();
-    const $btn = $(e.currentTarget);
-    const id = $btn.data('id');
-    
-    this.toggleApartmentStatus(id, false, $btn);
+    var $btn = $(e.currentTarget);
+    var id = $btn.data('id');
+    ApartmentManager.toggleApartmentStatus(id, false, $btn);
   },
-
-  toggleApartmentStatus(id, isActivate, $btn) {
-    const confirmOptions = isActivate ? MESSAGES.confirm.activate : MESSAGES.confirm.deactivate;
-    const apiCall = isActivate ? ApiService.activateApartment : ApiService.deactivateApartment;
-    const successMessage = isActivate ? MESSAGES.success.activated : MESSAGES.success.deactivated;
-
+  /**
+   * Toggle apartment status (activate/deactivate)
+   */
+  toggleApartmentStatus: function(id, isActivate, $btn) {
+    var confirmOptions = isActivate ? MESSAGES.confirm.activate : MESSAGES.confirm.deactivate;
+    var apiCall = isActivate ? ApiService.activateApartment : ApiService.deactivateApartment;
+    var successMessage = isActivate ? MESSAGES.success.activated : MESSAGES.success.deactivated;
     Utils.showConfirm(confirmOptions)
-      .then((result) => {
+      .then(function(result) {
         if (result.isConfirmed) {
-          this.executeStatusToggle(id, apiCall, successMessage, $btn);
+          ApartmentManager.executeStatusToggle(id, apiCall, successMessage, $btn);
         }
       });
   },
-
-  executeStatusToggle(id, apiCall, successMessage, $btn) {
+  /**
+   * Execute status toggle API call
+   */
+  executeStatusToggle: function(id, apiCall, successMessage, $btn) {
     Utils.disableButton($btn);
-    
     apiCall(id)
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
           Utils.showSuccess(successMessage);
-          this.reloadTable();
+          ApartmentManager.reloadTable();
         } else {
           Utils.showError(response.message || MESSAGES.error.operationFailed);
         }
       })
-      .fail((xhr) => {
-        Utils.showError(xhr.responseJSON?.message || MESSAGES.error.operationFailed);
+      .fail(function(xhr) {
+        Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : MESSAGES.error.operationFailed);
       })
-      .always(() => {
+      .always(function() {
         Utils.disableButton($btn, false);
       });
   },
-
-  deleteApartment(apartmentId) {
+  /**
+   * Delete an apartment
+   */
+  deleteApartment: function(apartmentId) {
     ApiService.deleteApartment(apartmentId)
-      .done(() => {
-        this.reloadTable();
+      .done(function() {
+        ApartmentManager.reloadTable();
         Utils.showSuccess(MESSAGES.success.deleted);
-        StatsManager.loadStats();
+        StatsManager.load();
       })
-      .fail((xhr) => {
-        const message = xhr.responseJSON?.message || MESSAGES.error.deleteApartment;
+      .fail(function(xhr) {
+        var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : MESSAGES.error.deleteApartment;
         Utils.showError(message);
       });
   },
-
-  populateViewModal(apartment) {
+  /**
+   * Populate the view modal with apartment data
+   */
+  populateViewModal: function(apartment) {
     Utils.setElementText('#view-apartment-number', apartment.number);
     Utils.setElementText('#view-apartment-building', apartment.building);
     Utils.setElementText('#view-apartment-total-rooms', apartment.total_rooms);
@@ -485,112 +562,133 @@ const ApartmentManager = {
     Utils.setElementText('#view-apartment-is-active', apartment.active ? 'Active' : 'Inactive');
     Utils.setElementText('#view-apartment-created', Utils.formatDate(apartment.created_at));
   },
-
-  reloadTable() {
-    $(SELECTORS.table).DataTable().ajax.reload(null, false);
+  /**
+   * Reload the apartments table
+   */
+  reloadTable: function() {
+    $('#apartments-table').DataTable().ajax.reload(null, false);
   }
 };
 
 // ===========================
-// SEARCH FUNCTIONALITY
+// SEARCH MANAGER
 // ===========================
-const SearchManager = {
-  init() {
+var SearchManager = {
+  /**
+   * Initialize search manager
+   */
+  init: function() {
     this.bindEvents();
   },
-
-  bindEvents() {
-    const filterSelectors = Object.values(SELECTORS.filters).join(', ');
-    $(filterSelectors).on('change', () => this.handleFilterChange());
-    $(SELECTORS.buttons.clearFilters).on('click', () => this.clearFilters());
+  /**
+   * Bind search and clear events
+   */
+  bindEvents: function() {
+    var self = this;
+    $('#search_apartment_number, #search_building_id, #search_gender_restriction, #search_active').on('change', function() { self.handleFilterChange(); });
+    $('#clearApartmentFiltersBtn').on('click', function() { self.clearFilters(); });
   },
-
-  handleFilterChange() {
-    $(SELECTORS.table).DataTable().ajax.reload();
+  /**
+   * Handle filter change
+   */
+  handleFilterChange: function() {
+    $('#apartments-table').DataTable().ajax.reload();
   },
-
-  clearFilters() {
-    const filterSelectors = Object.values(SELECTORS.filters);
-    filterSelectors.forEach(selector => {
+  /**
+   * Clear all filters
+   */
+  clearFilters: function() {
+    ['#search_apartment_number', '#search_building_id', '#search_gender_restriction', '#search_active'].forEach(function(selector) {
       $(selector).val('').trigger('change');
     });
-    $(SELECTORS.table).DataTable().ajax.reload();
+    $('#apartments-table').DataTable().ajax.reload();
   }
 };
 
 // ===========================
-// SELECT MANAGEMENT
+// SELECT MANAGER
 // ===========================
-const SelectManager = {
-  init() {
+var SelectManager = {
+  /**
+   * Initialize select manager
+   */
+  init: function() {
     this.populateBuildingSelect();
     this.populateApartmentSelect();
   },
-
-  populateBuildingSelect() {
+  /**
+   * Populate building select dropdown
+   */
+  populateBuildingSelect: function() {
     ApiService.fetchBuildings()
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          this.populateSelect(SELECTORS.filters.buildingId, response.data, 'id', 'number');
+          SelectManager.populateSelect('#search_building_id', response.data, 'id', 'number');
         }
       })
-      .fail(() => {
+      .fail(function() {
         console.error('Failed to load buildings');
       });
   },
-
-  populateApartmentSelect() {
+  /**
+   * Populate apartment select dropdown
+   */
+  populateApartmentSelect: function() {
     ApiService.fetchApartments()
-      .done((response) => {
+      .done(function(response) {
         if (response.success) {
-          this.populateApartmentNumbers(response.data);
+          SelectManager.populateApartmentNumbers(response.data);
         }
       })
-      .fail(() => {
+      .fail(function() {
         console.error('Failed to load apartments');
       });
   },
-
-  populateSelect(selector, data, valueField, textField) {
-    const $select = $(selector);
+  /**
+   * Populate a select dropdown with data
+   */
+  populateSelect: function(selector, data, valueField, textField) {
+    var $select = $(selector);
     $select.empty().append('<option value="">All</option>');
-    
-    data.forEach(item => {
-      $select.append(`<option value="${item[valueField]}">${item[textField]}</option>`);
+    data.forEach(function(item) {
+      $select.append('<option value="' + item[valueField] + '">' + item[textField] + '</option>');
     });
   },
-
-  populateApartmentNumbers(apartments) {
-    const $select = $(SELECTORS.filters.apartmentNumber);
+  /**
+   * Populate apartment numbers dropdown
+   */
+  populateApartmentNumbers: function(apartments) {
+    var $select = $('#search_apartment_number');
     $select.empty().append('<option value="">All</option>');
-    
-    const uniqueNumbers = new Set();
-    apartments.forEach(apartment => {
+    var uniqueNumbers = new Set();
+    apartments.forEach(function(apartment) {
       if (!uniqueNumbers.has(apartment.number)) {
         uniqueNumbers.add(apartment.number);
-        $select.append(`<option value="${apartment.number}">${apartment.number}</option>`);
+        $select.append('<option value="' + apartment.number + '">' + apartment.number + '</option>');
       }
     });
   }
 };
 
 // ===========================
-// MAIN APPLICATION
+// MAIN APP INITIALIZER
 // ===========================
-
-const ApartmentApp = {
-  init() {
-    StatsManager.loadStats();
-  ApartmentManager.init();
-  SearchManager.init();
-  SelectManager.init();
+var ApartmentApp = {
+  /**
+   * Initialize all managers
+   */
+  init: function() {
+    StatsManager.init();
+    ApartmentManager.init();
+    SearchManager.init();
+    SelectManager.init();
   }
 };
 
 // ===========================
-// APPLICATION INITIALIZATION
+// DOCUMENT READY
 // ===========================
-$(document).ready(() => {
+$(document).ready(function() {
   ApartmentApp.init();
 });
 </script>

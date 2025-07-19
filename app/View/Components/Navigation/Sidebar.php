@@ -15,7 +15,6 @@ class Sidebar extends Component
      */
     public function __construct(array $menuItems = [])
     {
-        // Always show all menu items, no filtering by user or permissions
         $this->menuItems = $this->getGroupedMenu();
     }
 
@@ -40,7 +39,33 @@ class Sidebar extends Component
                 'route' => route('home'),
                 'active' => in_array(request()->route()->getName(), ['home', 'admin.home', 'advisor.home']),
             ],
-
+            [
+                'title' => 'Academic',
+                'icon' => 'bx bx-book',
+                'route' => '#',
+                'type' => 'group',
+                'active' => request()->routeIs('academic.*'),
+                'children' => [
+                    [
+                        'title' => 'Academic Terms',
+                        'icon' => 'bx bx-calendar-event',
+                        'route' => route('academic.academic_terms.index'),
+                        'active' => str_starts_with(request()->route()->getName(), 'academic.academic_terms.'),
+                    ],
+                    [
+                        'title' => 'Faculties',
+                        'icon' => 'bx bx-building-house',
+                        'route' => route('academic.faculties.index'),
+                        'active' => str_starts_with(request()->route()->getName(), 'academic.faculties.'),
+                    ],
+                    [
+                        'title' => 'Programs',
+                        'icon' => 'bx bx-book-content',
+                        'route' => route('academic.programs.index'),
+                        'active' => str_starts_with(request()->route()->getName(), 'academic.programs.'),
+                    ],
+                ]
+            ],
             [
                 'title' => 'Housing Management',
                 'icon' => 'bx bx-buildings',
@@ -99,33 +124,6 @@ class Sidebar extends Component
                 'icon' => 'bx bx-calendar',
                 'route' => route('reservations.index'),
                 'active' => str_starts_with(request()->route()->getName(), 'reservations.'),
-            ],
-            [
-                'title' => 'Academic',
-                'icon' => 'bx bx-book',
-                'route' => '#',
-                'type' => 'group',
-                'active' => request()->routeIs('academic.*'),
-                'children' => [
-                    [
-                        'title' => 'Academic Terms',
-                        'icon' => 'bx bx-calendar-event',
-                        'route' => route('academic.academic_terms.index'),
-                        'active' => str_starts_with(request()->route()->getName(), 'academic.terms.'),
-                    ],
-                    [
-                        'title' => 'Faculties',
-                        'icon' => 'bx bx-building-house',
-                        'route' => route('academic.faculties.index'),
-                        'active' => str_starts_with(request()->route()->getName(), 'academic.faculties.'),
-                    ],
-                    [
-                        'title' => 'Programs',
-                        'icon' => 'bx bx-book-content',
-                        'route' => route('academic.programs.index'),
-                        'active' => str_starts_with(request()->route()->getName(), 'academic.programs.'),
-                    ],
-                ]
             ],
         ];
     }

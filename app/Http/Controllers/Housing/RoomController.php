@@ -2,125 +2,150 @@
 
 namespace App\Http\Controllers\Housing;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Services\RoomService;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\{Request, JsonResponse};
 use Illuminate\View\View;
+use App\Services\Housing\RoomService;
+use App\Models\Room;
+use App\Exceptions\BusinessValidationException;
+use Exception;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Housing\RoomStoreRequest;
+use App\Http\Requests\Housing\RoomUpdateRequest;
 
 class RoomController extends Controller
 {
+    /**
+     * RoomController constructor.
+     *
+     * @param RoomService $roomService
+     */
     public function __construct(protected RoomService $roomService)
     {}
 
-    public function index(Request $request): View
+    /**
+     * Display the room management page.
+     *
+     * @return View
+     */
+    public function index(): View
     {
         return view('housing.room');
     }
 
-    public function show($id): JsonResponse
-    {
-        try {
-            $room = $this->roomService->show($id);
-            return successResponse('Room fetched successfully', $room);
-        } catch (Exception $e) {
-            logError('RoomController@show', $e, ['id' => $id]);
-            return errorResponse('Failed to fetch room', [$e->getMessage()]);
-        }
-    }
-
-    public function update(Request $request, $id): JsonResponse
-    {
-        try {
-            $validated = $request->validate([
-                'type' => 'required|in:single,double',
-                'purpose' => 'required|in:housing,staff_housing,office,storage',
-                'description' => 'nullable|string',
-            ]);
-            $updated = $this->roomService->update($id, $validated);
-            if (!$updated) {
-                return errorResponse('Room not found or not updated', [], 404);
-            }
-            return successResponse('Room updated successfully');
-        } catch (Exception $e) {
-            logError('RoomController@update', $e, ['id' => $id, 'request' => $request->all()]);
-            return errorResponse('Failed to update room', [$e->getMessage()]);
-        }
-    }
-
-    public function destroy($id): JsonResponse
-    {
-        try {
-            $deleted = $this->roomService->delete($id);
-            if (!$deleted) {
-                return errorResponse('Room not found', [], 404);
-            }
-            return successResponse('Room deleted successfully');
-        } catch (Exception $e) {
-            logError('RoomController@destroy', $e, ['id' => $id]);
-            return errorResponse('Failed to delete room', [$e->getMessage()]);
-        }
-    }
-
+    /**
+     * Get room statistics.
+     *
+     * @return JsonResponse
+     */
     public function stats(): JsonResponse
     {
         try {
-            $stats = $this->roomService->stats();
-            return successResponse('Room stats fetched successfully', $stats);
+            $stats = $this->roomService->getStats();
+            return successResponse('Stats fetched successfully.', $stats);
         } catch (Exception $e) {
             logError('RoomController@stats', $e);
-            return errorResponse('Failed to fetch room stats', [$e->getMessage()]);
+            return errorResponse('Internal server error.', [], 500);
         }
     }
 
-    public function datatable(Request $request): JsonResponse
+    /**
+     * Get room data for DataTables.
+     *
+     * @return JsonResponse
+     */
+    public function datatable(): JsonResponse
     {
         try {
-            $result = $this->roomService->datatable($request->all());
-            return $result;
+            return $this->roomService->getDatatable();
         } catch (Exception $e) {
-            logError('RoomController@datatable', $e, ['request' => $request->all()]);
-            return errorResponse('Failed to fetch room datatable', [$e->getMessage()]);
+            logError('RoomController@datatable', $e);
+            return errorResponse('Internal server error.', [], 500);
         }
     }
 
+
+    /**
+     * Display the specified room.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function show($id): JsonResponse
+    {
+        try {
+            $room = $this->roomService->getRoom($id);
+            return successResponse('Room details fetched successfully.', $room);
+        } catch (Exception $e) {
+            logError('RoomController@show', $e, ['room_id' => $id]);
+            return errorResponse('Internal server error.', [], 500);
+        }
+    }
+
+
+    /**
+     * Remove the specified room.
+     *
+     * @param Room $room
+     * @return JsonResponse
+     */
+    public function destroy(Room $room): JsonResponse
+    {
+        try {
+            $this->roomService->deleteRoom($room);
+            return successResponse('Room deleted successfully.');
+        } catch (BusinessValidationException $e) {
+            return errorResponse($e->getMessage(), [], $e->getCode());
+        } catch (Exception $e) {
+            logError('RoomController@destroy', $e, ['room_id' => $room->id]);
+            return errorResponse('Internal server error.', [], 500);
+        }
+    }
+
+    /**
+     * Get all rooms (for dropdown and forms).
+     *
+     * @return JsonResponse
+     */
+    public function all(): JsonResponse
+    {
+        try {
+            $rooms = $this->roomService->getAll();
+            return successResponse('Rooms fetched successfully.', $rooms);
+        } catch (Exception $e) {
+            logError('RoomController@all', $e);
+            return errorResponse('Internal server error.', [], 500);
+        }
+    }
+
+    /**
+     * Activate a room (set active = true)
+     * @param int $id
+     * @return JsonResponse
+     */
     public function activate($id): JsonResponse
     {
         try {
-            $room = $this->roomService->update($id, ['active' => true]);
-            if (!$room) {
-                return errorResponse('Room not found', [], 404);
-            }
-            return successResponse('Room activated successfully', $room);
+            $room = $this->roomService->setActive($id, true);
+            return successResponse('Room activated successfully.', $room);
         } catch (Exception $e) {
-            logError('RoomController@activate', $e, ['id' => $id]);
-            return errorResponse('Failed to activate room', [$e->getMessage()]);
+            logError('RoomController@activate', $e, ['room_id' => $id]);
+            return errorResponse('Failed to activate room.', [], 500);
         }
     }
 
+    /**
+     * Deactivate a room (set active = false)
+     * @param int $id
+     * @return JsonResponse
+     */
     public function deactivate($id): JsonResponse
     {
         try {
-            $room = $this->roomService->update($id, ['active' => false]);
-            if (!$room) {
-                return errorResponse('Room not found', [], 404);
-            }
-            return successResponse('Room deactivated successfully', $room);
+            $room = $this->roomService->setActive($id, false);
+            return successResponse('Room deactivated successfully.', $room);
         } catch (Exception $e) {
-            logError('RoomController@deactivate', $e, ['id' => $id]);
-            return errorResponse('Failed to deactivate room', [$e->getMessage()]);
-        }
-    }
-
-    public function all(Request $request): JsonResponse
-    {
-        try {
-            $apartmentId = $request->query('apartment_id');
-            $rooms = $this->roomService->all($apartmentId);
-            return successResponse('Rooms fetched successfully', $rooms);
-        } catch (\Exception $e) {
-            logError('RoomController@all', $e);
-            return errorResponse('Failed to fetch rooms', [$e->getMessage()]);
+            logError('RoomController@deactivate', $e, ['room_id' => $id]);
+            return errorResponse('Failed to deactivate room.', [], 500);
         }
     }
 }

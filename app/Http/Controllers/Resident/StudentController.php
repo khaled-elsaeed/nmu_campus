@@ -2,95 +2,153 @@
 
 namespace App\Http\Controllers\Resident;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Services\Resident\StudentService;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\{Request, JsonResponse};
 use Illuminate\View\View;
-// Optionally: use App\Http\Requests\StudentStoreRequest;
-// Optionally: use App\Http\Requests\StudentUpdateRequest;
+use App\Services\Resident\StudentService;
+use App\Models\Student;
+use App\Exceptions\BusinessValidationException;
+use Exception;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Resident\StudentStoreRequest;
+use App\Http\Requests\Resident\StudentUpdateRequest;
 
 class StudentController extends Controller
 {
-    public function __construct(protected StudentService $studentService) {}
+    /**
+     * StudentController constructor.
+     *
+     * @param StudentService $studentService
+     */
+    public function __construct(protected StudentService $studentService)
+    {}
 
-    public function index(Request $request): View
+    /**
+     * Display the student management page.
+     *
+     * @return View
+     */
+    public function index(): View
     {
         return view('residents.student');
     }
 
-    public function store(Request $request): JsonResponse
-    {
-        try {
-            $validated = $request->all(); // Replace with $request->validated() if using FormRequest
-            $student = $this->studentService->create($validated);
-            return successResponse('Student created successfully', $student);
-        } catch (\Exception $e) {
-            logError('StudentController@store', $e, ['request' => $request->all()]);
-            return errorResponse('Failed to create student', [$e->getMessage()]);
-        }
-    }
-
-    public function show($id): JsonResponse
-    {
-        try {
-            $student = $this->studentService->find($id);
-            if (!$student) {
-                return errorResponse('Student not found', [], 404);
-            }
-            return successResponse('Student fetched successfully', $student);
-        } catch (\Exception $e) {
-            logError('StudentController@show', $e, ['id' => $id]);
-            return errorResponse('Failed to fetch student', [$e->getMessage()]);
-        }
-    }
-
-    public function update(Request $request, $id): JsonResponse
-    {
-        try {
-            $validated = $request->all(); // Replace with $request->validated() if using FormRequest
-            $student = $this->studentService->update($id, $validated);
-            return successResponse('Student updated successfully', $student);
-        } catch (\Exception $e) {
-            logError('StudentController@update', $e, ['id' => $id, 'request' => $request->all()]);
-            return errorResponse('Failed to update student', [$e->getMessage()]);
-        }
-    }
-
-    public function destroy($id): JsonResponse
-    {
-        try {
-            $deleted = $this->studentService->delete($id);
-            if (!$deleted) {
-                return errorResponse('Student not found', [], 404);
-            }
-            return successResponse('Student deleted successfully');
-        } catch (\Exception $e) {
-            logError('StudentController@destroy', $e, ['id' => $id]);
-            return errorResponse('Failed to delete student', [$e->getMessage()]);
-        }
-    }
-
+    /**
+     * Get student statistics.
+     *
+     * @return JsonResponse
+     */
     public function stats(): JsonResponse
     {
         try {
-            $stats = $this->studentService->stats();
-            return successResponse('Student stats fetched successfully', $stats);
+            $stats = $this->studentService->getStats();
+            return successResponse('Stats fetched successfully.', $stats);
         } catch (Exception $e) {
             logError('StudentController@stats', $e);
-            return errorResponse('Failed to fetch student stats', [$e->getMessage()]);
+            return errorResponse('Internal server error.', [], 500);
         }
     }
 
-
-    public function datatable(Request $request): JsonResponse
+    /**
+     * Get student data for DataTables.
+     *
+     * @return JsonResponse
+     */
+    public function datatable(): JsonResponse
     {
         try {
-            $result = $this->studentService->datatable($request->all());
-            return $result;
-        } catch (\Exception $e) {
-            logError('StudentController@datatable', $e, ['request' => $request->all()]);
-            return errorResponse('Failed to fetch student datatable', [$e->getMessage()]);
+            return $this->studentService->getDatatable();
+        } catch (Exception $e) {
+            logError('StudentController@datatable', $e);
+            return errorResponse('Internal server error.', [], 500);
+        }
+    }
+
+    /**
+     * Store a newly created student.
+     *
+     * @param StudentStoreRequest $request
+     * @return JsonResponse
+     */
+    public function store(StudentStoreRequest $request): JsonResponse
+    {
+        try {
+            $validated = $request->validated();
+            $student = $this->studentService->createStudent($validated);
+            return successResponse('Student created successfully.', $student);
+        } catch (Exception $e) {
+            logError('StudentController@store', $e, ['request' => $request->all()]);
+            return errorResponse('Internal server error.', [], 500);
+        }
+    }
+
+    /**
+     * Display the specified student.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function show($id): JsonResponse
+    {
+        try {
+            $student = $this->studentService->getStudent($id);
+            return successResponse('Student details fetched successfully.', $student);
+        } catch (Exception $e) {
+            logError('StudentController@show', $e, ['student_id' => $id]);
+            return errorResponse('Internal server error.', [], 500);
+        }
+    }
+
+    /**
+     * Update the specified student.
+     *
+     * @param StudentUpdateRequest $request
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function update(StudentUpdateRequest $request, $id): JsonResponse
+    {
+        try {
+            $validated = $request->validated();
+            $student = $this->studentService->updateStudent(Student::findOrFail($id), $validated);
+            return successResponse('Student updated successfully.', $student);
+        } catch (Exception $e) {
+            logError('StudentController@update', $e, ['student_id' => $id, 'request' => $request->all()]);
+            return errorResponse('Internal server error.', [], 500);
+        }
+    }
+
+    /**
+     * Remove the specified student.
+     *
+     * @param Student $student
+     * @return JsonResponse
+     */
+    public function destroy(Student $student): JsonResponse
+    {
+        try {
+            $this->studentService->deleteStudent($student);
+            return successResponse('Student deleted successfully.');
+        } catch (BusinessValidationException $e) {
+            return errorResponse($e->getMessage(), [], $e->getCode());
+        } catch (Exception $e) {
+            logError('StudentController@destroy', $e, ['student_id' => $student->id]);
+            return errorResponse('Internal server error.', [], 500);
+        }
+    }
+
+    /**
+     * Get all students (for dropdown and forms).
+     *
+     * @return JsonResponse
+     */
+    public function all(): JsonResponse
+    {
+        try {
+            $students = $this->studentService->getAll();
+            return successResponse('Students fetched successfully.', $students);
+        } catch (Exception $e) {
+            logError('StudentController@all', $e);
+            return errorResponse('Internal server error.', [], 500);
         }
     }
 }

@@ -54,17 +54,13 @@
         collapseId="programSearchCollapse"
         :collapsed="false"
     >
-        <div class="col-md-4">
+        <div class="col-md-6">
             <label for="search_name" class="form-label">Program Name:</label>
             <input type="text" class="form-control" id="search_name" placeholder="Program Name">
         </div>
-        <div class="col-md-4">
-            <label for="search_code" class="form-label">Program Code:</label>
-            <input type="text" class="form-control" id="search_code" placeholder="Program Code">
-        </div>
-        <div class="col-md-4">
-            <label for="search_faculty" class="form-label">Faculty:</label>
-            <select class="form-control" id="search_faculty">
+        <div class="col-md-6">
+            <label for="faculty_id" class="form-label">Faculty:</label>
+            <select class="form-control" id="faculty_id" name="faculty_id">
                 <option value="">Select Faculty</option>
                 <!-- Options loaded via AJAX -->
             </select>
@@ -76,18 +72,16 @@
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable
-        :headers="['ID', 'Name', 'Code', 'Faculty', 'Students Count', 'Action']"
+        :headers="['Name', 'Faculty', 'Students Count', 'Action']"
         :columns="[
-            ['data' => 'id', 'name' => 'id'],
             ['data' => 'name', 'name' => 'name'],
-            ['data' => 'code', 'name' => 'code'],
-            ['data' => 'faculty_name', 'name' => 'faculty_name'],
-            ['data' => 'students_count', 'name' => 'students_count'],
+            ['data' => 'faculty', 'name' => 'faculty'],
+            ['data' => 'students', 'name' => 'students'],
             ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false],
         ]"
         :ajax-url="route('academic.programs.datatable')"
         table-id="programs-table"
-        :filter-fields="['search_name', 'search_code', 'search_faculty']"
+        :filter-fields="['search_name', 'faculty_id']"
     />
 
     {{-- ===== MODALS SECTION ===== --}}
@@ -103,13 +97,24 @@
             <form id="programForm">
                 <input type="hidden" id="program_id" name="program_id">
                 <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="name" class="form-label">Program Name</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
+                    <div class="col-md-4 mb-3">
+                        <label for="name_en" class="form-label">Program Name (EN)</label>
+                        <input type="text" class="form-control" id="name_en" name="name_en" required>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="code" class="form-label">Program Code</label>
-                        <input type="text" class="form-control" id="code" name="code" required>
+                    <div class="col-md-4 mb-3">
+                        <label for="name_ar" class="form-label">Program Name (AR)</label>
+                        <input type="text" class="form-control" id="name_ar" name="name_ar" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="duration_years" class="form-label">Duration (Years)</label>
+                        <select class="form-control" id="duration_years" name="duration_years" required>
+                            <option value="">Select Duration</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
                     </div>
                     <div class="col-md-12 mb-3">
                         <label for="faculty_id" class="form-label">Faculty</label>
@@ -136,60 +141,62 @@
 
 @push('scripts')
 <script>
+/**
+ * Program Management Page JS
+ *
+ * Structure:
+ * - Utils: Common utility functions
+ * - ApiService: Handles all AJAX requests
+ * - StatsManager: Handles statistics cards
+ * - ProgramManager: Handles CRUD for programs
+ * - SearchManager: Handles advanced search
+ * - ProgramManagementApp: Initializes all managers
+ */
+
+ // ===========================
+// ROUTES CONSTANTS
 // ===========================
-// CONSTANTS AND CONFIGURATION
-// ===========================
-const ROUTES = {
+var ROUTES = {
   programs: {
     stats: '{{ route('academic.programs.stats') }}',
     store: '{{ route('academic.programs.store') }}',
     show: '{{ route('academic.programs.show', ':id') }}',
     destroy: '{{ route('academic.programs.destroy', ':id') }}',
     datatable: '{{ route('academic.programs.datatable') }}',
-    faculties: '{{ route('academic.faculties') }}'
+  },
+  faculties : {
+    all: '{{ route('academic.faculties.all') }}'
   }
 };
 
-const SELECTORS = {
-  programForm: '#programForm',
-  programModal: '#programModal',
-  addProgramBtn: '#addProgramBtn',
-  saveProgramBtn: '#saveProgramBtn',
-  programsTable: '#programs-table',
-  clearFiltersBtn: '#clearFiltersBtn',
-  searchName: '#search_name',
-  searchCode: '#search_code',
-  searchFaculty: '#search_faculty',
-  facultySelect: '#faculty_id',
-};
-
 // ===========================
-// UTILITY FUNCTIONS
+// CONSTANTS AND CONFIGURATION
 // ===========================
-const Utils = {
-  showSuccess(message) {
-    Swal.fire({
-      toast: true,
-      position: 'top-end',
-      icon: 'success',
-      title: message,
-      showConfirmButton: false,
-      timer: 2500,
-      timerProgressBar: true
-    });
+var Utils = {
+  /**
+   * Show a success toast message
+   * @param {string} message
+   */
+  showSuccess: function(message) {
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: message, showConfirmButton: false, timer: 2500, timerProgressBar: true });
   },
-  showError(message) {
-    Swal.fire({
-      title: 'Error',
-      html: message,
-      icon: 'error'
-    });
+  /**
+   * Show an error alert
+   * @param {string} message
+   */
+  showError: function(message) {
+    Swal.fire({ title: 'Error', html: message, icon: 'error' });
   },
-  toggleLoadingState(elementId, isLoading) {
-    const $value = $(`#${elementId}-value`);
-    const $loader = $(`#${elementId}-loader`);
-    const $updated = $(`#${elementId}-last-updated`);
-    const $updatedLoader = $(`#${elementId}-last-updated-loader`);
+  /**
+   * Toggle loading state for a stat card
+   * @param {string} elementId
+   * @param {boolean} isLoading
+   */
+  toggleLoadingState: function(elementId, isLoading) {
+    var $value = $('#' + elementId + '-value');
+    var $loader = $('#' + elementId + '-loader');
+    var $updated = $('#' + elementId + '-last-updated');
+    var $updatedLoader = $('#' + elementId + '-last-updated-loader');
     if (isLoading) {
       $value.addClass('d-none');
       $loader.removeClass('d-none');
@@ -202,48 +209,92 @@ const Utils = {
       $updatedLoader.addClass('d-none');
     }
   },
-  replaceRouteId(route, id) {
+  /**
+   * Replace :id in a route string
+   * @param {string} route
+   * @param {string|number} id
+   * @returns {string}
+   */
+  replaceRouteId: function(route, id) {
     return route.replace(':id', id);
   }
 };
 
 // ===========================
-// API SERVICE LAYER
+// API SERVICE
 // ===========================
-const ApiService = {
-  request(options) {
+var ApiService = {
+  /**
+   * Generic AJAX request with CSRF
+   * @param {object} options
+   * @returns {jqXHR}
+   */
+  request: function(options) {
+    options.headers = options.headers || {};
+    options.headers['X-CSRF-TOKEN'] = $('meta[name="csrf-token"]').attr('content');
     return $.ajax(options);
   },
-  fetchProgramStats() {
+  /**
+   * Fetch program statistics
+   * @returns {jqXHR}
+   */
+  fetchProgramStats: function() {
     return this.request({ url: ROUTES.programs.stats, method: 'GET' });
   },
-  fetchFaculties() {
-    return this.request({ url: ROUTES.programs.faculties, method: 'GET' });
+  /**
+   * Fetch all faculties
+   * @returns {jqXHR}
+   */
+  fetchFaculties: function() {
+    return this.request({ url: ROUTES.faculties.all, method: 'GET' });
   },
-  fetchProgram(id) {
+  /**
+   * Fetch a single program by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  fetchProgram: function(id) {
     return this.request({ url: Utils.replaceRouteId(ROUTES.programs.show, id), method: 'GET' });
   },
-  saveProgram(data, id = null) {
-    const url = id ? Utils.replaceRouteId(ROUTES.programs.show, id) : ROUTES.programs.store;
-    const method = id ? 'PUT' : 'POST';
-    return this.request({ url, method, data });
+  /**
+   * Save (create or update) a program
+   * @param {object} data
+   * @param {string|number|null} id
+   * @returns {jqXHR}
+   */
+  saveProgram: function(data, id) {
+    var url = id ? Utils.replaceRouteId(ROUTES.programs.show, id) : ROUTES.programs.store;
+    var method = id ? 'PUT' : 'POST';
+    return this.request({ url: url, method: method, data: data });
   },
-  deleteProgram(id) {
+  /**
+   * Delete a program by ID
+   * @param {string|number} id
+   * @returns {jqXHR}
+   */
+  deleteProgram: function(id) {
     return this.request({ url: Utils.replaceRouteId(ROUTES.programs.destroy, id), method: 'DELETE' });
   }
 };
 
 // ===========================
-// DROPDOWN MANAGEMENT
+// DROPDOWN MANAGER
 // ===========================
-const DropdownManager = {
-  loadFaculties(selector = SELECTORS.searchFaculty, selectedId = null) {
-    return ApiService.fetchFaculties()
-      .done((response) => {
-        const faculties = response.data;
-        const $select = $(selector);
+var DropdownManager = {
+  /**
+   * Load faculties into a select dropdown
+   * @param {string} selector
+   * @param {string|number|null} selectedId
+   * @returns {void}
+   */
+  loadFaculties: function(selector, selectedId) {
+    selector = selector || '#faculty_id';
+    ApiService.fetchFaculties()
+      .done(function(response) {
+        var faculties = response.data;
+        var $select = $(selector);
         $select.empty().append('<option value="">Select Faculty</option>');
-        faculties.forEach((faculty) => {
+        faculties.forEach(function(faculty) {
           $select.append($('<option>', { value: faculty.id, text: faculty.name }));
         });
         if (selectedId) {
@@ -251,105 +302,157 @@ const DropdownManager = {
         }
         $select.trigger('change');
       })
-      .fail(() => {
+      .fail(function() {
         Utils.showError('Failed to load faculties');
       });
   }
 };
 
 // ===========================
-// STATISTICS MANAGEMENT
+// STATISTICS MANAGER
 // ===========================
-const StatsManager = {
-  loadProgramStats() {
-    Utils.toggleLoadingState('programs', true);
-    Utils.toggleLoadingState('with-students', true);
-    Utils.toggleLoadingState('without-students', true);
+var StatsManager = {
+  /**
+   * Initialize statistics cards
+   */
+  init: function() {
+    this.load();
+  },
+  /**
+   * Load statistics data
+   */
+  load: function() {
+    this.toggleAllLoadingStates(true);
     ApiService.fetchProgramStats()
-      .done((response) => {
-        const data = response.data;
-        $('#programs-value').text(data.total.total ?? '--');
-        $('#programs-last-updated').text(data.total.lastUpdateTime ?? '--');
-        $('#with-students-value').text(data.withStudents.total ?? '--');
-        $('#with-students-last-updated').text(data.withStudents.lastUpdateTime ?? '--');
-        $('#without-students-value').text(data.withoutStudents.total ?? '--');
-        $('#without-students-last-updated').text(data.withoutStudents.lastUpdateTime ?? '--');
-        Utils.toggleLoadingState('programs', false);
-        Utils.toggleLoadingState('with-students', false);
-        Utils.toggleLoadingState('without-students', false);
-      })
-      .fail(() => {
-        $('#programs-value, #with-students-value, #without-students-value').text('N/A');
-        $('#programs-last-updated, #with-students-last-updated, #without-students-last-updated').text('N/A');
-        Utils.toggleLoadingState('programs', false);
-        Utils.toggleLoadingState('with-students', false);
-        Utils.toggleLoadingState('without-students', false);
-        Utils.showError('Failed to load program statistics');
-      });
+      .done(this.handleSuccess.bind(this))
+      .fail(this.handleError.bind(this))
+      .always(this.toggleAllLoadingStates.bind(this, false));
+  },
+  /**
+   * Handle successful stats fetch
+   * @param {object} response
+   */
+  handleSuccess: function(response) {
+    if (response.success !== false) {
+      let stats = response.data;
+      this.updateStatElement('programs', stats.total.total, stats.total.lastUpdateTime);
+      this.updateStatElement('with-students', stats.withStudents.total, stats.withStudents.lastUpdateTime);
+      this.updateStatElement('without-students', stats.withoutStudents.total, stats.withoutStudents.lastUpdateTime);
+    } else {
+      this.setAllStatsToNA();
+    }
+  },
+  /**
+   * Handle error in stats fetch
+   */
+  handleError: function() {
+    this.setAllStatsToNA();
+    Utils.showError('Failed to load program statistics');
+  },
+  /**
+   * Update a single stat card
+   * @param {string} elementId
+   * @param {string|number} value
+   * @param {string} lastUpdateTime
+   */
+  updateStatElement: function(elementId, value, lastUpdateTime) {
+    $('#' + elementId + '-value').text(value ?? '0');
+    $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--');
+  },
+  /**
+   * Set all stat cards to N/A
+   */
+  setAllStatsToNA: function() {
+    ['programs', 'with-students', 'without-students'].forEach(function(elementId) {
+      $('#' + elementId + '-value').text('N/A');
+      $('#' + elementId + '-last-updated').text('N/A');
+    });
+  },
+  /**
+   * Toggle loading state for all stat cards
+   * @param {boolean} isLoading
+   */
+  toggleAllLoadingStates: function(isLoading) {
+    ['programs', 'with-students', 'without-students'].forEach(function(elementId) {
+      Utils.toggleLoadingState(elementId, isLoading);
+    });
   }
 };
 
 // ===========================
-// PROGRAM CRUD OPERATIONS
+// PROGRAM MANAGER
 // ===========================
-const ProgramManager = {
-  handleAddProgram() {
-    $(SELECTORS.addProgramBtn).on('click', () => {
-      $(SELECTORS.programForm)[0].reset();
+var ProgramManager = {
+  /**
+   * Bind add program button
+   */
+  handleAdd: function() {
+    $('#addProgramBtn').on('click', function() {
+      $('#programForm')[0].reset();
       $('#program_id').val('');
-      $(SELECTORS.programModal + ' .modal-title').text('Add Program');
-      $(SELECTORS.saveProgramBtn).text('Save');
-      DropdownManager.loadFaculties(SELECTORS.facultySelect);
-      $(SELECTORS.programModal).modal('show');
+      $('#programModal .modal-title').text('Add Program');
+      $('#saveProgramBtn').text('Save');
+      DropdownManager.loadFaculties('#faculty_id');
+      $('#programModal').modal('show');
     });
   },
-  handleProgramFormSubmit() {
-    $(SELECTORS.programForm).on('submit', function (e) {
+  /**
+   * Bind program form submit
+   */
+  handleFormSubmit: function() {
+    $('#programForm').on('submit', function(e) {
       e.preventDefault();
-      const programId = $('#program_id').val();
-      const formData = $(SELECTORS.programForm).serialize();
-      const $submitBtn = $(SELECTORS.saveProgramBtn);
-      const originalText = $submitBtn.text();
+      var programId = $('#program_id').val();
+      var formData = $(this).serialize();
+      var $submitBtn = $('#saveProgramBtn');
+      var originalText = $submitBtn.text();
       $submitBtn.prop('disabled', true).text('Saving...');
       ApiService.saveProgram(formData, programId || null)
-        .done(() => {
-          $(SELECTORS.programModal).modal('hide');
-          $(SELECTORS.programsTable).DataTable().ajax.reload(null, false);
+        .done(function() {
+          $('#programModal').modal('hide');
+          $('#programs-table').DataTable().ajax.reload(null, false);
           Utils.showSuccess('Program has been saved successfully.');
-          StatsManager.loadProgramStats();
+          StatsManager.load();
         })
-        .fail((xhr) => {
-          $(SELECTORS.programModal).modal('hide');
-          const message = xhr.responseJSON?.message || 'An error occurred. Please check your input.';
+        .fail(function(xhr) {
+          $('#programModal').modal('hide');
+          var message = xhr.responseJSON?.message || 'An error occurred. Please check your input.';
           Utils.showError(message);
         })
-        .always(() => {
+        .always(function() {
           $submitBtn.prop('disabled', false).text(originalText);
         });
     });
   },
-  handleEditProgram() {
-    $(document).on('click', '.editProgramBtn', function () {
-      const programId = $(this).data('id');
+  /**
+   * Bind edit program button
+   */
+  handleEdit: function() {
+    $(document).on('click', '.editProgramBtn', function() {
+      var programId = $(this).data('id');
       ApiService.fetchProgram(programId)
-        .done((program) => {
-          const prog = program.data ? program.data : program;
+        .done(function(program) {
+          var prog = program.data ? program.data : program;
           $('#program_id').val(prog.id);
-          $('#name').val(prog.name);
-          $('#code').val(prog.code);
-          DropdownManager.loadFaculties(SELECTORS.facultySelect, prog.faculty_id);
-          $(SELECTORS.programModal + ' .modal-title').text('Edit Program');
-          $(SELECTORS.saveProgramBtn).text('Update');
-          $(SELECTORS.programModal).modal('show');
+          $('#name_en').val(prog.name_en);
+          $('#name_ar').val(prog.name_ar);
+          $('#duration_years').val(prog.duration_years);
+          DropdownManager.loadFaculties('#faculty_id', prog.faculty_id);
+          $('#programModal .modal-title').text('Edit Program');
+          $('#saveProgramBtn').text('Update');
+          $('#programModal').modal('show');
         })
-        .fail(() => {
+        .fail(function() {
           Utils.showError('Failed to fetch program data.');
         });
     });
   },
-  handleDeleteProgram() {
-    $(document).on('click', '.deleteProgramBtn', function () {
-      const programId = $(this).data('id');
+  /**
+   * Bind delete program button
+   */
+  handleDelete: function() {
+    $(document).on('click', '.deleteProgramBtn', function() {
+      var programId = $(this).data('id');
       Swal.fire({
         title: 'Are you sure?',
         text: "You won't be able to revert this!",
@@ -358,84 +461,77 @@ const ProgramManager = {
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
         confirmButtonText: 'Yes, delete it!'
-      }).then((result) => {
+      }).then(function(result) {
         if (result.isConfirmed) {
           ApiService.deleteProgram(programId)
-            .done(() => {
-              $(SELECTORS.programsTable).DataTable().ajax.reload(null, false);
+            .done(function() {
+              $('#programs-table').DataTable().ajax.reload(null, false);
               Utils.showSuccess('Program has been deleted.');
-              StatsManager.loadProgramStats();
+              StatsManager.load();
             })
-            .fail((xhr) => {
-              const message = xhr.responseJSON?.message || 'Failed to delete program.';
+            .fail(function(xhr) {
+              var message = xhr.responseJSON?.message || 'Failed to delete program.';
               Utils.showError(message);
             });
         }
       });
     });
-  }
-};
-
-// ===========================
-// SEARCH FUNCTIONALITY
-// ===========================
-const SearchManager = {
-  initializeAdvancedSearch() {
-    this.initSearchSelect2();
-    this.bindSearchEvents();
-    DropdownManager.loadFaculties(SELECTORS.searchFaculty);
   },
-  initSearchSelect2() {
-    $(SELECTORS.searchFaculty).select2({
-      theme: 'bootstrap-5',
-      placeholder: 'Select Faculty',
-      allowClear: true,
-      width: '100%',
-      dropdownParent: $('#programSearchCollapse')
-    });
+  /**
+   * Initialize all program manager handlers
+   */
+  init: function() {
+    this.handleAdd();
+    this.handleFormSubmit();
+    this.handleEdit();
+    this.handleDelete();
+  }
+};
+
+// ===========================
+// SEARCH MANAGER
+// ===========================
+var SearchManager = {
+  /**
+   * Initialize advanced search
+   */
+  init: function() {
+    this.bindEvents();
+    DropdownManager.loadFaculties('#faculty_id');
   },
-  bindSearchEvents() {
-    $(SELECTORS.clearFiltersBtn).on('click', () => {
-      $(`${SELECTORS.searchName}, ${SELECTORS.searchCode}, ${SELECTORS.searchFaculty}`).val('').trigger('change');
-      $(SELECTORS.programsTable).DataTable().ajax.reload();
+  /**
+   * Bind search and clear events
+   */
+  bindEvents: function() {
+    $('#clearFiltersBtn').on('click', function() {
+      $('#search_name, #faculty_id').val('').trigger('change');
+      $('#programs-table').DataTable().ajax.reload();
     });
-    $(`${SELECTORS.searchName}, ${SELECTORS.searchCode}, ${SELECTORS.searchFaculty}`).on('keyup change', () => {
-      $(SELECTORS.programsTable).DataTable().ajax.reload();
-    });
-  }
-};
-
-// ===========================
-// SELECT2 INITIALIZATION
-// ===========================
-const Select2Manager = {
-  initProgramModalSelect2() {
-    $(SELECTORS.facultySelect).select2({
-      theme: 'bootstrap-5',
-      placeholder: 'Select Faculty',
-      allowClear: true,
-      width: '100%',
-      dropdownParent: $(SELECTORS.programModal)
+    $('#search_name, #faculty_id').on('keyup change', function() {
+      $('#programs-table').DataTable().ajax.reload();
     });
   }
 };
 
+
 // ===========================
-// MAIN APPLICATION
+// MAIN APP INITIALIZER
 // ===========================
-const ProgramManagementApp = {
-  init() {
-    StatsManager.loadProgramStats();
-    ProgramManager.handleAddProgram();
-    ProgramManager.handleProgramFormSubmit();
-    ProgramManager.handleEditProgram();
-    ProgramManager.handleDeleteProgram();
-    Select2Manager.initProgramModalSelect2();
-    SearchManager.initializeAdvancedSearch();
+var ProgramManagementApp = {
+  /**
+   * Initialize all managers
+   */
+  init: function() {
+    StatsManager.init();
+    ProgramManager.init();
+    SearchManager.init();
   }
 };
 
-$(document).ready(() => {
+// ===========================
+// DOCUMENT READY
+// ===========================
+$(document).ready(function() {
   ProgramManagementApp.init();
 });
 </script>

@@ -5,14 +5,14 @@
                 <span class="text-heading">{{ $label }}</span>
                 <div class="d-flex align-items-center my-1">
                     <span class="stat-loader me-2" id="{{ $id ? $id . '-loader' : '' }}">
-                        <span class="spinner-border spinner-border-sm text-{{ $color }}" role="status" aria-hidden="true"></span>
+                        <span class="spinner-border spinner-border-sm text-{{ $color }}" role="status" ></span>
                     </span>
                     <h4 class="mb-0 me-2 stat-value d-none" id="{{ $id ? $id . '-value' : '' }}">--</h4>
                 </div>
                 <small class="mb-0 text-body-secondary">
                     Last update: 
                     <span class="stat-last-updated-loader" id="{{ $id ? $id . '-last-updated-loader' : '' }}">
-                        <span class="spinner-border spinner-border-sm text-{{ $color }}" role="status" aria-hidden="true"></span>
+                        <span class="spinner-border spinner-border-sm text-{{ $color }}" role="status" ></span>
                     </span>
                     <span class="stat-last-updated d-none" id="{{ $id ? $id . '-last-updated' : '' }}">--</span>
                 </small>
