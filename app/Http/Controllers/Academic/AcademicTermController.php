@@ -75,6 +75,8 @@ class AcademicTermController extends Controller
             $validated = $request->validated();
             $term = $this->academicTermService->createTerm($validated);
             return successResponse('Term created successfully.', $term);
+        } catch (BusinessValidationException $e) {
+            return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('AcademicTermController@store', $e, ['request' => $request->all()]);
             return errorResponse('Internal server error.', [], 500);
@@ -109,8 +111,10 @@ class AcademicTermController extends Controller
     {
         try {
             $validated = $request->validated();
-            $term = $this->academicTermService->updateTermById($id, $validated);
+            $term = $this->academicTermService->updateTerm($id, $validated);
             return successResponse('Term updated successfully.', $term);
+        } catch (BusinessValidationException $e) {
+            return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('AcademicTermController@update', $e, ['term_id' => $id, 'request' => $request->all()]);
             return errorResponse('Internal server error.', [], 500);
@@ -120,18 +124,18 @@ class AcademicTermController extends Controller
     /**
      * Remove the specified term.
      *
-     * @param AcademicTerm $term
+     * @param int $id
      * @return JsonResponse
      */
-    public function destroy(AcademicTerm $term): JsonResponse
+    public function destroy($id): JsonResponse
     {
         try {
-            $this->academicTermService->deleteTerm($term);
+            $this->academicTermService->deleteTerm($id);
             return successResponse('Term deleted successfully.');
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
-            logError('AcademicTermController@destroy', $e, ['term_id' => $term->id]);
+            logError('AcademicTermController@destroy', $e, ['term_id' => $id]);
             return errorResponse('Internal server error.', [], 500);
         }
     }
@@ -179,7 +183,7 @@ class AcademicTermController extends Controller
             $batch = $this->academicTermService->start($id);
             return successResponse('Term started successfully. Reservations are being activated in the background.', ['batch_id' => $batch->id]);
         } catch (BusinessValidationException $e) {
-            return errorResponse($e->getMessage());
+            return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('AcademicTermController@startTerm', $e, ['term_id' => $id]);
             return errorResponse('Failed to start term.', [], 500);
@@ -214,6 +218,8 @@ class AcademicTermController extends Controller
         try {
             $term = $this->academicTermService->setActive($id, true);
             return successResponse('Term activated successfully.', $term);
+        } catch (BusinessValidationException $e) {
+            return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('AcademicTermController@activateTerm', $e, ['term_id' => $id]);
             return errorResponse('Failed to activate term.', [], 500);
@@ -230,6 +236,8 @@ class AcademicTermController extends Controller
         try {
             $term = $this->academicTermService->setActive($id, false);
             return successResponse('Term deactivated successfully.', $term);
+        } catch (BusinessValidationException $e) {
+            return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('AcademicTermController@deactivateTerm', $e, ['term_id' => $id]);
             return errorResponse('Failed to deactivate term.', [], 500);

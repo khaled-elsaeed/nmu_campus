@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Resident;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\StaffCategory;
 
 class StaffStoreRequest extends FormRequest
 {
@@ -17,12 +18,75 @@ class StaffStoreRequest extends FormRequest
             'name_en'          => 'required|string|max:255',
             'name_ar'          => 'nullable|string|max:255',
             'email'            => 'required|email|max:255|unique:users,email',
-            'password'         => 'required|string|min:8|confirmed',
-            'department_id'    => 'nullable|integer|exists:departments,id',
-            'faculty_id'       => 'nullable|integer|exists:faculties,id',
             'staff_category_id'=> 'required|integer|exists:staff_categories,id',
+            'unit_id'          => [
+                'required_with:staff_category_id',
+                'nullable',
+                'integer',
+                function ($attribute, $value, $fail) {
+                    if (!$value) {
+                        return; // Allow null values
+                    }
+                    
+                    $staffCategoryId = $this->input('staff_category_id');
+                    if (!$staffCategoryId) {
+                        return;
+                    }
+                    
+                    $staffCategory = StaffCategory::find($staffCategoryId);
+                    if (!$staffCategory) {
+                        $fail('Invalid staff category.');
+                        return;
+                    }
+                    
+                    // Validate unit_id based on staff category type
+                    switch ($staffCategory->type) {
+                        case 'faculty':
+                            if (!\App\Models\Faculty::find($value)) {
+                                $fail('Selected faculty does not exist.');
+                            }
+                            break;
+                        case 'administrative':
+                            if (!\App\Models\Department::find($value)) {
+                                $fail('Selected department does not exist.');
+                            }
+                            break;
+                        case 'campus':
+                            if (!\App\Models\CampusUnit::find($value)) {
+                                $fail('Selected campus unit does not exist.');
+                            }
+                            break;
+                        default:
+                            $fail('Invalid staff category type.');
+                    }
+                }
+            ],
             'gender'           => 'required|in:male,female,other',
-            'active'           => 'required|boolean',
+            'notes'            => 'nullable|string',
+            'national_id' => 'required|string|unique:staff,national_id',
         ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'unit_id.required_with' => 'Unit must be selected for this staff category.',
+            'unit_id.integer' => 'Unit ID must be a valid number.',
+        ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $staffCategoryId = $this->input('staff_category_id');
+            $unitId = $this->input('unit_id');
+            
+            if ($staffCategoryId && !$unitId) {
+                $staffCategory = StaffCategory::find($staffCategoryId);
+                if ($staffCategory && in_array($staffCategory->type, ['faculty', 'administrative', 'campus'])) {
+                    $validator->errors()->add('unit_id', 'Unit must be selected for this staff category.');
+                }
+            }
+        });
     }
 } 

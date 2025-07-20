@@ -19,7 +19,6 @@ class StudentStoreRequest extends FormRequest
             'name_en'          => 'required|string|max:255',
             'name_ar'          => 'nullable|string|max:255',
             'academic_email'   => 'required|email|max:255|unique:students,academic_email|unique:students,academic_email',
-            'password'         => 'required|string|min:8|confirmed',
             'phone'            => 'required|string|max:20',
             'date_of_birth'    => 'required|date',
             'gender'           => 'required|in:male,female,other',
@@ -29,7 +28,6 @@ class StudentStoreRequest extends FormRequest
             'governorate_id'   => 'required|integer|exists:governorates,id',
             'city_id'          => 'required|integer|exists:cities,id',
             'address'          => 'required|string|max:255',
-            'active'           => 'required|boolean',
         ];
     }
 } 

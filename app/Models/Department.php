@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Department extends Model
 {
@@ -14,8 +14,8 @@ class Department extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'department_name',
-        'department_name_ar',
+        'name_en',
+        'name_ar',
     ];
 
     /**
@@ -34,9 +34,9 @@ class Department extends Model
     {
         return Attribute::make(
             get: fn ($value, $attributes) =>
-                $attributes['department_name_' . app()->getLocale()] ??
-                $attributes['department_name'] ??
-                $attributes['department_name_ar'] ??
+                $attributes['name_' . app()->getLocale()] ??
+                $attributes['name_en'] ??
+                $attributes['name_ar'] ??
                 null
         );
     }
@@ -44,10 +44,10 @@ class Department extends Model
     /**
      * Get the staff for the department.
      *
-     * @return HasMany
+     * @return MorphMany
      */
-    public function staff(): HasMany
+    public function staff(): MorphMany
     {
-        return $this->hasMany(Staff::class);
+        return $this->morphMany(Staff::class, 'unit');
     }
 }

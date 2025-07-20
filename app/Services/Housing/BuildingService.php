@@ -62,12 +62,13 @@ class BuildingService
     /**
      * Delete a building.
      *
-     * @param Building $building
+     * @param int $id
      * @return void
      * @throws BusinessValidationException
      */
-    public function deleteBuilding(Building $building): void
+    public function deleteBuilding($id): void
     {
+        $building = Building::findOrFail($id);
         foreach ($building->apartments as $apartment) {
             $room = $apartment->rooms()->where('capacity', '>', 1)->first();
             if ($room) {
@@ -327,7 +328,6 @@ class BuildingService
         return [
             'number' => $data['number'] ?? $building->number,
             'gender_restriction' => $data['gender_restriction'] ?? $building->gender_restriction,
-            'active' => $data['active'] ?? $building->active,
         ];
     }
 }

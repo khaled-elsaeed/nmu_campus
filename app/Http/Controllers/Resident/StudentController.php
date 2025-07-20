@@ -120,19 +120,22 @@ class StudentController extends Controller
     /**
      * Remove the specified student.
      *
-     * @param Student $student
+     * @param int $id
      * @return JsonResponse
      */
-    public function destroy(Student $student): JsonResponse
+    public function destroy($id): JsonResponse
     {
         try {
-            $this->studentService->deleteStudent($student);
-            return successResponse('Student deleted successfully.');
+            $deleted = $this->studentService->deleteStudent($id);
+            if (!$deleted) {
+                return errorResponse('Failed to delete student.', ['deleted' => false], 400);
+            }
+            return successResponse('Student deleted successfully.', ['deleted' => $deleted]);
         } catch (BusinessValidationException $e) {
-            return errorResponse($e->getMessage(), [], $e->getCode());
+            return errorResponse($e->getMessage(), ['deleted' => false], $e->getCode());
         } catch (Exception $e) {
-            logError('StudentController@destroy', $e, ['student_id' => $student->id]);
-            return errorResponse('Internal server error.', [], 500);
+            logError('StudentController@destroy', $e, ['student_id' => $id]);
+            return errorResponse('Internal server error.', ['deleted' => false], 500);
         }
     }
 

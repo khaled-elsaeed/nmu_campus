@@ -384,7 +384,10 @@ var ApiService = {
      */
     saveTerm: function(formData, id) {
         var url = id ? Utils.replaceRouteId(ROUTES.terms.show, id) : ROUTES.terms.store;
-        var method = id ? 'PUT' : 'POST';
+        if (id) {
+            formData.append('_method', 'PUT');
+        }
+        var method = 'POST';
         return this.request({ url: url, method: method, data: formData, processData: false, contentType: false });
     },
     /**

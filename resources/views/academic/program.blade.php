@@ -59,8 +59,8 @@
             <input type="text" class="form-control" id="search_name" placeholder="Program Name">
         </div>
         <div class="col-md-6">
-            <label for="faculty_id" class="form-label">Faculty:</label>
-            <select class="form-control" id="faculty_id" name="faculty_id">
+            <label for="faculty_id_search" class="form-label">Faculty:</label>
+            <select class="form-control" id="faculty_id_search" name="faculty_id">
                 <option value="">Select Faculty</option>
                 <!-- Options loaded via AJAX -->
             </select>
@@ -117,8 +117,8 @@
                         </select>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label for="faculty_id" class="form-label">Faculty</label>
-                        <select class="form-control" id="faculty_id" name="faculty_id" required>
+                        <label for="faculty_id_modal" class="form-label">Faculty</label>
+                        <select class="form-control" id="faculty_id_modal" name="faculty_id" required>
                             <option value="">Select Faculty</option>
                             <!-- Options will be loaded via AJAX -->
                         </select>
@@ -288,23 +288,31 @@ var DropdownManager = {
    * @returns {void}
    */
   loadFaculties: function(selector, selectedId) {
-    selector = selector || '#faculty_id';
     ApiService.fetchFaculties()
       .done(function(response) {
-        var faculties = response.data;
-        var $select = $(selector);
-        $select.empty().append('<option value="">Select Faculty</option>');
-        faculties.forEach(function(faculty) {
-          $select.append($('<option>', { value: faculty.id, text: faculty.name }));
-        });
-        if (selectedId) {
-          $select.val(selectedId);
-        }
-        $select.trigger('change');
+        DropdownManager.populateFacultiesModalSelect(selector, response.data, selectedId);
       })
       .fail(function() {
         Utils.showError('Failed to load faculties');
       });
+  },
+
+  /**
+   * Populate faculties into the select element
+   * @param {string} selector
+   * @param {Array} faculties
+   * @param {string|number|null} selectedId
+   */
+  populateFacultiesModalSelect: function(selector, faculties, selectedId) {
+    var $select = $(selector);
+    $select.empty().append('<option value="">Select Faculty</option>');
+    faculties.forEach(function(faculty) {
+      $select.append($('<option>', { value: faculty.id, text: faculty.name }));
+    });
+    if (selectedId) {
+      $select.val(selectedId);
+    }
+    $select.trigger('change');
   }
 };
 
@@ -392,7 +400,7 @@ var ProgramManager = {
       $('#program_id').val('');
       $('#programModal .modal-title').text('Add Program');
       $('#saveProgramBtn').text('Save');
-      DropdownManager.loadFaculties('#faculty_id');
+      DropdownManager.loadFaculties('#faculty_id_modal');
       $('#programModal').modal('show');
     });
   },
@@ -437,7 +445,7 @@ var ProgramManager = {
           $('#name_en').val(prog.name_en);
           $('#name_ar').val(prog.name_ar);
           $('#duration_years').val(prog.duration_years);
-          DropdownManager.loadFaculties('#faculty_id', prog.faculty_id);
+          DropdownManager.loadFaculties('#faculty_id_modal', prog.faculty_id);
           $('#programModal .modal-title').text('Edit Program');
           $('#saveProgramBtn').text('Update');
           $('#programModal').modal('show');
@@ -497,17 +505,17 @@ var SearchManager = {
    */
   init: function() {
     this.bindEvents();
-    DropdownManager.loadFaculties('#faculty_id');
+    DropdownManager.loadFaculties('#faculty_id_search');
   },
   /**
    * Bind search and clear events
    */
   bindEvents: function() {
     $('#clearFiltersBtn').on('click', function() {
-      $('#search_name, #faculty_id').val('').trigger('change');
+      $('#search_name, #faculty_id_search').val('').trigger('change');
       $('#programs-table').DataTable().ajax.reload();
     });
-    $('#search_name, #faculty_id').on('keyup change', function() {
+    $('#search_name, #faculty_id_search').on('keyup change', function() {
       $('#programs-table').DataTable().ajax.reload();
     });
   }

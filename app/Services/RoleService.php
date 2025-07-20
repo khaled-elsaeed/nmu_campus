@@ -120,12 +120,13 @@ class RoleService
     /**
      * Delete a role.
      *
-     * @param Role $role
+     * @param int $id
      * @return void
      * @throws BusinessValidationException
      */
-    public function deleteRole(Role $role): void
+    public function deleteRole($id): void
     {
+        $role = \Spatie\Permission\Models\Role::findOrFail($id);
         if ($role->name === 'admin') {
             throw new BusinessValidationException('Cannot delete admin role.');
         }

@@ -36,33 +36,42 @@
         :collapsed="false"
     >
         <div class="col-md-4">
-            <label for="search_student_name" class="form-label">Student Name:</label>
-            <input type="text" class="form-control" id="search_student_name" name="search_student_name">
+            <label for="search_reservation_number" class="form-label">Reservation Number:</label>
+            <input type="text" class="form-control" id="search_reservation_number" name="search_reservation_number">
         </div>
         <div class="col-md-4">
-            <label for="search_student_national_id" class="form-label">Student National ID:</label>
-            <input type="text" class="form-control" id="search_student_national_id" name="search_student_national_id">
+            <label for="search_user_name" class="form-label">User Name:</label>
+            <input type="text" class="form-control" id="search_user_name" name="search_user_name">
         </div>
         <div class="col-md-4">
-            <label for="search_student_academic_id" class="form-label">Student Academic ID:</label>
-            <input type="text" class="form-control" id="search_student_academic_id" name="search_student_academic_id">
-        </div>
-        <div class="col-md-4">
-            <label for="search_building_id" class="form-label">Building:</label>
-            <select class="form-control" id="search_building_id" name="search_building_id">
-                <option value="">Select Building</option>
+            <label for="search_status" class="form-label">Status:</label>
+            <select class="form-control" id="search_status" name="search_status">
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="checked_in">Checked In</option>
+                <option value="checked_out">Checked Out</option>
+                <option value="cancelled">Cancelled</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_apartment_number" class="form-label">Apartment:</label>
-            <select class="form-control" id="search_apartment_number" name="search_apartment_number">
-                <option value="">Select Apartment</option>
+            <label for="search_active" class="form-label">Active:</label>
+            <select class="form-control" id="search_active" name="search_active">
+                <option value="">All</option>
+                <option value="1">Active</option>
+                <option value="0">Inactive</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_room_number" class="form-label">Room:</label>
-            <select class="form-control" id="search_room_number" name="search_room_number">
-                <option value="">Select Room</option>
+            <label for="search_academic_term_id" class="form-label">Academic Term:</label>
+            <select class="form-control" id="search_academic_term_id" name="search_academic_term_id">
+                <option value="">All Terms</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="search_accommodation_id" class="form-label">Accommodation:</label>
+            <select class="form-control" id="search_accommodation_id" name="search_accommodation_id">
+                <option value="">All Accommodations</option>
             </select>
         </div>
         <div class="w-100"></div>
@@ -73,28 +82,35 @@
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable 
-        :headers="['Student', 'Room', 'Start Date', 'End Date', 'Status', 'Actions']"
+        :headers="['Reservation #', 'User', 'Accommodation', 'Academic Term', 'Check-in', 'Check-out', 'Status', 'Active', 'Created', 'Actions']"
         :columns="[
-            ['data' => 'student', 'name' => 'student_name'],
-            ['data' => 'room', 'name' => 'room_number'],
-            ['data' => 'start_date', 'name' => 'start_date'],
-            ['data' => 'end_date', 'name' => 'end_date'],
+            ['data' => 'reservation_number', 'name' => 'reservation_number'],
+            ['data' => 'name', 'name' => 'name'],
+            ['data' => 'accommodation_info', 'name' => 'accommodation_info'],
+            ['data' => 'academic_term', 'name' => 'academic_term'],
+            ['data' => 'check_in_date', 'name' => 'check_in_date'],
+            ['data' => 'check_out_date', 'name' => 'check_out_date'],
             ['data' => 'status', 'name' => 'status'],
-            ['data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false]
+            ['data' => 'active', 'name' => 'active'],
+            ['data' => 'created_at', 'name' => 'created_at'],
+            ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false]
         ]"
         :ajax-url="route('reservations.datatable')"
         :table-id="'reservations-table'"
         :filter-fields="[
-            'search_student_name',
-            'search_student_national_id',
-            'search_student_academic_id',
-            'search_building_id',
-            'search_apartment_number',
-            'search_room_number'
+            'search_reservation_number',
+            'search_user_name',
+            'search_status',
+            'search_active',
+            'search_academic_term_id',
+            'search_accommodation_id'
         ]"
     />
 
     {{-- ===== MODALS SECTION ===== --}}
+    {{-- Add Reservation Modal --}}
+    {{-- (Removed) --}}
+
     {{-- View Reservation Modal --}}
     <x-ui.modal 
         id="viewReservationModal"
@@ -106,24 +122,40 @@
         <x-slot name="slot">
           <div class="row">
             <div class="col-6 mb-3">
-                <label class="form-label fw-bold">Student:</label>
-                <p id="view-reservation-student" class="mb-0"></p>
+                <label class="form-label fw-bold">Reservation Number:</label>
+                <p id="view-reservation-number" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
-                <label class="form-label fw-bold">Room:</label>
-                <p id="view-reservation-room" class="mb-0"></p>
+                <label class="form-label fw-bold">User:</label>
+                <p id="view-reservation-user" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
-                <label class="form-label fw-bold">Start Date:</label>
-                <p id="view-reservation-start-date" class="mb-0"></p>
+                <label class="form-label fw-bold">Accommodation:</label>
+                <p id="view-reservation-accommodation" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
-                <label class="form-label fw-bold">End Date:</label>
-                <p id="view-reservation-end-date" class="mb-0"></p>
+                <label class="form-label fw-bold">Academic Term:</label>
+                <p id="view-reservation-academic-term" class="mb-0"></p>
+            </div>
+            <div class="col-6 mb-3">
+                <label class="form-label fw-bold">Check-in Date:</label>
+                <p id="view-reservation-check-in" class="mb-0"></p>
+            </div>
+            <div class="col-6 mb-3">
+                <label class="form-label fw-bold">Check-out Date:</label>
+                <p id="view-reservation-check-out" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">Status:</label>
                 <p id="view-reservation-status" class="mb-0"></p>
+            </div>
+            <div class="col-6 mb-3">
+                <label class="form-label fw-bold">Active:</label>
+                <p id="view-reservation-active" class="mb-0"></p>
+            </div>
+            <div class="col-12 mb-3">
+                <label class="form-label fw-bold">Notes:</label>
+                <p id="view-reservation-notes" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">Created At:</label>
@@ -159,6 +191,7 @@
 var ROUTES = {
   reservations: {
     stats: '{{ route("reservations.stats") }}',
+    store: '{{ route("reservations.store") }}',
     show: '{{ route("reservations.show", ":id") }}',
     update: '{{ route("reservations.update", ":id") }}',
     destroy: '{{ route("reservations.destroy", ":id") }}',
@@ -172,6 +205,12 @@ var ROUTES = {
   },
   rooms: {
     all: '{{ route("housing.rooms.all") }}'
+  },
+  users: {
+    all: '{{ route("users.all") }}'
+  },
+  academicTerms: {
+    all: '{{ route("academic.academic_terms.all") }}'
   }
 };
 
@@ -183,37 +222,73 @@ var SELECTORS = {
   },
   table: '#reservations-table',
   modals: {
+    addReservation: '#addReservationModal',
+    editReservation: '#editReservationModal',
     viewReservation: '#viewReservationModal'
   },
   forms: {
+    addReservation: '#addReservationForm',
+    editReservation: '#editReservationForm',
     advancedSearch: '#advancedReservationSearch'
   },
   filters: {
-    studentName: '#search_student_name',
-    studentNationalId: '#search_student_national_id',
-    studentAcademicId: '#search_student_academic_id',
-    buildingId: '#search_building_id',
-    apartmentNumber: '#search_apartment_number',
-    roomNumber: '#search_room_number'
+    reservationNumber: '#search_reservation_number',
+    userName: '#search_user_name',
+    status: '#search_status',
+    active: '#search_active',
+    academicTermId: '#search_academic_term_id',
+    accommodationId: '#search_accommodation_id'
+  },
+  addForm: {
+    userId: '#add_user_id',
+    accommodationType: '#add_accommodation_type',
+    buildingId: '#add_building_id',
+    accommodationId: '#add_accommodation_id',
+    academicTermId: '#add_academic_term_id',
+    status: '#add_status',
+    checkInDate: '#add_check_in_date',
+    checkOutDate: '#add_check_out_date',
+    notes: '#add_notes'
+  },
+  editForm: {
+    reservationId: '#edit_reservation_id',
+    userId: '#edit_user_id',
+    accommodationType: '#edit_accommodation_type',
+    buildingId: '#edit_building_id',
+    accommodationId: '#edit_accommodation_id',
+    academicTermId: '#edit_academic_term_id',
+    status: '#edit_status',
+    checkInDate: '#edit_check_in_date',
+    checkOutDate: '#edit_check_out_date',
+    notes: '#edit_notes'
   },
   buttons: {
     clearFilters: '#clearReservationFiltersBtn',
+    saveReservation: '#saveReservationBtn',
+    updateReservation: '#updateReservationBtn',
     viewReservation: '.viewReservationBtn',
+    editReservation: '.editReservationBtn',
     deleteReservation: '.deleteReservationBtn',
   }
 };
 
 var MESSAGES = {
   success: {
+    reservationCreated: 'Reservation has been created successfully.',
+    reservationUpdated: 'Reservation has been updated successfully.',
     reservationDeleted: 'Reservation has been deleted.'
   },
   error: {
     statsLoadFailed: 'Failed to load reservation statistics.',
     reservationLoadFailed: 'Failed to load reservation data.',
+    reservationCreateFailed: 'Failed to create reservation.',
+    reservationUpdateFailed: 'Failed to update reservation.',
     reservationDeleteFailed: 'Failed to delete reservation.',
     buildingsLoadFailed: 'Failed to load buildings.',
     apartmentsLoadFailed: 'Failed to load apartments.',
     roomsLoadFailed: 'Failed to load rooms.',
+    usersLoadFailed: 'Failed to load users.',
+    academicTermsLoadFailed: 'Failed to load academic terms.',
     operationFailed: 'Operation failed.'
   },
   confirm: {
@@ -391,6 +466,37 @@ var ApiService = {
   fetchRooms: function(apartmentId) {
     var data = apartmentId ? { apartment_id: apartmentId } : {};
     return this.request({ url: ROUTES.rooms.all, method: 'GET', data: data });
+  },
+  /**
+   * Fetch all users
+   * @returns {jqXHR}
+   */
+  fetchUsers: function() {
+    return this.request({ url: ROUTES.users.all, method: 'GET' });
+  },
+  /**
+   * Fetch all academic terms
+   * @returns {jqXHR}
+   */
+  fetchAcademicTerms: function() {
+    return this.request({ url: ROUTES.academicTerms.all, method: 'GET' });
+  },
+  /**
+   * Create a new reservation
+   * @param {object} data
+   * @returns {jqXHR}
+   */
+  createReservation: function(data) {
+    return this.request({ url: ROUTES.reservations.store, method: 'POST', data: data });
+  },
+  /**
+   * Update an existing reservation
+   * @param {string|number} id
+   * @param {object} data
+   * @returns {jqXHR}
+   */
+  updateReservation: function(id, data) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.reservations.update, id), method: 'PUT', data: data });
   }
 };
 
@@ -482,7 +588,8 @@ var ReservationManager = {
     var self = this;
     $(document)
       .on('click', SELECTORS.buttons.viewReservation, function(e) { self.handleViewReservation(e); })
-      .on('click', SELECTORS.buttons.deleteReservation, function(e) { self.handleDeleteReservation(e); });
+      .on('click', SELECTORS.buttons.deleteReservation, function(e) { self.handleDeleteReservation(e); })
+      .on('hidden.bs.modal', SELECTORS.modals.viewReservation, function() { self.resetViewModal(); });
   },
   /**
    * Handle view reservation button click
@@ -532,16 +639,26 @@ var ReservationManager = {
    */
   populateViewModal: function(reservation) {
     var fields = [
-      { id: 'student', value: reservation.student_name },
-      { id: 'room', value: reservation.room_number },
-      { id: 'start-date', value: Utils.formatDate(reservation.start_date) },
-      { id: 'end-date', value: Utils.formatDate(reservation.end_date) },
+      { id: 'number', value: reservation.reservation_number },
+      { id: 'user', value: reservation.user_name },
+      { id: 'accommodation', value: reservation.accommodation_info },
+      { id: 'academic-term', value: reservation.academic_term },
+      { id: 'check-in', value: reservation.check_in_date },
+      { id: 'check-out', value: reservation.check_out_date },
       { id: 'status', value: reservation.status },
-      { id: 'created', value: Utils.formatDate(reservation.created_at) }
+      { id: 'active', value: reservation.active },
+      { id: 'notes', value: reservation.notes },
+      { id: 'created', value: reservation.created_at }
     ];
     fields.forEach(function(field) {
       $('#view-reservation-' + field.id).text(field.value);
     });
+  },
+  /**
+   * Reset view modal
+   */
+  resetViewModal: function() {
+    // No specific reset needed for view modal as it's just a display
   },
   /**
    * Delete reservation
@@ -614,6 +731,11 @@ var SelectManager = {
    */
   init: function() {
     this.populateBuildingSelect();
+    this.populateUserSelect();
+    this.populateAcademicTermsSelect();
+    this.populateSearchAcademicTermsSelect();
+    this.populateEditUserSelect();
+    this.populateEditAcademicTermsSelect();
     this.bindEvents();
   },
   /**
@@ -621,6 +743,7 @@ var SelectManager = {
    */
   bindEvents: function() {
     var self = this;
+    // Search filters
     $(SELECTORS.filters.buildingId).on('change', function(e) {
       var buildingId = $(e.target).val();
       self.handleBuildingChange(buildingId);
@@ -629,22 +752,51 @@ var SelectManager = {
       var apartmentNumber = $(e.target).val();
       self.handleApartmentChange(apartmentNumber);
     });
+    
+    // Edit form
+    $(SELECTORS.editForm.accommodationType).on('change', function(e) {
+      var type = $(e.target).val();
+      self.handleEditAccommodationTypeChange(type);
+    });
+    $(SELECTORS.editForm.buildingId).on('change', function(e) {
+      var buildingId = $(e.target).val();
+      var accommodationType = $(SELECTORS.editForm.accommodationType).val();
+      self.handleEditBuildingChange(buildingId, accommodationType);
+    });
   },
   /**
-   * Handle building change
+   * Handle building change for search filters
    */
   handleBuildingChange: function(buildingId) {
     this.populateApartmentSelect(buildingId);
     this.clearRoomSelect();
   },
   /**
-   * Handle apartment change
+   * Handle apartment change for search filters
    */
   handleApartmentChange: function(apartmentNumber) {
     this.populateRoomSelect(apartmentNumber);
   },
   /**
-   * Populate building select dropdown
+   * Handle accommodation type change for edit form
+   */
+  handleEditAccommodationTypeChange: function(type) {
+    if (type) {
+      this.populateEditBuildingSelect();
+      this.clearEditAccommodationSelect();
+    } else {
+      this.clearEditBuildingSelect();
+      this.clearEditAccommodationSelect();
+    }
+  },
+  /**
+   * Handle building change for edit form
+   */
+  handleEditBuildingChange: function(buildingId, accommodationType) {
+    this.populateEditAccommodationSelect(buildingId, accommodationType);
+  },
+  /**
+   * Populate building select dropdown for search
    */
   populateBuildingSelect: function() {
     ApiService.fetchBuildings()
@@ -658,7 +810,21 @@ var SelectManager = {
       });
   },
   /**
-   * Populate apartment select dropdown
+   * Populate building select dropdown for edit form
+   */
+  populateEditBuildingSelect: function() {
+    ApiService.fetchBuildings()
+      .done(function(response) {
+        if (response.success && response.data) {
+          SelectManager.populateSelect(SELECTORS.editForm.buildingId, response.data, 'number', 'Select Building');
+        }
+      })
+      .fail(function() {
+        Utils.showError(MESSAGES.error.buildingsLoadFailed);
+      });
+  },
+  /**
+   * Populate apartment select dropdown for search
    */
   populateApartmentSelect: function(buildingId) {
     if (!buildingId) {
@@ -677,21 +843,76 @@ var SelectManager = {
       });
   },
   /**
-   * Populate room select dropdown
+   * Populate accommodation select dropdown for edit form
    */
-  populateRoomSelect: function(apartmentNumber) {
-    if (!apartmentNumber) {
-      this.clearRoomSelect();
+  populateEditAccommodationSelect: function(buildingId, accommodationType) {
+    if (!buildingId || !accommodationType) {
+      this.clearEditAccommodationSelect();
       return;
     }
-    ApiService.fetchRooms(apartmentNumber)
+
+    if (accommodationType === 'room') {
+      ApiService.fetchRooms(buildingId)
+        .done(function(response) {
+          if (response.success && response.data) {
+            var filteredRooms = response.data.filter(function(room) { return room.building_id == buildingId; });
+            SelectManager.populateSelect(SELECTORS.editForm.accommodationId, filteredRooms, 'number', 'Select Room');
+          }
+        })
+        .fail(function() {
+          Utils.showError(MESSAGES.error.roomsLoadFailed);
+        });
+    } else if (accommodationType === 'apartment') {
+      ApiService.fetchApartments(buildingId)
+        .done(function(response) {
+          if (response.success && response.data) {
+            var filteredApartments = response.data.filter(function(apartment) { return apartment.building_id == buildingId; });
+            SelectManager.populateSelect(SELECTORS.editForm.accommodationId, filteredApartments, 'number', 'Select Apartment');
+          }
+        })
+        .fail(function() {
+          Utils.showError(MESSAGES.error.apartmentsLoadFailed);
+        });
+    }
+  },
+  /**
+   * Clear accommodation select dropdown for edit form
+   */
+  clearEditAccommodationSelect: function() {
+    this.clearSelect(SELECTORS.editForm.accommodationId, 'Select Room/Apartment');
+  },
+  /**
+   * Clear building select dropdown for edit form
+   */
+  clearEditBuildingSelect: function() {
+    this.clearSelect(SELECTORS.editForm.buildingId, 'Select Building');
+  },
+  /**
+   * Populate user select dropdown
+   */
+  populateUserSelect: function() {
+    ApiService.fetchUsers()
       .done(function(response) {
         if (response.success && response.data) {
-          SelectManager.populateSelect(SELECTORS.filters.roomNumber, response.data, 'number', 'Select Room');
+          SelectManager.populateSelectWithUserInfo(SELECTORS.editForm.userId, response.data, 'Select User');
         }
       })
       .fail(function() {
-        Utils.showError(MESSAGES.error.roomsLoadFailed);
+        Utils.showError(MESSAGES.error.usersLoadFailed);
+      });
+  },
+  /**
+   * Populate academic terms select dropdown for edit form
+   */
+  populateEditAcademicTermsSelect: function() {
+    ApiService.fetchAcademicTerms()
+      .done(function(response) {
+        if (response.success && response.data) {
+          SelectManager.populateSelect(SELECTORS.editForm.academicTermId, response.data, 'name_en', 'Select Academic Term');
+        }
+      })
+      .fail(function() {
+        Utils.showError(MESSAGES.error.academicTermsLoadFailed);
       });
   },
   /**
@@ -705,16 +926,36 @@ var SelectManager = {
     });
   },
   /**
+   * Populate a select dropdown with user information
+   */
+  populateSelectWithUserInfo: function(selector, data, placeholder) {
+    var $select = $(selector);
+    $select.empty().append('<option value="">' + placeholder + '</option>');
+    data.forEach(function(item) {
+      var displayText = item.name_en;
+      if (item.user_type && item.additional_info) {
+        displayText += ' (' + item.user_type + ' - ' + item.additional_info + ')';
+      }
+      $select.append('<option value="' + item.id + '">' + displayText + '</option>');
+    });
+  },
+  /**
    * Clear a select dropdown
    */
   clearSelect: function(selector, placeholder) {
     $(selector).empty().append('<option value="">' + placeholder + '</option>');
   },
   /**
-   * Clear room select dropdown
+   * Clear room select dropdown for search
    */
   clearRoomSelect: function() {
     this.clearSelect(SELECTORS.filters.roomNumber, 'Select Room');
+  },
+  /**
+   * Reset edit form dropdowns
+   */
+  resetEditFormDropdowns: function() {
+    this.clearEditAccommodationSelect();
   }
 };
 

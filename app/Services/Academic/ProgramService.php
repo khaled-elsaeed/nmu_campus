@@ -10,12 +10,7 @@ use App\Exceptions\BusinessValidationException;
 
 class ProgramService
 {
-    /**
-     * The model class to use for this service.
-     * @var string
-     */
-    protected $model = Program::class;
-
+   
     /**
      * Create a new program.
      *
@@ -77,13 +72,18 @@ class ProgramService
     }
 
     /**
-     * Get all programs (for dropdown and forms).
+     * Get all programs, optionally filtered by faculty_id.
      *
+     * @param int|null $facultyId
      * @return array
      */
-    public function getAll(): array
+    public function getAll(?int $facultyId = null): array
     {
-        return Program::all()->map(function ($program) {
+        $query = Program::query();
+        if (!is_null($facultyId)) {
+            $query->where('faculty_id', $facultyId);
+        }
+        return $query->get()->map(function ($program) {
             return [
                 'id' => $program->id,
                 'name_en' => $program->name_en,

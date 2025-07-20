@@ -10,6 +10,8 @@ use App\Exceptions\BusinessValidationException;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 class StudentService
 {
@@ -44,7 +46,7 @@ class StudentService
             'name_ar' => $data['name_ar'] ?? null,
             'gender' => $data['gender'] ?? null,
             'email' => $data['academic_email'] ?? null,
-            'password' => $data['password'] ?? bcrypt('password'),
+            'password' => Hash::make(Str::random(10)),
         ]);
     }
 
@@ -79,9 +81,6 @@ class StudentService
             'gender' => $data['gender'] ?? $user->gender,
             'email' => $data['academic_email'] ?? $user->email,
         ]);
-        if (!empty($data['password'])) {
-            $user->update(['password' => bcrypt($data['password'])]);
-        }
     }
 
     /**
@@ -110,21 +109,18 @@ class StudentService
     /**
      * Delete a student and associated user.
      *
-     * @param Student $student
-     * @return void
-     * @throws BusinessValidationException
+     * @param int $id
+     * @return bool
      */
-    public function deleteStudent(Student $student): void
+    public function deleteStudent(int $id): bool
     {
+        $student = Student::findOrFail($id);
         $user = $student->user;
-
-        if ($user) {
-            $user->delete();
-        }
+        return (bool) $user->delete();
     }
 
     /**
-     * Get all students (for dropdowns/forms).
+     * Get all students.
      *
      * @return array
      */
@@ -203,6 +199,13 @@ class StudentService
      */
     private function applySearchFilters($query, $request): void
     {
+        $searchId = $request->input('search_id');
+        if (!empty($searchId)) {
+            $query->where(function($q) use ($searchId) {
+                $q->where('academic_id', 'like', '%' . $searchId . '%')
+                  ->orWhere('national_id', 'like', '%' . $searchId . '%');
+            });
+        }
         $searchName = $request->input('search_name');
         if (!empty($searchName)) {
             $query->whereHas('user', function($q) use ($searchName) {
@@ -210,9 +213,19 @@ class StudentService
                   ->orWhereRaw('LOWER(name_ar) LIKE ?', ['%' . mb_strtolower($searchName) . '%']);
             });
         }
+        $searchGender = $request->input('search_gender');
+        if (!empty($searchGender)) {
+            $query->whereHas('user', function($q) use ($searchGender) {
+                $q->where('gender', $searchGender);
+            });
+        }
         $facultyId = $request->input('faculty_id');
         if (!empty($facultyId)) {
             $query->where('faculty_id', $facultyId);
+        }
+        $searchGovernorateId = $request->input('search_governorate_id');
+        if (!empty($searchGovernorateId)) {
+            $query->where('governorate_id', $searchGovernorateId);
         }
         $programId = $request->input('program_id');
         if (!empty($programId)) {

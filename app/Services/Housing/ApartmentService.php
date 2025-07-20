@@ -53,12 +53,13 @@ class ApartmentService
     /**
      * Delete an apartment.
      *
-     * @param Apartment $apartment
+     * @param int $id
      * @return void
      * @throws BusinessValidationException
      */
-    public function deleteApartment(Apartment $apartment): void
+    public function deleteApartment($id): void
     {
+        $apartment = Apartment::findOrFail($id);
         $room = $apartment->rooms()->where('capacity', '>', 1)->first();
         if ($room) {
             throw new BusinessValidationException(

@@ -14,20 +14,22 @@ Route::prefix('users')
         // ===== Specific Routes First =====
         Route::get('datatable', 'datatable')->name('datatable');
         Route::get('stats', 'stats')->name('stats');
+        Route::get('all', 'all')->name('all');
         Route::get('roles', 'getRoles')->name('roles');
+        Route::get('find-by-national-id', 'findByNationalId')->name('findByNationalId');
 
         // ===== CRUD Operations =====
         // List & View
         Route::get('/', 'index')->name('index');
-        Route::get('{user}', 'show')->name('show');
+        Route::get('{id}', 'show')->name('show');
         
         // Create
         Route::post('/', 'store')->name('store');
         
         // Update
-        Route::put('{user}', 'update')->name('update');
-        Route::patch('{user}', 'update');
+        Route::put('{id}', 'update')->name('update');
+        Route::patch('{id}', 'update');
         
         // Delete
-        Route::delete('{user}', 'destroy')->name('destroy');
+        Route::delete('{id}', 'destroy')->name('destroy');
     }); 

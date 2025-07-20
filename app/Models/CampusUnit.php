@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class StaffCategory extends Model
+class CampusUnit extends Model
 {
     /**
      * The attributes that are mass assignable.
@@ -16,8 +16,17 @@ class StaffCategory extends Model
     protected $fillable = [
         'name_en',
         'name_ar',
-        'type',
         'description',
+        'type',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'type' => 'string',
     ];
 
     /**
@@ -28,7 +37,7 @@ class StaffCategory extends Model
     protected $appends = ['name'];
 
     /**
-     * Get the staff category's name depending on locale.
+     * Get the campus unit's name depending on locale.
      *
      * @return Attribute
      */
@@ -44,12 +53,27 @@ class StaffCategory extends Model
     }
 
     /**
-     * Get the staff for the staff category.
+     * Get the staff for the campus unit.
      *
      * @return HasMany
      */
     public function staff(): HasMany
     {
-        return $this->hasMany(Staff::class);
+        return $this->morphMany(Staff::class, 'unit');
+    }
+
+    /**
+     * Get the campus unit type options.
+     *
+     * @return array
+     */
+    public static function getTypeOptions(): array
+    {
+        return [
+            'management' => 'Management',
+            'maintenance' => 'Maintenance',
+            'clinic' => 'Clinic',
+            'security' => 'Security',
+        ];
     }
 }

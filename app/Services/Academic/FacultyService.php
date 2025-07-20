@@ -19,7 +19,8 @@ class FacultyService
     public function createFaculty(array $data): Faculty
     {
         return Faculty::create([
-            'name' => $data['name'],
+            'name_en' => $data['name_en'],
+            'name_ar' => $data['name_ar'],
         ]);
     }
 
@@ -33,7 +34,8 @@ class FacultyService
     public function updateFaculty(Faculty $faculty, array $data): Faculty
     {
         $faculty->update([
-            'name' => $data['name'],
+            'name_en' => $data['name_en'],
+            'name_ar' => $data['name_ar'],
         ]);
         return $faculty->fresh();
     }
@@ -52,16 +54,16 @@ class FacultyService
     /**
      * Delete a faculty.
      *
-     * @param Faculty $faculty
+     * @param int $id
      * @return void
      * @throws BusinessValidationException
      */
-    public function deleteFaculty(Faculty $faculty): void
+    public function deleteFaculty($id): void
     {
+        $faculty = Faculty::findOrFail($id);
         if ($faculty->students()->count() > 0) {
             throw new BusinessValidationException('Cannot delete faculty that has students assigned.');
         }
-
         foreach ($faculty->programs as $program) {
             if ($program->students()->count() > 0) {
                 throw new BusinessValidationException('Cannot delete faculty that has programs with students assigned.');
@@ -73,15 +75,25 @@ class FacultyService
     /**
      * Get all faculties (for dropdown and forms).
      *
+     * @param bool $forDropdown
      * @return array
      */
-    public function getAll(): array
+    public function getAll($forDropdown = false): array
     {
-        return Faculty::get()->map(function ($faculty) {
-            return [
-                'id' => $faculty->id,
-                'name' => $faculty->name,
-            ];
+        return Faculty::get()->map(function ($faculty) use ($forDropdown) {
+            if ($forDropdown) {
+                return [
+                    'id' => $faculty->id,
+                    'name' => $faculty->name, // current locale
+                ];
+            } else {
+                return [
+                    'id' => $faculty->id,
+                    'name_en' => $faculty->name_en,
+                    'name_ar' => $faculty->name_ar,
+                    'name' => $faculty->name, // current locale
+                ];
+            }
         })->toArray();
     }
 
@@ -120,15 +132,28 @@ class FacultyService
      */
     public function getDatatable(): JsonResponse
     {
-        $faculties = Faculty::with(['programs'])->withCount(['programs', 'students']);
+        $faculties = Faculty::with(['programs'])
+            ->withCount('programs')
+            ->withCount(['programs as students_count' => function ($query) {
+                $query->join('students', 'programs.id', '=', 'students.program_id');
+            }]);
+
         $faculties = $this->applySearchFilters($faculties);
 
         return DataTables::of($faculties)
             ->addIndexColumn()
-            ->addColumn('name', fn($faculty) => $faculty->name)
-            ->addColumn('programs', fn($faculty) => $faculty->programs_count)
-            ->addColumn('students', fn($faculty) => $faculty->students_count)
-            ->addColumn('action', fn($faculty) => $this->renderActionButtons($faculty))
+            ->addColumn('name', function ($faculty) {
+                return $faculty->name;
+            })
+            ->addColumn('programs', function ($faculty) {
+                return $faculty->programs_count;
+            })
+            ->addColumn('students', function ($faculty) {
+                return $faculty->students_count;
+            })
+            ->addColumn('action', function ($faculty) {
+                return $this->renderActionButtons($faculty);
+            })
             ->orderColumn('name', 'name_en $1')
             ->orderColumn('programs', 'programs_count $1')
             ->orderColumn('students', 'students_count $1')

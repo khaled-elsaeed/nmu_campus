@@ -119,12 +119,13 @@ class UserService
     /**
      * Delete a user.
      *
-     * @param User $user
+     * @param int $id
      * @return void
      * @throws BusinessValidationException
      */
-    public function deleteUser(User $user): void
+    public function deleteUser($id): void
     {
+        $user = User::findOrFail($id);
         $user->delete();
     }
 
@@ -136,6 +137,73 @@ class UserService
     public function getRoles(): array
     {
         return Role::all()->toArray();
+    }
+
+    /**
+     * Get all users (for dropdown and forms).
+     *
+     * @return array
+     */
+    public function getAll(): array
+    {
+        return User::with(['student', 'staff'])
+            ->get()
+            ->map(function ($user) {
+                $userType = '';
+                $additionalInfo = '';
+                
+                if ($user->student) {
+                    $userType = 'Student';
+                    $additionalInfo = $user->student->academic_id;
+                } elseif ($user->staff) {
+                    $userType = 'Staff';
+                    $additionalInfo = $user->staff->employee_id ?? '';
+                }
+                
+                return [
+                    'id' => $user->id,
+                    'name_en' => $user->name_en,
+                    'name_ar' => $user->name_ar,
+                    'email' => $user->email,
+                    'user_type' => $userType,
+                    'additional_info' => $additionalInfo,
+                ];
+            })->toArray();
+    }
+
+    /**
+     * Find user by national ID (for reservation create step).
+     *
+     * @param string $nationalId
+     * @return array|null
+     */
+    public function findByNationalId($nationalId)
+    {
+        // Try to find as student
+        $student = \App\Models\Student::with('user')->where('national_id', $nationalId)->first();
+        if ($student && $student->user) {
+            return [
+                'id' => $student->user->id,
+                'name_en' => $student->user->name_en,
+                'name_ar' => $student->user->name_ar,
+                'email' => $student->user->email,
+                'user_type' => 'Student',
+                'national_id' => $student->national_id,
+            ];
+        }
+        // Try to find as staff
+        $staff = \App\Models\Staff::with('user')->where('national_id', $nationalId)->first();
+        if ($staff && $staff->user) {
+            return [
+                'id' => $staff->user->id,
+                'name_en' => $staff->user->name_en,
+                'name_ar' => $staff->user->name_ar,
+                'email' => $staff->user->email,
+                'user_type' => 'Staff',
+                'national_id' => $staff->national_id,
+            ];
+        }
+        return null;
     }
 
     /**

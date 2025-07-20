@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('name_ar')->nullable();
             $table->enum('type', ['faculty', 'administrative', 'campus', 'technical', 'support']);
             $table->text('description')->nullable();
-            $table->boolean('active')->default(true);
             $table->timestamps();
         });
 
@@ -27,6 +26,15 @@ return new class extends Migration
             $table->id();
             $table->string('name_en')->unique();
             $table->string('name_ar');
+            $table->timestamps();
+        });
+
+        Schema::create('campus_units', function (Blueprint $table) {
+            $table->id();
+            $table->string('name_en')->unique();
+            $table->string('name_ar')->nullable();
+            $table->text('description')->nullable();
+            $table->enum('type', ['management', 'maintenance', 'clinic', 'security']);
             $table->timestamps();
         });
     }

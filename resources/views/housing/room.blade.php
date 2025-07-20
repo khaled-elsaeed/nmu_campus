@@ -340,7 +340,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   fetchStats: function() {
-    return this.request({ url: ROUTES.rooms.stats, method: 'GET' });
+    return ApiService.request({ url: ROUTES.rooms.stats, method: 'GET' });
   },
   /**
    * Fetch a single room by ID
@@ -348,7 +348,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   fetchRoom: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.rooms.show, id), method: 'GET' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.rooms.show, id), method: 'GET' });
   },
   /**
    * Save (update) a room
@@ -357,7 +357,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   saveRoom: function(data, id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.rooms.update, id), method: 'PUT', data: data });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.rooms.update, id), method: 'PUT', data: data });
   },
   /**
    * Delete a room by ID
@@ -365,7 +365,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   deleteRoom: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.rooms.destroy, id), method: 'DELETE' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.rooms.destroy, id), method: 'DELETE' });
   },
   /**
    * Activate a room by ID
@@ -373,7 +373,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   activateRoom: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.rooms.activate, id), method: 'PATCH' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.rooms.activate, id), method: 'PATCH' });
   },
   /**
    * Deactivate a room by ID
@@ -381,21 +381,21 @@ var ApiService = {
    * @returns {jqXHR}
    */
   deactivateRoom: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.rooms.deactivate, id), method: 'PATCH' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.rooms.deactivate, id), method: 'PATCH' });
   },
   /**
    * Fetch all buildings
    * @returns {jqXHR}
    */
   fetchBuildings: function() {
-    return this.request({ url: ROUTES.buildings.all, method: 'GET' });
+    return ApiService.request({ url: ROUTES.buildings.all, method: 'GET' });
   },
   /**
    * Fetch all apartments
    * @returns {jqXHR}
    */
   fetchApartments: function() {
-    return this.request({ url: ROUTES.apartments.all, method: 'GET' });
+    return ApiService.request({ url: ROUTES.apartments.all, method: 'GET' });
   }
 };
 

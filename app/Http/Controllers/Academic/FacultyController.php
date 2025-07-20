@@ -70,11 +70,12 @@ class FacultyController extends Controller
     public function store(Request $request): JsonResponse
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:faculties,name'
+            'name_en' => 'required|string|max:255|unique:faculties,name_en',
+            'name_ar' => 'required|string|max:255|unique:faculties,name_ar',
         ]);
 
         try {
-            $validated = $request->all();
+            $validated = $request->only(['name_en', 'name_ar']);
             $faculty = $this->facultyService->createFaculty($validated);
             return successResponse('Faculty created successfully.', $faculty);
         } catch (Exception $e) {
@@ -104,21 +105,22 @@ class FacultyController extends Controller
      * Update the specified faculty.
      *
      * @param Request $request
-     * @param Faculty $faculty
+     * @param int $id
      * @return JsonResponse
      */
-    public function update(Request $request, Faculty $faculty): JsonResponse
+    public function update(Request $request, $id): JsonResponse
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:faculties,name,' . $faculty->id
+            'name_en' => 'required|string|max:255|unique:faculties,name_en,' . $id,
+            'name_ar' => 'required|string|max:255|unique:faculties,name_ar,' . $id,
         ]);
 
         try {
-            $validated = $request->all();
-            $faculty = $this->facultyService->updateFaculty($faculty, $validated);
+            $validated = $request->only(['name_en', 'name_ar']);
+            $faculty = $this->facultyService->updateFaculty($id, $validated);
             return successResponse('Faculty updated successfully.', $faculty);
         } catch (Exception $e) {
-            logError('FacultyController@update', $e, ['faculty_id' => $faculty->id, 'request' => $request->all()]);
+            logError('FacultyController@update', $e, ['faculty_id' => $id, 'request' => $request->all()]);
             return errorResponse('Internal server error.', [], 500);
         }
     }
@@ -126,18 +128,18 @@ class FacultyController extends Controller
     /**
      * Remove the specified faculty.
      *
-     * @param Faculty $faculty
+     * @param int $id
      * @return JsonResponse
      */
-    public function destroy(Faculty $faculty): JsonResponse
+    public function destroy($id): JsonResponse
     {
         try {
-            $this->facultyService->deleteFaculty($faculty);
+            $this->facultyService->deleteFaculty($id);
             return successResponse('Faculty deleted successfully.');
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
-            logError('FacultyController@destroy', $e, ['faculty_id' => $faculty->id]);
+            logError('FacultyController@destroy', $e, ['faculty_id' => $id]);
             return errorResponse('Internal server error.', [], 500);
         }
     }

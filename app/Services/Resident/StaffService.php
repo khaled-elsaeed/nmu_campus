@@ -4,19 +4,19 @@ namespace App\Services\Resident;
 
 use App\Models\Staff;
 use App\Models\User;
+use App\Models\Faculty;
+use App\Models\Department;
+use App\Models\CampusUnit;
 use App\Exceptions\BusinessValidationException;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Hash;
+use App\Models\StaffCategory;
 
 class StaffService
 {
-    /**
-     * The model class to use for this service.
-     * @var string
-     */
-    protected $model = Staff::class;
 
     /**
      * Create a new staff and associated user.
@@ -29,7 +29,7 @@ class StaffService
         return DB::transaction(function () use ($data) {
             $user = $this->createUser($data);
             $staff = $this->createStaffProfile($user, $data);
-            return $staff->fresh(['user', 'department', 'staffCategory', 'faculty']);
+            return $staff->fresh(['user', 'unit', 'staffCategory']);
         });
     }
 
@@ -46,7 +46,7 @@ class StaffService
             'name_ar' => $data['name_ar'] ?? null,
             'gender' => $data['gender'] ?? null,
             'email' => $data['email'] ?? null,
-            'password' => $data['password'] ?? bcrypt('password'),
+            'password' => Hash::make('password'),
         ]);
     }
 
@@ -59,12 +59,19 @@ class StaffService
      */
     private function createStaffProfile(User $user, array $data): Staff
     {
+        $unitData = $this->determineUnitData($data);
+        
+        if ($unitData['unit_type'] && !$unitData['unit_id']) {
+            throw new BusinessValidationException('Unit must be selected for this staff category.');
+        }
+        
         return Staff::create([
             'user_id' => $user->id,
             'staff_category_id' => $data['staff_category_id'],
-            'faculty_id' => $data['faculty_id'],
-            'department_id' => $data['department_id'],
+            'unit_type' => $unitData['unit_type'],
+            'unit_id' => $unitData['unit_id'],
             'notes' => $data['notes'] ?? null,
+            'national_id' => $data['national_id'] ?? null,
         ]);
     }
 
@@ -80,7 +87,7 @@ class StaffService
         return DB::transaction(function () use ($staff, $data) {
             $this->updateUser($staff->user, $data);
             $this->updateStaffProfile($staff, $data);
-            return $staff->fresh(['user', 'department', 'staffCategory', 'faculty']);
+            return $staff->fresh(['user', 'unit', 'staffCategory']);
         });
     }
 
@@ -99,9 +106,6 @@ class StaffService
             'gender' => $data['gender'] ?? $user->gender,
             'email' => $data['email'] ?? $user->email,
         ]);
-        if (!empty($data['password'])) {
-            $user->update(['password' => bcrypt($data['password'])]);
-        }
     }
 
     /**
@@ -113,12 +117,71 @@ class StaffService
      */
     private function updateStaffProfile(Staff $staff, array $data): void
     {
+        $unitData = $this->determineUnitData($data);
+        
         $staff->update([
             'staff_category_id' => $data['staff_category_id'],
-            'faculty_id' => $data['faculty_id'],
-            'department_id' => $data['department_id'],
+            'unit_type' => $unitData['unit_type'],
+            'unit_id' => $unitData['unit_id'],
             'notes' => $data['notes'] ?? null,
+            'national_id' => $data['national_id'] ?? $staff->national_id,
         ]);
+    }
+
+    /**
+     * Determine unit type and ID based on staff category type.
+     *
+     * @param array $data
+     * @return array
+     */
+    private function determineUnitData(array $data): array
+    {
+        if (!isset($data['staff_category_id']) || !$data['staff_category_id']) {
+            return [
+                'unit_type' => null,
+                'unit_id' => null
+            ];
+        }
+
+        // Get the staff category to determine the type
+        $staffCategory = StaffCategory::find($data['staff_category_id']);
+        
+        if (!$staffCategory) {
+            return [
+                'unit_type' => null,
+                'unit_id' => null
+            ];
+        }
+
+        // Get unit_id from the form data
+        $unitId = isset($data['unit_id']) ? (int) $data['unit_id'] : null;
+
+        // Determine unit type based on staff category type
+        switch ($staffCategory->type) {
+            case 'faculty':
+                return [
+                    'unit_type' => Faculty::class,
+                    'unit_id' => $unitId
+                ];
+                
+            case 'administrative':
+                return [
+                    'unit_type' => Department::class,
+                    'unit_id' => $unitId
+                ];
+                
+            case 'campus':
+                return [
+                    'unit_type' => CampusUnit::class,
+                    'unit_id' => $unitId
+                ];
+                
+            default:
+                return [
+                    'unit_type' => null,
+                    'unit_id' => null
+                ];
+        }
     }
 
     /**
@@ -129,22 +192,25 @@ class StaffService
      */
     public function getStaff($id): Staff
     {
-        return Staff::with(['user', 'department', 'staffCategory', 'faculty'])->findOrFail($id);
+        return Staff::with(['user', 'unit', 'staffCategory'])->findOrFail($id);
     }
 
     /**
      * Delete a staff and associated user.
      *
-     * @param Staff $staff
-     * @return void
+     * @param int $staffId
+     * @return bool
      * @throws BusinessValidationException
      */
-    public function deleteStaff(Staff $staff): void
+    public function deleteStaff(int $staffId): bool
     {
+        $staff = Staff::with('user')->findOrFail($staffId);
+
         $user = $staff->user;
-        if ($user) {
-            $user->delete();
-        }
+
+        $deleted = $user->delete();
+
+        return $deleted;
     }
 
     /**
@@ -154,14 +220,14 @@ class StaffService
      */
     public function getAll(): array
     {
-        return Staff::with(['user', 'department', 'staffCategory', 'faculty'])
+        return Staff::with(['user', 'unit', 'staffCategory'])
             ->get()
             ->map(function ($staff) {
                 return [
                     'id' => $staff->id,
-                    'name' => $staff->user?->name_en,
-                    'faculty' => $staff->faculty?->name,
-                    'department' => $staff->department?->name,
+                    'name' => $staff->user?->name,
+                    'unit_name' => $staff->unit?->name ?? 'Unassigned',
+                    'unit_type' => $staff->name,
                     'category' => $staff->staffCategory?->name,
                 ];
             })->toArray();
@@ -203,17 +269,50 @@ class StaffService
      */
     public function getDatatable(): JsonResponse
     {
-        $query = Staff::with(['user', 'department', 'staffCategory', 'faculty']);
+        $query = Staff::with(['user', 'unit', 'staffCategory']);
         $query = $this->applySearchFilters($query);
+        
         return DataTables::of($query)
             ->addIndexColumn()
             ->addColumn('name', fn($staff) => $staff->user?->name_en)
-            ->addColumn('faculty', fn($staff) => $staff->faculty?->name)
-            ->addColumn('department', fn($staff) => $staff->department?->name)
-            ->addColumn('category', fn($staff) => $staff->staffCategory?->name)
+            ->addColumn('unit_name', fn($staff) => $staff->unit?->name ?? 'Unassigned')
+            ->addColumn('unit_type', fn($staff) => $staff->name) 
+            ->addColumn('category', fn($staff) => $staff->staffCategory?->name_en)
             ->addColumn('gender', fn($staff) => $staff->user?->gender)
             ->addColumn('created_at', fn($staff) => formatDate($staff->created_at))
             ->addColumn('action', fn($staff) => $this->renderActionButtons($staff))
+            
+            // Order columns for related tables
+            ->orderColumn('name', function ($query, $order) {
+                return $query->leftJoin('users', 'staff.user_id', '=', 'users.id')
+                             ->orderBy('users.name_en', $order);
+            })
+            ->orderColumn('unit_name', function ($query, $order) {
+                return $query->leftJoin('faculties', function($join) {
+                    $join->on('staff.unit_id', '=', 'faculties.id')
+                         ->where('staff.unit_type', '=', Faculty::class);
+                })
+                ->leftJoin('departments', function($join) {
+                    $join->on('staff.unit_id', '=', 'departments.id')
+                         ->where('staff.unit_type', '=', Department::class);
+                })
+                ->leftJoin('campus_units', function($join) {
+                    $join->on('staff.unit_id', '=', 'campus_units.id')
+                         ->where('staff.unit_type', '=', CampusUnit::class);
+                })
+                ->orderByRaw("COALESCE(faculties.name_en, departments.name_en, campus_units.name_en) {$order}");
+            })
+            ->orderColumn('unit_type', 'staff.unit_type $1')
+            ->orderColumn('category', function ($query, $order) {
+                return $query->leftJoin('staff_categories', 'staff.staff_category_id', '=', 'staff_categories.id')
+                             ->orderBy('staff_categories.name_en', $order);
+            })
+            ->orderColumn('gender', function ($query, $order) {
+                return $query->leftJoin('users as users_gender', 'staff.user_id', '=', 'users_gender.id')
+                             ->orderBy('users_gender.gender', $order);
+            })
+            ->orderColumn('created_at', 'staff.created_at $1')
+            
             ->rawColumns(['action'])
             ->make(true);
     }
@@ -233,14 +332,25 @@ class StaffService
                   ->orWhereRaw('LOWER(name_ar) LIKE ?', ['%' . $search . '%']);
             });
         }
-        if (request()->filled('faculty_id')) {
-            $query->where('faculty_id', request('faculty_id'));
+        if (request()->filled('search_gender')) {
+            $query->whereHas('user', function ($q) {
+                $q->where('gender', request('search_gender'));
+            });
         }
-        if (request()->filled('department_id')) {
-            $query->where('department_id', request('department_id'));
+        if (request()->filled('search_faculty_id')) {
+            $query->where('unit_type', Faculty::class)
+                  ->where('unit_id', request('search_faculty_id'));
         }
-        if (request()->filled('category_id')) {
-            $query->where('staff_category_id', request('category_id'));
+        if (request()->filled('search_department_id')) {
+            $query->where('unit_type', Department::class)
+                  ->where('unit_id', request('search_department_id'));
+        }
+        if (request()->filled('search_campus_unit_id')) {
+            $query->where('unit_type', CampusUnit::class)
+                  ->where('unit_id', request('search_campus_unit_id'));
+        }
+        if (request()->filled('search_category_id')) {
+            $query->where('staff_category_id', request('search_category_id'));
         }
         return $query;
     }

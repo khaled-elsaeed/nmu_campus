@@ -29,7 +29,6 @@ class Student extends Model
         'city_id',
         'address',
         'is_profile_complete',
-        'active',
     ];
 
     /**
@@ -48,7 +47,6 @@ class Student extends Model
     {
         return [
             'is_profile_complete' => 'boolean',
-            'active' => 'boolean',
             'date_of_birth' => 'date',
         ];
     }

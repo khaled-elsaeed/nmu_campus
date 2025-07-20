@@ -304,7 +304,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   fetchStats: function() {
-    return this.request({ url: ROUTES.apartments.stats, method: 'GET' });
+    return ApiService.request({ url: ROUTES.apartments.stats, method: 'GET' });
   },
   /**
    * Fetch a single apartment by ID
@@ -312,7 +312,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   fetchApartment: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.apartments.show, id), method: 'GET' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.apartments.show, id), method: 'GET' });
   },
   /**
    * Save (update) an apartment
@@ -321,7 +321,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   saveApartment: function(data, id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.apartments.update, id), method: 'PUT', data: data });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.apartments.update, id), method: 'PUT', data: data });
   },
   /**
    * Delete an apartment by ID
@@ -329,7 +329,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   deleteApartment: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.apartments.destroy, id), method: 'DELETE' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.apartments.destroy, id), method: 'DELETE' });
   },
   /**
    * Activate an apartment by ID
@@ -337,7 +337,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   activateApartment: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.apartments.activate, id), method: 'PATCH' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.apartments.activate, id), method: 'PATCH' });
   },
   /**
    * Deactivate an apartment by ID
@@ -345,21 +345,21 @@ var ApiService = {
    * @returns {jqXHR}
    */
   deactivateApartment: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.apartments.deactivate, id), method: 'PATCH' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.apartments.deactivate, id), method: 'PATCH' });
   },
   /**
    * Fetch all buildings
    * @returns {jqXHR}
    */
   fetchBuildings: function() {
-    return this.request({ url: ROUTES.buildings.all, method: 'GET' });
+    return ApiService.request({ url: ROUTES.buildings.all, method: 'GET' });
   },
   /**
    * Fetch all apartments
    * @returns {jqXHR}
    */
   fetchApartments: function() {
-    return this.request({ url: ROUTES.apartments.all, method: 'GET' });
+    return ApiService.request({ url: ROUTES.apartments.all, method: 'GET' });
   }
 };
 

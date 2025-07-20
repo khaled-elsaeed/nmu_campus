@@ -15,10 +15,9 @@ class Payment extends Model
     protected $fillable = [
         'reservation_id',
         'amount',
-        'payment_date',
-        'payment_method',
         'status',
         'notes',
+        'details',
     ];
 
     /**
@@ -29,7 +28,7 @@ class Payment extends Model
     protected function casts(): array
     {
         return [
-            'payment_date' => 'date',
+            'details' => 'array',
         ];
     }
 

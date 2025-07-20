@@ -19,15 +19,15 @@ Route::prefix('roles')
         // ===== CRUD Operations =====
         // List & View
         Route::get('/', 'index')->name('index');
-        Route::get('{role}', 'show')->name('show');
+        Route::get('{id}', 'show')->name('show');
         
         // Create
         Route::post('/', 'store')->name('store');
         
         // Update
-        Route::put('{role}', 'update')->name('update');
-        Route::patch('{role}', 'update');
+        Route::put('{id}', 'update')->name('update');
+        Route::patch('{id}', 'update');
         
         // Delete
-        Route::delete('{role}', 'destroy')->name('destroy');
+        Route::delete('{id}', 'destroy')->name('destroy');
     }); 

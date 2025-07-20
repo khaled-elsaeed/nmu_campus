@@ -13,8 +13,8 @@ class ActivateReservation implements ShouldQueue
     use Queueable;
 
     public $queue = 'reservation_activation';
-    public $tries = 3; // Add retry attempts
-    public $backoff = [10, 30, 60]; // Backoff delays in seconds
+    public $tries = 3; 
+    public $backoff = [10, 30, 60];
 
     public function __construct(
         public int $reservationId
@@ -31,7 +31,7 @@ class ActivateReservation implements ShouldQueue
                 ->update([
                     'status' => 'active',
                     'active' => true,
-                    'activated_at' => now(), // Consider adding timestamp
+                    'activated_at' => now(),
                 ]);
 
             if ($updated === 0) {

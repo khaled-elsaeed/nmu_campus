@@ -29,7 +29,6 @@ return new class extends Migration
             $table->foreignId('city_id')->constrained()->cascadeOnDelete();
             $table->text('address');
             $table->boolean('is_profile_complete')->default(false);
-            $table->boolean('active')->default(true);
             $table->timestamps();
         });
     }

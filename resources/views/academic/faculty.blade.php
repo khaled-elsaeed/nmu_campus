@@ -94,8 +94,12 @@
               <input type="hidden" id="faculty_id" name="faculty_id">
               <div class="row">
                   <div class="col-md-12 mb-3">
-                      <label for="name" class="form-label">Faculty Name</label>
-                      <input type="text" class="form-control" id="name" name="name" required>
+                      <label for="name_en" class="form-label">Faculty Name (EN)</label>
+                      <input type="text" class="form-control" id="name_en" name="name_en" required>
+                  </div>
+                  <div class="col-md-12 mb-3">
+                      <label for="name_ar" class="form-label">Faculty Name (AR)</label>
+                      <input type="text" class="form-control" id="name_ar" name="name_ar" required>
                   </div>
               </div>
           </form>
@@ -344,6 +348,8 @@ var FacultyManager = {
     $('#addFacultyBtn').on('click', function() {
       $('#facultyForm')[0].reset();
       $('#faculty_id').val('');
+      $('#name_en').val('');
+      $('#name_ar').val('');
       $('#facultyModal .modal-title').text('Add Faculty');
       $('#saveFacultyBtn').text('Save');
       $('#facultyModal').modal('show');
@@ -399,7 +405,8 @@ var FacultyManager = {
         .done(function(response) {
           var fac = response.data;
           $('#faculty_id').val(fac.id);
-          $('#name').val(fac.name);
+          $('#name_en').val(fac.name_en);
+          $('#name_ar').val(fac.name_ar);
           $('#facultyModal .modal-title').text('Edit Faculty');
           $('#saveFacultyBtn').text('Update');
           $('#facultyModal').modal('show');

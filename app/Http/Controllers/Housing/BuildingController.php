@@ -120,18 +120,18 @@ class BuildingController extends Controller
     /**
      * Remove the specified building.
      *
-     * @param Building $building
+     * @param int $id
      * @return JsonResponse
      */
-    public function destroy(Building $building): JsonResponse
+    public function destroy($id): JsonResponse
     {
         try {
-            $this->buildingService->deleteBuilding($building);
+            $this->buildingService->deleteBuilding($id);
             return successResponse('Building deleted successfully.');
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
-            logError('BuildingController@destroy', $e, ['building_id' => $building->id]);
+            logError('BuildingController@destroy', $e, ['building_id' => $id]);
             return errorResponse('Internal server error.', [], 500);
         }
     }

@@ -120,19 +120,22 @@ class StaffController extends Controller
     /**
      * Remove the specified staff member.
      *
-     * @param Staff $staff
+     * @param int $id
      * @return JsonResponse
      */
-    public function destroy(Staff $staff): JsonResponse
+    public function destroy(int $id): JsonResponse
     {
         try {
-            $this->staffService->deleteStaff($staff);
-            return successResponse('Staff deleted successfully.');
+            $deleted = $this->staffService->deleteStaff($id);
+            if (!$deleted) {
+                return response()->json(['deleted' => false, 'error' => 'Failed to delete staff.'], 400);
+            }
+            return response()->json(['deleted' => true]);
         } catch (BusinessValidationException $e) {
-            return errorResponse($e->getMessage(), [], $e->getCode());
+            return response()->json(['deleted' => false, 'error' => $e->getMessage()], $e->getCode());
         } catch (Exception $e) {
-            logError('StaffController@destroy', $e, ['staff_id' => $staff->id]);
-            return errorResponse('Internal server error.', [], 500);
+            logError('StaffController@destroy', $e, ['staff_id' => $id]);
+            return response()->json(['deleted' => false, 'error' => 'Internal server error.'], 500);
         }
     }
 

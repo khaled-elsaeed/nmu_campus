@@ -15,8 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('reservation_number')->unique();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('accommodation_id')->constrained()->restrictOnDelete();
-            $table->foreignId('academic_term_id')->constrained()->restrictOnDelete();
+            $table->foreignId('academic_term_id')->nullable()->constrained()->restrictOnDelete();
             $table->date('check_in_date')->nullable();
             $table->date('check_out_date')->nullable();
             $table->enum('status', ['pending', 'confirmed', 'checked_in', 'checked_out', 'cancelled'])->default('pending');

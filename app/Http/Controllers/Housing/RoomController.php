@@ -85,31 +85,34 @@ class RoomController extends Controller
     /**
      * Remove the specified room.
      *
-     * @param Room $room
+     * @param int $id
      * @return JsonResponse
      */
-    public function destroy(Room $room): JsonResponse
+    public function destroy($id): JsonResponse
     {
         try {
-            $this->roomService->deleteRoom($room);
+            $this->roomService->deleteRoom($id);
             return successResponse('Room deleted successfully.');
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
-            logError('RoomController@destroy', $e, ['room_id' => $room->id]);
+            logError('RoomController@destroy', $e, ['room_id' => $id]);
             return errorResponse('Internal server error.', [], 500);
         }
     }
 
     /**
      * Get all rooms (for dropdown and forms).
+     * Optionally filter by apartment_id.
      *
+     * @param Request $request
      * @return JsonResponse
      */
-    public function all(): JsonResponse
+    public function all(Request $request): JsonResponse
     {
         try {
-            $rooms = $this->roomService->getAll();
+            $apartmentId = $request->query('apartment_id');
+            $rooms = $this->roomService->getAll($apartmentId);
             return successResponse('Rooms fetched successfully.', $rooms);
         } catch (Exception $e) {
             logError('RoomController@all', $e);

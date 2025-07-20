@@ -84,18 +84,18 @@ class ApartmentController extends Controller
     /**
      * Remove the specified apartment.
      *
-     * @param Apartment $apartment
+     * @param int $id
      * @return JsonResponse
      */
-    public function destroy(Apartment $apartment): JsonResponse
+    public function destroy($id): JsonResponse
     {
         try {
-            $this->apartmentService->deleteApartment($apartment);
+            $this->apartmentService->deleteApartment($id);
             return successResponse('Apartment deleted successfully.');
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
-            logError('ApartmentController@destroy', $e, ['apartment_id' => $apartment->id]);
+            logError('ApartmentController@destroy', $e, ['apartment_id' => $id]);
             return errorResponse('Internal server error.', [], 500);
         }
     }

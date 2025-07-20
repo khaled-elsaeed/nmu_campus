@@ -38,17 +38,14 @@
     collapseId="staffSearchCollapse"
     :collapsed="false"
 >
-    <div class="col-md-4">
-        <label for="search_staff_id" class="form-label">Staff ID:</label>
-        <input type="text" class="form-control" id="search_staff_id">
-    </div>
+
     <div class="col-md-4">
         <label for="search_name" class="form-label">Name:</label>
-        <input type="text" class="form-control" id="search_name">
+        <input type="text" class="form-control" id="search_name" name="search_name">
     </div>
     <div class="col-md-4">
         <label for="search_gender" class="form-label">Gender:</label>
-        <select class="form-control" id="search_gender">
+        <select class="form-control" id="search_gender" name="gender">
             <option value="">All</option>
             <option value="male">Male</option>
             <option value="female">Female</option>
@@ -56,23 +53,21 @@
         </select>
     </div>
     <div class="col-md-4">
-        <label for="search_active" class="form-label">Active Status:</label>
-        <select class="form-control" id="search_active">
-            <option value="">All</option>
-            <option value="1">Active</option>
-            <option value="0">Inactive</option>
-        </select>
-    </div>
-    <div class="col-md-4">
         <label for="search_department_id" class="form-label">Department:</label>
-        <select class="form-control" id="search_department_id">
+        <select class="form-control" id="search_department_id" name="department_id">
             <option value="">All Departments</option>
         </select>
     </div>
     <div class="col-md-4">
         <label for="search_category_id" class="form-label">Category:</label>
-        <select class="form-control" id="search_category_id">
+        <select class="form-control" id="search_category_id" name="category_id">
             <option value="">All Categories</option>
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label for="search_faculty_id" class="form-label">Faculty:</label>
+        <select class="form-control" id="search_faculty_id" name="search_faculty_id">
+            <option value="">All Faculties</option>
         </select>
     </div>
     <div class="w-100"></div>
@@ -83,19 +78,19 @@
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable 
-        :headers="['Name', 'Gender', 'Category', 'Faculty', 'Department', 'Notes', 'Actions']"
+        :headers="['Name', 'Gender', 'Category', 'Unit Type', 'Unit Name', 'Notes', 'Actions']"
         :columns="[
             ['data' => 'name', 'name' => 'name'],
             ['data' => 'gender', 'name' => 'gender'],
             ['data' => 'category', 'name' => 'category'],
-            ['data' => 'faculty', 'name' => 'faculty'],
-            ['data' => 'department', 'name' => 'department'],
+            ['data' => 'unit_type', 'name' => 'unit_type'],
+            ['data' => 'unit_name', 'name' => 'unit_name'],
             ['data' => 'notes', 'name' => 'notes'],
             ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false]
         ]"
         :ajax-url="route('resident.staff.datatable')"
         :table-id="'staff-table'"
-        :filter-fields="['search_name','search_gender','search_category_id','search_faculty_id','search_department_id']"
+        :filter-fields="['search_name','search_gender','search_category_id','search_department_id','search_faculty_id']"
     />
 
     {{-- ===== MODALS SECTION ===== --}}
@@ -122,6 +117,10 @@
                         <input type="email" id="staff_email" name="email" class="form-control" required>
                     </div>
                     <div class="col-md-6 mb-3">
+                        <label for="staff_national_id" class="form-label">National ID <span class="text-danger">*</span></label>
+                        <input type="text" id="staff_national_id" name="national_id" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
                         <label for="staff_gender" class="form-label">Gender</label>
                         <select id="staff_gender" name="gender" class="form-control" required>
                             <option value="">Select Gender</option>
@@ -131,20 +130,12 @@
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="staff_password" class="form-label">Password</label>
-                        <input type="password" id="staff_password" name="password" class="form-control" autocomplete="new-password">
-                    </div>
-                    <div class="col-md-6 mb-3">
                         <label for="staff_category_id" class="form-label">Category</label>
                         <select id="staff_category_id" name="staff_category_id" class="form-control" required></select>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="staff_faculty_id" class="form-label">Faculty</label>
-                        <select id="staff_faculty_id" name="faculty_id" class="form-control" required></select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="staff_department_id" class="form-label">Department</label>
-                        <select id="staff_department_id" name="department_id" class="form-control" required></select>
+                    <div class="col-md-6 mb-3" id="unit_field_container">
+                        <label for="staff_unit_id" class="form-label">Unit</label>
+                        <select id="staff_unit_id" name="unit_id" class="form-control"></select>
                     </div>
                     <div class="col-md-12 mb-3">
                         <label for="staff_notes" class="form-label">Notes</label>
@@ -177,24 +168,32 @@
                     <p id="view-staff-name" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Phone:</label>
-                    <p id="view-staff-phone" class="mb-0"></p>
+                    <label class="form-label fw-bold">Email:</label>
+                    <p id="view-staff-email" class="mb-0"></p>
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label fw-bold">National ID:</label>
+                    <p id="view-staff-national-id" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label fw-bold">Gender:</label>
                     <p id="view-staff-gender" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Department:</label>
-                    <p id="view-staff-department" class="mb-0"></p>
-                </div>
-                <div class="col-12 mb-3">
                     <label class="form-label fw-bold">Category:</label>
                     <p id="view-staff-category" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Active:</label>
-                    <p id="view-staff-is-active" class="mb-0"></p>
+                    <label class="form-label fw-bold">Unit Type:</label>
+                    <p id="view-staff-unit-type" class="mb-0"></p>
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label fw-bold">Unit Name:</label>
+                    <p id="view-staff-unit-name" class="mb-0"></p>
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label fw-bold">Notes:</label>
+                    <p id="view-staff-notes" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label fw-bold">Created At:</label>
@@ -347,6 +346,13 @@ var ApiService = {
    */
   fetchFaculties: function() {
     return this.request({ url: ROUTES.faculties.all, method: 'GET' });
+  },
+  /**
+   * Fetch all campus units
+   * @returns {jqXHR}
+   */
+  fetchCampusUnits: function() {
+    return this.request({ url: '{{ route('campus-units.all') }}', method: 'GET' });
   }
 };
 
@@ -383,7 +389,7 @@ var SelectManager = {
       .done(function(response) {
         if (response.success) {
           response.data.forEach(function(cat) {
-            $select.append('<option value="' + cat.id + '">' + cat.name + '</option>');
+            $select.append('<option value="' + cat.id + '" data-type="' + cat.type + '">' + cat.name + '</option>');
           });
         }
       })
@@ -410,6 +416,54 @@ var SelectManager = {
         $('#staffModal').modal('hide');
         $select.empty().append('<option value="">Error loading faculties</option>');
       });
+  },
+  /**
+   * Populate unit field based on category type
+   */
+  populateUnitField: function(categoryType) {
+    var $select = $('#staff_unit_id');
+    $select.empty().append('<option value="">Select Unit</option>');
+    
+    if (categoryType === 'faculty') {
+      // Populate with faculties
+      ApiService.fetchFaculties()
+        .done(function(response) {
+          if (response.success) {
+            response.data.forEach(function(faculty) {
+              $select.append('<option value="' + faculty.id + '">' + faculty.name + '</option>');
+            });
+          }
+        })
+        .fail(function() {
+          $select.empty().append('<option value="">Error loading faculties</option>');
+        });
+    } else if (categoryType === 'administrative') {
+      // Populate with departments
+      ApiService.fetchDepartments()
+        .done(function(response) {
+          if (response.success) {
+            response.data.forEach(function(department) {
+              $select.append('<option value="' + department.id + '">' + department.name + '</option>');
+            });
+          }
+        })
+        .fail(function() {
+          $select.empty().append('<option value="">Error loading departments</option>');
+        });
+    } else if (categoryType === 'campus') {
+      // Populate with campus units
+      ApiService.fetchCampusUnits()
+        .done(function(response) {
+          if (response.success) {
+            response.data.forEach(function(campusUnit) {
+              $select.append('<option value="' + campusUnit.id + '">' + campusUnit.name + '</option>');
+            });
+          }
+        })
+        .fail(function() {
+          $select.empty().append('<option value="">Error loading campus units</option>');
+        });
+    }
   },
   /**
    * Populate departments in search
@@ -448,6 +502,24 @@ var SelectManager = {
       });
   },
   /**
+   * Populate faculties in search
+   */
+  populateSearchFaculties: function() {
+    var $select = $('#search_faculty_id');
+    $select.empty().append('<option value="">All Faculties</option>');
+    ApiService.fetchFaculties()
+      .done(function(response) {
+        if (response.success) {
+          response.data.forEach(function(faculty) {
+            $select.append('<option value="' + faculty.id + '">' + faculty.name + '</option>');
+          });
+        }
+      })
+      .fail(function() {
+        $select.empty().append('<option value="">Error loading faculties</option>');
+      });
+  },
+  /**
    * Initialize select manager
    */
   init: function() {
@@ -456,6 +528,7 @@ var SelectManager = {
     this.populateModalFaculties();
     this.populateSearchDepartments();
     this.populateSearchCategories();
+    this.populateSearchFaculties();
   }
 };
 
@@ -476,6 +549,53 @@ var StaffManager = {
       $('#staffModal').modal('show');
     });
   },
+
+  handleCategoryChange:function(){
+    $(document).on('change', '#staff_category_id', function() {
+      var dataType = $(this).find('option:selected').data('type');
+      console.log('Category changed. Selected data-type:', dataType);
+      
+      var $unitFieldContainer = $('#unit_field_container');
+      var $unitLabel = $('label[for="staff_unit_id"]');
+      
+      if (dataType === 'administrative' || dataType === 'faculty' || dataType === 'campus') {
+        console.log('Showing unit field for type:', dataType);
+        $unitFieldContainer.show();
+        
+        // Update label based on category type
+        switch(dataType) {
+          case 'faculty':
+            $unitLabel.text('Faculty');
+            break;
+          case 'administrative':
+            $unitLabel.text('Department');
+            break;
+          case 'campus':
+            $unitLabel.text('Campus Unit');
+            break;
+          default:
+            $unitLabel.text('Unit');
+        }
+        
+        SelectManager.populateUnitField(dataType);
+      } else {
+        console.log('Hiding unit field for unknown type:', dataType);
+        $unitFieldContainer.hide();
+        $unitLabel.text('Unit'); // Reset to default
+      }
+    });
+    
+    // On modal open, hide unit field initially only for new staff
+    $('#staffModal').on('show.bs.modal', function() {
+      // Only hide unit field if no category is selected (new staff)
+      if (!$('#staff_category_id').val()) {
+        console.log('Modal opened for new staff. Hiding unit field initially.');
+        $('#unit_field_container').hide();
+      } else {
+        console.log('Modal opened for editing. Unit field will be shown based on category.');
+      }
+    });
+  },
   /**
    * Bind edit staff button
    */
@@ -489,15 +609,34 @@ var StaffManager = {
         .done(function(response) {
           if (response.success) {
             var staff = response.data;
-            $('#staff_name_en').val(staff.name_en);
-            $('#staff_name_ar').val(staff.name_ar);
-            $('#staff_email').val(staff.email);
-            $('#staff_gender').val(staff.gender);
-            $('#staff_password').val('');
-            $('#staff_category_id').val(staff.staff_category_id);
-            $('#staff_faculty_id').val(staff.faculty_id);
-            $('#staff_department_id').val(staff.department_id);
-            $('#staff_notes').val(staff.notes);
+            $('#staff_name_en').val(staff.user && staff.user.name_en ? staff.user.name_en : '');
+            $('#staff_name_ar').val(staff.user && staff.user.name_ar ? staff.user.name_ar : '');
+            $('#staff_email').val(staff.user && staff.user.email ? staff.user.email : '');
+            $('#staff_national_id').val(staff.national_id ?? ''); // Set National ID
+            $('#staff_gender').val(staff.user && staff.user.gender ? staff.user.gender : '');
+            $('#staff_category_id').val(staff.staff_category ? staff.staff_category.id : '');
+            
+            // Handle unit field based on staff's unit type
+            if (staff.unit) {
+              var categoryType = staff.staff_category ? staff.staff_category.type : '';
+              if (categoryType) {
+                // Show unit field container first
+                $('#unit_field_container').show();
+                
+                // Trigger category change event to populate unit field
+                $('#staff_category_id').trigger('change');
+                
+                // Wait for the unit field to be populated, then set the value
+                setTimeout(function() {
+                  $('#staff_unit_id').val(staff.unit.id);
+                }, 300);
+              }
+            } else {
+              // If no unit, still trigger category change to show/hide field appropriately
+              $('#staff_category_id').trigger('change');
+            }
+            
+            $('#staff_notes').val(staff.notes ?? '');
             $('#staffModal').modal('show');
           }
         })
@@ -517,14 +656,27 @@ var StaffManager = {
         .done(function(response) {
           if (response.success) {
             var staff = response.data;
-            $('#view-staff-staff-id').text(staff.staff_id);
-            $('#view-staff-name').text(staff.name_en);
-            $('#view-staff-phone').text(staff.phone);
-            $('#view-staff-gender').text(staff.gender);
-            $('#view-staff-department').text(staff.department && staff.department.name ? staff.department.name : 'N/A');
-            $('#view-staff-category').text(staff.category && staff.category.name ? staff.category.name : 'N/A');
-            $('#view-staff-is-active').text(staff.active ? 'Active' : 'Inactive');
-            $('#view-staff-created').text(new Date(staff.created_at).toLocaleString());
+            $('#view-staff-staff-id').text(staff.id ?? 'N/A');
+            $('#view-staff-name').text(staff.user && staff.user.name_en ? staff.user.name_en : 'N/A');
+            $('#view-staff-email').text(staff.user && staff.user.email ? staff.user.email : 'N/A');
+            $('#view-staff-national-id').text(staff.national_id ?? 'N/A'); // Display National ID
+            $('#view-staff-gender').text(staff.user && staff.user.gender ? staff.user.gender : 'N/A');
+            $('#view-staff-category').text(staff.staff_category && staff.staff_category.name ? staff.staff_category.name : 'N/A');
+            
+            // Display unit information
+            var unitType = 'Unassigned';
+            var unitName = 'N/A';
+            
+            if (staff.unit) {
+              // Use the staff model's name accessor for unit type
+              unitType = staff.name || 'Unassigned';
+              unitName = staff.unit.name_en || staff.unit.name || 'N/A';
+            }
+            
+            $('#view-staff-unit-type').text(unitType);
+            $('#view-staff-unit-name').text(unitName);
+            $('#view-staff-notes').text(staff.notes ?? 'N/A');
+            $('#view-staff-created').text(staff.created_at ? new Date(staff.created_at).toLocaleString() : 'N/A');
             $('#viewStaffModal').modal('show');
           }
         })
@@ -553,6 +705,7 @@ var StaffManager = {
           ApiService.deleteStaff(staffId)
             .done(function() {
               $('#staff-table').DataTable().ajax.reload(null, false);
+              StatsManager.load();
               Utils.showSuccess('Staff has been deleted.');
             })
             .fail(function(xhr) {
@@ -575,6 +728,7 @@ var StaffManager = {
         .done(function() {
           $('#staffModal').modal('hide');
           $('#staff-table').DataTable().ajax.reload(null, false);
+          StatsManager.load();
           Utils.showSuccess('Staff has been saved successfully.');
         })
         .fail(function(xhr) {
@@ -589,6 +743,7 @@ var StaffManager = {
    */
   init: function() {
     this.handleAdd();
+    this.handleCategoryChange();
     this.handleEdit();
     this.handleView();
     this.handleDelete();
@@ -610,11 +765,11 @@ var SearchManager = {
    * Bind search and clear events
    */
   bindEvents: function() {
-    $('#search_staff_id, #search_name, #search_gender, #search_active, #search_department_id, #search_category_id').on('keyup change', function() {
+    $('#search_name, #search_gender, #search_department_id, #search_category_id, #search_faculty_id').on('keyup change', function() {
       $('#staff-table').DataTable().ajax.reload();
     });
     $('#clearStaffFiltersBtn').on('click', function() {
-      $('#search_staff_id, #search_name, #search_gender, #search_active, #search_department_id, #search_category_id').val('');
+      $('#search_name, #search_gender, #search_department_id, #search_category_id, #search_faculty_id').val('');
       $('#staff-table').DataTable().ajax.reload();
     });
   }
@@ -647,9 +802,9 @@ var StatsManager = {
   handleSuccess: function(response) {
     if (response.success) {
       let stats = response.data;
-      this.updateStatElement('staff', stats.total.count, stats.total.lastUpdateTime);
-      this.updateStatElement('staff-male', stats.male.count, stats.male.lastUpdateTime);
-      this.updateStatElement('staff-female', stats.female.count, stats.female.lastUpdateTime);
+      this.updateStatElement('staff', stats.total.total, stats.total.lastUpdateTime);
+      this.updateStatElement('staff-male', stats.male.total, stats.male.lastUpdateTime);
+      this.updateStatElement('staff-female', stats.female.total, stats.female.lastUpdateTime);
     } else {
       this.setAllStatsToNA();
     }

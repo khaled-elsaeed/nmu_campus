@@ -19,15 +19,15 @@ Route::prefix('faculties')
         // ===== CRUD Operations =====
         // List & View
         Route::get('/', 'index')->name('index');
-        Route::get('{faculty}', 'show')->name('show');
+        Route::get('{id}', 'show')->name('show');
         
         // Create
         Route::post('/', 'store')->name('store');
         
         // Update
-        Route::put('{faculty}', 'update')->name('update');
-        Route::patch('{faculty}', 'update');
+        Route::put('{id}', 'update')->name('update');
+        Route::patch('{id}', 'update');
         
         // Delete
-        Route::delete('{faculty}', 'destroy')->name('destroy');
+        Route::delete('{id}', 'destroy')->name('destroy');
     }); 

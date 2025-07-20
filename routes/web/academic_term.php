@@ -4,37 +4,34 @@ use App\Http\Controllers\Academic\AcademicTermController;
 use Illuminate\Support\Facades\Route;
 
 // ====================
-// Term Routes
+// Academic Term Routes
 // ====================
 
 Route::prefix('academic-terms')
     ->name('academic_terms.')
     ->controller(AcademicTermController::class)
     ->group(function () {
-        // ===== Specific Routes First =====
+        // ===== Data & Stats =====
         Route::get('datatable', 'datatable')->name('datatable');
         Route::get('stats', 'stats')->name('stats');
-        // No middleware: not sensitive, for dropdown
-        Route::get('all', 'all')->name('all');
+        Route::get('all', 'all')->name('all'); 
         Route::get('all-with-inactive', 'allWithInactive')->name('all.with_inactive');
 
         // ===== CRUD Operations =====
-        // List & View
+        // index
         Route::get('/', 'index')->name('index');
-        Route::get('{term}', 'show')->name('show');
-        
+        // View
+        Route::get('{id}', 'show')->name('show');
         // Create
         Route::post('/', 'store')->name('store');
-        
         // Update
-        Route::put('{term}', 'update')->name('update');
-        Route::patch('{term}', 'update');
-        
+        Route::put('{id}', 'update')->name('update');
         // Delete
-        Route::delete('{term}', 'destroy')->name('destroy');
+        Route::delete('{id}', 'destroy')->name('destroy');
 
-        Route::post('{term}/start', 'startTerm')->name('start');
-        Route::post('{term}/end', 'endTerm')->name('end');
-        Route::patch('{term}/activate', 'activate')->name('activate');
-        Route::patch('{term}/deactivate', 'deactivate')->name('deactivate');
+        // ===== State Transitions =====
+        Route::post('{id}/start', 'startTerm')->name('start');
+        Route::post('{id}/end', 'endTerm')->name('end');
+        Route::patch('{id}/activate', 'activate')->name('activate');
+        Route::patch('{id}/deactivate', 'deactivate')->name('deactivate');
     });

@@ -33,8 +33,11 @@ Route::prefix('academic')->name('academic.')->group(function(){
 
     require __DIR__.'/web/staff-category.php';
     require __DIR__.'/web/department.php';
+    require __DIR__.'/web/campus-units.php';
     require __DIR__.'/web/reservation.php';
+    require __DIR__.'/web/equipment.php';
     require __DIR__.'/web/academic_term.php';
+    require __DIR__.'/web/user.php';
 
 
 

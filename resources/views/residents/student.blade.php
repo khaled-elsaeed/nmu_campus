@@ -40,28 +40,20 @@
     :collapsed="false"
 >
     <div class="col-md-4">
-        <label for="search_academic_id" class="form-label">Academic ID:</label>
-        <input type="text" class="form-control" id="search_academic_id">
+        <label for="search_id" class="form-label">Academic ID or National ID:</label>
+        <input type="text" class="form-control" id="search_id" placeholder="Enter Academic ID or National ID">
     </div>
     <div class="col-md-4">
-        <label for="search_name_en" class="form-label">Name (EN):</label>
-        <input type="text" class="form-control" id="search_name_en">
+        <label for="search_name" class="form-label">Name:</label>
+        <input type="text" class="form-control" id="search_name">
     </div>
     <div class="col-md-4">
         <label for="search_gender" class="form-label">Gender:</label>
         <select class="form-control" id="search_gender">
-            <option value="">All</option>
+            <option value="">All Genders</option>
             <option value="male">Male</option>
             <option value="female">Female</option>
             <option value="other">Other</option>
-        </select>
-    </div>
-    <div class="col-md-4">
-        <label for="search_active" class="form-label">Active Status:</label>
-        <select class="form-control" id="search_active">
-            <option value="">All</option>
-            <option value="1">Active</option>
-            <option value="0">Inactive</option>
         </select>
     </div>
     <div class="col-md-4">
@@ -71,8 +63,8 @@
         </select>
     </div>
     <div class="col-md-4">
-        <label for="search_faculty_id" class="form-label">Faculty:</label>
-        <select class="form-control" id="search_faculty_id">
+        <label for="faculty_id" class="form-label">Faculty:</label>
+        <select class="form-control" id="faculty_id">
             <option value="">All Faculties</option>
         </select>
     </div>
@@ -96,7 +88,7 @@
         ]"
         :ajax-url="route('resident.students.datatable')"
         :table-id="'students-table'"
-        :filter-fields="['search_academic_id','search_name_en','search_gender','search_active']"
+        :filter-fields="['search_id','search_name','search_gender','faculty_id']"
     />
 
     {{-- ===== MODALS SECTION ===== --}}
@@ -185,13 +177,6 @@
                             <option value="0">No</option>
                         </select>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="student_active" class="form-label">Active</label>
-                        <select id="student_active" name="active" class="form-control" required>
-                            <option value="1">Active</option>
-                            <option value="0">Inactive</option>
-                        </select>
-                    </div>
                 </div>
             </form>
         </x-slot>
@@ -245,10 +230,6 @@
                 <div class="col-12 mb-3">
                     <label class="form-label fw-bold">Profile Complete:</label>
                     <p id="view-student-profile-complete" class="mb-0"></p>
-                </div>
-                <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Active:</label>
-                    <p id="view-student-is-active" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label fw-bold">Created At:</label>
@@ -412,7 +393,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   fetchPrograms: function(facultyId) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.programs.all, facultyId), method: 'GET' });
+    return this.request({ url: Utils.replaceRouteId(ROUTES.programs.all, facultyId), method: 'GET', data: { faculty_id: facultyId } });
   }
 };
 
@@ -530,7 +511,7 @@ var SelectManager = {
    * Populate faculties in search
    */
   populateSearchFaculties: function() {
-    var $select = $('#search_faculty_id');
+    var $select = $('#faculty_id');
     $select.empty().append('<option value="">All Faculties</option>');
     ApiService.fetchFaculties()
       .done(function(response) {
@@ -613,7 +594,6 @@ var StudentManager = {
             $('#student_academic_year').val(student.academic_year);
             $('#student_address').val(student.address);
             $('#student_is_profile_complete').val(student.is_profile_complete ? '1' : '0');
-            $('#student_active').val(student.active ? '1' : '0');
             $('#student_governorate_id').val(student.governorate_id);
             if (student.governorate_id) {
               SelectManager.populateModalCities(student.governorate_id, student.city_id);
@@ -621,6 +601,7 @@ var StudentManager = {
             $('#student_faculty_id').val(student.faculty_id);
             if (student.faculty_id) {
               SelectManager.populateModalPrograms(student.faculty_id, student.program_id);
+              
             }
             $('#studentModal').modal('show');
           }
@@ -650,7 +631,6 @@ var StudentManager = {
             $('#view-student-faculty').text(student.faculty && student.faculty.name ? student.faculty.name : 'N/A');
             $('#view-student-program').text(student.program && student.program.name ? student.program.name : 'N/A');
             $('#view-student-profile-complete').text(student.is_profile_complete ? 'Yes' : 'No');
-            $('#view-student-is-active').text(student.active ? 'Active' : 'Inactive');
             $('#view-student-created').text(new Date(student.created_at).toLocaleString());
             $('#viewStudentModal').modal('show');
           }
@@ -737,11 +717,11 @@ var SearchManager = {
    * Bind search and clear events
    */
   bindEvents: function() {
-    $('#search_academic_id, #search_name_en, #search_gender, #search_active, #search_governorate_id, #search_faculty_id').on('keyup change', function() {
+    $('#search_id, #search_name, #search_gender, #search_governorate_id, #faculty_id').on('keyup change', function() {
       $('#students-table').DataTable().ajax.reload();
     });
     $('#clearStudentFiltersBtn').on('click', function() {
-      $('#search_academic_id, #search_name_en, #search_gender, #search_active, #search_governorate_id, #search_faculty_id').val('');
+      $('#search_id, #search_name, #search_gender, #search_governorate_id, #faculty_id').val('');
       $('#students-table').DataTable().ajax.reload();
     });
   }
@@ -774,9 +754,9 @@ var StatsManager = {
   handleSuccess: function(response) {
     if (response.success) {
       let stats = response.data;
-      this.updateStatElement('students', stats.total.count, stats.total.lastUpdateTime);
-      this.updateStatElement('students-male', stats.male.count, stats.male.lastUpdateTime);
-      this.updateStatElement('students-female', stats.female.count, stats.female.lastUpdateTime);
+      this.updateStatElement('students', stats.total.total, stats.total.lastUpdateTime);
+      this.updateStatElement('students-male', stats.male.total, stats.male.lastUpdateTime);
+      this.updateStatElement('students-female', stats.female.total, stats.female.lastUpdateTime);
     } else {
       this.setAllStatsToNA();
     }

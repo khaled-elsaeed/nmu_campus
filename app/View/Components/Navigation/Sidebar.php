@@ -124,6 +124,20 @@ class Sidebar extends Component
                 'icon' => 'bx bx-calendar',
                 'route' => route('reservations.index'),
                 'active' => str_starts_with(request()->route()->getName(), 'reservations.'),
+                'children' => [
+                    [
+                        'title' => 'View Reservations',
+                        'icon' => 'bx bx-list-ul',
+                        'route' => route('reservations.index'),
+                        'active' => request()->routeIs('reservations.index'),
+                    ],
+                    [
+                        'title' => 'Add Reservation',
+                        'icon' => 'bx bx-plus',
+                        'route' => route('reservations.create'),
+                        'active' => request()->routeIs('reservations.create'),
+                    ],
+                ],
             ],
         ];
     }

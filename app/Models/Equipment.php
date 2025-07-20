@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Equipment extends Model
 {
@@ -15,18 +15,29 @@ class Equipment extends Model
     protected $fillable = [
         'name_en',
         'name_ar',
-        'type',
-        'description',
-        'active',
+        'category_en',
+        'category_ar',
+        'description_en',
+        'description_ar',
     ];
 
     /**
-     * The accommodations that have this equipment.
+     * Get the reservation equipment assignments for this equipment.
      *
-     * @return BelongsToMany
+     * @return HasMany
      */
-    public function accommodations(): BelongsToMany
+    public function reservationEquipment(): HasMany
     {
-        return $this->belongsToMany(Accommodation::class, 'accommodation_equipment');
+        return $this->hasMany(ReservationEquipment::class);
+    }
+
+    /**
+     * Get the reservations that include this equipment.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function reservations(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    {
+        return $this->hasManyThrough(Reservation::class, ReservationEquipment::class);
     }
 }

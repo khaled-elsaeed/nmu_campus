@@ -27,6 +27,10 @@ class AcademicTermService
     {
         $code = $this->generateCode($data['season'], $data['year']);
         
+        if (AcademicTerm::where('code', $code)->exists()) {
+            throw new BusinessValidationException('This semester with these details already exists.');
+        }
+        
         return AcademicTerm::create([
             'season' => $data['season'],
             'year' => $data['year'],
@@ -40,15 +44,22 @@ class AcademicTermService
     }
 
     /**
+     /**
      * Update an existing term.
      *
-     * @param AcademicTerm $term
+     * @param int $id
      * @param array $data
      * @return AcademicTerm
      */
-    public function updateTerm(AcademicTerm $term, array $data): AcademicTerm
+    public function updateTerm(int $id, array $data): AcademicTerm
     {
+        $term = AcademicTerm::findOrFail($id);
+
         $code = $this->generateCode($data['season'], $data['year']);
+        
+        if (AcademicTerm::where('code', $code)->where('id', '!=', $term->id)->exists()) {
+            throw new BusinessValidationException('This semester with these details already exists.');
+        }
         
         $updateData = [
             'season' => $data['season'],
@@ -78,12 +89,13 @@ class AcademicTermService
     /**
      * Delete a term.
      *
-     * @param AcademicTerm $term
+     * @param int $id
      * @return void
      * @throws BusinessValidationException
      */
-    public function deleteTerm(AcademicTerm $term): void
+    public function deleteTerm($id): void
     {
+        $term = AcademicTerm::findOrFail($id);
         if ($term->reservations()->count() > 0) {
             throw new BusinessValidationException('Cannot delete term that has reservations assigned.');
         }
@@ -165,12 +177,7 @@ class AcademicTermService
         return $term->fresh();
     }
 
-    /**
-     * Check if a term is from a previous academic year.
-     *
-     * @param AcademicTerm $term
-     * @return bool
-     */
+ 
     /**
      * Determine if the given academic term belongs to a previous academic year.
      *
@@ -179,15 +186,9 @@ class AcademicTermService
      */
     private function isOldYear(AcademicTerm $term): bool
     {
-        // Parse the start and end years from the academic year string (e.g., "2023-2024" => 2023, 2024)
         [$startYear, $endYear] = array_map('intval', explode('-', $term->year));
-
-        $now = now();
-        $currentYear = $now->year;
-        $currentMonth = $now->month;
-
-        // Otherwise, it's old if both years are before the current academic year
-        return $endYear < $currentAcademicYearStart;
+        $currentYear = now()->year;
+        return $endYear < $currentYear;
     }
 
     /**

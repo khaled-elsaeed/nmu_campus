@@ -20,7 +20,6 @@ class StudentUpdateRequest extends FormRequest
             'name_en'            => 'required|string|max:255',
             'name_ar'            => 'nullable|string|max:255',
             'academic_email'     => 'required|email|max:255|unique:students,academic_email,' . $studentId . '|unique:users,email,' . $studentId,
-            'password'           => 'nullable|string|min:8|confirmed',
             'phone'              => 'required|string|max:20',
             'date_of_birth'      => 'required|date',
             'academic_year'      => 'required|string|max:50',
@@ -30,7 +29,6 @@ class StudentUpdateRequest extends FormRequest
             'city_id'            => 'required|integer|exists:cities,id',
             'address'            => 'required|string|max:255',
             'is_profile_complete'=> 'required|boolean',
-            'active'             => 'required|boolean',
         ];
     }
 } 

@@ -91,16 +91,16 @@ class UserController extends Controller
     /**
      * Show user details.
      *
-     * @param User $user
+     * @param int $id
      * @return JsonResponse
      */
-    public function show(User $user): JsonResponse
+    public function show($id): JsonResponse
     {
         try {
-            $user = $this->userService->getUser($user);
+            $user = $this->userService->getUser($id);
             return successResponse('User details fetched successfully.', $user);
         } catch (Exception $e) {
-            logError('UserController@show', $e, ['user_id' => $user->id]);
+            logError('UserController@show', $e, ['user_id' => $id]);
             return errorResponse('Internal server error.', [], 500);
         }
     }
@@ -109,15 +109,15 @@ class UserController extends Controller
      * Update user.
      *
      * @param Request $request
-     * @param User $user
+     * @param int $id
      * @return JsonResponse
      */
-    public function update(Request $request, User $user): JsonResponse
+    public function update(Request $request, $id): JsonResponse
     {
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($id)],
             'password' => 'nullable|string|min:8|confirmed',
             'roles' => 'array|exists:roles,name',
             'gender' => 'required|in:male,female',
@@ -125,10 +125,10 @@ class UserController extends Controller
 
         try {
             $validated = $request->all();
-            $user = $this->userService->updateUser($user, $validated);
+            $user = $this->userService->updateUser($id, $validated);
             return successResponse('User updated successfully.', $user);
         } catch (Exception $e) {
-            logError('UserController@update', $e, ['user_id' => $user->id, 'request' => $request->all()]);
+            logError('UserController@update', $e, ['user_id' => $id, 'request' => $request->all()]);
             return errorResponse('Internal server error.', [], 500);
         }
     }
@@ -136,18 +136,18 @@ class UserController extends Controller
     /**
      * Delete user.
      *
-     * @param User $user
+     * @param int $id
      * @return JsonResponse
      */
-    public function destroy(User $user): JsonResponse
+    public function destroy($id): JsonResponse
     {
         try {
-            $this->userService->deleteUser($user);
+            $this->userService->deleteUser($id);
             return successResponse('User deleted successfully.');
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
-            logError('UserController@destroy', $e, ['user_id' => $user->id]);
+            logError('UserController@destroy', $e, ['user_id' => $id]);
             return errorResponse('Internal server error.', [], 500);
         }
     }
@@ -164,6 +164,45 @@ class UserController extends Controller
             return successResponse('Roles fetched successfully.', $roles);
         } catch (Exception $e) {
             logError('UserController@getRoles', $e);
+            return errorResponse('Internal server error.', [], 500);
+        }
+    }
+
+    /**
+     * Get all users (for dropdown and forms).
+     *
+     * @return JsonResponse
+     */
+    public function all(): JsonResponse
+    {
+        try {
+            $users = $this->userService->getAll();
+            return successResponse('Users fetched successfully.', $users);
+        } catch (Exception $e) {
+            logError('UserController@all', $e);
+            return errorResponse('Internal server error.', [], 500);
+        }
+    }
+
+    /**
+     * Find user by national ID (for reservation create step).
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function findByNationalId(Request $request): JsonResponse
+    {
+        $request->validate([
+            'national_id' => 'required|string',
+        ]);
+        try {
+            $user = $this->userService->findByNationalId($request->input('national_id'));
+            if (!$user) {
+                return errorResponse('User not found.', [], 404);
+            }
+            return successResponse('User found.', $user);
+        } catch (Exception $e) {
+            logError('UserController@findByNationalId', $e, ['national_id' => $request->input('national_id')]);
             return errorResponse('Internal server error.', [], 500);
         }
     }

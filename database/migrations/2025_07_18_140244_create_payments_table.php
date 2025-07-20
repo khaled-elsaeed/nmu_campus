@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('reservation_id')->constrained()->cascadeOnDelete();
             $table->decimal('amount', 10, 2);
             $table->enum('status', ['pending', 'completed', 'refunded','cancelled'])->default('pending');
+            $table->text('notes')->nullable();
+            $table->json('details')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamp('refunded_at')->nullable();
             $table->timestamp('cancelled_at')->nullable();

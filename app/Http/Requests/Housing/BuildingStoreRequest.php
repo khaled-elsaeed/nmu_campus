@@ -18,7 +18,6 @@ class BuildingStoreRequest extends FormRequest
             'total_apartments' => 'required|integer|min:1',
             'rooms_per_apartment' => 'required|integer|min:1',
             'gender_restriction' => 'required|in:male,female,mixed',
-            'active' => 'required|boolean',
             'apartments' => 'nullable|array',
             'apartments.*.double_rooms' => 'array',
             'apartments.*.double_rooms.*' => 'integer',

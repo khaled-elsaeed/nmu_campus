@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Authenticatable
 {
@@ -76,5 +77,35 @@ class User extends Authenticatable
                 $attributes['name_ar'] ??
                 null
         );
+    }
+
+    /**
+     * Get the student profile associated with the user.
+     *
+     * @return HasOne
+     */
+    public function student(): HasOne
+    {
+        return $this->hasOne(Student::class);
+    }
+
+    /**
+     * Get the staff profile associated with the user.
+     *
+     * @return HasOne
+     */
+    public function staff(): HasOne
+    {
+        return $this->hasOne(Staff::class);
+    }
+
+    /**
+     * Get the reservations associated with the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function reservations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reservation::class);
     }
 }

@@ -121,13 +121,6 @@
                             <option value="mixed">Mixed</option>
                         </select>
                     </div>
-                    <div class="col-md-12 mb-3">
-                        <label for="building_active" class="form-label">Active</label>
-                        <select id="building_active" name="active" class="form-control" required>
-                            <option value="1">Active</option>
-                            <option value="0">Inactive</option>
-                        </select>
-                    </div>
                 </div>
             </form>
         </x-slot>
@@ -629,7 +622,6 @@ var BuildingManager = {
   populateEditForm: function(building) {
     $('#building_number').val(building.number).prop('disabled', false);
     $('#building_gender_restriction').val(building.gender_restriction).prop('disabled', false);
-    $('#building_active').val(building.active).prop('disabled', false);
     $('.edit-hide').hide().find('input, select, textarea').prop('required', false).prop('disabled', true);
     $('#has_double_rooms').prop('checked', building.has_double_rooms).prop('disabled', false);
     if (building.has_double_rooms) {

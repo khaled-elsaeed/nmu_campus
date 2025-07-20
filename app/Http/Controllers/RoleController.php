@@ -86,16 +86,16 @@ class RoleController extends Controller
     /**
      * Show role details.
      *
-     * @param Role $role
+     * @param int $id
      * @return JsonResponse
      */
-    public function show(Role $role): JsonResponse
+    public function show($id): JsonResponse
     {
         try {
-            $role = $this->roleService->getRole($role);
+            $role = $this->roleService->getRole($id);
             return successResponse('Role details fetched successfully.', $role);
         } catch (Exception $e) {
-            logError('RoleController@show', $e, ['role_id' => $role->id]);
+            logError('RoleController@show', $e, ['role_id' => $id]);
             return errorResponse('Internal server error.', [], 500);
         }
     }
@@ -104,22 +104,22 @@ class RoleController extends Controller
      * Update role.
      *
      * @param Request $request
-     * @param Role $role
+     * @param int $id
      * @return JsonResponse
      */
-    public function update(Request $request, Role $role): JsonResponse
+    public function update(Request $request, $id): JsonResponse
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:roles,name,' . $role->id,
+            'name' => 'required|string|max:255|unique:roles,name,' . $id,
             'permissions' => 'array|exists:permissions,name'
         ]);
 
         try {
             $validated = $request->all();
-            $role = $this->roleService->updateRole($role, $validated);
+            $role = $this->roleService->updateRole($id, $validated);
             return successResponse('Role updated successfully.', $role);
         } catch (Exception $e) {
-            logError('RoleController@update', $e, ['role_id' => $role->id, 'request' => $request->all()]);
+            logError('RoleController@update', $e, ['role_id' => $id, 'request' => $request->all()]);
             return errorResponse('Internal server error.', [], 500);
         }
     }
@@ -127,18 +127,18 @@ class RoleController extends Controller
     /**
      * Delete role.
      *
-     * @param Role $role
+     * @param int $id
      * @return JsonResponse
      */
-    public function destroy(Role $role): JsonResponse
+    public function destroy($id): JsonResponse
     {
         try {
-            $this->roleService->deleteRole($role);
+            $this->roleService->deleteRole($id);
             return successResponse('Role deleted successfully.');
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
-            logError('RoleController@destroy', $e, ['role_id' => $role->id]);
+            logError('RoleController@destroy', $e, ['role_id' => $id]);
             return errorResponse('Internal server error.', [], 500);
         }
     }

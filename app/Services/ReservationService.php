@@ -3,144 +3,266 @@
 namespace App\Services;
 
 use App\Models\Reservation;
+use App\Models\User;
+use App\Models\Student;
+use App\Models\Accommodation;
+use App\Models\AcademicTerm;
+use App\Models\Room;
+use App\Models\Apartment;
+use App\Exceptions\BusinessValidationException;
+use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Builder;
+use App\Services\Reservation\CreateReservationService;
 
-class ReservationService extends BaseService
+class ReservationService
 {
-    protected $model = Reservation::class;
+    public function __construct(protected CreateReservationService $createReservationService)
+    {}
 
-    public function show($id)
+    /**
+     * Create a new reservation.
+     *
+     * @param array $data
+     * @return Reservation|array
+     */
+    public function createReservation(array $data)
     {
-        $reservation = $this->find($id);
-        if (!$reservation) {
-            return null;
-        }
-        // Adjust fields as needed for reservations
-        return [
-            'id' => $reservation->id,
-            'student' => $reservation->student->name ?? null,
-            'room' => $reservation->room->number ?? null,
-            'start_date' => $reservation->start_date,
-            'end_date' => $reservation->end_date,
-            'status' => $reservation->status,
-            'active' => $reservation->active,
-            'created_at' => formatDate($reservation->created_at),
-            'updated_at' => formatDate($reservation->updated_at),
-        ];
+        return DB::transaction(function () use ($data) {
+            return $this->createReservationService->create($data);
+        });
     }
 
-    public function stats(): array
+    /**
+     * Update an existing reservation.
+     *
+     * @param Reservation $reservation
+     * @param array $data
+     * @return Reservation
+     */
+    public function updateReservation(Reservation $reservation, array $data): Reservation
     {
-        $stats = Reservation::selectRaw('
-            COUNT(id) as total,
-            COUNT(CASE WHEN active = 1 THEN 1 END) as active,
-            COUNT(CASE WHEN active = 0 THEN 1 END) as inactive,
-            MAX(updated_at) as last_update
-        ')->first();
+        return DB::transaction(function () use ($reservation, $data) {
+            $this->updateReservationRecord($reservation, $data);
+            return $reservation->fresh(['user', 'accommodation', 'academicTerm']);
+        });
+    }
 
+
+    /**
+     * Get a single reservation with relationships.
+     *
+     * @param int $id
+     * @return Reservation
+     */
+    public function getReservation($id): Reservation
+    {
+        return Reservation::with(['user', 'accommodation', 'academicTerm'])->findOrFail($id);
+    }
+
+    /**
+     * Delete a reservation.
+     *
+     * @param int $reservationId
+     * @return bool
+     * @throws BusinessValidationException
+     */
+    public function deleteReservation(int $reservationId): bool
+    {
+        $reservation = Reservation::findOrFail($reservationId);
+
+        if ($reservation->status === 'checked_in') {
+            throw new BusinessValidationException('Cannot delete a reservation that has been checked in.');
+        }
+
+        $deleted = $reservation->delete();
+
+        return $deleted;
+    }
+
+    /**
+     * Get all reservations (for dropdowns/forms).
+     *
+     * @return array
+     */
+    public function getAll(): array
+    {
+        return Reservation::with(['user', 'accommodation', 'academicTerm'])
+            ->get()
+            ->map(function ($reservation) {
+                return [
+                    'id' => $reservation->id,
+                    'reservation_number' => $reservation->reservation_number,
+                    'user_name' => $reservation->user?->name_en ?? 'N/A',
+                    'accommodation_info' => $this->getAccommodationInfo($reservation),
+                    'status' => $reservation->status,
+                    'active' => $reservation->active,
+                ];
+            })->toArray();
+    }
+
+    /**
+     * Get reservation statistics.
+     *
+     * @return array
+     */
+    public function getStats(): array
+    {
+        $totalReservations = Reservation::count();
+        $activeReservations = Reservation::where('active', true)->count();
+        $inactiveReservations = Reservation::where('active', false)->count();
+        $pendingReservations = Reservation::where('status', 'pending')->count();
+        $confirmedReservations = Reservation::where('status', 'confirmed')->count();
+        $checkedInReservations = Reservation::where('status', 'checked_in')->count();
+        $checkedOutReservations = Reservation::where('status', 'checked_out')->count();
+        $cancelledReservations = Reservation::where('status', 'cancelled')->count();
+        
+        $lastUpdateTime = formatDate(Reservation::max('updated_at'));
+        $activeLastUpdate = formatDate(Reservation::where('active', true)->max('updated_at'));
+        $inactiveLastUpdate = formatDate(Reservation::where('active', false)->max('updated_at'));
+        
         return [
             'total' => [
-                'count' => formatNumber($stats->total),
-                'lastUpdateTime' => formatDate($stats->last_update),
+                'total' => formatNumber($totalReservations),
+                'lastUpdateTime' => $lastUpdateTime
             ],
             'active' => [
-                'count' => formatNumber($stats->active),
-                'lastUpdateTime' => formatDate($stats->last_update),
+                'total' => formatNumber($activeReservations),
+                'lastUpdateTime' => $activeLastUpdate
             ],
             'inactive' => [
-                'count' => formatNumber($stats->inactive),
-                'lastUpdateTime' => formatDate($stats->last_update),
+                'total' => formatNumber($inactiveReservations),
+                'lastUpdateTime' => $inactiveLastUpdate
             ],
+            'statuses' => [
+                'pending' => formatNumber($pendingReservations),
+                'confirmed' => formatNumber($confirmedReservations),
+                'checked_in' => formatNumber($checkedInReservations),
+                'checked_out' => formatNumber($checkedOutReservations),
+                'cancelled' => formatNumber($cancelledReservations),
+            ]
         ];
     }
 
-    public function datatable(array $params)
+    /**
+     * Get reservation data for DataTables.
+     *
+     * @return JsonResponse
+     */
+    public function getDatatable(): JsonResponse
     {
-        $query = Reservation::query();
-
-        $this->applySearchFilters($query, $params);
-
-        return DataTables::eloquent($query)
+        $query = Reservation::with(['user', 'accommodation', 'academicTerm']);
+        $query = $this->applySearchFilters($query);
+        
+        return DataTables::of($query)
             ->addIndexColumn()
-            ->editColumn('student', fn($reservation) => $reservation->student_name)
-            ->editColumn('accommodation', function ($reservation) {
-                if ($reservation->accommodation) {
-                    if ($reservation->accommodation->room) {
-                        return 'Room: ' . $reservation->accommodation->room->number;
-                    } elseif ($reservation->accommodation->apartment) {
-                        return 'Apartment: ' . $reservation->accommodation->apartment->number;
-                    }
-                    return 'Accommodation: ' . $reservation->accommodation->id;
-                }
-                return 'N/A';
+            ->addColumn('reservation_number', fn($reservation) => $reservation->reservation_number)
+            ->addColumn('name', fn($reservation) => $reservation->user?->name ?? 'N/A')
+            ->addColumn('accommodation_info', fn($reservation) => $this->getAccommodationInfo($reservation))
+            ->addColumn('academic_term', fn($reservation) => $reservation->academicTerm?->name ?? 'N/A')
+            ->addColumn('check_in_date', fn($reservation) => $reservation->check_in_date ? formatDate($reservation->check_in_date) : 'N/A')
+            ->addColumn('check_out_date', fn($reservation) => $reservation->check_out_date ? formatDate($reservation->check_out_date) : 'N/A')
+            ->addColumn('status', fn($reservation) => ucfirst($reservation->status))
+            ->addColumn('active', fn($reservation) => $reservation->active ? 'Active' : 'Inactive')
+            ->addColumn('created_at', fn($reservation) => formatDate($reservation->created_at))
+            ->addColumn('action', fn($reservation) => $this->renderActionButtons($reservation))
+            
+            // Order columns for related tables
+            ->orderColumn('reservation_number', 'reservations.reservation_number $1')
+            ->orderColumn('user_name', function ($query, $order) {
+                return $query->leftJoin('users', 'reservations.user_id', '=', 'users.id')
+                             ->orderBy('users.name_en', $order);
             })
-            ->editColumn('start_date', fn($reservation) => $reservation->start_date)
-            ->editColumn('end_date', fn($reservation) => $reservation->end_date)
-            ->editColumn('status', fn($reservation) => ucfirst($reservation->status))
-            ->editColumn('active', fn($reservation) => $reservation->active ? 'Active' : 'Inactive')
-            ->addColumn('actions', function ($reservation) {
-                $isActive = $reservation->active;
-                return view('components.ui.datatable.data-table-actions', [
-                    'mode' => 'dropdown',
-                    'id' => $reservation->id,
-                    'type' => 'Reservation',
-                    'actions' => ['view', 'edit', 'delete'],
-                ])->render();
+            ->orderColumn('accommodation_info', function ($query, $order) {
+                return $query->leftJoin('accommodations', 'reservations.accommodation_id', '=', 'accommodations.id')
+                             ->orderBy('accommodations.id', $order);
             })
-            ->rawColumns(['actions'])
+            ->orderColumn('academic_term', function ($query, $order) {
+                return $query->leftJoin('academic_terms', 'reservations.academic_terms_id', '=', 'academic_terms.id')
+                             ->orderBy('academic_terms.name_en', $order);
+            })
+            ->orderColumn('check_in_date', 'reservations.check_in_date $1')
+            ->orderColumn('check_out_date', 'reservations.check_out_date $1')
+            ->orderColumn('status', 'reservations.status $1')
+            ->orderColumn('active', 'reservations.active $1')
+            ->orderColumn('created_at', 'reservations.created_at $1')
+            
+            ->rawColumns(['action'])
             ->make(true);
     }
 
-    private function applySearchFilters($query, array $params): void
+    /**
+     * Apply search filters to the query.
+     *
+     * @param Builder $query
+     * @return Builder
+     */
+    protected function applySearchFilters($query): Builder
     {
-        // Join related tables for advanced search
-        $query->join('users', 'reservations.user_id', '=', 'users.id')
-              ->join('students', 'users.id', '=', 'students.user_id')
-              ->join('accommodations', 'reservations.accommodation_id', '=', 'accommodations.id')
-              ->leftJoin('rooms', function($join) {
-                  $join->on('accommodations.accommodatable_id', '=', 'rooms.id')
-                       ->where('accommodations.accommodatable_type', '=', \App\Models\Room::class);
-              })
-              ->leftJoin('apartments', function($join) {
-                  $join->on('rooms.apartment_id', '=', 'apartments.id');
-              })
-              ->leftJoin('buildings', function($join) {
-                  $join->on('apartments.building_id', '=', 'buildings.id');
-              });
-
-        if (!empty($params['search_student_name'])) {
-            $query->where(function($q) use ($params) {
-                $q->where('students.name_en', 'like', '%' . $params['search_student_name'] . '%')
-                  ->orWhere('students.name_ar', 'like', '%' . $params['search_student_name'] . '%');
+        if (request()->filled('search_reservation_number') && !empty(request('search_reservation_number'))) {
+            $search = mb_strtolower(request('search_reservation_number'));
+            $query->whereRaw('LOWER(reservation_number) LIKE ?', ['%' . $search . '%']);
+        }
+        
+        if (request()->filled('search_user_name') && !empty(request('search_user_name'))) {
+            $search = mb_strtolower(request('search_user_name'));
+            $query->whereHas('user', function ($q) use ($search) {
+                $q->whereRaw('LOWER(name_en) LIKE ?', ['%' . $search . '%'])
+                  ->orWhereRaw('LOWER(name_ar) LIKE ?', ['%' . $search . '%']);
             });
         }
-        if (!empty($params['search_student_national_id'])) {
-            $query->where('students.national_id', 'like', '%' . $params['search_student_national_id'] . '%');
+        
+        if (request()->filled('search_status')) {
+            $query->where('status', request('search_status'));
         }
-        if (!empty($params['search_student_academic_id'])) {
-            $query->where('students.academic_id', 'like', '%' . $params['search_student_academic_id'] . '%');
+        
+        if (request()->filled('search_active')) {
+            $query->where('active', request('search_active'));
         }
-        if (!empty($params['search_building_id'])) {
-            $query->where('buildings.id', $params['search_building_id']);
+        
+        if (request()->filled('search_academic_term_id')) {
+            $query->where('academic_terms_id', request('search_academic_term_id'));
         }
-        if (!empty($params['search_apartment_number'])) {
-            $query->where('apartments.number', $params['search_apartment_number']);
+        
+        if (request()->filled('search_accommodation_id')) {
+            $query->whereHas('accommodation', function ($q) {
+                $q->where('accommodatable_id', request('search_accommodation_id'));
+            });
         }
-        if (!empty($params['search_room_number'])) {
-            $query->where('rooms.number', $params['search_room_number']);
-        }
+        
+        return $query;
     }
 
-    public function update($id, array $data): ?Reservation
+    /**
+     * Render action buttons for datatable rows.
+     *
+     * @param Reservation $reservation
+     * @return string
+     */
+    protected function renderActionButtons($reservation): string
     {
-        $reservation = Reservation::find($id);
-        if (!$reservation) {
-            return null;
-        }
-        $updateData = [
-            // Add reservation-specific update fields here
-        ];
-        $reservation->update($updateData);
-        return $reservation->fresh(['student', 'room']);
+        return view('components.ui.datatable.data-table-actions', [
+            'mode' => 'dropdown',
+            'actions' => ['view', 'edit', 'delete'],
+            'id' => $reservation->id,
+            'type' => 'Reservation',
+            'singleActions' => []
+        ])->render();
     }
+
+    /**
+     * Get accommodation information for display.
+     *
+     * @param Reservation $reservation
+     * @return string
+     */
+    private function getAccommodationInfo(Reservation $reservation): string
+    {
+        if (!$reservation->accommodation) {
+            return 'N/A';
+        }
+        return $reservation->accommodation->detail ?? 'N/A';
+    }
+
 } 

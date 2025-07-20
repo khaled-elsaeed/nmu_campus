@@ -17,6 +17,8 @@ return new class extends Migration
             $table->enum('type', ['room', 'apartment']);
             $table->morphs('accommodatable');
             $table->text('description');
+            $table->string('double_room_bed_option')->nullable();
+            $table->foreignId('reservation_id')->nullable()->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
 
@@ -25,22 +27,10 @@ return new class extends Migration
             $table->id();
             $table->string('name_en');
             $table->string('name_ar');
+            $table->string('category_en')->nullable();
+            $table->string('category_ar')->nullable();
             $table->text('description_en')->nullable();
             $table->text('description_ar')->nullable();
-            $table->timestamps();
-        });
-
-        // Create pivot table for accommodation-equipment relationship
-        Schema::create('accommodation_equipment', function (Blueprint $table) {
-            $table->foreignId('accommodation_id')
-                ->constrained('accommodations')
-                ->cascadeOnDelete();
-            
-            $table->foreignId('equipment_id')
-                ->constrained('equipment')
-                ->cascadeOnDelete();
-
-            $table->primary(['accommodation_id', 'equipment_id']);
             $table->timestamps();
         });
     }
@@ -50,7 +40,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('accommodation_equipment');
         Schema::dropIfExists('equipment');
         Schema::dropIfExists('accommodations');
     }

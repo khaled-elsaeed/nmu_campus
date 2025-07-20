@@ -72,12 +72,13 @@ class RoomService
     /**
      * Delete a room.
      *
-     * @param Room $room
+     * @param int $id
      * @return void
      * @throws BusinessValidationException
      */
-    public function deleteRoom(Room $room): void
+    public function deleteRoom($id): void
     {
+        $room = Room::findOrFail($id);
         if ($room->current_occupancy > 0) {
             throw new BusinessValidationException(
                 "Cannot delete room: Room #{$room->number} is currently occupied."
@@ -87,13 +88,18 @@ class RoomService
     }
 
     /**
-     * Get all rooms.
+     * Get all rooms, optionally filtered by apartment ID.
      *
+     * @param int|null $apartmentId
      * @return array
      */
-    public function getAll(): array
+    public function getAll($apartmentId = null): array
     {
-        return Room::with('apartment.building')->get()->map(function ($room) {
+        $query = Room::with('apartment.building');
+        if ($apartmentId) {
+            $query->where('apartment_id', $apartmentId);
+        }
+        return $query->get()->map(function ($room) {
             return [
                 'id' => $room->id,
                 'number' => $room->number,

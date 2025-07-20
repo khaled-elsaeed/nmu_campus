@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Reservation extends Model
 {
@@ -15,8 +17,7 @@ class Reservation extends Model
     protected $fillable = [
         'reservation_number',
         'user_id',
-        'accommodation_id',
-        'academic_terms_id',
+        'academic_term_id',
         'check_in_date',
         'check_out_date',
         'status',
@@ -61,9 +62,9 @@ class Reservation extends Model
      *
      * @return BelongsTo
      */
-    public function accommodation(): BelongsTo
+    public function accommodation()
     {
-        return $this->belongsTo(Accommodation::class);
+        return $this->hasOne(Accommodation::class);
     }
 
     /**
@@ -74,5 +75,46 @@ class Reservation extends Model
     public function academicTerm(): BelongsTo
     {
         return $this->belongsTo(AcademicTerm::class);
+    }
+
+    /**
+     * Get the payments for the reservation.
+     *
+     * @return HasMany
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * Get the equipment tracking for the reservation.
+     *
+     * @return HasMany
+     */
+    public function equipmentTracking(): HasMany
+    {
+        return $this->hasMany(ReservationEquipment::class);
+    }
+
+    /**
+     * Get the equipment for the reservation through the reservation_equipment pivot table.
+     */
+    public function equipment()
+    {
+        return $this->belongsToMany(Equipment::class, 'reservation_equipment')
+            ->withPivot([
+                'quantity',
+                'overall_status',
+                'received_status',
+                'received_notes',
+                'received_at',
+                'received_by',
+                'returned_status',
+                'returned_notes',
+                'returned_at',
+                'returned_by',
+            ])
+            ->withTimestamps();
     }
 }
