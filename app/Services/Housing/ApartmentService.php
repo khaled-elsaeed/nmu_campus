@@ -112,15 +112,15 @@ class ApartmentService
 
         return [
             'total' => [
-                'total' => formatNumber($total),
+                'count' => formatNumber($total),
                 'lastUpdateTime' => formatDate($lastUpdate),
             ],
             'male' => [
-                'total' => formatNumber($male),
+                'count' => formatNumber($male),
                 'lastUpdateTime' => formatDate($maleLastUpdate),
             ],
             'female' => [
-                'total' => formatNumber($female),
+                'count' => formatNumber($female),
                 'lastUpdateTime' => formatDate($femaleLastUpdate),
             ],
         ];

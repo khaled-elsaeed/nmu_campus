@@ -22,11 +22,11 @@ class RoleService
         $rolesWithUsers = Role::withCount('users')->get();
         return [
             'total' => [
-                'total' => formatNumber($totalRoles),
+                'count' => formatNumber($totalRoles),
                 'lastUpdateTime' => formatDate(now(), 'Y-m-d H:i:s')
             ],
             'permissions' => [
-                'total' => formatNumber($totalPermissions),
+                'count' => formatNumber($totalPermissions),
                 'lastUpdateTime' => formatDate(now(), 'Y-m-d H:i:s')
             ],
             'rolesWithUsers' => $rolesWithUsers

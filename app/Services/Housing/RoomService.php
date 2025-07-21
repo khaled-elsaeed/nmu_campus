@@ -141,15 +141,15 @@ class RoomService
 
         return [
             'total' => [
-                'total' => formatNumber($total),
+                'count' => formatNumber($total),
                 'lastUpdateTime' => formatDate($lastUpdate),
             ],
             'male' => [
-                'total' => formatNumber($maleRooms->count()),
+                'count' => formatNumber($maleRooms->count()),
                 'lastUpdateTime' => formatDate($maleLastUpdate),
             ],
             'female' => [
-                'total' => formatNumber($femaleRooms->count()),
+                'count' => formatNumber($femaleRooms->count()),
                 'lastUpdateTime' => formatDate($femaleLastUpdate),
             ],
         ];

@@ -293,9 +293,9 @@ var StatsManager = {
   handleSuccess: function(response) {
     if (response.success !== false) {
       let stats = response.data;
-      this.updateStatElement('faculties', stats.total.total, stats.total.lastUpdateTime);
-      this.updateStatElement('with-programs', stats.withPrograms.total, stats.withPrograms.lastUpdateTime);
-      this.updateStatElement('without-programs', stats.withoutPrograms.total, stats.withoutPrograms.lastUpdateTime);
+      this.updateStatElement('faculties', stats.total.count, stats.total.lastUpdateTime);
+      this.updateStatElement('with-programs', stats.withPrograms.count, stats.withPrograms.lastUpdateTime);
+      this.updateStatElement('without-programs', stats.withoutPrograms.count, stats.withoutPrograms.lastUpdateTime);
     } else {
       this.setAllStatsToNA();
     }

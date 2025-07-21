@@ -23,7 +23,7 @@ class UserService
         $lastUpdatedAt = User::max('updated_at');
         return [
             'total' => [
-                'total' => formatNumber($totalUsers),
+                'count' => formatNumber($totalUsers),
                 'lastUpdateTime' => formatDate($lastUpdatedAt)
             ]
         ];

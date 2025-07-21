@@ -94,7 +94,6 @@ class CreateReservationService
     private function createReservationRecord(array $data): Reservation
     {
         return Reservation::create([
-            'reservation_number' => $data['reservation_number'] ?? $this->generateReservationNumber(),
             'user_id' => $data['user_id'],
             'academic_term_id' => $data['academic_term_id'] ?? null,
             'check_in_date' => $data['check_in_date'] ?? null,
@@ -105,28 +104,6 @@ class CreateReservationService
         ]);
     }
 
-    /**
-     * Generate a unique reservation number.
-     */
-    private function generateReservationNumber(): string
-    {
-        $prefix = 'RES';
-        $year = date('Y');
-        $month = date('m');
-        
-        $lastReservation = Reservation::where('reservation_number', 'like', "{$prefix}{$year}{$month}%")
-            ->orderBy('reservation_number', 'desc')
-            ->first();
-
-        if ($lastReservation) {
-            $lastNumber = (int) substr($lastReservation->reservation_number, -4);
-            $newNumber = $lastNumber + 1;
-        } else {
-            $newNumber = 1;
-        }
-
-        return $prefix . $year . $month . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
-    }
 
     // ================================
     // ACCOMMODATION METHODS

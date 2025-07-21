@@ -802,9 +802,9 @@ var StatsManager = {
   handleSuccess: function(response) {
     if (response.success) {
       let stats = response.data;
-      this.updateStatElement('staff', stats.total.total, stats.total.lastUpdateTime);
-      this.updateStatElement('staff-male', stats.male.total, stats.male.lastUpdateTime);
-      this.updateStatElement('staff-female', stats.female.total, stats.female.lastUpdateTime);
+      this.updateStatElement('staff', stats.total.count, stats.total.lastUpdateTime);
+      this.updateStatElement('staff-male', stats.male.count, stats.male.lastUpdateTime);
+      this.updateStatElement('staff-female', stats.female.count, stats.female.lastUpdateTime);
     } else {
       this.setAllStatsToNA();
     }

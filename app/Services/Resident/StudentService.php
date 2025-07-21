@@ -154,15 +154,15 @@ class StudentService
         $femaleLastUpdate = formatDate(Student::whereHas('user', fn($q) => $q->where('gender', 'female'))->max('updated_at'));
         return [
             'total' => [
-                'total' => formatNumber($totalStudents),
+                'count' => formatNumber($totalStudents),
                 'lastUpdateTime' => $lastUpdateTime
             ],
             'male' => [
-                'total' => formatNumber($maleStudents),
+                'count' => formatNumber($maleStudents),
                 'lastUpdateTime' => $maleLastUpdate
             ],
             'female' => [
-                'total' => formatNumber($femaleStudents),
+                'count' => formatNumber($femaleStudents),
                 'lastUpdateTime' => $femaleLastUpdate
             ],
         ];

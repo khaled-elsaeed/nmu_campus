@@ -31,7 +31,20 @@ class StoreReservationRequest extends FormRequest
             'status' => ['nullable', 'string'],
             'active' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string'],
-            'double_room_bed_option' => ['nullable', 'string', 'required_if:accommodation_type,room'],
+            // Custom validation for double_room_bed_option
+            'double_room_bed_option' => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (
+                        $this->input('accommodation_type') === 'room' &&
+                        ($this->input('room_type') === 'double' || $this->input('is_double_room')) &&
+                        empty($value)
+                    ) {
+                        $fail('The double room bed option field is required when accommodation type is room and the room is a double room.');
+                    }
+                }
+            ],
             'equipment' => ['nullable', 'array'],
             'equipment.*.equipment_id' => ['required_with:equipment', 'integer', 'exists:equipment,id'],
             'equipment.*.quantity' => ['nullable', 'integer', 'min:1'],

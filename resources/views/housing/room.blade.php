@@ -426,9 +426,9 @@ var StatsManager = {
   handleSuccess: function(response) {
     if (response.success) {
       let stats = response.data;
-      this.updateStatElement('rooms', stats.total.total, stats.total.lastUpdateTime);
-      this.updateStatElement('rooms-male', stats.male.total, stats.male.lastUpdateTime);
-      this.updateStatElement('rooms-female', stats.female.total, stats.female.lastUpdateTime);
+      this.updateStatElement('rooms', stats.total.count, stats.total.lastUpdateTime);
+      this.updateStatElement('rooms-male', stats.male.count, stats.male.lastUpdateTime);
+      this.updateStatElement('rooms-female', stats.female.count, stats.female.lastUpdateTime);
     } else {
       this.setAllStatsToNA();
     }

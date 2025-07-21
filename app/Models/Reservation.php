@@ -5,7 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Reservation extends Model
 {
@@ -47,6 +48,40 @@ class Reservation extends Model
         ];
     }
 
+        /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($reservation) {
+            if (empty($reservation->reservation_number)) {
+                $reservation->reservation_number = static::generateReservationNumber();
+            }
+        });
+    }
+
+    /**
+     * Generate unique reservation number.
+     */
+    public static function generateReservationNumber(): string
+    {
+        $prefix = 'RES';
+        $year = now()->year;
+        $month = now()->format('m');
+
+        $lastReservation = static::whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->latest('id')
+            ->first();
+
+        $sequence = $lastReservation ?
+            intval(substr($lastReservation->reservation_number, -4)) + 1 : 1;
+
+        return sprintf('%s-%s%s-%04d', $prefix, $year, $month, $sequence);
+    }
+
     /**
      * Get the user that owns the reservation.
      *
@@ -58,11 +93,12 @@ class Reservation extends Model
     }
 
     /**
-     * Get the accommodation (room or apartment) for the reservation.
+     * Get the accommodation for the reservation.
+     * Fixed: Changed from belongsTo to hasOne since Accommodation has reservation_id
      *
-     * @return BelongsTo
+     * @return HasOne
      */
-    public function accommodation()
+    public function accommodation(): HasOne
     {
         return $this->hasOne(Accommodation::class);
     }
@@ -99,8 +135,11 @@ class Reservation extends Model
 
     /**
      * Get the equipment for the reservation through the reservation_equipment pivot table.
+     * Fixed: Added proper return type annotation
+     *
+     * @return BelongsToMany
      */
-    public function equipment()
+    public function equipment(): BelongsToMany
     {
         return $this->belongsToMany(Equipment::class, 'reservation_equipment')
             ->withPivot([

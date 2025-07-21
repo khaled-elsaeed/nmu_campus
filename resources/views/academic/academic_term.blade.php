@@ -459,10 +459,10 @@ var StatsManager = {
     handleSuccess: function(response) {
         if (response.success !== false) {
             let stats = response.data;
-            this.updateStatElement('terms', stats.total.total, stats.total.lastUpdateTime);
-            this.updateStatElement('active', stats.active.total, stats.active.lastUpdateTime);
-            this.updateStatElement('inactive', stats.inactive.total, stats.inactive.lastUpdateTime);
-            this.updateStatElement('current', stats.current.total, stats.current.lastUpdateTime);
+            this.updateStatElement('terms', stats.total.count, stats.total.lastUpdateTime);
+            this.updateStatElement('active', stats.active.count, stats.active.lastUpdateTime);
+            this.updateStatElement('inactive', stats.inactive.count, stats.inactive.lastUpdateTime);
+            this.updateStatElement('current', stats.current.count, stats.current.lastUpdateTime);
         } else {
             this.setAllStatsToNA();
         }

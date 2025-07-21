@@ -754,9 +754,9 @@ var StatsManager = {
   handleSuccess: function(response) {
     if (response.success) {
       let stats = response.data;
-      this.updateStatElement('students', stats.total.total, stats.total.lastUpdateTime);
-      this.updateStatElement('students-male', stats.male.total, stats.male.lastUpdateTime);
-      this.updateStatElement('students-female', stats.female.total, stats.female.lastUpdateTime);
+      this.updateStatElement('students', stats.total.count, stats.total.lastUpdateTime);
+      this.updateStatElement('students-male', stats.male.count, stats.male.lastUpdateTime);
+      this.updateStatElement('students-female', stats.female.count, stats.female.lastUpdateTime);
     } else {
       this.setAllStatsToNA();
     }

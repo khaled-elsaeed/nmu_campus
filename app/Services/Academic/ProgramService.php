@@ -108,15 +108,15 @@ class ProgramService
         $lastUpdateTime = formatDate(Program::max('updated_at'));
         return [
             'total' => [
-                'total' => formatNumber($totalPrograms),
+                'count' => formatNumber($totalPrograms),
                 'lastUpdateTime' => $lastUpdateTime
             ],
             'withStudents' => [
-                'total' => formatNumber($programsWithStudents),
+                'count' => formatNumber($programsWithStudents),
                 'lastUpdateTime' => $lastUpdateTime
             ],
             'withoutStudents' => [
-                'total' => formatNumber($programsWithoutStudents),
+                'count' => formatNumber($programsWithoutStudents),
                 'lastUpdateTime' => $lastUpdateTime
             ]
         ];

@@ -124,15 +124,15 @@ class ReservationService
         
         return [
             'total' => [
-                'total' => formatNumber($totalReservations),
+                'count' => formatNumber($totalReservations),
                 'lastUpdateTime' => $lastUpdateTime
             ],
             'active' => [
-                'total' => formatNumber($activeReservations),
+                'count' => formatNumber($activeReservations),
                 'lastUpdateTime' => $activeLastUpdate
             ],
             'inactive' => [
-                'total' => formatNumber($inactiveReservations),
+                'count' => formatNumber($inactiveReservations),
                 'lastUpdateTime' => $inactiveLastUpdate
             ],
             'statuses' => [

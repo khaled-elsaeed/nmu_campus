@@ -252,15 +252,15 @@ class AcademicTermService
 
         return [
             'total' => [
-                'total' => formatNumber($totalTerms),
+                'count' => formatNumber($totalTerms),
                 'lastUpdateTime' => $lastUpdateTime
             ],
             'active' => [
-                'total' => formatNumber($activeTerms),
+                'count' => formatNumber($activeTerms),
                 'lastUpdateTime' => $lastUpdateTime
             ],
             'inactive' => [
-                'total' => formatNumber($inactiveTerms),
+                'count' => formatNumber($inactiveTerms),
                 'lastUpdateTime' => $lastUpdateTime
             ],
             'current' => [

@@ -21,11 +21,11 @@ class PermissionService
         $permissionsWithRoles = Permission::withCount('roles')->get();
         return [
             'total' => [
-                'total' => formatNumber($totalPermissions),
+                'count' => formatNumber($totalPermissions),
                 'lastUpdateTime' => formatDate(now(), 'Y-m-d H:i:s')
             ],
             'roles' => [
-                'total' => formatNumber($totalRoles),
+                'count' => formatNumber($totalRoles),
                 'lastUpdateTime' => formatDate(now(), 'Y-m-d H:i:s')
             ],
             'permissionsWithRoles' => $permissionsWithRoles

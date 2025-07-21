@@ -53,17 +53,6 @@ class Accommodation extends Model
         return $this->morphTo();
     }
 
-
-    /**
-     * Get the reservations for this accommodation.
-     *
-     * @return HasMany
-     */
-    public function reservations(): HasMany
-    {
-        return $this->hasMany(Reservation::class);
-    }
-
     /**
      * Get the reservation for this accommodation.
      */

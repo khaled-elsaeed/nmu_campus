@@ -248,15 +248,15 @@ class StaffService
         $femaleLastUpdate = formatDate(Staff::whereHas('user', fn($q) => $q->where('gender', 'female'))->max('updated_at'));
         return [
             'total' => [
-                'total' => formatNumber($totalStaff),
+                'count' => formatNumber($totalStaff),
                 'lastUpdateTime' => $lastUpdateTime
             ],
             'male' => [
-                'total' => formatNumber($maleStaff),
+                'count' => formatNumber($maleStaff),
                 'lastUpdateTime' => $maleLastUpdate
             ],
             'female' => [
-                'total' => formatNumber($femaleStaff),
+                'count' => formatNumber($femaleStaff),
                 'lastUpdateTime' => $femaleLastUpdate
             ],
         ];

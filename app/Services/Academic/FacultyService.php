@@ -111,15 +111,15 @@ class FacultyService
 
         return [
             'total' => [
-                'total' => formatNumber($totalFaculties),
+                'count' => formatNumber($totalFaculties),
                 'lastUpdateTime' => $lastUpdateTime
             ],
             'withPrograms' => [
-                'total' => formatNumber($facultiesWithPrograms),
+                'count' => formatNumber($facultiesWithPrograms),
                 'lastUpdateTime' => $lastUpdateTime
             ],
             'withoutPrograms' => [
-                'total' => formatNumber($facultiesWithoutPrograms),
+                'count' => formatNumber($facultiesWithoutPrograms),
                 'lastUpdateTime' => $lastUpdateTime
             ]
         ];
