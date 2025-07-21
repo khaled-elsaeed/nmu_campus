@@ -39,6 +39,7 @@ Route::prefix('academic')->name('academic.')->group(function(){
     require __DIR__.'/web/academic_term.php';
     require __DIR__.'/web/user.php';
     require __DIR__.'/web/reservation_request.php';
+    require __DIR__.'/web/payment/payment.php';
 
 
 Route::prefix('countries')->name('countries.')->group(function () {

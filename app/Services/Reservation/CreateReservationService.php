@@ -243,7 +243,7 @@ class CreateReservationService
             'amount' => $amount,
             'status' => $paymentData['status'] ?? 'pending',
             'notes' => $paymentData['notes'] ?? null,
-            'details' => json_encode($details),
+            'details' => $details,
         ]);
     }
 
@@ -342,18 +342,22 @@ class CreateReservationService
      */
     private function buildPaymentDetails(Reservation $reservation, float $totalAmount, $doubleRoomBedOption = false): array
     {
-        $details = [
-            'insurance_fee' => self::INSURANCE_FEE,
-            'breakdown' => [],
-            'total_amount' => $totalAmount
+        $details = [];
+        $details[] = [
+            'type' => 'insurance_fee',
+            'amount' => self::INSURANCE_FEE,
+            'description' => 'Insurance Fee',
         ];
-
         if ($this->isLongTermReservation($reservation)) {
-            $details['breakdown'] = $this->getLongTermBreakdown($doubleRoomBedOption);
+            $details = array_merge($details, $this->getLongTermBreakdown($doubleRoomBedOption));
         } else {
             $details = array_merge($details, $this->getShortTermBreakdown($reservation));
         }
-
+        $details[] = [
+            'type' => 'total_amount',
+            'amount' => $totalAmount,
+            'description' => 'Total Payment Amount',
+        ];
         return $details;
     }
 
@@ -362,13 +366,11 @@ class CreateReservationService
      */
     private function getLongTermBreakdown($doubleRoomBedOption = false): array
     {
-        return [
-            [
-                'type' => 'academic_term',
-                'amount' => $doubleRoomBedOption ? 16000 : self::ACADEMIC_TERM_FEE,
-                'description' => 'Academic Term Fee' . ($doubleRoomBedOption ? ' (Double Room Bed Option)' : '')
-            ]
-        ];
+        return [[
+            'type' => 'academic_term',
+            'amount' => $doubleRoomBedOption ? 16000 : self::ACADEMIC_TERM_FEE,
+            'description' => 'Academic Term Fee' . ($doubleRoomBedOption ? ' (Double Room Bed Option)' : ''),
+        ]];
     }
 
     /**
@@ -377,19 +379,21 @@ class CreateReservationService
     private function getShortTermBreakdown(Reservation $reservation): array
     {
         if (!$reservation->check_in_date || !$reservation->check_out_date) {
-            return ['breakdown' => []];
+            return [];
         }
-
         $checkIn = Carbon::parse($reservation->check_in_date);
         $checkOut = Carbon::parse($reservation->check_out_date);
         $totalDays = $checkIn->diffInDays($checkOut);
-
-        return [
-            'breakdown' => $this->getOptimalFeeBreakdown($totalDays),
-            'total_days' => $totalDays,
-            'check_in_date' => $reservation->check_in_date,
-            'check_out_date' => $reservation->check_out_date,
-        ];
+        $breakdown = $this->getOptimalFeeBreakdown($totalDays);
+        $details = [];
+        foreach ($breakdown as $item) {
+            $details[] = [
+                'type' => $item['type'],
+                'amount' => $item['amount'],
+                'description' => $item['description'],
+            ];
+        }
+        return $details;
     }
 
     /**

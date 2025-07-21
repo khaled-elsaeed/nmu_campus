@@ -123,7 +123,7 @@ class Sidebar extends Component
                 'title' => 'Reservations',
                 'icon' => 'bx bx-calendar',
                 'route' => route('reservations.index'),
-                'active' => str_starts_with(request()->route()->getName(), 'reservations.'),
+                'active' => str_starts_with(request()->route()->getName(), 'reservations.') || str_starts_with(request()->route()->getName(), 'reservation-requests.'),
                 'children' => [
                     [
                         'title' => 'View Reservations',
@@ -137,13 +137,27 @@ class Sidebar extends Component
                         'route' => route('reservations.create'),
                         'active' => request()->routeIs('reservations.create'),
                     ],
+                    [
+                        'title' => 'Reservation Requests',
+                        'icon' => 'bx bx-calendar-check',
+                        'route' => route('reservation-requests.index'),
+                        'active' => str_starts_with(request()->route()->getName(), 'reservation-requests.'),
+                    ],
                 ],
             ],
             [
-                'title' => 'Reservation Requests',
-                'icon' => 'bx bx-calendar-check',
-                'route' => route('reservation-requests.index'),
-                'active' => str_starts_with(request()->route()->getName(), 'reservation-requests.'),
+                'title' => 'Payments',
+                'icon' => 'bx bx-money',
+                'route' => route('payments.index'),
+                'active' => str_starts_with(request()->route()->getName(), 'payments.'),
+                'children' => [
+                    [
+                        'title' => 'View Payments',
+                        'icon' => 'bx bx-money',
+                        'route' => route('payments.index'),
+                        'active' => request()->routeIs('payments.index'),
+                    ],
+                ],
             ],
         ];
     }
