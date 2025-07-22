@@ -3,7 +3,7 @@
 namespace App\Services\Academic;
 
 use App\Models\Academic\AcademicTerm;
-use App\Batches\AcademicTermReservationActivationBatch;
+use App\Models\User;
 use App\Exceptions\BusinessValidationException;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
@@ -15,12 +15,6 @@ use App\Notifications\ReservationActivated;
 
 class AcademicTermService
 {
-    /**
-     * The model class to use for this service.
-     * @var string
-     */
-    protected $model = AcademicTerm::class;
-
     /**
      * Create a new term.
      *
@@ -191,7 +185,8 @@ class AcademicTermService
      */
     protected function handleAcademicTermReservationActivation(AcademicTerm $term)
     {
-        $users = User::whereHas('reservations', function ($query) use ($term) {
+        // Use fully qualified class name to avoid namespace conflicts
+        $users = \App\Models\User::whereHas('reservations', function ($query) use ($term) {
             $query->where('academic_term_id', $term->id)
                   ->where('status', 'confirmed')
                   ->where('active', false);

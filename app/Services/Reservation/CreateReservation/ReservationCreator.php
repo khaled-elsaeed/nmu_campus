@@ -16,6 +16,7 @@ class ReservationCreator
             'status' => $data['status'] ?? 'pending',
             'active' => false,
             'notes' => $data['notes'] ?? null,
+            'period_type' => $data['period_type'] ?? 'academic',
         ]);
     }
 }

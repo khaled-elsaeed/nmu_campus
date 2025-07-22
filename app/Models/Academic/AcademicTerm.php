@@ -5,7 +5,7 @@ namespace App\Models\Academic;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Reservation;
+use App\Models\Reservation\Reservation;
 
 class AcademicTerm extends Model
 {

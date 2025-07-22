@@ -8,6 +8,9 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Resident\Student;
+use App\Models\Resident\Staff;
+use App\Models\Reservation\Reservation;
 
 class User extends Authenticatable
 {

@@ -15,7 +15,7 @@ class UpdateReservationRequest extends FormRequest
     public function rules()
     {
         return [
-            'period' => ['required', Rule::in(['long', 'short'])],
+            'period_type' => ['required', Rule::in(['academic', 'calendar'])],
             'requested_accommodation_type' => ['required', Rule::in(['room', 'apartment'])],
             'room_type' => ['nullable', Rule::in(['single', 'double'])],
             'requested_double_room_bed_option' => [

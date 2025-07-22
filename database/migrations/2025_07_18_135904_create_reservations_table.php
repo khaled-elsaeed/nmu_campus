@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('reservation_number')->unique();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->enum('period_type', ['academic', 'calendar']);
             $table->foreignId('academic_term_id')->nullable()->constrained()->restrictOnDelete();
             $table->date('check_in_date')->nullable();
             $table->date('check_out_date')->nullable();

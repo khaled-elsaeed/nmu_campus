@@ -17,13 +17,14 @@ return new class extends Migration
 
             // Requester information
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->enum('period_type', ['academic', 'calendar']);
             
             $table->foreignId('academic_term_id')->nullable()->constrained()->restrictOnDelete();
 
             // Requested accommodation details
             $table->enum('requested_accommodation_type', ['room', 'apartment']);
-            $table->enum('room_type', ['single', 'double'])->nullable()->comment('Single or double room, nullable if apartment');
-            $table->string('requested_double_room_bed_option')->nullable()->comment('Only for double rooms');
+            $table->enum('room_type', ['single', 'double'])->nullable();
+            $table->string('requested_double_room_bed_option')->nullable();
 
             // Requested dates
             $table->date('requested_check_in_date')->nullable();
@@ -54,9 +55,8 @@ return new class extends Migration
             $table->unsignedInteger('total_points')->default(0);
 
             // Optionally, you can store the breakdown of points per criterion as JSON
-            $table->json('criteria_points_breakdown')->nullable()->comment('Stores points per criterion, e.g. {"gpa":5,"distance":3}');
+            $table->json('criteria_points_breakdown')->nullable();
 
-            $table->enum('period', ['long', 'short'])->default('long');
 
             $table->timestamps();
         });

@@ -32,7 +32,7 @@ class ReservationRequest extends Model
         'rejected_at',
         'rejection_reason',
         'created_reservation_id',
-        'period',
+        'period_type',
     ];
 
     /**

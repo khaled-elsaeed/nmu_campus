@@ -12,7 +12,7 @@ class StoreReservationRequest extends FormRequest
      */
     public function authorize()
     {
-        return true; // Adjust authorization as needed
+        return true;
     }
 
     /**
@@ -22,7 +22,7 @@ class StoreReservationRequest extends FormRequest
     {
         return [
             'user_id' => ['required', 'integer', 'exists:users,id'],
-            'period' => ['required', Rule::in(['long', 'short'])],
+            'period_type' => ['required', Rule::in(['academic', 'calendar'])],
             'accommodation_type' => ['required', Rule::in(['room', 'apartment'])],
             'accommodation_id' => ['required', 'integer'],
             'academic_term_id' => ['required_if:period,long', 'nullable', 'integer', 'exists:academic_terms,id'],

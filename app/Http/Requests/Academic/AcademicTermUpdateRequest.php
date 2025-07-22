@@ -9,21 +9,12 @@ class AcademicTermUpdateRequest extends FormRequest
 {
     public function authorize()
     {
-        Log::info('AcademicTermUpdateRequest authorize called', [
-            'user_id' => optional($this->user())->id,
-            'route_id' => $this->route('id'),
-        ]);
         return true;
     }
 
     public function rules()
     {
         $id = $this->route('id');
-        Log::info('AcademicTermUpdateRequest rules called', [
-            'route_id' => $id,
-            'input' => $this->all(),
-        ]);
-        
         return [
             'season' => 'required|string|in:fall,spring,summer,winter',
             'year' => [

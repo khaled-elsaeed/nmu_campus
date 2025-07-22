@@ -141,14 +141,18 @@ class StudentUpdateRequest extends FormRequest
     }
 
     /**
-     * Validate academic email format (name+academicid@nmu.edu.eg).
+     * Validate academic email format (e.g., ahmed221144154@nmu.edu.eg).
      */
     private function validateAcademicEmail(string $attribute, string $value, callable $fail): void
     {
-        if (!preg_match('/^[^@+]+\+[0-9]{9}@nmu\.edu\.eg$/i', $value)) {
-            $fail(__('The :attribute must be in the format name+academicid@nmu.edu.eg (e.g., ahmed+221144154@nmu.edu.eg).'));
+        // Ensure the email matches: letters + 9 digits + @nmu.edu.eg
+        if (!preg_match('/^[a-zA-Z]+[0-9]{9}@nmu\.edu\.eg$/i', strtolower($value))) {
+            $fail(__(
+                'The :attribute must be a valid NMU academic email in the format nameacademicid@nmu.edu.eg (e.g., ahmed221144154@nmu.edu.eg).'
+            ));
         }
     }
+
 
     /**
      * Validate Egyptian mobile number format.

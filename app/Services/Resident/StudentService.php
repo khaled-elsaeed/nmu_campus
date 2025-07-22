@@ -29,9 +29,7 @@ class StudentService
             $user = $this->createUser($data, $passwordData['hashed']);
             $data['user_id'] = $user->id;
             $student = Student::create($data);
-            
             $user->notify((new AccountCreated($student, $passwordData['plain']))->afterCommit());
-            
             return $student;
         });
     }

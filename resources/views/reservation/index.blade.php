@@ -82,7 +82,7 @@
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable 
-        :headers="['Reservation #', 'User', 'Accommodation', 'Academic Term', 'Check-in', 'Check-out', 'Status', 'Active', 'Created', 'Actions']"
+        :headers="['Reservation #', 'User', 'Accommodation', 'Academic Term', 'Check-in', 'Check-out', 'Status', 'Active', 'Period Type', 'Created', 'Actions']"
         :columns="[
             ['data' => 'reservation_number', 'name' => 'reservation_number'],
             ['data' => 'name', 'name' => 'name'],
@@ -92,6 +92,7 @@
             ['data' => 'check_out_date', 'name' => 'check_out_date'],
             ['data' => 'status', 'name' => 'status'],
             ['data' => 'active', 'name' => 'active'],
+            ['data' => 'period_type', 'name' => 'period_type'],
             ['data' => 'created_at', 'name' => 'created_at'],
             ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false]
         ]"
@@ -103,7 +104,8 @@
             'search_status',
             'search_active',
             'search_academic_term_id',
-            'search_accommodation_id'
+            'search_accommodation_id',
+            'search_period_type'
         ]"
     />
 
@@ -161,6 +163,10 @@
                 <label class="form-label fw-bold">Created At:</label>
                 <p id="view-reservation-created" class="mb-0"></p>
             </div>
+            <div class="col-6 mb-3">
+                <label class="form-label fw-bold">Period Type:</label>
+                <p id="view-reservation-period-type" class="mb-0"></p>
+            </div>
           </div>
         </x-slot>
         <x-slot name="footer">
@@ -214,64 +220,6 @@ var ROUTES = {
   }
 };
 
-var SELECTORS = {
-  stats: {
-    reservations: '#reservations',
-    active: '#reservations-active',
-    inactive: '#reservations-inactive'
-  },
-  table: '#reservations-table',
-  modals: {
-    addReservation: '#addReservationModal',
-    editReservation: '#editReservationModal',
-    viewReservation: '#viewReservationModal'
-  },
-  forms: {
-    addReservation: '#addReservationForm',
-    editReservation: '#editReservationForm',
-    advancedSearch: '#advancedReservationSearch'
-  },
-  filters: {
-    reservationNumber: '#search_reservation_number',
-    userName: '#search_user_name',
-    status: '#search_status',
-    active: '#search_active',
-    academicTermId: '#search_academic_term_id',
-    accommodationId: '#search_accommodation_id'
-  },
-  addForm: {
-    userId: '#add_user_id',
-    accommodationType: '#add_accommodation_type',
-    buildingId: '#add_building_id',
-    accommodationId: '#add_accommodation_id',
-    academicTermId: '#add_academic_term_id',
-    status: '#add_status',
-    checkInDate: '#add_check_in_date',
-    checkOutDate: '#add_check_out_date',
-    notes: '#add_notes'
-  },
-  editForm: {
-    reservationId: '#edit_reservation_id',
-    userId: '#edit_user_id',
-    accommodationType: '#edit_accommodation_type',
-    buildingId: '#edit_building_id',
-    accommodationId: '#edit_accommodation_id',
-    academicTermId: '#edit_academic_term_id',
-    status: '#edit_status',
-    checkInDate: '#edit_check_in_date',
-    checkOutDate: '#edit_check_out_date',
-    notes: '#edit_notes'
-  },
-  buttons: {
-    clearFilters: '#clearReservationFiltersBtn',
-    saveReservation: '#saveReservationBtn',
-    updateReservation: '#updateReservationBtn',
-    viewReservation: '.viewReservationBtn',
-    editReservation: '.editReservationBtn',
-    deleteReservation: '.deleteReservationBtn',
-  }
-};
-
 var MESSAGES = {
   success: {
     reservationCreated: 'Reservation has been created successfully.',
@@ -309,25 +257,12 @@ var MESSAGES = {
 // UTILITY FUNCTIONS
 // ===========================
 var Utils = {
-  /**
-   * Show an error alert
-   * @param {string} message
-   */
   showError: function(message) {
     Swal.fire({ title: 'Error', html: message, icon: 'error' });
   },
-  /**
-   * Show a success toast message
-   * @param {string} message
-   */
   showSuccess: function(message) {
     Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: message, showConfirmButton: false, timer: 2500, timerProgressBar: true });
   },
-  /**
-   * Toggle loading state for a stat card
-   * @param {string} elementId
-   * @param {boolean} isLoading
-   */
   toggleLoadingState: function(elementId, isLoading) {
     var $value = $('#' + elementId + '-value');
     var $loader = $('#' + elementId + '-loader');
@@ -345,28 +280,12 @@ var Utils = {
       $updatedLoader.addClass('d-none');
     }
   },
-  /**
-   * Replace :id in a route string
-   * @param {string} route
-   * @param {string|number} id
-   * @returns {string}
-   */
   replaceRouteId: function(route, id) {
     return route.replace(':id', id);
   },
-  /**
-   * Format a date string
-   * @param {string} dateString
-   * @returns {string}
-   */
   formatDate: function(dateString) {
     return dateString ? new Date(dateString).toLocaleString() : '--';
   },
-  /**
-   * Show a confirmation dialog
-   * @param {object} options
-   * @returns {Promise}
-   */
   confirmAction: function(options) {
     var defaults = {
       title: 'Are you sure?',
@@ -379,20 +298,9 @@ var Utils = {
     };
     return Swal.fire(Object.assign({}, defaults, options));
   },
-  /**
-   * Get data attribute from element
-   * @param {HTMLElement} element
-   * @param {string} attribute
-   * @returns {*}
-   */
   getElementData: function(element, attribute) {
     return $(element).data(attribute);
   },
-  /**
-   * Enable or disable a button
-   * @param {object} $button
-   * @param {boolean} disabled
-   */
   disableButton: function($button, disabled) {
     $button.prop('disabled', disabled === undefined ? true : disabled);
   }
@@ -402,99 +310,41 @@ var Utils = {
 // API SERVICE
 // ===========================
 var ApiService = {
-  /**
-   * Generic AJAX request
-   * @param {object} options
-   * @returns {jqXHR}
-   */
   request: function(options) {
     return $.ajax(options);
   },
-  /**
-   * Fetch reservation statistics
-   * @returns {jqXHR}
-   */
   fetchStats: function() {
     return this.request({ url: ROUTES.reservations.stats, method: 'GET' });
   },
-  /**
-   * Fetch a single reservation by ID
-   * @param {string|number} id
-   * @returns {jqXHR}
-   */
   fetchReservation: function(id) {
     return this.request({ url: Utils.replaceRouteId(ROUTES.reservations.show, id), method: 'GET' });
   },
-  /**
-   * Update a reservation
-   * @param {string|number} id
-   * @param {object} data
-   * @returns {jqXHR}
-   */
   updateReservation: function(id, data) {
     return this.request({ url: Utils.replaceRouteId(ROUTES.reservations.update, id), method: 'PUT', data: data });
   },
-  /**
-   * Delete a reservation by ID
-   * @param {string|number} id
-   * @returns {jqXHR}
-   */
   deleteReservation: function(id) {
     return this.request({ url: Utils.replaceRouteId(ROUTES.reservations.destroy, id), method: 'DELETE' });
   },
-  /**
-   * Fetch all buildings
-   * @returns {jqXHR}
-   */
   fetchBuildings: function() {
     return this.request({ url: ROUTES.buildings.all, method: 'GET' });
   },
-  /**
-   * Fetch all apartments for a building
-   * @param {string|number|null} buildingId
-   * @returns {jqXHR}
-   */
   fetchApartments: function(buildingId) {
     var data = buildingId ? { building_id: buildingId } : {};
     return this.request({ url: ROUTES.apartments.all, method: 'GET', data: data });
   },
-  /**
-   * Fetch all rooms for an apartment
-   * @param {string|number|null} apartmentId
-   * @returns {jqXHR}
-   */
   fetchRooms: function(apartmentId) {
     var data = apartmentId ? { apartment_id: apartmentId } : {};
     return this.request({ url: ROUTES.rooms.all, method: 'GET', data: data });
   },
-  /**
-   * Fetch all users
-   * @returns {jqXHR}
-   */
   fetchUsers: function() {
     return this.request({ url: ROUTES.users.all, method: 'GET' });
   },
-  /**
-   * Fetch all academic terms
-   * @returns {jqXHR}
-   */
   fetchAcademicTerms: function() {
     return this.request({ url: ROUTES.academicTerms.all, method: 'GET' });
   },
-  /**
-   * Create a new reservation
-   * @param {object} data
-   * @returns {jqXHR}
-   */
   createReservation: function(data) {
     return this.request({ url: ROUTES.reservations.store, method: 'POST', data: data });
   },
-  /**
-   * Update an existing reservation
-   * @param {string|number} id
-   * @param {object} data
-   * @returns {jqXHR}
-   */
   updateReservation: function(id, data) {
     return this.request({ url: Utils.replaceRouteId(ROUTES.reservations.update, id), method: 'PUT', data: data });
   }
@@ -504,15 +354,9 @@ var ApiService = {
 // STATISTICS MANAGER
 // ===========================
 var StatsManager = {
-  /**
-   * Initialize statistics cards
-   */
   init: function() {
     this.load();
   },
-  /**
-   * Load statistics data
-   */
   load: function() {
     this.toggleAllLoadingStates(true);
     ApiService.fetchStats()
@@ -520,10 +364,6 @@ var StatsManager = {
       .fail(this.handleError.bind(this))
       .always(this.toggleAllLoadingStates.bind(this, false));
   },
-  /**
-   * Handle successful stats fetch
-   * @param {object} response
-   */
   handleSuccess: function(response) {
     if (response.success) {
       let stats = response.data;
@@ -534,36 +374,20 @@ var StatsManager = {
       this.setAllStatsToNA();
     }
   },
-  /**
-   * Handle error in stats fetch
-   */
   handleError: function() {
     this.setAllStatsToNA();
     Utils.showError('Failed to load reservation statistics');
   },
-  /**
-   * Update a single stat card
-   * @param {string} elementId
-   * @param {string|number} value
-   * @param {string} lastUpdateTime
-   */
   updateStatElement: function(elementId, value, lastUpdateTime) {
     $('#' + elementId + '-value').text(value ?? '0');
     $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--');
   },
-  /**
-   * Set all stat cards to N/A
-   */
   setAllStatsToNA: function() {
     ['reservations', 'reservations-active', 'reservations-inactive'].forEach(function(elementId) {
       $('#' + elementId + '-value').text('N/A');
       $('#' + elementId + '-last-updated').text('N/A');
     });
   },
-  /**
-   * Toggle loading state for all stat cards
-   * @param {boolean} isLoading
-   */
   toggleAllLoadingStates: function(isLoading) {
     ['reservations', 'reservations-active', 'reservations-inactive'].forEach(function(elementId) {
       Utils.toggleLoadingState(elementId, isLoading);
@@ -575,57 +399,39 @@ var StatsManager = {
 // RESERVATION MANAGER
 // ===========================
 var ReservationManager = {
-  /**
-   * Initialize reservation manager
-   */
   init: function() {
     this.bindEvents();
   },
-  /**
-   * Bind all reservation-related events
-   */
   bindEvents: function() {
     var self = this;
     $(document)
-      .on('click', SELECTORS.buttons.viewReservation, function(e) { self.handleViewReservation(e); })
-      .on('click', SELECTORS.buttons.deleteReservation, function(e) { self.handleDeleteReservation(e); })
-      .on('hidden.bs.modal', SELECTORS.modals.viewReservation, function() { self.resetViewModal(); });
+      .on('click', '.viewReservationBtn', function(e) { self.handleViewReservation(e); })
+      .on('click', '.deleteReservationBtn', function(e) { self.handleDeleteReservation(e); })
+      .on('hidden.bs.modal', '#viewReservationModal', function() { self.resetViewModal(); });
   },
-  /**
-   * Handle view reservation button click
-   */
   handleViewReservation: function(e) {
     var reservationId = Utils.getElementData(e.currentTarget, 'id');
     this.viewReservation(reservationId);
   },
-  /**
-   * Handle delete reservation button click
-   */
   handleDeleteReservation: function(e) {
     var reservationId = Utils.getElementData(e.currentTarget, 'id');
     this.confirmAndDeleteReservation(reservationId);
   },
-  /**
-   * View reservation details
-   */
   viewReservation: function(reservationId) {
     ApiService.fetchReservation(reservationId)
       .done(function(response) {
         if (response.success) {
           ReservationManager.populateViewModal(response.data);
-          $(SELECTORS.modals.viewReservation).modal('show');
+          $('#viewReservationModal').modal('show');
         } else {
           Utils.showError(response.message || MESSAGES.error.reservationLoadFailed);
         }
       })
       .fail(function() {
-        $(SELECTORS.modals.viewReservation).modal('hide');
+        $('#viewReservationModal').modal('hide');
         Utils.showError(MESSAGES.error.reservationLoadFailed);
       });
   },
-  /**
-   * Confirm and delete reservation
-   */
   confirmAndDeleteReservation: function(reservationId) {
     Utils.confirmAction(MESSAGES.confirm.deleteReservation)
       .then(function(result) {
@@ -634,9 +440,6 @@ var ReservationManager = {
         }
       });
   },
-  /**
-   * Populate view modal with reservation data
-   */
   populateViewModal: function(reservation) {
     var fields = [
       { id: 'number', value: reservation.reservation_number },
@@ -648,21 +451,16 @@ var ReservationManager = {
       { id: 'status', value: reservation.status },
       { id: 'active', value: reservation.active },
       { id: 'notes', value: reservation.notes },
-      { id: 'created', value: reservation.created_at }
+      { id: 'created', value: reservation.created_at },
+      { id: 'period-type', value: reservation.period_type }
     ];
     fields.forEach(function(field) {
       $('#view-reservation-' + field.id).text(field.value);
     });
   },
-  /**
-   * Reset view modal
-   */
   resetViewModal: function() {
     // No specific reset needed for view modal as it's just a display
   },
-  /**
-   * Delete reservation
-   */
   deleteReservation: function(reservationId) {
     ApiService.deleteReservation(reservationId)
       .done(function(response) {
@@ -679,11 +477,8 @@ var ReservationManager = {
         Utils.showError(message);
       });
   },
-  /**
-   * Reload the reservations table
-   */
   reloadTable: function() {
-    $(SELECTORS.table).DataTable().ajax.reload(null, false);
+    $('#reservations-table').DataTable().ajax.reload(null, false);
   }
 };
 
@@ -691,34 +486,38 @@ var ReservationManager = {
 // SEARCH MANAGER
 // ===========================
 var SearchManager = {
-  /**
-   * Initialize search manager
-   */
   init: function() {
     this.bindEvents();
   },
-  /**
-   * Bind search and clear events
-   */
   bindEvents: function() {
     var self = this;
-    var filterSelectors = Object.values(SELECTORS.filters).join(', ');
+    var filterSelectors = [
+      '#search_reservation_number',
+      '#search_user_name',
+      '#search_status',
+      '#search_active',
+      '#search_academic_term_id',
+      '#search_accommodation_id',
+      '#search_period_type'
+    ].join(', ');
     $(filterSelectors).on('keyup change', function() { self.reloadTable(); });
-    $(SELECTORS.buttons.clearFilters).on('click', function() { self.clearFilters(); });
+    $('#clearReservationFiltersBtn').on('click', function() { self.clearFilters(); });
   },
-  /**
-   * Clear all filters
-   */
   clearFilters: function() {
-    var filterSelectors = Object.values(SELECTORS.filters).join(', ');
+    var filterSelectors = [
+      '#search_reservation_number',
+      '#search_user_name',
+      '#search_status',
+      '#search_active',
+      '#search_academic_term_id',
+      '#search_accommodation_id',
+      '#search_period_type'
+    ].join(', ');
     $(filterSelectors).val('');
     this.reloadTable();
   },
-  /**
-   * Reload the reservations table
-   */
   reloadTable: function() {
-    $(SELECTORS.table).DataTable().ajax.reload();
+    $('#reservations-table').DataTable().ajax.reload();
   }
 };
 
@@ -726,9 +525,6 @@ var SearchManager = {
 // SELECT MANAGER
 // ===========================
 var SelectManager = {
-  /**
-   * Initialize select manager
-   */
   init: function() {
     this.populateBuildingSelect();
     this.populateUserSelect();
@@ -738,48 +534,35 @@ var SelectManager = {
     this.populateEditAcademicTermsSelect();
     this.bindEvents();
   },
-  /**
-   * Bind select change events
-   */
   bindEvents: function() {
     var self = this;
     // Search filters
-    $(SELECTORS.filters.buildingId).on('change', function(e) {
+    $('#search_building_id').on('change', function(e) {
       var buildingId = $(e.target).val();
       self.handleBuildingChange(buildingId);
     });
-    $(SELECTORS.filters.apartmentNumber).on('change', function(e) {
+    $('#search_apartment_number').on('change', function(e) {
       var apartmentNumber = $(e.target).val();
       self.handleApartmentChange(apartmentNumber);
     });
-    
     // Edit form
-    $(SELECTORS.editForm.accommodationType).on('change', function(e) {
+    $('#edit_accommodation_type').on('change', function(e) {
       var type = $(e.target).val();
       self.handleEditAccommodationTypeChange(type);
     });
-    $(SELECTORS.editForm.buildingId).on('change', function(e) {
+    $('#edit_building_id').on('change', function(e) {
       var buildingId = $(e.target).val();
-      var accommodationType = $(SELECTORS.editForm.accommodationType).val();
+      var accommodationType = $('#edit_accommodation_type').val();
       self.handleEditBuildingChange(buildingId, accommodationType);
     });
   },
-  /**
-   * Handle building change for search filters
-   */
   handleBuildingChange: function(buildingId) {
     this.populateApartmentSelect(buildingId);
     this.clearRoomSelect();
   },
-  /**
-   * Handle apartment change for search filters
-   */
   handleApartmentChange: function(apartmentNumber) {
     this.populateRoomSelect(apartmentNumber);
   },
-  /**
-   * Handle accommodation type change for edit form
-   */
   handleEditAccommodationTypeChange: function(type) {
     if (type) {
       this.populateEditBuildingSelect();
@@ -789,74 +572,58 @@ var SelectManager = {
       this.clearEditAccommodationSelect();
     }
   },
-  /**
-   * Handle building change for edit form
-   */
   handleEditBuildingChange: function(buildingId, accommodationType) {
     this.populateEditAccommodationSelect(buildingId, accommodationType);
   },
-  /**
-   * Populate building select dropdown for search
-   */
   populateBuildingSelect: function() {
     ApiService.fetchBuildings()
       .done(function(response) {
         if (response.success && response.data) {
-          SelectManager.populateSelect(SELECTORS.filters.buildingId, response.data, 'number', 'Select Building');
+          SelectManager.populateSelect('#search_building_id', response.data, 'number', 'Select Building');
         }
       })
       .fail(function() {
         Utils.showError(MESSAGES.error.buildingsLoadFailed);
       });
   },
-  /**
-   * Populate building select dropdown for edit form
-   */
   populateEditBuildingSelect: function() {
     ApiService.fetchBuildings()
       .done(function(response) {
         if (response.success && response.data) {
-          SelectManager.populateSelect(SELECTORS.editForm.buildingId, response.data, 'number', 'Select Building');
+          SelectManager.populateSelect('#edit_building_id', response.data, 'number', 'Select Building');
         }
       })
       .fail(function() {
         Utils.showError(MESSAGES.error.buildingsLoadFailed);
       });
   },
-  /**
-   * Populate apartment select dropdown for search
-   */
   populateApartmentSelect: function(buildingId) {
     if (!buildingId) {
-      this.clearSelect(SELECTORS.filters.apartmentNumber, 'Select Apartment');
+      this.clearSelect('#search_apartment_number', 'Select Apartment');
       return;
     }
     ApiService.fetchApartments(buildingId)
       .done(function(response) {
         if (response.success && response.data) {
           var filteredApartments = response.data.filter(function(apartment) { return apartment.building_id == buildingId; });
-          SelectManager.populateSelect(SELECTORS.filters.apartmentNumber, filteredApartments, 'number', 'Select Apartment');
+          SelectManager.populateSelect('#search_apartment_number', filteredApartments, 'number', 'Select Apartment');
         }
       })
       .fail(function() {
         Utils.showError(MESSAGES.error.apartmentsLoadFailed);
       });
   },
-  /**
-   * Populate accommodation select dropdown for edit form
-   */
   populateEditAccommodationSelect: function(buildingId, accommodationType) {
     if (!buildingId || !accommodationType) {
       this.clearEditAccommodationSelect();
       return;
     }
-
     if (accommodationType === 'room') {
       ApiService.fetchRooms(buildingId)
         .done(function(response) {
           if (response.success && response.data) {
             var filteredRooms = response.data.filter(function(room) { return room.building_id == buildingId; });
-            SelectManager.populateSelect(SELECTORS.editForm.accommodationId, filteredRooms, 'number', 'Select Room');
+            SelectManager.populateSelect('#edit_accommodation_id', filteredRooms, 'number', 'Select Room');
           }
         })
         .fail(function() {
@@ -867,7 +634,7 @@ var SelectManager = {
         .done(function(response) {
           if (response.success && response.data) {
             var filteredApartments = response.data.filter(function(apartment) { return apartment.building_id == buildingId; });
-            SelectManager.populateSelect(SELECTORS.editForm.accommodationId, filteredApartments, 'number', 'Select Apartment');
+            SelectManager.populateSelect('#edit_accommodation_id', filteredApartments, 'number', 'Select Apartment');
           }
         })
         .fail(function() {
@@ -875,49 +642,34 @@ var SelectManager = {
         });
     }
   },
-  /**
-   * Clear accommodation select dropdown for edit form
-   */
   clearEditAccommodationSelect: function() {
-    this.clearSelect(SELECTORS.editForm.accommodationId, 'Select Room/Apartment');
+    this.clearSelect('#edit_accommodation_id', 'Select Room/Apartment');
   },
-  /**
-   * Clear building select dropdown for edit form
-   */
   clearEditBuildingSelect: function() {
-    this.clearSelect(SELECTORS.editForm.buildingId, 'Select Building');
+    this.clearSelect('#edit_building_id', 'Select Building');
   },
-  /**
-   * Populate user select dropdown
-   */
   populateUserSelect: function() {
     ApiService.fetchUsers()
       .done(function(response) {
         if (response.success && response.data) {
-          SelectManager.populateSelectWithUserInfo(SELECTORS.editForm.userId, response.data, 'Select User');
+          SelectManager.populateSelectWithUserInfo('#edit_user_id', response.data, 'Select User');
         }
       })
       .fail(function() {
         Utils.showError(MESSAGES.error.usersLoadFailed);
       });
   },
-  /**
-   * Populate academic terms select dropdown for edit form
-   */
   populateEditAcademicTermsSelect: function() {
     ApiService.fetchAcademicTerms()
       .done(function(response) {
         if (response.success && response.data) {
-          SelectManager.populateSelect(SELECTORS.editForm.academicTermId, response.data, 'name_en', 'Select Academic Term');
+          SelectManager.populateSelect('#edit_academic_term_id', response.data, 'name_en', 'Select Academic Term');
         }
       })
       .fail(function() {
         Utils.showError(MESSAGES.error.academicTermsLoadFailed);
       });
   },
-  /**
-   * Populate a select dropdown with data
-   */
   populateSelect: function(selector, data, valueField, placeholder) {
     var $select = $(selector);
     $select.empty().append('<option value="">' + placeholder + '</option>');
@@ -925,9 +677,6 @@ var SelectManager = {
       $select.append('<option value="' + item.id + '">' + item[valueField] + '</option>');
     });
   },
-  /**
-   * Populate a select dropdown with user information
-   */
   populateSelectWithUserInfo: function(selector, data, placeholder) {
     var $select = $(selector);
     $select.empty().append('<option value="">' + placeholder + '</option>');
@@ -939,21 +688,12 @@ var SelectManager = {
       $select.append('<option value="' + item.id + '">' + displayText + '</option>');
     });
   },
-  /**
-   * Clear a select dropdown
-   */
   clearSelect: function(selector, placeholder) {
     $(selector).empty().append('<option value="">' + placeholder + '</option>');
   },
-  /**
-   * Clear room select dropdown for search
-   */
   clearRoomSelect: function() {
-    this.clearSelect(SELECTORS.filters.roomNumber, 'Select Room');
+    this.clearSelect('#search_room_number', 'Select Room');
   },
-  /**
-   * Reset edit form dropdowns
-   */
   resetEditFormDropdowns: function() {
     this.clearEditAccommodationSelect();
   }
@@ -963,9 +703,6 @@ var SelectManager = {
 // MAIN APP INITIALIZER
 // ===========================
 var ReservationApp = {
-  /**
-   * Initialize all managers
-   */
   init: function() {
     StatsManager.init();
     ReservationManager.init();

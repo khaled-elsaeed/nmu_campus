@@ -3,6 +3,7 @@
 namespace App\Services\Reservation\Create;
 
 use App\Models\Reservation;
+use App\Models\Academic\AcademicTerm;
 use App\Exceptions\BusinessValidationException;
 use Carbon\Carbon;
 
@@ -18,7 +19,7 @@ class ReservationValidator
     public function checkForDuplicateReservation(array $data, ?int $excludeReservationId = null): void
     {
         $this->validateInputData($data);
-        
+
         $userId = $data['user_id'];
         $academicTermId = $data['academic_term_id'] ?? null;
         $checkInDate = $data['check_in_date'] ?? null;
@@ -51,6 +52,11 @@ class ReservationValidator
         if ($period === 'long') {
             if (empty($data['academic_term_id'])) {
                 throw new BusinessValidationException('Academic term ID is required for long period.');
+            }
+            // Also check that the academic term is active
+            $term = AcademicTerm::find($data['academic_term_id']);
+            if (!$term || !$term->active) {
+                throw new BusinessValidationException('Selected academic term is not active.');
             }
         } elseif ($period === 'short') {
             $checkInDate = $data['check_in_date'] ?? null;

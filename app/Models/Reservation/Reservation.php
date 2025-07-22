@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\User;
 use App\Models\Academic\AcademicTerm;
-
+use App\Models\Equipment\Equipment;
 
 class Reservation extends Model
 {
@@ -99,7 +99,6 @@ class Reservation extends Model
 
     /**
      * Get the accommodation for the reservation.
-     * Fixed: Changed from belongsTo to hasOne since Accommodation has reservation_id
      *
      * @return HasOne
      */
@@ -140,7 +139,6 @@ class Reservation extends Model
 
     /**
      * Get the equipment for the reservation through the reservation_equipment pivot table.
-     * Fixed: Added proper return type annotation
      *
      * @return BelongsToMany
      */

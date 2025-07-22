@@ -98,20 +98,20 @@
                             <!-- Period Selector -->
                             <div class="col-md-4">
                                 <label for="add_period" class="form-label">Period <span class="text-danger">*</span></label>
-                                <select class="form-control" id="add_period" name="period" required>
+                                <select class="form-control" id="add_period" name="period_type" required>
                                     <option value="">Select Period</option>
-                                    <option value="long">Long</option>
-                                    <option value="short">Short</option>
+                                    <option value="academic">Academic</option>
+                                    <option value="calendar">Calendar</option>
                                 </select>
                             </div>
-                            <!-- Academic Term (Long Period) -->
+                            <!-- Academic Term (Academic Period) -->
                             <div class="col-md-4" id="academic-term-group">
                                 <label for="add_academic_term_id" class="form-label">Academic Term</label>
                                 <select class="form-control" id="add_academic_term_id" name="academic_term_id">
                                     <option value="">Select Academic Term</option>
                                 </select>
                             </div>
-                            <!-- Check-in/Check-out (Short Period) -->
+                            <!-- Check-in/Check-out (Calendar Period) -->
                             <div class="col-md-4" id="checkinout-group">
                                 <div class="row g-2">
                                     <div class="col-12">
@@ -666,13 +666,13 @@ const PeriodManager = {
   },
   handlePeriodChange: () => {
     const period = $(SELECTORS.period).val();
-    if (period === 'long') {
+    if (period === 'academic') {
       Utils.showElement($(SELECTORS.academicTermGroup));
       Utils.hideElement($(SELECTORS.checkinoutGroup));
       $(SELECTORS.academicTermId).prop('required', true);
       $(SELECTORS.checkInDate).prop('required', false);
       $(SELECTORS.checkOutDate).prop('required', false);
-    } else if (period === 'short') {
+    } else if (period === 'calendar') {
       Utils.hideElement($(SELECTORS.academicTermGroup));
       Utils.showElement($(SELECTORS.checkinoutGroup));
       $(SELECTORS.academicTermId).prop('required', false);
@@ -783,11 +783,11 @@ const ReservationManager = {
       Utils.showError('Please select a period.');
       return false;
     }
-    if (formData.period === 'long' && !formData.academic_term_id) {
+    if (formData.period_type === 'academic' && !formData.academic_term_id) {
       Utils.showError('Please select an academic term.');
       return false;
     }
-    if (formData.period === 'short') {
+    if (formData.period_type === 'calendar') {
       if (!formData.check_in_date || !formData.check_out_date) {
         Utils.showError('Please select check-in and check-out dates.');
         return false;
