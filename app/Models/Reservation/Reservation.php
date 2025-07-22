@@ -26,6 +26,7 @@ class Reservation extends Model
         'check_out_date',
         'status',
         'active',
+        'period_type',
         'notes',
         'confirmed_at',
         'checked_in_at',
