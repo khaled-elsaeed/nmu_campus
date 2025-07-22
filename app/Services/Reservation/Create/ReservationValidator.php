@@ -2,7 +2,7 @@
 
 namespace App\Services\Reservation\Create;
 
-use App\Models\Reservation;
+use App\Models\Reservation\Reservation;
 use App\Models\Academic\AcademicTerm;
 use App\Exceptions\BusinessValidationException;
 use Carbon\Carbon;
@@ -39,7 +39,7 @@ class ReservationValidator
     }
 
     /**
-     * Validate input data based on period type
+     * Validate input data based on period_type (academic or calendar)
      */
     private function validateInputData(array $data): void
     {
@@ -47,23 +47,23 @@ class ReservationValidator
             throw new BusinessValidationException('User ID is required.');
         }
 
-        $period = $data['period'] ?? null;
+        $periodType = $data['period_type'] ?? null;
 
-        if ($period === 'long') {
+        if ($periodType === 'academic') {
             if (empty($data['academic_term_id'])) {
-                throw new BusinessValidationException('Academic term ID is required for long period.');
+                throw new BusinessValidationException('Academic term ID is required for academic period.');
             }
             // Also check that the academic term is active
             $term = AcademicTerm::find($data['academic_term_id']);
             if (!$term || !$term->active) {
                 throw new BusinessValidationException('Selected academic term is not active.');
             }
-        } elseif ($period === 'short') {
+        } elseif ($periodType === 'calendar') {
             $checkInDate = $data['check_in_date'] ?? null;
             $checkOutDate = $data['check_out_date'] ?? null;
 
             if (!$checkInDate || !$checkOutDate) {
-                throw new BusinessValidationException('Check-in and check-out dates are required for short period.');
+                throw new BusinessValidationException('Check-in and check-out dates are required for calendar period.');
             }
 
             $checkIn = Carbon::parse($checkInDate);
@@ -73,7 +73,7 @@ class ReservationValidator
                 throw new BusinessValidationException('Check-out date must be after check-in date.');
             }
         } else {
-            throw new BusinessValidationException('Period type must be either long or short.');
+            throw new BusinessValidationException('Period type must be either academic or calendar.');
         }
     }
 

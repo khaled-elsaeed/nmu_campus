@@ -2,7 +2,7 @@
 
 namespace App\Services\Reservation\Create;
 
-use App\Models\Reservation;
+use App\Models\Reservation\Reservation;
 use App\Models\Reservation\Accommodation;
 use App\Models\Payment;
 use App\Models\Insurance;
@@ -105,7 +105,7 @@ class PaymentService
      */
     private function handleInsurance(Reservation $reservation): array
     {
-        $existingInsurance = $this->getActiveInsurance($reservation->user_id);
+        $existingInsurance = $this->getActiveInsurance($reservation->id);
         
         if ($existingInsurance) {
             // Mark existing insurance as carried over
@@ -132,11 +132,11 @@ class PaymentService
     }
 
     /**
-     * Get active insurance for user
+     * Get active insurance for reservation
      */
-    private function getActiveInsurance(int $userId): ?Insurance
+    private function getActiveInsurance(int $reservationId): ?Insurance
     {
-        return Insurance::where('user_id', $userId)
+        return Insurance::where('reservation_id', $reservationId)
             ->where('status', self::INSURANCE_ACTIVE)
             ->latest('created_at')
             ->first();
@@ -148,7 +148,6 @@ class PaymentService
     private function createInsuranceRecord(Reservation $reservation, string $status): Insurance
     {
         return Insurance::create([
-            'user_id' => $reservation->user_id,
             'reservation_id' => $reservation->id,
             'status' => $status,
             'amount' => self::INSURANCE_FEE,

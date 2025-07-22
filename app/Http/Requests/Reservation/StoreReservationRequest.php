@@ -20,14 +20,11 @@ class StoreReservationRequest extends FormRequest
      */
     public function rules()
     {
-        return [
+        $rules = [
             'user_id' => ['required', 'integer', 'exists:users,id'],
             'period_type' => ['required', Rule::in(['academic', 'calendar'])],
             'accommodation_type' => ['required', Rule::in(['room', 'apartment'])],
             'accommodation_id' => ['required', 'integer'],
-            'academic_term_id' => ['required_if:period,long', 'nullable', 'integer', 'exists:academic_terms,id'],
-            'check_in_date' => ['required_if:period,short', 'nullable', 'date'],
-            'check_out_date' => ['required_if:period,short', 'nullable', 'date', 'after:check_in_date'],
             'status' => ['nullable', 'string'],
             'active' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string'],
@@ -53,6 +50,23 @@ class StoreReservationRequest extends FormRequest
             'payment.status' => ['nullable', 'string'],
             'payment.notes' => ['nullable', 'string'],
         ];
+
+        // period_type is either 'academic' or 'calendar'
+        if ($this->input('period_type') === 'academic') {
+            $rules['academic_term_id'] = ['required', 'integer', 'exists:academic_terms,id'];
+            $rules['check_in_date'] = ['nullable', 'date'];
+            $rules['check_out_date'] = ['nullable', 'date', 'after:check_in_date'];
+        } elseif ($this->input('period_type') === 'calendar') {
+            $rules['academic_term_id'] = ['nullable', 'integer', 'exists:academic_terms,id'];
+            $rules['check_in_date'] = ['required', 'date'];
+            $rules['check_out_date'] = ['required', 'date', 'after:check_in_date'];
+        } else {
+            $rules['academic_term_id'] = ['nullable', 'integer', 'exists:academic_terms,id'];
+            $rules['check_in_date'] = ['nullable', 'date'];
+            $rules['check_out_date'] = ['nullable', 'date', 'after:check_in_date'];
+        }
+
+        return $rules;
     }
 
     /**
@@ -61,14 +75,17 @@ class StoreReservationRequest extends FormRequest
     public function messages()
     {
         return [
-            'period.required' => 'Reservation period is required.',
-            'period.in' => 'Reservation period must be either long or short.',
+            'period_type.required' => 'Reservation period is required.',
+            'period_type.in' => 'Reservation period must be either academic or calendar.',
             'accommodation_type.required' => 'Accommodation type is required.',
             'accommodation_type.in' => 'Accommodation type must be either room or apartment.',
             'accommodation_id.required' => 'Accommodation ID is required.',
-            'academic_term_id.required_if' => 'Academic term is required for long-term reservations.',
-            'check_in_date.required_if' => 'Check-in date is required for short-term reservations.',
-            'check_out_date.required_if' => 'Check-out date is required for short-term reservations.',
+            'academic_term_id.required' => 'Academic term is required for academic period reservations.',
+            'academic_term_id.exists' => 'Selected academic term does not exist.',
+            'check_in_date.required' => 'Check-in date is required for calendar period reservations.',
+            'check_in_date.date' => 'Check-in date must be a valid date.',
+            'check_out_date.required' => 'Check-out date is required for calendar period reservations.',
+            'check_out_date.date' => 'Check-out date must be a valid date.',
             'check_out_date.after' => 'Check-out date must be after check-in date.',
             'equipment.*.equipment_id.required_with' => 'Equipment ID is required for each equipment item.',
             'equipment.*.equipment_id.exists' => 'Selected equipment does not exist.',

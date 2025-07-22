@@ -2,12 +2,12 @@
 
 namespace App\Services\Reservation;
 
-use App\Models\Reservation;
-use App\Services\Reservation\CreateReservation\ReservationValidator;
-use App\Services\Reservation\CreateReservation\ReservationCreator;
-use App\Services\Reservation\CreateReservation\AccommodationService;
-use App\Services\Reservation\CreateReservation\PaymentService;
-use App\Services\Reservation\CreateReservation\EquipmentAssignmentService;
+use App\Models\Reservation\Reservation;
+use App\Services\Reservation\Create\ReservationValidator;
+use App\Services\Reservation\Create\ReservationCreator;
+use App\Services\Reservation\Create\AccommodationService;
+use App\Services\Reservation\Create\PaymentService;
+use App\Services\Reservation\Create\EquipmentAssignmentService;
 
 class CreateReservationService
 {

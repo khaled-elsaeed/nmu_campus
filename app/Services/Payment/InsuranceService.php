@@ -8,7 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
-use App\Models\Reservation;
+use App\Models\Reservation\Reservation;
 
 class InsuranceService
 {

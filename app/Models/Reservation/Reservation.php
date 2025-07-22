@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\User;
 use App\Models\Academic\AcademicTerm;
-use App\Models\Equipment\Equipment;
+use App\Models\Equipment;
 
 class Reservation extends Model
 {

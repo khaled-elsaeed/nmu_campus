@@ -5,7 +5,7 @@ namespace App\Services\Reservation\Request;
 use App\Models\Reservation\ReservationRequest;
 use App\Models\User;
 use App\Models\Resident\Student;
-use App\Models\Reservation\ِAccommodation;
+use App\Models\Reservation\Accommodation;
 use App\Models\Academic\AcademicTerm;
 use App\Models\Housing\Apartment;
 use App\Exceptions\BusinessValidationException;
@@ -30,13 +30,13 @@ class ReservationRequestService
     public function updateReservation(ReservationRequest $reservationRequest, array $data): ReservationRequest
     {
         return DB::transaction(function () use ($reservationRequest, $data) {
-            // Ensure only the correct fields are updated based on period
-            if (isset($data['period'])) {
-                if ($data['period'] === 'long') {
+            // Update fields based on period_type: 'academic' or 'calendar'
+            if (isset($data['period_type'])) {
+                if ($data['period_type'] === 'academic') {
+                    $data['academic_term_id'] = null;
+                } elseif ($data['period_type'] === 'calendar') {
                     $data['requested_check_in_date'] = null;
                     $data['requested_check_out_date'] = null;
-                } elseif ($data['period'] === 'short') {
-                    $data['academic_term_id'] = null;
                 }
             }
             $reservationRequest->update($data);

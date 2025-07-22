@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Reservation;
 
-use App\Models\Reservation;
+use App\Models\Reservation\Reservation;
 use App\Models\User;
 use App\Models\Resident\Student;
-use App\Models\Reservation\ِAccommodation;
+use App\Models\Reservation\Accommodation;
 use App\Models\Academic\AcademicTerm;
 use App\Models\Housing\Room;
 use App\Models\Housing\Apartment;

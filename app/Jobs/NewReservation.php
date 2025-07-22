@@ -6,7 +6,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use App\Models\Reservation;
+use App\Models\Reservation\Reservation;
 use App\Services\Reservation\CreateReservationService;
 use App\Exceptions\BusinessValidationException;
 

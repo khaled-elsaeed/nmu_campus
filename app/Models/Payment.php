@@ -6,8 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
 use App\ValueObjects\Detail;
-
-
+use App\Models\Reservation\Reservation;
 
 class Payment extends Model
 {

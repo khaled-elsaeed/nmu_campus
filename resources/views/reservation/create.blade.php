@@ -204,38 +204,6 @@ const ROUTES = {
   }
 };
 
-const SELECTORS = {
-  // Search elements
-  searchNationalId: '#search_national_id',
-  btnSearchNationalId: '#btnSearchNationalId',
-  userInfoSection: '#user-info-section',
-  userInfoContent: '#user-info-content',
-  
-  // Form elements
-  addForm: '#addReservationForm',
-  userId: '#add_user_id',
-  accommodationType: '#add_accommodation_type',
-  buildingId: '#add_building_id',
-  apartmentId: '#add_apartment_id',
-  roomId: '#add_room_id',
-  academicTermId: '#add_academic_term_id',
-  status: '#add_status',
-  checkInDate: '#add_check_in_date',
-  checkOutDate: '#add_check_out_date',
-  notes: '#add_notes',
-  equipmentList: '#equipment-list',
-  period: '#add_period',
-  academicTermGroup: '#academic-term-group',
-  checkinoutGroup: '#checkinout-group',
-  
-  // Groups
-  apartmentSelectGroup: '#apartment-select-group',
-  roomSelectGroup: '#room-select-group',
-  
-  // Submit button
-  submitBtn: '#addReservationForm button[type="submit"]'
-};
-
 const MESSAGES = {
   success: {
     reservationCreated: 'Reservation has been created successfully.'
@@ -375,8 +343,8 @@ const UserSearchManager = {
   },
 
   bindEvents: () => {
-    $(SELECTORS.btnSearchNationalId).on('click', UserSearchManager.handleSearch);
-    $(SELECTORS.searchNationalId).on('keypress', (e) => {
+    $('#btnSearchNationalId').on('click', UserSearchManager.handleSearch);
+    $('#search_national_id').on('keypress', (e) => {
       if (e.which === 13) { // Enter key
         UserSearchManager.handleSearch();
       }
@@ -384,14 +352,14 @@ const UserSearchManager = {
   },
 
   handleSearch: () => {
-    const nationalId = $(SELECTORS.searchNationalId).val().trim();
+    const nationalId = $('#search_national_id').val().trim();
     
     if (!nationalId) {
       Utils.showError(MESSAGES.error.enterNationalId);
       return;
     }
 
-    const $btn = $(SELECTORS.btnSearchNationalId);
+    const $btn = $('#btnSearchNationalId');
     Utils.disableButton($btn);
 
     ApiService.findUserByNationalId(nationalId)
@@ -412,14 +380,14 @@ const UserSearchManager = {
 
   handleUserFound: (user) => {
     UserSearchManager.displayUserInfo(user);
-    $(SELECTORS.userId).val(user.id);
-    Utils.showElement($(SELECTORS.userInfoSection));
-    Utils.showElement($(SELECTORS.addForm));
+    $('#add_user_id').val(user.id);
+    Utils.showElement($('#user-info-section'));
+    Utils.showElement($('#addReservationForm'));
   },
 
   handleUserNotFound: (message = null) => {
-    Utils.hideElement($(SELECTORS.userInfoSection));
-    Utils.hideElement($(SELECTORS.addForm));
+    Utils.hideElement($('#user-info-section'));
+    Utils.hideElement($('#addReservationForm'));
     Utils.showError(message || MESSAGES.error.userNotFound);
   },
 
@@ -432,7 +400,7 @@ const UserSearchManager = {
         <div class="col-md-6"><strong>National ID:</strong> ${user.national_id || '-'}</div>
       </div>
     `;
-    $(SELECTORS.userInfoContent).html(html);
+    $('#user-info-content').html(html);
   }
 };
 
@@ -447,14 +415,14 @@ const SelectManager = {
   },
 
   bindEvents: () => {
-    $(SELECTORS.accommodationType).on('change', SelectManager.handleAccommodationTypeChange);
-    $(SELECTORS.buildingId).on('change', SelectManager.handleBuildingChange);
-    $(SELECTORS.apartmentId).on('change', SelectManager.handleApartmentChange);
-    $(SELECTORS.roomId).on('change', SelectManager.handleRoomChange); // Add this line
+    $('#add_accommodation_type').on('change', SelectManager.handleAccommodationTypeChange);
+    $('#add_building_id').on('change', SelectManager.handleBuildingChange);
+    $('#add_apartment_id').on('change', SelectManager.handleApartmentChange);
+    $('#add_room_id').on('change', SelectManager.handleRoomChange);
   },
 
   handleAccommodationTypeChange: () => {
-    const type = $(SELECTORS.accommodationType).val();
+    const type = $('#add_accommodation_type').val();
     
     if (type) {
       SelectManager.loadBuildings();
@@ -467,8 +435,8 @@ const SelectManager = {
   },
 
   handleBuildingChange: () => {
-    const buildingId = $(SELECTORS.buildingId).val();
-    const accommodationType = $(SELECTORS.accommodationType).val();
+    const buildingId = $('#add_building_id').val();
+    const accommodationType = $('#add_accommodation_type').val();
     
     if (buildingId && accommodationType) {
       if (accommodationType === 'apartment') {
@@ -482,8 +450,8 @@ const SelectManager = {
   },
 
   handleApartmentChange: () => {
-    const apartmentId = $(SELECTORS.apartmentId).val();
-    const accommodationType = $(SELECTORS.accommodationType).val();
+    const apartmentId = $('#add_apartment_id').val();
+    const accommodationType = $('#add_accommodation_type').val();
     
     if (accommodationType === 'room' && apartmentId) {
       SelectManager.loadRoomsForApartment(apartmentId);
@@ -491,7 +459,7 @@ const SelectManager = {
   },
 
   handleRoomChange: () => {
-    const $roomSelect = $(SELECTORS.roomId);
+    const $roomSelect = $('#add_room_id');
     const roomId = $roomSelect.val();
     if (!roomId) {
       $('#double-room-bed-options').hide();
@@ -508,30 +476,30 @@ const SelectManager = {
 
   showAccommodationFields: (type) => {
     if (type === 'room') {
-      Utils.showElement($(SELECTORS.apartmentSelectGroup));
-      Utils.showElement($(SELECTORS.roomSelectGroup));
-      $(SELECTORS.apartmentId).prop('required', true);
-      $(SELECTORS.roomId).prop('required', true);
+      Utils.showElement($('#apartment-select-group'));
+      Utils.showElement($('#room-select-group'));
+      $('#add_apartment_id').prop('required', true);
+      $('#add_room_id').prop('required', true);
     } else if (type === 'apartment') {
-      Utils.showElement($(SELECTORS.apartmentSelectGroup));
-      Utils.hideElement($(SELECTORS.roomSelectGroup));
-      $(SELECTORS.apartmentId).prop('required', true);
-      $(SELECTORS.roomId).prop('required', false);
+      Utils.showElement($('#apartment-select-group'));
+      Utils.hideElement($('#room-select-group'));
+      $('#add_apartment_id').prop('required', true);
+      $('#add_room_id').prop('required', false);
     }
   },
 
   hideAccommodationFields: () => {
-    Utils.hideElement($(SELECTORS.apartmentSelectGroup));
-    Utils.hideElement($(SELECTORS.roomSelectGroup));
-    $(SELECTORS.apartmentId).prop('required', false);
-    $(SELECTORS.roomId).prop('required', false);
+    Utils.hideElement($('#apartment-select-group'));
+    Utils.hideElement($('#room-select-group'));
+    $('#add_apartment_id').prop('required', false);
+    $('#add_room_id').prop('required', false);
   },
 
   loadBuildings: () => {
     ApiService.fetchBuildings()
       .done((response) => {
         if (response.success && response.data) {
-          SelectManager.populateSelect(SELECTORS.buildingId, response.data, 'number', 'Select Building');
+          SelectManager.populateSelect('#add_building_id', response.data, 'number', 'Select Building');
         }
       })
       .fail(() => {
@@ -543,8 +511,7 @@ const SelectManager = {
     ApiService.fetchApartments(buildingId)
       .done((response) => {
         if (response.success && response.data) {
-          const filteredData = response.data.filter(item => item.building_id == buildingId);
-          SelectManager.populateSelect(SELECTORS.apartmentId, filteredData, 'number', 'Select Apartment');
+          SelectManager.populateSelect('#add_apartment_id', response.data, 'number', 'Select Apartment');
         }
       })
       .fail(() => {
@@ -556,7 +523,7 @@ const SelectManager = {
     ApiService.fetchRooms(null, apartmentId)
       .done((response) => {
         if (response.success && response.data) {
-          SelectManager.populateSelect(SELECTORS.roomId, response.data, 'number', 'Select Room');
+          SelectManager.populateSelect('#add_room_id', response.data, 'number', 'Select Room');
         }
       })
       .fail(() => {
@@ -568,7 +535,7 @@ const SelectManager = {
     ApiService.fetchAcademicTerms()
       .done((response) => {
         if (response.success && response.data) {
-          SelectManager.populateSelect(SELECTORS.academicTermId, response.data, 'name_en', 'Select Academic Term');
+          SelectManager.populateSelect('#add_academic_term_id', response.data, 'name', 'Select Academic Term');
         }
       })
       .fail(() => {
@@ -592,7 +559,7 @@ const SelectManager = {
     const $select = $(selector);
     Utils.clearSelect($select, placeholder);
     // Only add data-type for room selects
-    const isRoomSelect = $select.is(SELECTORS.roomId);
+    const isRoomSelect = $select.is('#add_room_id');
     data.forEach(item => {
       if (isRoomSelect && item.type) {
         $select.append(`<option value="${item.id}" data-type="${item.type}">${item[valueField]}</option>`);
@@ -603,7 +570,7 @@ const SelectManager = {
   },
 
   renderEquipmentList: (equipmentData) => {
-    const $list = $(SELECTORS.equipmentList);
+    const $list = $('#equipment-list');
     $list.empty();
     
     if (!equipmentData.length) {
@@ -645,12 +612,12 @@ const SelectManager = {
   },
 
   clearAccommodationSelects: () => {
-    Utils.clearSelect($(SELECTORS.apartmentId), 'Select Apartment');
-    Utils.clearSelect($(SELECTORS.roomId), 'Select Room');
+    Utils.clearSelect($('#add_apartment_id'), 'Select Apartment');
+    Utils.clearSelect($('#add_room_id'), 'Select Room');
   },
 
   resetForm: () => {
-    Utils.clearSelect($(SELECTORS.buildingId), 'Select Building');
+    Utils.clearSelect($('#add_building_id'), 'Select Building');
     SelectManager.clearAccommodationSelects();
     SelectManager.hideAccommodationFields();
   }
@@ -661,29 +628,29 @@ const SelectManager = {
 // ===========================
 const PeriodManager = {
   init: () => {
-    $(SELECTORS.period).on('change', PeriodManager.handlePeriodChange);
+    $('#add_period').on('change', PeriodManager.handlePeriodChange);
     PeriodManager.handlePeriodChange(); // Set initial state
   },
   handlePeriodChange: () => {
-    const period = $(SELECTORS.period).val();
+    const period = $('#add_period').val();
     if (period === 'academic') {
-      Utils.showElement($(SELECTORS.academicTermGroup));
-      Utils.hideElement($(SELECTORS.checkinoutGroup));
-      $(SELECTORS.academicTermId).prop('required', true);
-      $(SELECTORS.checkInDate).prop('required', false);
-      $(SELECTORS.checkOutDate).prop('required', false);
+      Utils.showElement($('#academic-term-group'));
+      Utils.hideElement($('#checkinout-group'));
+      $('#add_academic_term_id').prop('required', true);
+      $('#add_check_in_date').prop('required', false);
+      $('#add_check_out_date').prop('required', false);
     } else if (period === 'calendar') {
-      Utils.hideElement($(SELECTORS.academicTermGroup));
-      Utils.showElement($(SELECTORS.checkinoutGroup));
-      $(SELECTORS.academicTermId).prop('required', false);
-      $(SELECTORS.checkInDate).prop('required', true);
-      $(SELECTORS.checkOutDate).prop('required', true);
+      Utils.hideElement($('#academic-term-group'));
+      Utils.showElement($('#checkinout-group'));
+      $('#add_academic_term_id').prop('required', false);
+      $('#add_check_in_date').prop('required', true);
+      $('#add_check_out_date').prop('required', true);
     } else {
-      Utils.hideElement($(SELECTORS.academicTermGroup));
-      Utils.hideElement($(SELECTORS.checkinoutGroup));
-      $(SELECTORS.academicTermId).prop('required', false);
-      $(SELECTORS.checkInDate).prop('required', false);
-      $(SELECTORS.checkOutDate).prop('required', false);
+      Utils.hideElement($('#academic-term-group'));
+      Utils.hideElement($('#checkinout-group'));
+      $('#add_academic_term_id').prop('required', false);
+      $('#add_check_in_date').prop('required', false);
+      $('#add_check_out_date').prop('required', false);
     }
   }
 };
@@ -697,7 +664,7 @@ const ReservationManager = {
   },
 
   bindEvents: () => {
-    $(SELECTORS.addForm).on('submit', ReservationManager.handleSubmit);
+    $('#addReservationForm').on('submit', ReservationManager.handleSubmit);
   },
 
   handleSubmit: (e) => {
@@ -712,7 +679,7 @@ const ReservationManager = {
       return;
     }
     
-    const $btn = $(SELECTORS.submitBtn);
+    const $btn = $('#addReservationForm button[type="submit"]');
     Utils.disableButton($btn);
     
     ApiService.createReservation(formData)
@@ -736,23 +703,23 @@ const ReservationManager = {
     const formData = {};
     
     // Serialize form fields
-    $(SELECTORS.addForm).serializeArray().forEach(item => {
+    $('#addReservationForm').serializeArray().forEach(item => {
       if (item.value) {
         formData[item.name] = item.value;
       }
     });
     
     // Handle accommodation_id based on type
-    const accommodationType = $(SELECTORS.accommodationType).val();
+    const accommodationType = $('#add_accommodation_type').val();
     if (accommodationType === 'room') {
-      formData.accommodation_id = $(SELECTORS.roomId).val();
+      formData.accommodation_id = $('#add_room_id').val();
     } else if (accommodationType === 'apartment') {
-      formData.accommodation_id = $(SELECTORS.apartmentId).val();
+      formData.accommodation_id = $('#add_apartment_id').val();
     }
     
     // Collect equipment
     const equipment = [];
-    $(SELECTORS.equipmentList).find('.equipment-checkbox:checked').each(function() {
+    $('#equipment-list').find('.equipment-checkbox:checked').each(function() {
       const id = $(this).val();
       const qty = $(`#equipment_qty_${id}`).val();
       equipment.push({ 
@@ -779,7 +746,7 @@ const ReservationManager = {
       Utils.showError(MESSAGES.error.selectUser);
       return false;
     }
-    if (!formData.period) {
+    if (!formData.period_type) {
       Utils.showError('Please select a period.');
       return false;
     }
@@ -802,16 +769,16 @@ const ReservationManager = {
   },
 
   handleSaveSuccess: () => {
-    $(SELECTORS.addForm)[0].reset();
-    $(SELECTORS.userId).val('');
+    $('#addReservationForm')[0].reset();
+    $('#add_user_id').val('');
     
     // Hide form sections
-    Utils.hideElement($(SELECTORS.userInfoSection));
-    Utils.hideElement($(SELECTORS.addForm));
+    Utils.hideElement($('#user-info-section'));
+    Utils.hideElement($('#addReservationForm'));
     
     // Reset form state
     SelectManager.resetForm();
-    $(SELECTORS.searchNationalId).val('');
+    $('#search_national_id').val('');
     
     Utils.showSuccess(MESSAGES.success.reservationCreated);
   }

@@ -268,15 +268,15 @@
 // ===========================
 var ROUTES = {
     terms: {
-        start: '{{ route('academic_terms.start', ':id') }}',
-        end: '{{ route('academic_terms.end', ':id') }}',
-        activate: '{{ route('academic_terms.activate', ':id') }}',
-        deactivate: '{{ route('academic_terms.deactivate', ':id') }}',
+        start: '{{ route('academic.academic_terms.start', ':id') }}',
+        end: '{{ route('academic.academic_terms.end', ':id') }}',
+        activate: '{{ route('academic.academic_terms.activate', ':id') }}',
+        deactivate: '{{ route('academic.academic_terms.deactivate', ':id') }}',
         stats: '{{ route('academic.academic_terms.stats') }}',
         store: '{{ route('academic.academic_terms.store') }}',
         show: '{{ route('academic.academic_terms.show', ':id') }}',
         destroy: '{{ route('academic.academic_terms.destroy', ':id') }}',
-        all: '{{ route('academic_terms.all') }}'
+        all: '{{ route('academic.academic_terms.all') }}'
     }
 };
 

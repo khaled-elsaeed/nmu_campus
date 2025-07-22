@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Reservation\Request;
+namespace App\Http\Controllers\Reservation;
 
 use Illuminate\Http\{Request, JsonResponse};
 use Illuminate\View\View;
