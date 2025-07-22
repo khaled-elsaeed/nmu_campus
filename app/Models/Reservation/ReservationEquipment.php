@@ -1,9 +1,11 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Reservation;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Equipment;
+use App\Models\User;
 
 class ReservationEquipment extends Model
 {

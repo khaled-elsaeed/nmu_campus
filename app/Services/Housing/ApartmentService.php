@@ -2,8 +2,8 @@
 
 namespace App\Services\Housing;
 
-use App\Models\Apartment;
-use App\Models\Room;
+use App\Models\Housing\Apartment;
+use App\Models\Housing\Room;
 use App\Exceptions\BusinessValidationException;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
@@ -245,7 +245,7 @@ class ApartmentService
     /**
      * Activate or deactivate all rooms of an apartment.
      *
-     * @param \App\Models\Apartment $apartment
+     * @param \App\Models\Housing\Apartment $apartment
      * @param bool $active
      * @return void
      */
@@ -263,7 +263,7 @@ class ApartmentService
     /**
      * Create rooms for an apartment.
      *
-     * @param \App\Models\Apartment $apartment
+     * @param \App\Models\Housing\Apartment $apartment
      * @param int $totalRooms
      * @return void
      */

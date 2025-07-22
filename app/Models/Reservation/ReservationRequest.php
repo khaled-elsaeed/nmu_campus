@@ -1,13 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Reservation;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Enums\RequestStatus;
-use App\Enums\AccommodationType;
+use App\Models\User;
 use App\Models\Academic\AcademicTerm;
 
 class ReservationRequest extends Model
@@ -21,9 +18,9 @@ class ReservationRequest extends Model
         'request_number',
         'user_id',
         'academic_term_id',
-        'requested_accommodation_type', // 'room' or 'apartment'
-        'room_type', // 'single' or 'double', nullable if apartment
-        'requested_double_room_bed_option', // nullable, only for double rooms
+        'requested_accommodation_type', 
+        'room_type', 
+        'requested_double_room_bed_option',
         'requested_check_in_date',
         'requested_check_out_date',
         'status',

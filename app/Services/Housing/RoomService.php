@@ -2,9 +2,9 @@
 
 namespace App\Services\Housing;
 
-use App\Models\Room;
-use App\Models\Apartment;
-use App\Models\Building;
+use App\Models\Housing\Room;
+use App\Models\Housing\Apartment;
+use App\Models\Housing\Building;
 use App\Exceptions\BusinessValidationException;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;

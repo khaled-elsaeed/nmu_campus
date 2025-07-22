@@ -2,12 +2,12 @@
 
 namespace App\Services\Reservation\Request;
 
-use App\Models\ReservationRequest;
+use App\Models\Reservation\ReservationRequest;
 use App\Models\User;
 use App\Models\Resident\Student;
-use App\Models\Accommodation;
+use App\Models\Reservation\ِAccommodation;
 use App\Models\Academic\AcademicTerm;
-use App\Models\Apartment;
+use App\Models\Housing\Apartment;
 use App\Exceptions\BusinessValidationException;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;

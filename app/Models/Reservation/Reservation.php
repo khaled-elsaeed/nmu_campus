@@ -1,13 +1,15 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Reservation;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\User;
 use App\Models\Academic\AcademicTerm;
+
 
 class Reservation extends Model
 {

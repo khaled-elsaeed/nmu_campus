@@ -1,12 +1,14 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Housing;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use App\Models\Reservation\ِAccommodation;
 
-class Room extends Model
+class Apartment extends Model
 {
     /**
      * The attributes that are mass assignable.
@@ -14,15 +16,9 @@ class Room extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'apartment_id',
+        'building_id',
         'number',
-        'type',
-        'capacity',
-        'current_occupancy',
-        'available_capacity',
-        'purpose',
-        'occupancy_status',
-        'description',
+        'total_rooms',
         'active',
     ];
 
@@ -39,17 +35,27 @@ class Room extends Model
     }
 
     /**
-     * Get the apartment for the room.
+     * Get the building for the apartment.
      *
      * @return BelongsTo
      */
-    public function apartment(): BelongsTo
+    public function building(): BelongsTo
     {
-        return $this->belongsTo(Apartment::class);
+        return $this->belongsTo(Building::class);
     }
 
     /**
-     * Get the accommodations (reservations) that include this room.
+     * Get the rooms for the apartment.
+     *
+     * @return HasMany
+     */
+    public function rooms(): HasMany
+    {
+        return $this->hasMany(Room::class);
+    }
+
+    /**
+     * Get the accommodations (reservations) that include this apartment.
      *
      * @return MorphMany
      */

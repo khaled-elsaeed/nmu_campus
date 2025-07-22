@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Reservation\Request;
 
 use Illuminate\Http\{Request, JsonResponse};
 use Illuminate\View\View;
-use App\Services\Reservation\Request\ReservationRequestService;
+use App\Services\Reservation\ReservationRequestService;
 use App\Exceptions\BusinessValidationException;
 use Exception;
 use App\Http\Controllers\Controller;

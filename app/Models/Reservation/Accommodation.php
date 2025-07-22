@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Reservation;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\Housing\Room;
+use App\Models\Housing\Apartment;
+use App\Models\Housing\Building;
 
 class Accommodation extends Model
 {
@@ -115,9 +116,6 @@ class Accommodation extends Model
             }
         );
     }
-
-
-  
 
     /**
      * Get the building information for this accommodation.

@@ -3,13 +3,13 @@
 namespace App\Services\Reservation;
 
 use App\Models\Reservation;
-use App\Models\Room;
-use App\Models\Apartment;
-use App\Models\Accommodation;
+use App\Models\Housing\Room;
+use App\Models\Housing\Apartment;
+use App\Models\Reservation\ِAccommodation;
 use App\Models\Academic\AcademicTerm;
 use App\Models\Payment;
 use App\Models\Equipment;
-use App\Models\ReservationEquipment;
+use App\Models\Reservation\ReservationEquipment;
 use App\Exceptions\BusinessValidationException;
 use Carbon\Carbon;
 
@@ -99,7 +99,7 @@ class CreateReservationService
             'check_in_date' => $data['check_in_date'] ?? null,
             'check_out_date' => $data['check_out_date'] ?? null,
             'status' => $data['status'] ?? 'pending',
-            'active' => $data['active'] ?? true,
+            'active' => false,
             'notes' => $data['notes'] ?? null,
         ]);
     }
@@ -153,7 +153,7 @@ class CreateReservationService
 
         $accommodation = Accommodation::create([
             'type' => 'room',
-            'description' => $description ?? "Accommodation for Room {$room->number}",
+            'description' => $description ?? "Accommodation for Room {$room->number}, Apartment {$room->apartment->number}, Building {$room->apartment->building}",
             'accommodatable_type' => Room::class,
             'accommodatable_id' => $roomId,
             'double_room_bed_option' => $doubleRoomBedOption,
@@ -252,7 +252,7 @@ class CreateReservationService
      */
     private function calculatePaymentAmount(Reservation $reservation, $doubleRoomBedOption = false): float
     {
-        $totalAmount = self::INSURANCE_FEE; // Always include insurance fee
+        $totalAmount = self::INSURANCE_FEE; 
 
         if ($this->isLongTermReservation($reservation)) {
             $totalAmount += $this->calculateLongTermFee($doubleRoomBedOption);

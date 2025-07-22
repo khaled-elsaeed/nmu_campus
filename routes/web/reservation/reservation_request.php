@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Reservation\Request\ReservationRequestController;
+use App\Http\Controllers\Reservation\ReservationRequestController;
 
 Route::prefix('reservation-requests')->name('reservation-requests.')->group(function () {
     Route::get('/', [ReservationRequestController::class, 'index'])->name('index');

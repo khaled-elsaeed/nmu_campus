@@ -25,20 +25,19 @@ Route::prefix('resident')->name('resident.')->group(function () {
 });
 
 Route::prefix('academic')->name('academic.')->group(function(){
-    require __DIR__.'/web/faculty.php';
-    require __DIR__.'/web/program.php';
-    require __DIR__.'/web/academic_term.php';
+    require __DIR__.'/web/academic/faculty.php';
+    require __DIR__.'/web/academic/program.php';
+    require __DIR__.'/web/academic/academic_term.php';
 
 });
 
     require __DIR__.'/web/staff-category.php';
     require __DIR__.'/web/department.php';
     require __DIR__.'/web/campus-units.php';
-    require __DIR__.'/web/reservation.php';
+    require __DIR__.'/web/reservation/reservation.php';
     require __DIR__.'/web/equipment.php';
-    require __DIR__.'/web/academic_term.php';
     require __DIR__.'/web/user.php';
-    require __DIR__.'/web/reservation_request.php';
+    require __DIR__.'/web/reservation/reservation_request.php';
     require __DIR__.'/web/payment/payment.php';
     require __DIR__.'/web/payment/insurance.php';
 
@@ -56,7 +55,7 @@ Route::prefix('cities')->name('cities.')->group(function () {
 });
 
 
-use App\Models\Reservation;
+use App\Models\Reservation\Reservation;
 use App\Notifications\ReservationActivated;
 
 Route::get('/notification', function () {

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Housing;
 use Illuminate\Http\{Request, JsonResponse};
 use Illuminate\View\View;
 use App\Services\Housing\BuildingService;
-use App\Models\Building;
+use App\Models\Housing\Building;
 use App\Exceptions\BusinessValidationException;
 use Exception;
 use App\Http\Controllers\Controller;
