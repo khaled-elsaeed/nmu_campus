@@ -39,11 +39,31 @@ class PaymentService
      * Get a single payment.
      *
      * @param int $id
-     * @return Payment
+     * @return array
      */
-    public function getPayment($id): Payment
+    public function getPayment(int $id): array
     {
-        return Payment::findOrFail($id);
+        $payment = Payment::select([
+            'id',
+            'reservation_id',
+            'amount',
+            'payment_method',
+            'transaction_id',
+            'status'
+        ])->find($id);
+
+        if (!$payment) {
+            throw new BusinessValidationException('Payment not found.');
+        }
+
+        return [
+            'id' => $payment->id,
+            'reservation_id' => $payment->reservation_id,
+            'amount' => $payment->amount,
+            'payment_method' => $payment->payment_method,
+            'transaction_id' => $payment->transaction_id,
+            'status' => $payment->status,
+        ];
     }
 
     /**
@@ -65,21 +85,7 @@ class PaymentService
      */
     public function getAll(): array
     {
-        return Payment::get()->map(function ($payment) {
-            return [
-                'id' => $payment->id,
-                'reservation_id' => $payment->reservation_id,
-                'amount' => $payment->amount,
-                'status' => $payment->status,
-                'notes' => $payment->notes,
-                'details' => $payment->details,
-                'completed_at' => $payment->completed_at,
-                'refunded_at' => $payment->refunded_at,
-                'cancelled_at' => $payment->cancelled_at,
-                'created_at' => $payment->created_at,
-                'updated_at' => $payment->updated_at,
-            ];
-        })->toArray();
+        return Payment::select(['id', 'reservation_id', 'amount', 'status'])->get()->toArray();
     }
 
     /**

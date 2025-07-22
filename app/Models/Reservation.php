@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\Academic\AcademicTerm;
 
 class Reservation extends Model
 {
@@ -45,10 +46,11 @@ class Reservation extends Model
             'checked_in_at' => 'datetime',
             'checked_out_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'activated_at' => 'datetime',
         ];
     }
 
-        /**
+    /**
      * Boot the model.
      */
     protected static function boot()
@@ -155,5 +157,15 @@ class Reservation extends Model
                 'returned_by',
             ])
             ->withTimestamps();
+    }
+
+    /**
+     * Determine if the reservation is active.
+     *
+     * @return bool
+     */
+    public function isActive(): bool
+    {
+        return (bool) $this->active;
     }
 }

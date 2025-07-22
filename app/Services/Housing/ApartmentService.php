@@ -43,11 +43,21 @@ class ApartmentService
      * Get a single apartment with its rooms.
      *
      * @param int $id
-     * @return Apartment
+     * @return array
      */
-    public function getApartment($id): Apartment
+    public function getApartment(int $id): array
     {
-        return Apartment::with('rooms')->findOrFail($id);
+        $apartment = Apartment::select(['id', 'number', 'building_id'])->find($id);
+
+        if (!$apartment) {
+            throw new BusinessValidationException('Apartment not found.');
+        }
+
+        return [
+            'id' => $apartment->id,
+            'number' => $apartment->number,
+            'building_id' => $apartment->building_id,
+        ];
     }
 
     /**
@@ -74,17 +84,20 @@ class ApartmentService
      *
      * @return array
      */
-    public function getAll(): array
+    public function getAll(int $buildingId = null): array
     {
-        return Apartment::get()->map(function ($apartment) {
-            return [
-                'id' => $apartment->id,
-                'number' => $apartment->number,
-                'building_id' => $apartment->building_id,
-                'total_rooms' => $apartment->total_rooms,
-                'active' => $apartment->active,
-            ];
-        })->toArray();
+        return Apartment::when($buildingId, function ($query, $buildingId) {
+                return $query->where('building_id', $buildingId);
+            })
+            ->select(['id', 'number'])
+            ->get()
+            ->map(function ($apartment) {
+                return [
+                    'id' => $apartment->id,
+                    'number' => $apartment->number,
+                ];
+            })
+            ->toArray();
     }
 
     /**

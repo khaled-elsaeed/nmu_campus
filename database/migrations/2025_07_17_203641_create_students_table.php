@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('phone')->unique();
             $table->date('date_of_birth');
             $table->enum('gender', ['male', 'female', 'other']);
-            $table->enum('academic_year', ['1', '2', '3', '4', '5']);
+            $table->enum('level', ['1', '2', '3', '4', '5']);
             $table->foreignId('faculty_id')->constrained()->cascadeOnDelete();
             $table->foreignId('program_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('governorate_id')->constrained()->cascadeOnDelete();

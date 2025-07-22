@@ -26,16 +26,20 @@ class RoomService
     }
 
     /**
-     * Update an existing room.
+     * Update an existing room by ID.
      *
-     * @param Room $room
+     * @param int $id
      * @param array $data
      * @return Room
      */
-    public function updateRoom(Room $room, array $data): Room
+    public function updateRoom(int $id, array $data): Room
     {
-        $updateData = $this->prepareUpdateData($room, $data);
-        $room->update($updateData);
+        $room = Room::findOrFail($id);
+        $room->update([
+            'type' => $data['type'] ?? $room->type,
+            'purpose' => $data['purpose'] ?? $room->purpose,
+            'description' => $data['description'] ?? $room->description,
+        ]);
         return $room->fresh('apartment.building');
     }
 
@@ -45,27 +49,26 @@ class RoomService
      * @param int $id
      * @return array
      */
-    public function getRoom($id): array
+    public function getRoom(int $id): array
     {
-        $room = Room::with('apartment.building')->findOrFail($id);
+        $room = Room::select([
+            'id', 
+            'number', 
+            'type',
+            'purpose',
+            'description',
+        ])->find($id);
+
+        if (!$room) {
+            throw new BusinessValidationException('Room not found.');
+        }
+
         return [
             'id' => $room->id,
             'number' => $room->number,
-            'apartment' => $room->apartment->number,
-            'apartment_id' => $room->apartment_id,
-            'building' => $room->apartment->building->number,
-            'building_id' => $room->apartment->building_id,
-            'gender_restriction' => $room->apartment->building->gender_restriction,
             'type' => $room->type,
             'purpose' => $room->purpose,
-            'active' => $room->active,
-            'capacity' => $room->capacity,
-            'current_occupancy' => $room->current_occupancy,
-            'available_capacity' => $room->available_capacity,
-            'occupancy_status' => $room->occupancy_status,
-            'description' => $room->description,
-            'created_at' => formatDate($room->created_at),
-            'updated_at' => formatDate($room->updated_at),
+            'description' => $room->description
         ];
     }
 
@@ -93,29 +96,18 @@ class RoomService
      * @param int|null $apartmentId
      * @return array
      */
-    public function getAll($apartmentId = null): array
+    public function getAll(int $apartmentId = null): array
     {
-        $query = Room::with('apartment.building');
-        if ($apartmentId) {
-            $query->where('apartment_id', $apartmentId);
-        }
-        return $query->get()->map(function ($room) {
-            return [
+        return Room::when($apartmentId, function ($query, $apartmentId) {
+                return $query->where('apartment_id', $apartmentId);
+            })
+            ->select(['id', 'number'])
+            ->get()
+            ->map(fn ($room) => [
                 'id' => $room->id,
                 'number' => $room->number,
-                'apartment' => $room->apartment->number,
-                'apartment_id' => $room->apartment_id,
-                'building' => $room->apartment->building->number,
-                'building_id' => $room->apartment->building_id,
-                'type' => $room->type,
-                'purpose' => $room->purpose,
-                'active' => $room->active,
-                'capacity' => $room->capacity,
-                'current_occupancy' => $room->current_occupancy,
-                'available_capacity' => $room->available_capacity,
-                'occupancy_status' => $room->occupancy_status,
-            ];
-        })->toArray();
+            ])
+            ->toArray();
     }
 
     /**
@@ -270,26 +262,5 @@ class RoomService
         $room->active = $active;
         $room->save();
         return $room->fresh('apartment.building');
-    }
-
-    /**
-     * Prepare update data for a room.
-     *
-     * @param Room $room
-     * @param array $data
-     * @return array
-     */
-    private function prepareUpdateData(Room $room, array $data): array
-    {
-        return [
-            'number' => $data['number'] ?? $room->number,
-            'type' => $data['type'] ?? $room->type,
-            'purpose' => $data['purpose'] ?? $room->purpose,
-            'description' => $data['description'] ?? $room->description,
-            'capacity' => $data['capacity'] ?? $room->capacity,
-            'available_capacity' => $data['available_capacity'] ?? $room->available_capacity,
-            'occupancy_status' => $data['occupancy_status'] ?? $room->occupancy_status,
-            'active' => $data['active'] ?? $room->active,
-        ];
     }
 } 

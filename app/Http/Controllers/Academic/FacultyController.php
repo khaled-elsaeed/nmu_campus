@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Academic;
 use Illuminate\Http\{Request, JsonResponse};
 use Illuminate\View\View;
 use App\Services\Academic\FacultyService;
-use App\Models\Faculty;
+use App\Models\Academic\Faculty;
 use App\Exceptions\BusinessValidationException;
 use Exception;
 use App\Http\Controllers\Controller;

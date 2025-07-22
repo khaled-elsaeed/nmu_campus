@@ -2,10 +2,10 @@
 
 namespace App\Services\Resident;
 
-use App\Models\Student;
+use App\Models\Resident\Student;
 use App\Models\User;
-use App\Models\Faculty;
-use App\Models\Program;
+use App\Models\Academic\Faculty;
+use App\Models\Academic\Program;
 use App\Exceptions\BusinessValidationException;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
@@ -25,11 +25,14 @@ class StudentService
     public function createStudent(array $data): Student
     {
         return DB::transaction(function () use ($data) {
-            $user = $this->createUser($data);
-            $studentData = $data;
-            $studentData['user_id'] = $user->id;
-            unset($studentData['password']);
-            return Student::create($studentData);
+            $passwordData = $this->generatePassword();
+            $user = $this->createUser($data, $passwordData['hashed']);
+            $data['user_id'] = $user->id;
+            $student = Student::create($data);
+            
+            $user->notify((new AccountCreated($student, $passwordData['plain']))->afterCommit());
+            
+            return $student;
         });
     }
 
@@ -37,31 +40,48 @@ class StudentService
      * Create a new user profile for the student.
      *
      * @param array $data
+     * @param string $hashedPassword
      * @return User
      */
-    private function createUser(array $data): User
+    private function createUser(array $data, string $hashedPassword): User
     {
         return User::create([
             'name_en' => $data['name_en'] ?? null,
             'name_ar' => $data['name_ar'] ?? null,
             'gender' => $data['gender'] ?? null,
             'email' => $data['academic_email'] ?? null,
-            'password' => Hash::make(Str::random(10)),
+            'password' => $hashedPassword,
         ]);
     }
 
     /**
-     * Update an existing student and associated user.
+     * Generate a password for the student.
      *
-     * @param Student $student
+     * @return array
+     */
+    private function generatePassword(): array
+    {
+        $plain = Str::password(length: 12);
+        return [
+            'plain' => $plain,
+            'hashed' => Hash::make($plain),
+        ];
+    }
+
+
+    /**
+     * Update an existing student and associated user by student ID.
+     *
+     * @param int $studentId
      * @param array $data
      * @return Student
      */
-    public function updateStudent(Student $student, array $data): Student
+    public function updateStudent(int $studentId, array $data): Student
     {
-        return DB::transaction(function () use ($student, $data) {
+        return DB::transaction(function () use ($studentId, $data) {
+            $student = Student::findOrFail($studentId);
             $this->updateUser($student->user, $data);
-            $this->updateStudentModel($student, $data);
+            $this->updateStudentProfile($student, $data);
             return $student->fresh(['user', 'program', 'faculty']);
         });
     }
@@ -90,20 +110,70 @@ class StudentService
      * @param array $data
      * @return void
      */
-    private function updateStudentModel(Student $student, array $data): void
+    private function updateStudentProfile(Student $student, array $data): void
     {
         $student->update($data);
     }
 
     /**
-     * Get a single student with relationships.
+     * Get a single student with selected fields and relationships, including program, faculty, governorate, and city names.
      *
      * @param int $id
-     * @return Student
+     * @return array
      */
-    public function getStudent($id): Student
+    public function getStudent(int $id): array
     {
-        return Student::with(['user', 'program', 'faculty', 'governorate', 'city'])->findOrFail($id);
+        $student = Student::select([
+                'id',
+                'user_id',
+                'name_en',
+                'name_ar',
+                'academic_id',
+                'national_id',
+                'faculty_id',
+                'program_id',
+                'level',
+                'governorate_id',
+                'city_id',
+                'phone',
+                'academic_email',
+                'address',
+                'date_of_birth',
+            ])
+            ->with([
+                'user:id,gender',
+                'program:id,name_en,name_ar',
+                'faculty:id,name_en,name_ar',
+                'governorate:id,name_en,name_ar',
+                'city:id,name_en,name_ar',
+            ])
+            ->find($id);
+
+        if (!$student) {
+            throw new BusinessValidationException('Student not found.');
+        }
+
+        return [
+            'id' => $student->id,
+            'academic_id' => $student->academic_id,
+            'national_id' => $student->national_id,
+            'faculty_id' => $student->faculty_id,
+            'faculty' => $student->faculty->name?? null,
+            'program_id' => $student->program_id,
+            'program' => $student->program->name ?? null,
+            'governorate_id' => $student->governorate_id,
+            'governorate' => $student->governorate->name ?? null,
+            'city_id' => $student->city_id,
+            'cityn' => $student->city->name ?? null,
+            'phone' => $student->phone,
+            'academic_email' => $student->academic_email,
+            'address' => $student->address,
+            'date_of_birth' => $student->date_of_birth,
+            'level' => $student->level,
+            'name_en' => $student->name_en,
+            'name_ar' => $student->name_ar ?? null,
+            'gender' => $student->user->gender ?? null,
+        ];
     }
 
     /**
@@ -126,17 +196,12 @@ class StudentService
      */
     public function getAll(): array
     {
-        return Student::with(['user', 'program', 'faculty'])
-            ->get()
-            ->map(function ($student) {
-                return [
-                    'id' => $student->id,
-                    'name' => $student->user?->name,
-                    'academic_id' => $student->academic_id,
-                    'program' => $student->program?->name,
-                    'faculty' => $student->faculty?->name,
-                ];
-            })->toArray();
+        return Student::with('user:id,name_en,name_ar')->get(['id', 'user_id'])->map(function ($student) {
+            return [
+                'id' => $student->id,
+                'name' => $student->user->name,
+            ];
+        })->toArray();
     }
 
     /**
@@ -149,21 +214,21 @@ class StudentService
         $totalStudents = Student::count();
         $maleStudents = Student::whereHas('user', fn($q) => $q->where('gender', 'male'))->count();
         $femaleStudents = Student::whereHas('user', fn($q) => $q->where('gender', 'female'))->count();
-        $lastUpdateTime = formatDate(Student::max('updated_at'));
-        $maleLastUpdate = formatDate(Student::whereHas('user', fn($q) => $q->where('gender', 'male'))->max('updated_at'));
-        $femaleLastUpdate = formatDate(Student::whereHas('user', fn($q) => $q->where('gender', 'female'))->max('updated_at'));
+        $lastUpdateTime = Student::max('updated_at');
+        $maleLastUpdate = Student::whereHas('user', fn($q) => $q->where('gender', 'male'))->max('updated_at');
+        $femaleLastUpdate = Student::whereHas('user', fn($q) => $q->where('gender', 'female'))->max('updated_at');
         return [
             'total' => [
                 'count' => formatNumber($totalStudents),
-                'lastUpdateTime' => $lastUpdateTime
+                'lastUpdateTime' => formatDate($lastUpdateTime)
             ],
             'male' => [
                 'count' => formatNumber($maleStudents),
-                'lastUpdateTime' => $maleLastUpdate
+                'lastUpdateTime' => formatDate($maleLastUpdate)
             ],
             'female' => [
                 'count' => formatNumber($femaleStudents),
-                'lastUpdateTime' => $femaleLastUpdate
+                'lastUpdateTime' => formatDate($femaleLastUpdate)
             ],
         ];
     }
@@ -243,7 +308,7 @@ class StudentService
     {
         return view('components.ui.datatable.data-table-actions', [
             'mode' => 'dropdown',
-            'actions' => ['view','edit', 'delete'],
+            'actions' => ['view', 'delete'],
             'id' => $student->id,
             'type' => 'Student',
             'singleActions' => []

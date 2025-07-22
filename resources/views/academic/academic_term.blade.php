@@ -177,6 +177,75 @@
             <button type="submit" class="btn btn-primary" id="saveTermBtn" form="termForm">Save</button>
         </x-slot>
     </x-ui.modal>
+
+    {{-- View Academic Term Modal --}}
+    <x-ui.modal 
+        id="viewTermModal"
+        title="Academic Term Details"
+        size="md"
+        :scrollable="true"
+        class="view-term-modal"
+    >
+        <x-slot name="slot">
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <label class="form-label fw-bold">Season:</label>
+                    <p id="view-term-season" class="mb-0"></p>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label fw-bold">Year:</label>
+                    <p id="view-term-year" class="mb-0"></p>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label fw-bold">Code:</label>
+                    <p id="view-term-code" class="mb-0"></p>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label fw-bold">Semester Number:</label>
+                    <p id="view-term-semester-number" class="mb-0"></p>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label fw-bold">Start Date:</label>
+                    <p id="view-term-start-date" class="mb-0"></p>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label fw-bold">End Date:</label>
+                    <p id="view-term-end-date" class="mb-0"></p>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label fw-bold">Active:</label>
+                    <p id="view-term-active" class="mb-0"></p>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label fw-bold">Current:</label>
+                    <p id="view-term-current" class="mb-0"></p>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label fw-bold">Activated At:</label>
+                    <p id="view-term-activated-at" class="mb-0"></p>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label fw-bold">Started At:</label>
+                    <p id="view-term-started-at" class="mb-0"></p>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label fw-bold">Ended At:</label>
+                    <p id="view-term-ended-at" class="mb-0"></p>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label fw-bold">Created At:</label>
+                    <p id="view-term-created-at" class="mb-0"></p>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label fw-bold">Updated At:</label>
+                    <p id="view-term-updated-at" class="mb-0"></p>
+                </div>
+            </div>
+        </x-slot>
+        <x-slot name="footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        </x-slot>
+    </x-ui.modal>
 </div>
 @endsection
 
@@ -462,7 +531,7 @@ var StatsManager = {
             this.updateStatElement('terms', stats.total.count, stats.total.lastUpdateTime);
             this.updateStatElement('active', stats.active.count, stats.active.lastUpdateTime);
             this.updateStatElement('inactive', stats.inactive.count, stats.inactive.lastUpdateTime);
-            this.updateStatElement('current', stats.current.count, stats.current.lastUpdateTime);
+            this.updateStatElement('current', stats.current.title, stats.current.lastUpdateTime);
         } else {
             this.setAllStatsToNA();
         }
@@ -860,6 +929,41 @@ var TermManager = {
         });
     },
     /**
+     * Handles View Term button click
+     */
+    handleViewTerm: function() {
+        $(document).on('click', '.viewTermBtn', function() {
+            var termId = $(this).data('id');
+            if (!termId) {
+                Utils.showError('Term ID is missing');
+                return;
+            }
+            ApiService.fetchTerm(termId)
+                .done(function(response) {
+                    var term = response.data;
+                    $('#view-term-season').text(term.season ?? '--');
+                    $('#view-term-year').text(term.year ?? '--');
+                    $('#view-term-code').text(term.code ?? '--');
+                    $('#view-term-semester-number').text(term.semester_number ?? '--');
+                    $('#view-term-start-date').text(term.start_date_formatted ?? '--');
+                    $('#view-term-end-date').text(term.end_date_formatted ?? '--');
+                    $('#view-term-active').text(term.active ? 'Yes' : 'No');
+                    $('#view-term-current').text(term.current ? 'Yes' : 'No');
+                    $('#view-term-activated-at').text(term.activated_at_formatted ?? '--');
+                    $('#view-term-started-at').text(term.started_at_formatted ?? '--');
+                    $('#view-term-ended-at').text(term.ended_at_formatted ?? '--');
+                    $('#view-term-created-at').text(term.created_at_formatted ?? '--');
+                    $('#view-term-updated-at').text(term.updated_at_formatted ?? '--');
+                    $('#viewTermModal').modal('show');
+                })
+                .fail(function(xhr) {
+                    var response = xhr.responseJSON;
+                    var message = response && response.message ? response.message : 'Failed to load term details.';
+                    Utils.showError(message);
+                });
+        });
+    },
+    /**
      * Initializes all event listeners and modal handlers for TermManager
      */
     init: function() {
@@ -871,6 +975,7 @@ var TermManager = {
         this.handleEndTerm();
         this.handleActivateTerm();
         this.handleDeactivateTerm();
+        this.handleViewTerm();
     }
 };
 

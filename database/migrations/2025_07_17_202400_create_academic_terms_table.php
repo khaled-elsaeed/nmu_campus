@@ -21,6 +21,9 @@ return new class extends Migration
             $table->date('end_date')->nullable();
             $table->boolean('active')->default(false);
             $table->boolean('current')->default(false);
+            $table->timestamp('activated_at')->nullable();
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('ended_at')->nullable();
             $table->timestamps();
         });
     }

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Academic;
 use Illuminate\Http\{JsonResponse, Request};
 use Illuminate\View\View;
 use App\Services\Academic\ProgramService;
-use App\Models\Program;
+use App\Models\Academic\Program;
 use App\Exceptions\BusinessValidationException;
 use Exception;
 use App\Http\Controllers\Controller;
@@ -109,7 +109,7 @@ class ProgramController extends Controller
     {
         try {
             $validated = $request->validated();
-            $program = $this->programService->updateProgram(\App\Models\Program::findOrFail($id), $validated);
+            $program = $this->programService->updateProgram($id, $validated);
             return successResponse('Program updated successfully.', $program);
         } catch (Exception $e) {
             logError('ProgramController@update', $e, ['program_id' => $id, 'request' => $request->all()]);

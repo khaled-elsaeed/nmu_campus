@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Enums\RequestStatus;
 use App\Enums\AccommodationType;
+use App\Models\Academic\AcademicTerm;
 
 class ReservationRequest extends Model
 {

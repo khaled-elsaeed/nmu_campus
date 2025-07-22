@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Academic;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Academic\Faculty;
+use App\Models\Resident\Student;
 
 class Program extends Model
 {

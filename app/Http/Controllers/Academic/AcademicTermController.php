@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Academic;
 use Illuminate\Http\{Request, JsonResponse};
 use Illuminate\View\View;
 use App\Services\Academic\AcademicTermService;
-use App\Models\AcademicTerm;
+use App\Models\Academic\AcademicTerm;
 use App\Exceptions\BusinessValidationException;
 use Exception;
 use App\Http\Controllers\Controller;
@@ -180,14 +180,33 @@ class AcademicTermController extends Controller
     public function startTerm($id): JsonResponse
     {
         try {
-            $batch = $this->academicTermService->start($id);
-            return successResponse('Term started successfully. Reservations are being activated in the background.', ['batch_id' => $batch->id]);
+            $term = $this->academicTermService->start($id);
+            $activatedCount = isset($term->activated_reservations_count) ? $term->activated_reservations_count : 0;
+            $message = $this->generateStartTermMessage($activatedCount);
+            return successResponse($message, $term);
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('AcademicTermController@startTerm', $e, ['term_id' => $id]);
             return errorResponse('Failed to start term.', [], 500);
         }
+    }
+
+    /**
+     * Generate a message for starting a term based on activated reservations count.
+     *
+     * @param int $activatedCount
+     * @return string
+     */
+    private function generateStartTermMessage(int $activatedCount): string
+    {
+        $message = "Term started successfully.";
+        if ($activatedCount > 0) {
+            $message .= " $activatedCount reservation" . ($activatedCount > 1 ? "s" : "") . " activated.";
+        } else {
+            $message .= " No reservations were activated.";
+        }
+        return $message;
     }
 
     /**

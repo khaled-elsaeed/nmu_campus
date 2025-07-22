@@ -42,7 +42,7 @@ class StaffStoreRequest extends FormRequest
                     // Validate unit_id based on staff category type
                     switch ($staffCategory->type) {
                         case 'faculty':
-                            if (!\App\Models\Faculty::find($value)) {
+                            if (!\App\Models\Academic\Faculty::find($value)) {
                                 $fail('Selected faculty does not exist.');
                             }
                             break;

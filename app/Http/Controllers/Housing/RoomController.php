@@ -9,8 +9,6 @@ use App\Models\Room;
 use App\Exceptions\BusinessValidationException;
 use Exception;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Housing\RoomStoreRequest;
-use App\Http\Requests\Housing\RoomUpdateRequest;
 
 class RoomController extends Controller
 {
@@ -97,6 +95,31 @@ class RoomController extends Controller
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('RoomController@destroy', $e, ['room_id' => $id]);
+            return errorResponse('Internal server error.', [], 500);
+        }
+    }
+
+    /**
+     * Update the specified room.
+     *
+     * @param Request $request
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function update(Request $request, $id): JsonResponse
+    {
+        try {
+            $data = $request->only([
+                'type',
+                'purpose',
+                'description',
+            ]);
+            $updatedRoom = $this->roomService->updateRoom($id, $data);
+            return successResponse('Room updated successfully.', $updatedRoom);
+        } catch (BusinessValidationException $e) {
+            return errorResponse($e->getMessage(), [], $e->getCode());
+        } catch (Exception $e) {
+            logError('RoomController@update', $e, ['room_id' => $id]);
             return errorResponse('Internal server error.', [], 500);
         }
     }

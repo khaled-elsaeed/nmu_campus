@@ -22,6 +22,7 @@ return new class extends Migration
             $table->boolean('active')->default(false);
             $table->text('notes')->nullable();
             $table->timestamp('confirmed_at')->nullable();
+            $table->timestamp('activated_at')->nullable();
             $table->timestamp('checked_in_at')->nullable();
             $table->timestamp('checked_out_at')->nullable();
             $table->timestamp('cancelled_at')->nullable();

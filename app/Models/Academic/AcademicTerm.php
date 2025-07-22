@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Academic;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Reservation;
 
 class AcademicTerm extends Model
 {
@@ -22,6 +23,9 @@ class AcademicTerm extends Model
         'end_date',
         'active',
         'current',
+        'activated_at',
+        'started_at',
+        'ended_at',
     ];
 
     /**
@@ -44,7 +48,22 @@ class AcademicTerm extends Model
             'active'          => 'boolean',
             'current'         => 'boolean',
             'semester_number' => 'integer',
+            'activated_at'    => 'datetime',
+            'started_at'      => 'datetime',
+            'ended_at'        => 'datetime',
         ];
+    }
+
+    /**
+     * Get the user's first name.
+     *
+     * @return Attribute
+     */
+    protected function semester(): Attribute
+    {
+        return Attribute::make(
+            get: fn (string $value) => $value . __('semester'),
+        );
     }
 
     /**

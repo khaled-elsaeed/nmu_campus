@@ -1,21 +1,37 @@
 <?php
 
+use Carbon\Carbon;
+
+
+// =========================
+// Date Formatting Helpers
+// =========================
+
 if (!function_exists('formatDate')) {
     /**
      * Format a date using Carbon.
      *
      * @param string|\DateTimeInterface|null $date
      * @param string $format
+     * @param string|null $timezone  Optional: convert to specific timezone (e.g., 'Africa/Cairo')
      * @return string|null
      */
-    function formatDate($date, $format = 'd M h:i A')
+    function formatDate($date, $format = 'd M h:i A', $timezone = 'Africa/Cairo')
     {
         if (!$date) {
             return null;
         }
-        return \Carbon\Carbon::parse($date)->format($format);
+
+        return Carbon::parse($date)
+            ->timezone($timezone)
+            ->format($format);
     }
 }
+
+
+// =========================
+// Logging Helpers
+// =========================
 
 if (!function_exists('logError')) {
     /**
@@ -48,77 +64,6 @@ if (!function_exists('logError')) {
         if (function_exists('report') && app()->bound('sentry')) {
             report($exception);
         }
-    }
-}
-
-if (!function_exists('successResponse')) {
-    /**
-     * Return a standardized success JSON response.
-     *
-     * @param mixed $data
-     * @param string $message
-     * @param int $code
-     * @return \Illuminate\Http\JsonResponse
-     */
-    function successResponse($message = 'Success',$data = null, $code = 200)
-    {
-        return response()->json([
-            'success' => true,
-            'message' => $message,
-            'data' => $data,
-            'code' => $code,
-        ], $code);
-    }
-}
-
-if (!function_exists('errorResponse')) {
-    /**
-     * Return a standardized error JSON response.
-     *
-     * @param string $message
-     * @param int $code
-     * @param array $errors
-     * @return \Illuminate\Http\JsonResponse
-     */
-    function errorResponse($message = 'Error',$errors = [], $code = 500,)
-    {
-        return response()->json([
-            'success' => false,
-            'message' => $message,
-            'errors' => $errors,
-            'code' => $code,
-        ], $code);
-    }
-}
-
-if (!function_exists('formatNumber')) {
-    /**
-     * Format a number with grouped thousands and optional decimals.
-     *
-     * @param float|int|null $number
-     * @param int $decimals
-     * @return string|null
-     */
-    function formatNumber($number, $decimals = 0)
-    {
-        if ($number === null) {
-            return null;
-        }
-        return number_format($number, $decimals, '.', ',');
-    }
-}
-
-if (!function_exists('filterSensitive')) {
-    /**
-     * Remove sensitive fields from attributes before logging.
-     *
-     * @param array $attributes
-     * @return array
-     */
-    function filterSensitive($attributes)
-    {
-        $sensitive = ['password', 'remember_token'];
-        return collect($attributes)->except($sensitive)->toArray();
     }
 }
 
@@ -156,23 +101,112 @@ if (!function_exists('logAction')) {
 
         \Log::channel('action')->info('Action Log:', $log);
     }
+}
 
-    if (! function_exists('format_currency')) {
-        /**
-         * Format a number as currency.
-         *
-         * @param float $amount
-         * @param string $currency
-         * @return string
-         */
-        function format_currency($amount, $currency = 'USD')
-        {
-            return number_format($amount, 2) . ' ' . $currency;
+// =========================
+// Response Helpers
+// =========================
+
+if (!function_exists('successResponse')) {
+    /**
+     * Return a standardized success JSON response.
+     *
+     * @param mixed $data
+     * @param string $message
+     * @param int $code
+     * @return \Illuminate\Http\JsonResponse
+     */
+    function successResponse($message = 'Success', $data = null, $code = 200)
+    {
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'data' => $data,
+            'code' => $code,
+        ], $code);
+    }
+}
+
+if (!function_exists('errorResponse')) {
+    /**
+     * Return a standardized error JSON response.
+     *
+     * @param string $message
+     * @param int $code
+     * @param array $errors
+     * @return \Illuminate\Http\JsonResponse
+     */
+    function errorResponse($message = 'Error', $errors = [], $code = 500)
+    {
+        return response()->json([
+            'success' => false,
+            'message' => $message,
+            'errors' => $errors,
+            'code' => $code,
+        ], $code);
+    }
+}
+
+// =========================
+// Formatting Helpers
+// =========================
+
+if (!function_exists('formatNumber')) {
+    /**
+     * Format a number with grouped thousands and optional decimals.
+     *
+     * @param float|int|null $number
+     * @param int $decimals
+     * @return string|null
+     */
+    function formatNumber($number, $decimals = 0)
+    {
+        if ($number === null) {
+            return null;
         }
+        return number_format($number, $decimals, '.', ',');
+    }
+}
+
+if (!function_exists('formatCurrency')) {
+    /**
+     * Format a number as currency.
+     *
+     * @param float $amount
+     * @param string $currency
+     * @return string
+     */
+    function formatCurrency($amount, $currency = 'EGP')
+    {
+        return number_format($amount) . ' ' . $currency;
+    }
+}
+
+// =========================
+// Utility Helpers
+// =========================
+
+if (!function_exists('filterSensitive')) {
+    /**
+     * Remove sensitive fields from attributes before logging.
+     *
+     * @param array $attributes
+     * @return array
+     */
+    function filterSensitive($attributes)
+    {
+        $sensitive = ['password', 'remember_token'];
+        return collect($attributes)->except($sensitive)->toArray();
     }
 }
 
 if (!function_exists('snakeToNormalCase')) {
+    /**
+     * Convert snake_case to Normal Case.
+     *
+     * @param string $value
+     * @return string
+     */
     function snakeToNormalCase($value)
     {
         return ucwords(str_replace('_', ' ', $value));

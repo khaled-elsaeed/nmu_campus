@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\StaffCategory;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
+use App\Exceptions\BusinessValidationException;
 
 class StaffCategoryService
 {
@@ -60,9 +61,40 @@ class StaffCategoryService
         return StaffCategory::find($id);
     }
 
-    public function getAll()
+    /**
+     * Get a single staff category by ID.
+     * @param int $id
+     * @return array
+     */
+    public function getCategory(int $id): array
     {
-        return StaffCategory::get();
+        $category = StaffCategory::select(['id', 'name_en', 'name_ar'])->find($id);
+
+        if (!$category) {
+            throw new BusinessValidationException('Staff category not found.');
+        }
+
+        return [
+            'id' => $category->id,
+            'name_en' => $category->name_en,
+            'name_ar' => $category->name_ar,
+            
+        ];
+    }
+
+    /**
+     * Get all staff categories.
+     * @return array
+     */
+    public function getAll(): array
+    {
+        return StaffCategory::select(['id', 'name_en', 'name_ar', 'type'])->get()->map(function ($category) {
+            return [
+                'id' => $category->id,
+                'name' =>$category->name,
+                'type' => $category->type,
+            ];
+        })->toArray();
     }
 
     public function datatable(array $params)

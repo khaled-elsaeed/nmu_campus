@@ -2,8 +2,8 @@
 
 namespace App\Services\Academic;
 
-use App\Models\Program;
-use App\Models\Faculty;
+use App\Models\Academic\Program;
+use App\Models\Academic\Faculty;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
 use App\Exceptions\BusinessValidationException;
@@ -49,11 +49,30 @@ class ProgramService
      * Get a single program.
      *
      * @param int $id
-     * @return Program
+     * @return array
      */
-    public function getProgram($id): Program
+    public function getProgram($id)
     {
-        return Program::findOrFail($id);
+        $program = Program::select([
+            'id', 
+            'name_en', 
+            'name_ar', 
+            'duration_years', 
+            'faculty_id'
+        ])->find($id);
+
+        if (!$program) {
+            throw new BusinessValidationException('Program not found.');
+        }
+
+        return [
+            'id' => $program->id,
+            'name_en' => $program->name_en,
+            'name_ar' => $program->name_ar,
+            'name' => $program->name,
+            'duration_years' => $program->duration_years,
+            'faculty_id' => $program->faculty_id,
+        ];
     }
 
     /**
@@ -72,27 +91,24 @@ class ProgramService
     }
 
     /**
-     * Get all programs, optionally filtered by faculty_id.
+     * Get all programs (returns only id and name).
      *
      * @param int|null $facultyId
      * @return array
      */
     public function getAll(?int $facultyId = null): array
     {
-        $query = Program::query();
-        if (!is_null($facultyId)) {
-            $query->where('faculty_id', $facultyId);
-        }
-        return $query->get()->map(function ($program) {
-            return [
-                'id' => $program->id,
-                'name_en' => $program->name_en,
-                'name_ar' => $program->name_ar,
-                'name' => $program->name,
-                'duration_years' => $program->duration_years,
-                'faculty_id' => $program->faculty_id,
-            ];
-        })->toArray();
+        return Program::when(!is_null($facultyId), function ($query) use ($facultyId) {
+                $query->where('faculty_id', $facultyId);
+            })
+            ->get(['id', 'name_en','name_ar'])
+            ->map(function ($program) {
+                return [
+                    'id' => $program->id,
+                    'name' => $program->name,
+                ];
+            })
+            ->toArray();
     }
 
     /**

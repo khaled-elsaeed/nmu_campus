@@ -6,7 +6,7 @@ use App\Models\Reservation;
 use App\Models\Room;
 use App\Models\Apartment;
 use App\Models\Accommodation;
-use App\Models\AcademicTerm;
+use App\Models\Academic\AcademicTerm;
 use App\Models\Payment;
 use App\Models\Equipment;
 use App\Models\ReservationEquipment;

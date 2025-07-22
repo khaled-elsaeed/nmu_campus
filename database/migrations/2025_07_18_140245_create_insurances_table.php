@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('insurances', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('reservation_id')->constrained('reservations')->cascadeOnDelete();
             $table->decimal('amount', 10, 2);
-            $table->enum('status', ['active', 'refunded', 'carried_over'])->default('active');
+            $table->enum('status', ['active', 'refunded', 'carried_over', 'cancelled'])->default('active');
             $table->timestamps();
         });
     }

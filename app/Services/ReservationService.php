@@ -4,9 +4,9 @@ namespace App\Services;
 
 use App\Models\Reservation;
 use App\Models\User;
-use App\Models\Student;
+use App\Models\Resident\Student;
 use App\Models\Accommodation;
-use App\Models\AcademicTerm;
+use App\Models\Academic\AcademicTerm;
 use App\Models\Room;
 use App\Models\Apartment;
 use App\Exceptions\BusinessValidationException;
@@ -54,11 +54,33 @@ class ReservationService
      * Get a single reservation with relationships.
      *
      * @param int $id
-     * @return Reservation
+     * @return array
      */
-    public function getReservation($id): Reservation
+    public function getReservation(int $id): array
     {
-        return Reservation::with(['user', 'accommodation', 'academicTerm'])->findOrFail($id);
+        $reservation = Reservation::select([
+            'id',
+            'student_id',
+            'room_id',
+            'academic_term_id',
+            'status',
+            'start_date',
+            'end_date'
+        ])->find($id);
+
+        if (!$reservation) {
+            throw new BusinessValidationException('Reservation not found.');
+        }
+
+        return [
+            'id' => $reservation->id,
+            'student_id' => $reservation->student_id,
+            'room_id' => $reservation->room_id,
+            'academic_term_id' => $reservation->academic_term_id,
+            'status' => $reservation->status,
+            'start_date' => $reservation->start_date,
+            'end_date' => $reservation->end_date,
+        ];
     }
 
     /**
@@ -88,18 +110,7 @@ class ReservationService
      */
     public function getAll(): array
     {
-        return Reservation::with(['user', 'accommodation', 'academicTerm'])
-            ->get()
-            ->map(function ($reservation) {
-                return [
-                    'id' => $reservation->id,
-                    'reservation_number' => $reservation->reservation_number,
-                    'user_name' => $reservation->user?->name_en ?? 'N/A',
-                    'accommodation_info' => $this->getAccommodationInfo($reservation),
-                    'status' => $reservation->status,
-                    'active' => $reservation->active,
-                ];
-            })->toArray();
+        return Reservation::select(['id', 'student_id', 'room_id', 'status'])->get()->toArray();
     }
 
     /**

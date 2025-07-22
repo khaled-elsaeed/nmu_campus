@@ -1,10 +1,15 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Resident;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\Academic\Faculty;
+use App\Models\Academic\Program;
+use App\Models\User;
+use App\Models\Governorate;
+use App\Models\City;
 
 class Student extends Model
 {
@@ -15,6 +20,8 @@ class Student extends Model
      */
     protected $fillable = [
         'user_id',
+        'name_en',
+        'name_ar',
         'academic_id',
         'national_id',
         'name_en',
@@ -22,7 +29,7 @@ class Student extends Model
         'academic_email',
         'phone',
         'date_of_birth',
-        'academic_year',
+        'level',
         'faculty_id',
         'program_id',
         'governorate_id',

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Resident;
 use Illuminate\Http\{Request, JsonResponse};
 use Illuminate\View\View;
 use App\Services\Resident\StaffService;
-use App\Models\Staff;
+use App\Models\Resident\Staff;
 use App\Exceptions\BusinessValidationException;
 use Exception;
 use App\Http\Controllers\Controller;

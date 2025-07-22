@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -102,10 +103,26 @@ class User extends Authenticatable
     /**
      * Get the reservations associated with the user.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
-    public function reservations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function reservations(): HasMany
     {
         return $this->hasMany(Reservation::class);
+    }
+
+    /**
+     * Get the user's profile relation, returning either staff or student relation depending on which exists.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|null
+     */
+    public function profile()
+    {
+        if ($this->staff()->exists()) {
+            return $this->staff();
+        }
+        if ($this->student()->exists()) {
+            return $this->student();
+        }
+        return null;
     }
 }

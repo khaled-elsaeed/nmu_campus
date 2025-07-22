@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Department;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
+use App\Exceptions\BusinessValidationException;
 
 class DepartmentService
 {
@@ -52,9 +53,38 @@ class DepartmentService
         return Department::find($id);
     }
 
-    public function getAll()
+    /**
+     * Get a department by ID.
+     * @param int $id
+     * @return array
+     */
+    public function getDepartment(int $id): array
     {
-        return Department::get();
+        $department = Department::select(['id', 'name_en', 'name_ar'])->find($id);
+
+        if (!$department) {
+            throw new BusinessValidationException('Department not found.');
+        }
+
+        return [
+            'id' => $department->id,
+            'name_en' => $department->name_en,
+            'name_ar' => $department->name_ar,
+        ];
+    }
+
+    /**
+     * Delete a department.
+     * @return array
+     */
+    public function getAll(): array
+    {
+        return Department::select(['id', 'name_en', 'name_ar'])->get()->map(function ($department) {
+            return [
+                'id' => $department->id,
+                'name' => $department->name,
+            ];
+        })->toArray();
     }
 
     public function datatable(array $params)

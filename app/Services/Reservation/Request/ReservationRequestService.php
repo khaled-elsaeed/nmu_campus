@@ -4,9 +4,9 @@ namespace App\Services\Reservation\Request;
 
 use App\Models\ReservationRequest;
 use App\Models\User;
-use App\Models\Student;
+use App\Models\Resident\Student;
 use App\Models\Accommodation;
-use App\Models\AcademicTerm;
+use App\Models\Academic\AcademicTerm;
 use App\Models\Apartment;
 use App\Exceptions\BusinessValidationException;
 use Illuminate\Http\JsonResponse;
@@ -271,5 +271,34 @@ class ReservationRequestService
     public function show($id)
     {
         return ReservationRequest::with(['user', 'academicTerm', 'reviewer', 'createdReservation'])->find($id);
+    }
+
+    /**
+     * Get a single reservation request (for controller show method).
+     *
+     * @param int $id
+     * @return array
+     */
+    public function getRequest(int $id): array
+    {
+        $request = ReservationRequest::select([
+            'id',
+            'student_id',
+            'academic_term_id',
+            'room_id',
+            'status'
+        ])->find($id);
+
+        if (!$request) {
+            throw new BusinessValidationException('Reservation request not found.');
+        }
+
+        return [
+            'id' => $request->id,
+            'student_id' => $request->student_id,
+            'academic_term_id' => $request->academic_term_id,
+            'room_id' => $request->room_id,
+            'status' => $request->status,
+        ];
     }
 } 

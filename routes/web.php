@@ -40,6 +40,7 @@ Route::prefix('academic')->name('academic.')->group(function(){
     require __DIR__.'/web/user.php';
     require __DIR__.'/web/reservation_request.php';
     require __DIR__.'/web/payment/payment.php';
+    require __DIR__.'/web/payment/insurance.php';
 
 
 Route::prefix('countries')->name('countries.')->group(function () {
@@ -52,4 +53,15 @@ Route::prefix('governorates')->name('governorates.')->group(function () {
 
 Route::prefix('cities')->name('cities.')->group(function () {
     require __DIR__.'/web/city.php';
+});
+
+
+use App\Models\Reservation;
+use App\Notifications\ReservationActivated;
+
+Route::get('/notification', function () {
+    $reservation = Reservation::find(1);
+
+    return (new ReservationActivated($reservation))
+        ->toMail($reservation->user);
 });

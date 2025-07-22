@@ -2,18 +2,18 @@
 
 namespace App\Services\Resident;
 
-use App\Models\Staff;
+use App\Models\Resident\Staff;
 use App\Models\User;
-use App\Models\Faculty;
-use App\Models\Department;
-use App\Models\CampusUnit;
+use App\Models\Academic\Faculty;
+use App\Models\{Department,CampusUnit,StaffCategory};
 use App\Exceptions\BusinessValidationException;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
-use App\Models\StaffCategory;
+use Illuminate\Support\Str;
+use App\Notifications\AccountCreated;
 
 class StaffService
 {
@@ -27,8 +27,12 @@ class StaffService
     public function createStaff(array $data): Staff
     {
         return DB::transaction(function () use ($data) {
-            $user = $this->createUser($data);
+            $passwordData = $this->generatePassword();
+            $user = $this->createUser($data, $passwordData['hashed']);
             $staff = $this->createStaffProfile($user, $data);
+
+            $user->notify((new AccountCreated($staff, $passwordData['plain']))->afterCommit());
+
             return $staff->fresh(['user', 'unit', 'staffCategory']);
         });
     }
@@ -37,17 +41,32 @@ class StaffService
      * Create a new user for staff.
      *
      * @param array $data
+     * @param string $hashedPassword
      * @return User
      */
-    private function createUser(array $data): User
+    private function createUser(array $data, string $hashedPassword): User
     {
         return User::create([
             'name_en' => $data['name_en'] ?? null,
             'name_ar' => $data['name_ar'] ?? null,
             'gender' => $data['gender'] ?? null,
             'email' => $data['email'] ?? null,
-            'password' => Hash::make('password'),
+            'password' => $hashedPassword,
         ]);
+    }
+
+    /**
+     * Generate a password for the staff.
+     *
+     * @return array
+     */
+    private function generatePassword(): array
+    {
+        $plain = Str::password(length: 12);
+        return [
+            'plain' => $plain,
+            'hashed' => Hash::make($plain),
+        ];
     }
 
     /**
@@ -60,11 +79,11 @@ class StaffService
     private function createStaffProfile(User $user, array $data): Staff
     {
         $unitData = $this->determineUnitData($data);
-        
+
         if ($unitData['unit_type'] && !$unitData['unit_id']) {
             throw new BusinessValidationException('Unit must be selected for this staff category.');
         }
-        
+
         return Staff::create([
             'user_id' => $user->id,
             'staff_category_id' => $data['staff_category_id'],
@@ -188,12 +207,33 @@ class StaffService
      * Get a single staff with relationships.
      *
      * @param int $id
-     * @return Staff
+     * @return array
      */
-    public function getStaff($id): Staff
+    public function getStaff(int $id): array
     {
-        return Staff::with(['user', 'unit', 'staffCategory'])->findOrFail($id);
+        $staff = Staff::with(['user', 'staffCategory', 'faculty', 'department', 'campusUnit'])->find($id);
+    
+        if (!$staff) {
+            throw new BusinessValidationException('Staff not found.');
+        }
+    
+        return [
+            'id' => $staff->id,
+            'user_id' => $staff->user_id,
+            'staff_category_id' => $staff->staffCategory->id,
+            'staff_category_type' => $staff->staffCategory->type ?? null,
+            'name_en' => $staff->user->name_en ?? null,
+            'name_ar' => $staff->user->name_ar ?? null,
+            'name' => $staff->user->name,
+            'email' => $staff->user->email ?? null,
+            'national_id' => $staff->national_id ?? null,
+            'gender' => $staff->user->gender ?? null,
+            'unit' => $staff->work_unit, 
+            'notes' => $staff->notes ?? null,
+            'created_at' => $staff->created_at,
+        ];
     }
+    
 
     /**
      * Delete a staff and associated user.
@@ -220,17 +260,12 @@ class StaffService
      */
     public function getAll(): array
     {
-        return Staff::with(['user', 'unit', 'staffCategory'])
-            ->get()
-            ->map(function ($staff) {
-                return [
-                    'id' => $staff->id,
-                    'name' => $staff->user?->name,
-                    'unit_name' => $staff->unit?->name ?? 'Unassigned',
-                    'unit_type' => $staff->name,
-                    'category' => $staff->staffCategory?->name,
-                ];
-            })->toArray();
+        return Staff::with('user')->get()->map(function ($staff) {
+            return [
+                'id' => $staff->id,
+                'name' => $staff->user->name,
+            ];
+        })->toArray();
     }
 
     /**
@@ -275,9 +310,9 @@ class StaffService
         return DataTables::of($query)
             ->addIndexColumn()
             ->addColumn('name', fn($staff) => $staff->user?->name_en)
-            ->addColumn('unit_name', fn($staff) => $staff->unit?->name ?? 'Unassigned')
-            ->addColumn('unit_type', fn($staff) => $staff->name) 
-            ->addColumn('category', fn($staff) => $staff->staffCategory?->name_en)
+            ->editColumn('unit_name', fn($staff) => ucfirst($staff->work_unit['name']))
+            ->editColumn('unit_type', fn($staff) => $staff->work_unit['type'] ?? null)
+            ->addColumn('category', fn($staff) => $staff->staffCategory?->name)
             ->addColumn('gender', fn($staff) => $staff->user?->gender)
             ->addColumn('created_at', fn($staff) => formatDate($staff->created_at))
             ->addColumn('action', fn($staff) => $this->renderActionButtons($staff))

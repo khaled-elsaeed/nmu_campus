@@ -17,7 +17,7 @@ class StaffUpdateRequest extends FormRequest
         $staffId = $this->route('id');
         $userId = null;
         if ($staffId) {
-            $staff = \App\Models\Staff::find($staffId);
+            $staff = \App\Models\Resident\Staff::find($staffId);
             $userId = $staff ? $staff->user_id : null;
         }
         return [
@@ -48,7 +48,7 @@ class StaffUpdateRequest extends FormRequest
                     // Validate unit_id based on staff category type
                     switch ($staffCategory->type) {
                         case 'faculty':
-                            if (!\App\Models\Faculty::find($value)) {
+                            if (!\App\Models\Academic\Faculty::find($value)) {
                                 $fail('Selected faculty does not exist.');
                             }
                             break;

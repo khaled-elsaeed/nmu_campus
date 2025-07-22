@@ -67,11 +67,12 @@
 
   {{-- ===== DATA TABLE ===== --}}
   <x-ui.datatable
-      :headers="['Name', 'Programs Count', 'Students Count', 'Action']"
+      :headers="['Name', 'Programs', 'Students', 'Staff', 'Action']"
       :columns="[
           ['data' => 'name', 'name' => 'name'],
           ['data' => 'programs', 'name' => 'programs'],
           ['data' => 'students', 'name' => 'students'],
+          ['data' => 'staff', 'name' => 'staff'],
           ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false],
       ]"
       :ajax-url="route('academic.faculties.datatable')"

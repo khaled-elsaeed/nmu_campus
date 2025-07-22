@@ -1,11 +1,14 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Academic;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use App\Models\Academic\Program;
+use App\Models\Resident\Student;
+use App\Models\Resident\Staff;
 
 class Faculty extends Model
 {

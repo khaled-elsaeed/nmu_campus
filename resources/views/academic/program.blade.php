@@ -60,7 +60,7 @@
         </div>
         <div class="col-md-6">
             <label for="faculty_id_search" class="form-label">Faculty:</label>
-            <select class="form-control" id="faculty_id_search" name="faculty_id">
+            <select class="form-control" id="search_faculty_id" name="search_faculty_id">
                 <option value="">Select Faculty</option>
                 <!-- Options loaded via AJAX -->
             </select>
@@ -81,7 +81,7 @@
         ]"
         :ajax-url="route('academic.programs.datatable')"
         table-id="programs-table"
-        :filter-fields="['search_name', 'faculty_id']"
+        :filter-fields="['search_name', 'search_faculty_id']"
     />
 
     {{-- ===== MODALS SECTION ===== --}}
@@ -505,17 +505,17 @@ var SearchManager = {
    */
   init: function() {
     this.bindEvents();
-    DropdownManager.loadFaculties('#faculty_id_search');
+    DropdownManager.loadFaculties('#search_faculty_id');
   },
   /**
    * Bind search and clear events
    */
   bindEvents: function() {
     $('#clearFiltersBtn').on('click', function() {
-      $('#search_name, #faculty_id_search').val('').trigger('change');
+      $('#search_name, #search_faculty_id').val('').trigger('change');
       $('#programs-table').DataTable().ajax.reload();
     });
-    $('#search_name, #faculty_id_search').on('keyup change', function() {
+    $('#search_name, #search_faculty_id').on('keyup change', function() {
       $('#programs-table').DataTable().ajax.reload();
     });
   }

@@ -2,12 +2,16 @@
 
 namespace App\Services\Academic;
 
-use App\Models\AcademicTerm;
+use App\Models\Academic\AcademicTerm;
 use App\Batches\AcademicTermReservationActivationBatch;
 use App\Exceptions\BusinessValidationException;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\ReservationActivated;
+
 
 class AcademicTermService
 {
@@ -26,11 +30,9 @@ class AcademicTermService
     public function createTerm(array $data): AcademicTerm
     {
         $code = $this->generateCode($data['season'], $data['year']);
-        
         if (AcademicTerm::where('code', $code)->exists()) {
             throw new BusinessValidationException('This semester with these details already exists.');
         }
-        
         return AcademicTerm::create([
             'season' => $data['season'],
             'year' => $data['year'],
@@ -44,7 +46,6 @@ class AcademicTermService
     }
 
     /**
-     /**
      * Update an existing term.
      *
      * @param int $id
@@ -54,13 +55,10 @@ class AcademicTermService
     public function updateTerm(int $id, array $data): AcademicTerm
     {
         $term = AcademicTerm::findOrFail($id);
-
         $code = $this->generateCode($data['season'], $data['year']);
-        
         if (AcademicTerm::where('code', $code)->where('id', '!=', $term->id)->exists()) {
             throw new BusinessValidationException('This semester with these details already exists.');
         }
-        
         $updateData = [
             'season' => $data['season'],
             'year' => $data['year'],
@@ -69,21 +67,47 @@ class AcademicTermService
             'start_date' => $data['start_date'],
             'end_date' => $data['end_date'] ?? null,
         ];
-        
         $term->update($updateData);
-        
         return $term->fresh();
     }
 
     /**
-     * Get a single term with its reservations.
+     * Retrieve a single academic term along with its reservations.
      *
      * @param int $id
      * @return AcademicTerm
      */
-    public function getTerm($id): AcademicTerm
+    public function getTerm(int $id): AcademicTerm
     {
-        return AcademicTerm::with('reservations')->findOrFail($id);
+        $term = AcademicTerm::select([
+            'id',
+            'season',
+            'year',
+            'start_date',
+            'end_date',
+            'is_active',
+            'is_current',
+            'activated_at',
+            'started_at',
+            'ended_at',
+            'created_at',
+            'updated_at'
+        ])->withCount('reservations')->find($id);
+    
+        if (!$term) {
+            throw new BusinessValidationException('Academic term not found.');
+        }
+    
+        // Add formatted date attributes
+        $term->start_date_formatted = isset($term->start_date) ? formatDate($term->start_date) : null;
+        $term->end_date_formatted = isset($term->end_date) ? formatDate($term->end_date) : null;
+        $term->activated_at_formatted = isset($term->activated_at) ? formatDate($term->activated_at) : null;
+        $term->started_at_formatted = isset($term->started_at) ? formatDate($term->started_at) : null;
+        $term->ended_at_formatted = isset($term->ended_at) ? formatDate($term->ended_at) : null;
+        $term->created_at_formatted = isset($term->created_at) ? formatDate($term->created_at) : null;
+        $term->updated_at_formatted = isset($term->updated_at) ? formatDate($term->updated_at) : null;
+    
+        return $term;
     }
 
     /**
@@ -112,12 +136,11 @@ class AcademicTermService
     public function setActive($id, bool $active): AcademicTerm
     {
         $term = AcademicTerm::findOrFail($id);
-        
         if ($active && $this->isOldYear($term)) {
             throw new BusinessValidationException('Cannot activate terms from previous academic years.');
         }
-        
         $term->active = $active;
+        $term->activated_at = $active ? now() : null;
         $term->save();
         return $term->fresh();
     }
@@ -126,28 +149,75 @@ class AcademicTermService
      * Start a term by activating all confirmed reservations for that term.
      *
      * @param int $id
-     * @return \Illuminate\Bus\Batch
+     * @return AcademicTerm
      * @throws BusinessValidationException
      */
     public function start($id)
     {
         $term = AcademicTerm::findOrFail($id);
-
         if (!$term->active) {
             throw new BusinessValidationException('Term must be active before it can be started.');
         }
-
         if ($term->current) {
             throw new BusinessValidationException('Term is already current.');
         }
-
         if ($this->isOldYear($term)) {
             throw new BusinessValidationException('Cannot start terms from previous academic years.');
         }
+        $currentTerm = AcademicTerm::where('current', true)->first();
+        if ($currentTerm && $currentTerm->id !== $term->id) {
+            $currentTermName = $currentTerm->name;
+            throw new BusinessValidationException(
+                "Another term ('{$currentTermName}') is already current. Please end the current term before starting a new one."
+            );
+        }
+        $activatedCount = 0;
+        DB::transaction(function () use ($term, &$activatedCount) {
+            $activatedCount = $this->handleAcademicTermReservationActivation($term);
+            $term->current = true;
+            $term->started_at = now();
+            $term->save();
+        });
+        $freshTerm = $term->fresh();
+        $freshTerm->activated_reservations_count = $activatedCount;
+        return $freshTerm;
+    }
 
-        $batch = AcademicTermReservationActivationBatch::create($term);
-
-        return $batch;
+    /**
+     * Activate all confirmed, inactive reservations for the given term.
+     *
+     * @param AcademicTerm $term
+     * @return int Number of reservations activated
+     */
+    protected function handleAcademicTermReservationActivation(AcademicTerm $term)
+    {
+        $users = User::whereHas('reservations', function ($query) use ($term) {
+            $query->where('academic_term_id', $term->id)
+                  ->where('status', 'confirmed')
+                  ->where('active', false);
+        })->with(['reservations' => function ($query) use ($term) {
+            $query->where('academic_term_id', $term->id)
+                  ->where('status', 'confirmed')
+                  ->where('active', false);
+        }])->get();
+    
+        if ($users->isEmpty()) {
+            return 0; 
+        }
+    
+        $activatedCount = DB::table('reservations')
+            ->where('academic_term_id', $term->id)
+            ->where('status', 'confirmed')
+            ->where('active', false)
+            ->update([
+                'status' => 'active',
+                'active' => true,
+                'activated_at' => now(),
+            ]);
+    
+        Notification::send($users, (new ReservationActivated($term))->afterCommit());
+    
+        return $activatedCount;
     }
 
     /**
@@ -160,24 +230,19 @@ class AcademicTermService
     public function end($id): AcademicTerm
     {
         $term = AcademicTerm::findOrFail($id);
-
         if (!$term->current) {
             throw new BusinessValidationException('Term is not currently active.');
         }
-
         if ($term->reservations->count() > 0) {
             throw new BusinessValidationException('Cannot end term while there are active reservations.');
         }
-
         $term->current = false;
         $term->active = false;
-
+        $term->ended_at = now();
         $term->save();
-
         return $term->fresh();
     }
 
- 
     /**
      * Determine if the given academic term belongs to a previous academic year.
      *
@@ -248,24 +313,28 @@ class AcademicTermService
         $activeTerms = AcademicTerm::where('active', true)->count();
         $inactiveTerms = AcademicTerm::where('active', false)->count();
         $currentTerm = AcademicTerm::where('current', true)->first();
-        $lastUpdateTime = formatDate(AcademicTerm::max('updated_at'));
+
+        $totalLastUpdate = AcademicTerm::max('updated_at');
+        $activeLastUpdate = AcademicTerm::where('active', true)->max('updated_at');
+        $inactiveLastUpdate = AcademicTerm::where('active', false)->max('updated_at');
+        $currentLastUpdate = $currentTerm ? $currentTerm->updated_at : $totalLastUpdate;
 
         return [
             'total' => [
                 'count' => formatNumber($totalTerms),
-                'lastUpdateTime' => $lastUpdateTime
+                'lastUpdateTime' => formatDate($totalLastUpdate)
             ],
             'active' => [
                 'count' => formatNumber($activeTerms),
-                'lastUpdateTime' => $lastUpdateTime
+                'lastUpdateTime' => formatDate($activeLastUpdate)
             ],
             'inactive' => [
                 'count' => formatNumber($inactiveTerms),
-                'lastUpdateTime' => $lastUpdateTime
+                'lastUpdateTime' => formatDate($inactiveLastUpdate)
             ],
             'current' => [
-                'total' => $currentTerm ? $currentTerm->name : 'No Current Term',
-                'lastUpdateTime' => $currentTerm ? formatDate($currentTerm->updated_at) : $lastUpdateTime
+                'title' => $currentTerm ? $currentTerm->name : 'No Current Term',
+                'lastUpdateTime' => formatDate($currentLastUpdate)
             ],
         ];
     }
@@ -278,9 +347,7 @@ class AcademicTermService
     public function getDatatable(): JsonResponse
     {
         $terms = AcademicTerm::withCount('reservations');
-
         $terms = $this->applySearchFilters($terms);
-
         return DataTables::of($terms)
             ->addIndexColumn()
             ->addColumn('name', fn($term) => $term->name)
@@ -307,7 +374,6 @@ class AcademicTermService
         if (request()->filled('search_season')) {
             $query->where('season', request('search_season'));
         }
-
         if (request()->filled('search_year')) {
             $searchYear = request('search_year');
             if (strpos($searchYear, '-') !== false) {
@@ -319,15 +385,12 @@ class AcademicTermService
                 $query->where('year', 'LIKE', '%' . $searchYear . '%');
             }
         }
-
         if (request()->filled('search_code')) {
             $query->where('code', 'LIKE', '%' . request('search_code') . '%');
         }
-
         if (request()->filled('search_active')) {
             $query->where('active', request('search_active'));
         }
-
         return $query;
     }
 
@@ -341,22 +404,14 @@ class AcademicTermService
     public function generateCode($season, $academicYear): string
     {
         $season = strtolower(trim($season));
-        
-        // Map seasons to their codes
         $seasonCode = match($season) {
             'fall' => '1',
-            'spring' => '2', 
+            'spring' => '2',
             'summer' => '3',
         };
-        
-        // Extract the starting year from academic year string
         $years = explode('-', $academicYear);
-        
         $startYear = trim($years[0]);
-        
-        // Get last 2 digits of the starting year
         $shortYear = substr($startYear, -2);
-        
         return $shortYear . $shortYear . $seasonCode;
     }
 
@@ -368,11 +423,10 @@ class AcademicTermService
      */
     public function renderStatusBadge(AcademicTerm $term): string
     {
-        return $term->active 
+        return $term->active
             ? '<span class="badge bg-label-success">Active</span>'
             : '<span class="badge bg-label-secondary">Inactive</span>';
     }
-
 
     /**
      * Render action buttons for datatable rows.
@@ -383,8 +437,6 @@ class AcademicTermService
     public function renderActionButtons(AcademicTerm $term): string
     {
         $singleActions = [];
-
-        // Only show activate/deactivate button if term is NOT current
         if (!$term->current) {
             $singleActions[] = [
                 'action' => $term->active ? 'deactivate' : 'activate',
@@ -393,8 +445,6 @@ class AcademicTermService
                 'label' => $term->active ? 'Deactivate' : 'Activate'
             ];
         }
-
-        // Only show start button if term is active but not current
         if ($term->active && !$term->current) {
             $singleActions[] = [
                 'action' => 'start',
@@ -403,8 +453,6 @@ class AcademicTermService
                 'label' => 'Start Term'
             ];
         }
-
-        // Only show end button if term is current
         if ($term->current) {
             $singleActions[] = [
                 'action' => 'end',
@@ -413,10 +461,9 @@ class AcademicTermService
                 'label' => 'End Term'
             ];
         }
-
         return view('components.ui.datatable.data-table-actions', [
             'mode' => 'both',
-            'actions' => ['edit', 'delete'],
+            'actions' => ['view', 'edit', 'delete'],
             'id' => $term->id,
             'type' => 'Term',
             'singleActions' => $singleActions

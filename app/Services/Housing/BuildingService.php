@@ -52,11 +52,21 @@ class BuildingService
      * Get a single building with its apartments and rooms.
      *
      * @param int $id
-     * @return Building
+     * @return array
      */
-    public function getBuilding($id): Building
+    public function getBuilding(int $id): array
     {
-        return Building::with('apartments.rooms')->findOrFail($id);
+        $building = Building::select(['id', 'number', 'gender_restriction'])->find($id);
+
+        if (!$building) {
+            throw new BusinessValidationException('Building not found.');
+        }
+
+        return [
+            'id' => $building->id,
+            'number' => $building->number,
+            'gender' => $building->gender_restriction,
+        ];
     }
 
     /**
@@ -87,15 +97,10 @@ class BuildingService
      */
     public function getAll(): array
     {
-        return Building::get()->map(function ($building) {
+        return Building::select(['id', 'number'])->get()->map(function ($building) {
             return [
                 'id' => $building->id,
                 'number' => $building->number,
-                'total_apartments' => $building->total_apartments,
-                'total_rooms' => $building->total_rooms,
-                'gender_restriction' => $building->gender_restriction,
-                'active' => $building->active,
-                'has_double_rooms' => $building->has_double_rooms,
             ];
         })->toArray();
     }
@@ -224,7 +229,7 @@ class BuildingService
     /**
      * Activate or deactivate all apartments of a building.
      *
-     * @param \App\Models\Building $building
+     * @param Building $building
      * @param bool $active
      * @return void
      */
@@ -293,7 +298,7 @@ class BuildingService
     /**
      * Create rooms for an apartment.
      *
-     * @param \App\Models\Apartment $apartment
+     * @param Apartment $apartment
      * @param int $roomsPerApartment
      * @param array $doubleRooms
      * @return void

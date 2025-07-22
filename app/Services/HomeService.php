@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\Student;
-use App\Models\Faculty;
-use App\Models\Program;
+use App\Models\Resident\Student;
+use App\Models\Academic\Faculty;
+use App\Models\Academic\Program;
 use App\Models\Course;
 use App\Models\Level;
 use App\Models\Enrollment;

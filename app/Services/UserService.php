@@ -84,12 +84,24 @@ class UserService
     /**
      * Get user details.
      *
-     * @param User $user
-     * @return User
+     * @param int $id
+     * @return array
      */
-    public function getUser(User $user): User
+    public function getUser(int $id): array
     {
-        return $user->load('roles');
+        $user = User::select(['id', 'name_en', 'name_ar', 'email', 'is_active'])->find($id);
+
+        if (!$user) {
+            throw new BusinessValidationException('User not found.');
+        }
+
+        return [
+            'id' => $user->id,
+            'name_en' => $user->name_en,
+            'name_ar' => $user->name_ar,
+            'email' => $user->email,
+            'is_active' => $user->is_active,
+        ];
     }
 
     /**
@@ -146,29 +158,12 @@ class UserService
      */
     public function getAll(): array
     {
-        return User::with(['student', 'staff'])
-            ->get()
-            ->map(function ($user) {
-                $userType = '';
-                $additionalInfo = '';
-                
-                if ($user->student) {
-                    $userType = 'Student';
-                    $additionalInfo = $user->student->academic_id;
-                } elseif ($user->staff) {
-                    $userType = 'Staff';
-                    $additionalInfo = $user->staff->employee_id ?? '';
-                }
-                
-                return [
-                    'id' => $user->id,
-                    'name_en' => $user->name_en,
-                    'name_ar' => $user->name_ar,
-                    'email' => $user->email,
-                    'user_type' => $userType,
-                    'additional_info' => $additionalInfo,
-                ];
-            })->toArray();
+        return User::select(['id', 'name_en', 'name_ar'])->get()->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+            ];
+        })->toArray();
     }
 
     /**
@@ -180,7 +175,7 @@ class UserService
     public function findByNationalId($nationalId)
     {
         // Try to find as student
-        $student = \App\Models\Student::with('user')->where('national_id', $nationalId)->first();
+        $student = \App\Models\Resident\Student::with('user')->where('national_id', $nationalId)->first();
         if ($student && $student->user) {
             return [
                 'id' => $student->user->id,
@@ -192,7 +187,7 @@ class UserService
             ];
         }
         // Try to find as staff
-        $staff = \App\Models\Staff::with('user')->where('national_id', $nationalId)->first();
+        $staff = \App\Models\Resident\Staff::with('user')->where('national_id', $nationalId)->first();
         if ($staff && $staff->user) {
             return [
                 'id' => $staff->user->id,

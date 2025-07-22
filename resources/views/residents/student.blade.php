@@ -76,13 +76,13 @@
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable 
-        :headers="['Academic ID', 'Name', 'Phone', 'Gender', 'Academic Year', 'Faculty', 'Actions']"
+        :headers="['Academic ID', 'Name', 'Phone', 'Gender', 'Level', 'Faculty', 'Actions']"
         :columns="[
             ['data' => 'academic_id', 'name' => 'academic_id'],
             ['data' => 'name_en', 'name' => 'name_en'],
             ['data' => 'phone', 'name' => 'phone'],
             ['data' => 'gender', 'name' => 'gender'],
-            ['data' => 'academic_year', 'name' => 'academic_year'],
+            ['data' => 'level', 'name' => 'level'],
             ['data' => 'faculty', 'name' => 'faculty'],
             ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false]
         ]"
@@ -140,8 +140,8 @@
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="student_academic_year" class="form-label">Academic Year</label>
-                        <select id="student_academic_year" name="academic_year" class="form-control" required>
+                        <label for="student_level" class="form-label">Level</label>
+                        <select id="student_level" name="level" class="form-control" required>
                             <option value="">Select Year</option>
                             <option value="1">1</option>
                             <option value="2">2</option>
@@ -200,8 +200,8 @@
                     <p id="view-student-academic-id" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Name (EN):</label>
-                    <p id="view-student-name-en" class="mb-0"></p>
+                    <label class="form-label fw-bold">Name:</label>
+                    <p id="view-student-name" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label fw-bold">Academic Email:</label>
@@ -216,8 +216,8 @@
                     <p id="view-student-gender" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Academic Year:</label>
-                    <p id="view-student-academic-year" class="mb-0"></p>
+                    <label class="form-label fw-bold">Level:</label>
+                    <p id="view-level-year" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label fw-bold">Faculty:</label>
@@ -591,7 +591,7 @@ var StudentManager = {
             var dob = student.date_of_birth ? student.date_of_birth.substring(0, 10) : '';
             $('#student_date_of_birth').val(dob);
             $('#student_gender').val(student.gender);
-            $('#student_academic_year').val(student.academic_year);
+            $('#student_level').val(student.level);
             $('#student_address').val(student.address);
             $('#student_is_profile_complete').val(student.is_profile_complete ? '1' : '0');
             $('#student_governorate_id').val(student.governorate_id);
@@ -623,13 +623,13 @@ var StudentManager = {
           if (response.success) {
             var student = response.data;
             $('#view-student-academic-id').text(student.academic_id);
-            $('#view-student-name-en').text(student.name_en);
+            $('#view-student-name').text(student.name);
             $('#view-student-academic-email').text(student.academic_email);
             $('#view-student-phone').text(student.phone);
             $('#view-student-gender').text(student.gender);
-            $('#view-student-academic-year').text(student.academic_year);
-            $('#view-student-faculty').text(student.faculty && student.faculty.name ? student.faculty.name : 'N/A');
-            $('#view-student-program').text(student.program && student.program.name ? student.program.name : 'N/A');
+            $('#view-student-level').text(student.level);
+            $('#view-student-faculty').text(student.faculty ? student.faculty : 'N/A');
+            $('#view-student-program').text(student.program ? student.program : 'N/A');
             $('#view-student-profile-complete').text(student.is_profile_complete ? 'Yes' : 'No');
             $('#view-student-created').text(new Date(student.created_at).toLocaleString());
             $('#viewStudentModal').modal('show');

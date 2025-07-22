@@ -149,13 +149,19 @@ class Sidebar extends Component
                 'title' => 'Payments',
                 'icon' => 'bx bx-money',
                 'route' => route('payments.index'),
-                'active' => str_starts_with(request()->route()->getName(), 'payments.'),
+                'active' => str_starts_with(request()->route()->getName(), 'payments.') || str_starts_with(request()->route()->getName(), 'insurances.'),
                 'children' => [
                     [
                         'title' => 'View Payments',
                         'icon' => 'bx bx-money',
                         'route' => route('payments.index'),
                         'active' => request()->routeIs('payments.index'),
+                    ],
+                    [
+                        'title' => 'View Insurances',
+                        'icon' => 'bx bx-shield',
+                        'route' => route('insurances.index'),
+                        'active' => request()->routeIs('insurances.index'),
                     ],
                 ],
             ],
