@@ -6,8 +6,6 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use App\Mail\ReservationActivated as ReservationActivatedMailable;
-use Illuminate\Mail\Mailable;
 
 class ReservationActivated extends Notification implements ShouldQueue
 {
