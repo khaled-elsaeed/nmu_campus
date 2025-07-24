@@ -15,6 +15,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use App\Services\Reservation\CreateReservationService;
+use Carbon\Carbon;
 
 class ReservationService
 {
@@ -35,52 +36,29 @@ class ReservationService
     }
 
     /**
-     * Update an existing reservation.
+     * Cancel a reservation.
      *
-     * @param Reservation $reservation
-     * @param array $data
+     * @param int $reservationId
      * @return Reservation
+     * @throws BusinessValidationException
      */
-    public function updateReservation(Reservation $reservation, array $data): Reservation
+    public function cancel(int $reservationId): Reservation
     {
-        return DB::transaction(function () use ($reservation, $data) {
-            $this->updateReservationRecord($reservation, $data);
-            return $reservation->fresh(['user', 'accommodation', 'academicTerm']);
-        });
-    }
+        $reservation = Reservation::findOrFail($reservationId);
 
-
-    /**
-     * Get a single reservation with relationships.
-     *
-     * @param int $id
-     * @return array
-     */
-    public function getReservation(int $id): array
-    {
-        $reservation = Reservation::select([
-            'id',
-            'student_id',
-            'room_id',
-            'academic_term_id',
-            'status',
-            'start_date',
-            'end_date'
-        ])->find($id);
-
-        if (!$reservation) {
-            throw new BusinessValidationException('Reservation not found.');
+        if ($reservation->status === 'checked_in') {
+            throw new BusinessValidationException('Cannot cancel a reservation that has been checked in.');
         }
 
-        return [
-            'id' => $reservation->id,
-            'student_id' => $reservation->student_id,
-            'room_id' => $reservation->room_id,
-            'academic_term_id' => $reservation->academic_term_id,
-            'status' => $reservation->status,
-            'start_date' => $reservation->start_date,
-            'end_date' => $reservation->end_date,
-        ];
+        if ($reservation->status === 'cancelled') {
+            throw new BusinessValidationException('Reservation is already cancelled.');
+        }
+
+        $reservation->status = 'cancelled';
+        $reservation->cancelled_at = Carbon::now();
+        $reservation->save();
+
+        return $reservation;
     }
 
     /**
@@ -177,28 +155,7 @@ class ReservationService
             ->addColumn('status', fn($reservation) => ucfirst($reservation->status))
             ->addColumn('active', fn($reservation) => $reservation->active ? 'Active' : 'Inactive')
             ->addColumn('created_at', fn($reservation) => formatDate($reservation->created_at))
-            ->addColumn('action', fn($reservation) => $this->renderActionButtons($reservation))
-            
-            // Order columns for related tables
-            ->orderColumn('reservation_number', 'reservations.reservation_number $1')
-            ->orderColumn('user_name', function ($query, $order) {
-                return $query->leftJoin('users', 'reservations.user_id', '=', 'users.id')
-                             ->orderBy('users.name_en', $order);
-            })
-            ->orderColumn('accommodation_info', function ($query, $order) {
-                return $query->leftJoin('accommodations', 'reservations.accommodation_id', '=', 'accommodations.id')
-                             ->orderBy('accommodations.id', $order);
-            })
-            ->orderColumn('academic_term', function ($query, $order) {
-                return $query->leftJoin('academic_terms', 'reservations.academic_terms_id', '=', 'academic_terms.id')
-                             ->orderBy('academic_terms.name_en', $order);
-            })
-            ->orderColumn('check_in_date', 'reservations.check_in_date $1')
-            ->orderColumn('check_out_date', 'reservations.check_out_date $1')
-            ->orderColumn('status', 'reservations.status $1')
-            ->orderColumn('active', 'reservations.active $1')
-            ->orderColumn('created_at', 'reservations.created_at $1')
-            
+            ->addColumn('action', fn($reservation) => $this->renderActionButtons($reservation))                       
             ->rawColumns(['action'])
             ->make(true);
     }
@@ -209,11 +166,19 @@ class ReservationService
      * @param Builder $query
      * @return Builder
      */
+
     protected function applySearchFilters($query): Builder
     {
-        if (request()->filled('search_reservation_number') && !empty(request('search_reservation_number'))) {
-            $search = mb_strtolower(request('search_reservation_number'));
-            $query->whereRaw('LOWER(reservation_number) LIKE ?', ['%' . $search . '%']);
+        if (request()->filled('search_national_id') && !empty(request('search_national_id'))) {
+            $search = request('search_national_id');
+            $query->whereHas('user', function ($q) use ($search) {
+                $q->whereHas('student', function ($studentQ) use ($search) {
+                    $studentQ->where('student_id', 'LIKE', '%' . $search . '%');
+                })
+                ->orWhereHas('staff', function ($staffQ) use ($search) {
+                    $staffQ->where('staff_id', 'LIKE', '%' . $search . '%');
+                });
+            });
         }
         
         if (request()->filled('search_user_name') && !empty(request('search_user_name'))) {
@@ -233,12 +198,32 @@ class ReservationService
         }
         
         if (request()->filled('search_academic_term_id')) {
-            $query->where('academic_terms_id', request('search_academic_term_id'));
+            $query->where('academic_term_id', request('search_academic_term_id'));
         }
         
-        if (request()->filled('search_accommodation_id')) {
-            $query->whereHas('accommodation', function ($q) {
-                $q->where('accommodatable_id', request('search_accommodation_id'));
+
+        // Search by building
+        if (request()->filled('search_building_id')) {
+            $buildingId = request('search_building_id');
+            $query->whereHas('accommodation.accommodatable.apartment.building', function ($q) use ($buildingId) {
+                $q->where('id', $buildingId);
+            });
+        }
+
+        // Search by apartment number
+        if (request()->filled('search_apartment_number')) {
+            $apartmentNumber = request('search_apartment_number');
+            $query->whereHas('accommodation.accommodatable.apartment', function ($q) use ($apartmentNumber) {
+                $q->where('number', $apartmentNumber);
+            });
+        }
+
+        // Search by room number
+        if (request()->filled('search_room_number')) {
+            $roomNumber = request('search_room_number');
+            $query->whereHas('accommodation.accommodatable', function ($q) use ($roomNumber) {
+                $q->where('accommodatable_type', 'App\\Models\\Housing\\Room')
+                  ->where('number', $roomNumber);
             });
         }
         
@@ -254,11 +239,18 @@ class ReservationService
     protected function renderActionButtons($reservation): string
     {
         return view('components.ui.datatable.data-table-actions', [
-            'mode' => 'dropdown',
-            'actions' => ['view', 'edit', 'delete'],
-            'id' => $reservation->id,
+            'mode' => 'single',
+            'actions' => [],
+            'id' => $reservation->id ?? '',
             'type' => 'Reservation',
-            'singleActions' => []
+            'singleActions' => [
+                [
+                    'action' => 'cancel',
+                    'icon' => 'bx bx-block',
+                    'class' => 'btn-danger',
+                    'label' => 'Cancel'
+                ]
+            ]
         ])->render();
     }
 

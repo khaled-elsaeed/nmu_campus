@@ -36,12 +36,8 @@
         :collapsed="false"
     >
         <div class="col-md-4">
-            <label for="search_reservation_number" class="form-label">Reservation Number:</label>
-            <input type="text" class="form-control" id="search_reservation_number" name="search_reservation_number">
-        </div>
-        <div class="col-md-4">
-            <label for="search_user_name" class="form-label">User Name:</label>
-            <input type="text" class="form-control" id="search_user_name" name="search_user_name">
+            <label for="search_national_id" class="form-label">National ID:</label>
+            <input type="text" class="form-control" id="search_national_id" name="search_national_id">
         </div>
         <div class="col-md-4">
             <label for="search_status" class="form-label">Status:</label>
@@ -69,9 +65,21 @@
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_accommodation_id" class="form-label">Accommodation:</label>
-            <select class="form-control" id="search_accommodation_id" name="search_accommodation_id">
-                <option value="">All Accommodations</option>
+            <label for="search_building_id" class="form-label">Building:</label>
+            <select class="form-control" id="search_building_id" name="search_building_id">
+                <option value="">Select Building</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="search_apartment_number" class="form-label">Apartment:</label>
+            <select class="form-control" id="search_apartment_number" name="search_apartment_number" disabled>
+                <option value="">Select Apartment</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="search_room_number" class="form-label">Room:</label>
+            <select class="form-control" id="search_room_number" name="search_room_number" disabled>
+                <option value="">Select Room</option>
             </select>
         </div>
         <div class="w-100"></div>
@@ -84,95 +92,34 @@
     <x-ui.datatable 
         :headers="['Reservation #', 'User', 'Accommodation', 'Academic Term', 'Check-in', 'Check-out', 'Status', 'Active', 'Period Type', 'Created', 'Actions']"
         :columns="[
-            ['data' => 'reservation_number', 'name' => 'reservation_number'],
-            ['data' => 'name', 'name' => 'name'],
-            ['data' => 'accommodation_info', 'name' => 'accommodation_info'],
-            ['data' => 'academic_term', 'name' => 'academic_term'],
-            ['data' => 'check_in_date', 'name' => 'check_in_date'],
-            ['data' => 'check_out_date', 'name' => 'check_out_date'],
-            ['data' => 'status', 'name' => 'status'],
-            ['data' => 'active', 'name' => 'active'],
-            ['data' => 'period_type', 'name' => 'period_type'],
-            ['data' => 'created_at', 'name' => 'created_at'],
+            ['data' => 'reservation_number', 'name' => 'reservation_number', 'orderable' => false],
+            ['data' => 'name', 'name' => 'name', 'orderable' => false],
+            ['data' => 'accommodation_info', 'name' => 'accommodation_info', 'orderable' => false],
+            ['data' => 'academic_term', 'name' => 'academic_term', 'orderable' => false],
+            ['data' => 'check_in_date', 'name' => 'check_in_date', 'orderable' => false],
+            ['data' => 'check_out_date', 'name' => 'check_out_date', 'orderable' => false],
+            ['data' => 'status', 'name' => 'status', 'orderable' => false],
+            ['data' => 'active', 'name' => 'active', 'orderable' => false],
+            ['data' => 'period_type', 'name' => 'period_type', 'orderable' => false],
+            ['data' => 'created_at', 'name' => 'created_at', 'orderable' => false],
             ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false]
         ]"
         :ajax-url="route('reservations.datatable')"
         :table-id="'reservations-table'"
         :filter-fields="[
-            'search_reservation_number',
-            'search_user_name',
+            'search_national_id',
             'search_status',
             'search_active',
             'search_academic_term_id',
-            'search_accommodation_id',
+            'search_building_id',
+            'search_apartment_number',
+            'search_room_number',
             'search_period_type'
         ]"
     />
 
     {{-- ===== MODALS SECTION ===== --}}
-    {{-- Add Reservation Modal --}}
-    {{-- (Removed) --}}
 
-    {{-- View Reservation Modal --}}
-    <x-ui.modal 
-        id="viewReservationModal"
-        title="Reservation Details"
-        size="md"
-        :scrollable="true"
-        class="view-reservation-modal"
-    >
-        <x-slot name="slot">
-          <div class="row">
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">Reservation Number:</label>
-                <p id="view-reservation-number" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">User:</label>
-                <p id="view-reservation-user" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">Accommodation:</label>
-                <p id="view-reservation-accommodation" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">Academic Term:</label>
-                <p id="view-reservation-academic-term" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">Check-in Date:</label>
-                <p id="view-reservation-check-in" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">Check-out Date:</label>
-                <p id="view-reservation-check-out" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">Status:</label>
-                <p id="view-reservation-status" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">Active:</label>
-                <p id="view-reservation-active" class="mb-0"></p>
-            </div>
-            <div class="col-12 mb-3">
-                <label class="form-label fw-bold">Notes:</label>
-                <p id="view-reservation-notes" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">Created At:</label>
-                <p id="view-reservation-created" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">Period Type:</label>
-                <p id="view-reservation-period-type" class="mb-0"></p>
-            </div>
-          </div>
-        </x-slot>
-        <x-slot name="footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-        </x-slot>
-    </x-ui.modal>
 </div>
 @endsection 
 
@@ -198,10 +145,9 @@ var ROUTES = {
   reservations: {
     stats: '{{ route("reservations.stats") }}',
     store: '{{ route("reservations.store") }}',
-    show: '{{ route("reservations.show", ":id") }}',
-    update: '{{ route("reservations.update", ":id") }}',
     destroy: '{{ route("reservations.destroy", ":id") }}',
     datatable: '{{ route("reservations.datatable") }}',
+    cancel: '{{ route("reservations.cancel", ":id") }}', // Added cancel route
   },
   buildings: {
     all: '{{ route("housing.buildings.all") }}'
@@ -212,9 +158,6 @@ var ROUTES = {
   rooms: {
     all: '{{ route("housing.rooms.all") }}'
   },
-  users: {
-    all: '{{ route("users.all") }}'
-  },
   academicTerms: {
     all: '{{ route("academic.academic_terms.all") }}'
   }
@@ -224,7 +167,8 @@ var MESSAGES = {
   success: {
     reservationCreated: 'Reservation has been created successfully.',
     reservationUpdated: 'Reservation has been updated successfully.',
-    reservationDeleted: 'Reservation has been deleted.'
+    reservationDeleted: 'Reservation has been deleted.',
+    reservationCancelled: 'Reservation has been cancelled.' // Added cancel success message
   },
   error: {
     statsLoadFailed: 'Failed to load reservation statistics.',
@@ -232,10 +176,10 @@ var MESSAGES = {
     reservationCreateFailed: 'Failed to create reservation.',
     reservationUpdateFailed: 'Failed to update reservation.',
     reservationDeleteFailed: 'Failed to delete reservation.',
+    reservationCancelFailed: 'Failed to cancel reservation.', // Added cancel error message
     buildingsLoadFailed: 'Failed to load buildings.',
     apartmentsLoadFailed: 'Failed to load apartments.',
     roomsLoadFailed: 'Failed to load rooms.',
-    usersLoadFailed: 'Failed to load users.',
     academicTermsLoadFailed: 'Failed to load academic terms.',
     operationFailed: 'Operation failed.'
   },
@@ -316,14 +260,11 @@ var ApiService = {
   fetchStats: function() {
     return this.request({ url: ROUTES.reservations.stats, method: 'GET' });
   },
-  fetchReservation: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.reservations.show, id), method: 'GET' });
-  },
-  updateReservation: function(id, data) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.reservations.update, id), method: 'PUT', data: data });
-  },
   deleteReservation: function(id) {
     return this.request({ url: Utils.replaceRouteId(ROUTES.reservations.destroy, id), method: 'DELETE' });
+  },
+  cancelReservation: function(id) {
+    return this.request({ url: Utils.replaceRouteId(ROUTES.reservations.cancel, id), method: 'POST' }); // Added cancelReservation
   },
   fetchBuildings: function() {
     return this.request({ url: ROUTES.buildings.all, method: 'GET' });
@@ -336,18 +277,9 @@ var ApiService = {
     var data = apartmentId ? { apartment_id: apartmentId } : {};
     return this.request({ url: ROUTES.rooms.all, method: 'GET', data: data });
   },
-  fetchUsers: function() {
-    return this.request({ url: ROUTES.users.all, method: 'GET' });
-  },
   fetchAcademicTerms: function() {
     return this.request({ url: ROUTES.academicTerms.all, method: 'GET' });
   },
-  createReservation: function(data) {
-    return this.request({ url: ROUTES.reservations.store, method: 'POST', data: data });
-  },
-  updateReservation: function(id, data) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.reservations.update, id), method: 'PUT', data: data });
-  }
 };
 
 // ===========================
@@ -405,32 +337,12 @@ var ReservationManager = {
   bindEvents: function() {
     var self = this;
     $(document)
-      .on('click', '.viewReservationBtn', function(e) { self.handleViewReservation(e); })
       .on('click', '.deleteReservationBtn', function(e) { self.handleDeleteReservation(e); })
-      .on('hidden.bs.modal', '#viewReservationModal', function() { self.resetViewModal(); });
-  },
-  handleViewReservation: function(e) {
-    var reservationId = Utils.getElementData(e.currentTarget, 'id');
-    this.viewReservation(reservationId);
+      .on('click', '.cancelReservationBtn', function(e) { self.handleCancelReservation(e); }); // Handle cancel button
   },
   handleDeleteReservation: function(e) {
     var reservationId = Utils.getElementData(e.currentTarget, 'id');
     this.confirmAndDeleteReservation(reservationId);
-  },
-  viewReservation: function(reservationId) {
-    ApiService.fetchReservation(reservationId)
-      .done(function(response) {
-        if (response.success) {
-          ReservationManager.populateViewModal(response.data);
-          $('#viewReservationModal').modal('show');
-        } else {
-          Utils.showError(response.message || MESSAGES.error.reservationLoadFailed);
-        }
-      })
-      .fail(function() {
-        $('#viewReservationModal').modal('hide');
-        Utils.showError(MESSAGES.error.reservationLoadFailed);
-      });
   },
   confirmAndDeleteReservation: function(reservationId) {
     Utils.confirmAction(MESSAGES.confirm.deleteReservation)
@@ -439,27 +351,6 @@ var ReservationManager = {
           ReservationManager.deleteReservation(reservationId);
         }
       });
-  },
-  populateViewModal: function(reservation) {
-    var fields = [
-      { id: 'number', value: reservation.reservation_number },
-      { id: 'user', value: reservation.user_name },
-      { id: 'accommodation', value: reservation.accommodation_info },
-      { id: 'academic-term', value: reservation.academic_term },
-      { id: 'check-in', value: reservation.check_in_date },
-      { id: 'check-out', value: reservation.check_out_date },
-      { id: 'status', value: reservation.status },
-      { id: 'active', value: reservation.active },
-      { id: 'notes', value: reservation.notes },
-      { id: 'created', value: reservation.created_at },
-      { id: 'period-type', value: reservation.period_type }
-    ];
-    fields.forEach(function(field) {
-      $('#view-reservation-' + field.id).text(field.value);
-    });
-  },
-  resetViewModal: function() {
-    // No specific reset needed for view modal as it's just a display
   },
   deleteReservation: function(reservationId) {
     ApiService.deleteReservation(reservationId)
@@ -474,6 +365,35 @@ var ReservationManager = {
       })
       .fail(function(xhr) {
         var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : MESSAGES.error.reservationDeleteFailed;
+        Utils.showError(message);
+      });
+  },
+  // --- Cancel Reservation Handlers ---
+  handleCancelReservation: function(e) {
+    var reservationId = Utils.getElementData(e.currentTarget, 'id');
+    this.confirmAndCancelReservation(reservationId);
+  },
+  confirmAndCancelReservation: function(reservationId) {
+    Utils.confirmAction(MESSAGES.confirm.cancelReservation)
+      .then(function(result) {
+        if (result.isConfirmed) {
+          ReservationManager.cancelReservation(reservationId);
+        }
+      });
+  },
+  cancelReservation: function(reservationId) {
+    ApiService.cancelReservation(reservationId)
+      .done(function(response) {
+        if (response.success) {
+          ReservationManager.reloadTable();
+          Utils.showSuccess(MESSAGES.success.reservationCancelled);
+          StatsManager.load();
+        } else {
+          Utils.showError(response.message || MESSAGES.error.reservationCancelFailed);
+        }
+      })
+      .fail(function(xhr) {
+        var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : MESSAGES.error.reservationCancelFailed;
         Utils.showError(message);
       });
   },
@@ -492,12 +412,13 @@ var SearchManager = {
   bindEvents: function() {
     var self = this;
     var filterSelectors = [
-      '#search_reservation_number',
-      '#search_user_name',
+      '#search_national_id',
       '#search_status',
       '#search_active',
       '#search_academic_term_id',
-      '#search_accommodation_id',
+      '#search_building_id',
+      '#search_apartment_number',
+      '#search_room_number',
       '#search_period_type'
     ].join(', ');
     $(filterSelectors).on('keyup change', function() { self.reloadTable(); });
@@ -505,15 +426,19 @@ var SearchManager = {
   },
   clearFilters: function() {
     var filterSelectors = [
-      '#search_reservation_number',
-      '#search_user_name',
+      '#search_national_id',
       '#search_status',
       '#search_active',
       '#search_academic_term_id',
-      '#search_accommodation_id',
+      '#search_building_id',
+      '#search_apartment_number',
+      '#search_room_number',
       '#search_period_type'
     ].join(', ');
     $(filterSelectors).val('');
+    // Reset apartment and room selects to disabled
+    $('#search_apartment_number').prop('disabled', true).empty().append('<option value="">Select Apartment</option>');
+    $('#search_room_number').prop('disabled', true).empty().append('<option value="">Select Room</option>');
     this.reloadTable();
   },
   reloadTable: function() {
@@ -527,53 +452,40 @@ var SearchManager = {
 var SelectManager = {
   init: function() {
     this.populateBuildingSelect();
-    this.populateUserSelect();
     this.populateAcademicTermsSelect();
-    this.populateSearchAcademicTermsSelect();
-    this.populateEditUserSelect();
-    this.populateEditAcademicTermsSelect();
+    this.disableApartmentAndRoom();
     this.bindEvents();
   },
   bindEvents: function() {
     var self = this;
-    // Search filters
+    // When building changes, populate apartments and enable apartment select, disable and clear room select
     $('#search_building_id').on('change', function(e) {
       var buildingId = $(e.target).val();
-      self.handleBuildingChange(buildingId);
+      if (buildingId) {
+        self.populateApartmentSelect(buildingId);
+        $('#search_apartment_number').prop('disabled', false);
+      } else {
+        self.clearSelect('#search_apartment_number', 'Select Apartment');
+        $('#search_apartment_number').prop('disabled', true);
+      }
+      self.clearRoomSelect();
+      $('#search_room_number').prop('disabled', true);
     });
+    // When apartment changes, populate rooms and enable room select
     $('#search_apartment_number').on('change', function(e) {
       var apartmentNumber = $(e.target).val();
-      self.handleApartmentChange(apartmentNumber);
-    });
-    // Edit form
-    $('#edit_accommodation_type').on('change', function(e) {
-      var type = $(e.target).val();
-      self.handleEditAccommodationTypeChange(type);
-    });
-    $('#edit_building_id').on('change', function(e) {
-      var buildingId = $(e.target).val();
-      var accommodationType = $('#edit_accommodation_type').val();
-      self.handleEditBuildingChange(buildingId, accommodationType);
+      if (apartmentNumber) {
+        self.populateRoomSelect(apartmentNumber);
+        $('#search_room_number').prop('disabled', false);
+      } else {
+        self.clearRoomSelect();
+        $('#search_room_number').prop('disabled', true);
+      }
     });
   },
-  handleBuildingChange: function(buildingId) {
-    this.populateApartmentSelect(buildingId);
-    this.clearRoomSelect();
-  },
-  handleApartmentChange: function(apartmentNumber) {
-    this.populateRoomSelect(apartmentNumber);
-  },
-  handleEditAccommodationTypeChange: function(type) {
-    if (type) {
-      this.populateEditBuildingSelect();
-      this.clearEditAccommodationSelect();
-    } else {
-      this.clearEditBuildingSelect();
-      this.clearEditAccommodationSelect();
-    }
-  },
-  handleEditBuildingChange: function(buildingId, accommodationType) {
-    this.populateEditAccommodationSelect(buildingId, accommodationType);
+  disableApartmentAndRoom: function() {
+    $('#search_apartment_number').prop('disabled', true);
+    $('#search_room_number').prop('disabled', true);
   },
   populateBuildingSelect: function() {
     ApiService.fetchBuildings()
@@ -586,88 +498,57 @@ var SelectManager = {
         Utils.showError(MESSAGES.error.buildingsLoadFailed);
       });
   },
-  populateEditBuildingSelect: function() {
-    ApiService.fetchBuildings()
-      .done(function(response) {
-        if (response.success && response.data) {
-          SelectManager.populateSelect('#edit_building_id', response.data, 'number', 'Select Building');
-        }
-      })
-      .fail(function() {
-        Utils.showError(MESSAGES.error.buildingsLoadFailed);
-      });
-  },
   populateApartmentSelect: function(buildingId) {
     if (!buildingId) {
       this.clearSelect('#search_apartment_number', 'Select Apartment');
+      $('#search_apartment_number').prop('disabled', true);
       return;
     }
     ApiService.fetchApartments(buildingId)
       .done(function(response) {
         if (response.success && response.data) {
-          var filteredApartments = response.data.filter(function(apartment) { return apartment.building_id == buildingId; });
-          SelectManager.populateSelect('#search_apartment_number', filteredApartments, 'number', 'Select Apartment');
+          SelectManager.populateSelect('#search_apartment_number', response.data, 'number', 'Select Apartment');
+        } else {
+          SelectManager.clearSelect('#search_apartment_number', 'Select Apartment');
         }
       })
       .fail(function() {
         Utils.showError(MESSAGES.error.apartmentsLoadFailed);
+        SelectManager.clearSelect('#search_apartment_number', 'Select Apartment');
       });
   },
-  populateEditAccommodationSelect: function(buildingId, accommodationType) {
-    if (!buildingId || !accommodationType) {
-      this.clearEditAccommodationSelect();
+  populateRoomSelect: function(apartmentNumber) {
+    if (!apartmentNumber) {
+      this.clearRoomSelect();
+      $('#search_room_number').prop('disabled', true);
       return;
     }
-    if (accommodationType === 'room') {
-      ApiService.fetchRooms(buildingId)
-        .done(function(response) {
-          if (response.success && response.data) {
-            var filteredRooms = response.data.filter(function(room) { return room.building_id == buildingId; });
-            SelectManager.populateSelect('#edit_accommodation_id', filteredRooms, 'number', 'Select Room');
-          }
-        })
-        .fail(function() {
-          Utils.showError(MESSAGES.error.roomsLoadFailed);
-        });
-    } else if (accommodationType === 'apartment') {
-      ApiService.fetchApartments(buildingId)
-        .done(function(response) {
-          if (response.success && response.data) {
-            var filteredApartments = response.data.filter(function(apartment) { return apartment.building_id == buildingId; });
-            SelectManager.populateSelect('#edit_accommodation_id', filteredApartments, 'number', 'Select Apartment');
-          }
-        })
-        .fail(function() {
-          Utils.showError(MESSAGES.error.apartmentsLoadFailed);
-        });
-    }
-  },
-  clearEditAccommodationSelect: function() {
-    this.clearSelect('#edit_accommodation_id', 'Select Room/Apartment');
-  },
-  clearEditBuildingSelect: function() {
-    this.clearSelect('#edit_building_id', 'Select Building');
-  },
-  populateUserSelect: function() {
-    ApiService.fetchUsers()
+    ApiService.fetchRooms(apartmentNumber)
       .done(function(response) {
         if (response.success && response.data) {
-          SelectManager.populateSelectWithUserInfo('#edit_user_id', response.data, 'Select User');
+          SelectManager.populateSelect('#search_room_number', response.data, 'number', 'Select Room');
+        } else {
+          SelectManager.clearSelect('#search_room_number', 'Select Room');
         }
       })
       .fail(function() {
-        Utils.showError(MESSAGES.error.usersLoadFailed);
+        Utils.showError(MESSAGES.error.roomsLoadFailed);
+        SelectManager.clearSelect('#search_room_number', 'Select Room');
       });
   },
-  populateEditAcademicTermsSelect: function() {
+  // Fix: Populate academic term select for search filter
+  populateAcademicTermsSelect: function() {
     ApiService.fetchAcademicTerms()
       .done(function(response) {
         if (response.success && response.data) {
-          SelectManager.populateSelect('#edit_academic_term_id', response.data, 'name_en', 'Select Academic Term');
+          SelectManager.populateSelect('#search_academic_term_id', response.data, 'name', 'All Terms');
+        } else {
+          SelectManager.clearSelect('#search_academic_term_id', 'All Terms');
         }
       })
       .fail(function() {
         Utils.showError(MESSAGES.error.academicTermsLoadFailed);
+        SelectManager.clearSelect('#search_academic_term_id', 'All Terms');
       });
   },
   populateSelect: function(selector, data, valueField, placeholder) {
@@ -677,26 +558,12 @@ var SelectManager = {
       $select.append('<option value="' + item.id + '">' + item[valueField] + '</option>');
     });
   },
-  populateSelectWithUserInfo: function(selector, data, placeholder) {
-    var $select = $(selector);
-    $select.empty().append('<option value="">' + placeholder + '</option>');
-    data.forEach(function(item) {
-      var displayText = item.name_en;
-      if (item.user_type && item.additional_info) {
-        displayText += ' (' + item.user_type + ' - ' + item.additional_info + ')';
-      }
-      $select.append('<option value="' + item.id + '">' + displayText + '</option>');
-    });
-  },
   clearSelect: function(selector, placeholder) {
     $(selector).empty().append('<option value="">' + placeholder + '</option>');
   },
   clearRoomSelect: function() {
     this.clearSelect('#search_room_number', 'Select Room');
   },
-  resetEditFormDropdowns: function() {
-    this.clearEditAccommodationSelect();
-  }
 };
 
 // ===========================
