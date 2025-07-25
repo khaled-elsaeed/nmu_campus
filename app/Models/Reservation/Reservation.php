@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\User;
 use App\Models\Academic\AcademicTerm;
-use App\Models\Equipment;
+use App\Models\EquipmentCheckout;
 
 class Reservation extends Model
 {
@@ -134,31 +134,9 @@ class Reservation extends Model
      */
     public function equipmentTracking(): HasMany
     {
-        return $this->hasMany(ReservationEquipment::class);
+        return $this->hasMany(EquipmentCheckout::class);
     }
 
-    /**
-     * Get the equipment for the reservation through the reservation_equipment pivot table.
-     *
-     * @return BelongsToMany
-     */
-    public function equipment(): BelongsToMany
-    {
-        return $this->belongsToMany(Equipment::class, 'reservation_equipment')
-            ->withPivot([
-                'quantity',
-                'overall_status',
-                'received_status',
-                'received_notes',
-                'received_at',
-                'received_by',
-                'returned_status',
-                'returned_notes',
-                'returned_at',
-                'returned_by',
-            ])
-            ->withTimestamps();
-    }
 
     /**
      * Determine if the reservation is active.

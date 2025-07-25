@@ -19,25 +19,14 @@ class Equipment extends Model
         'category_ar',
         'description_en',
         'description_ar',
+        'is_shared', 
+        'price_per_quantity',
     ];
 
-    /**
-     * Get the reservation equipment assignments for this equipment.
-     *
-     * @return HasMany
-     */
-    public function reservationEquipment(): HasMany
-    {
-        return $this->hasMany(ReservationEquipment::class);
-    }
 
-    /**
-     * Get the reservations that include this equipment.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
-     */
-    public function reservations(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+
+    public function checkoutDetails(): HasMany
     {
-        return $this->hasManyThrough(Reservation::class, ReservationEquipment::class);
+        return $this->hasMany(EquipmentCheckoutDetail::class);
     }
 }

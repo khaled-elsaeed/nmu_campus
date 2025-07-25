@@ -31,6 +31,8 @@ return new class extends Migration
             $table->string('category_ar')->nullable();
             $table->text('description_en')->nullable();
             $table->text('description_ar')->nullable();
+            $table->bool('is_shared')->default(false);
+            $table->decimal('price_per_quantity', 10, 2)->nullable(); 
             $table->timestamps();
         });
     }

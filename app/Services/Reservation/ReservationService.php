@@ -15,6 +15,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use App\Services\Reservation\CreateReservationService;
+use App\Services\Reservation\CancelReservationService;
 use Carbon\Carbon;
 
 class ReservationService
@@ -22,16 +23,16 @@ class ReservationService
     public function __construct(protected CreateReservationService $createReservationService)
     {}
 
-    /**
+   /**
      * Create a new reservation.
      *
      * @param array $data
      * @return Reservation|array
      */
-    public function createReservation(array $data)
+    public function createReservation(array $data, CreateReservationService $createReservationService)
     {
         return DB::transaction(function () use ($data) {
-            return $this->createReservationService->create($data);
+            return $createReservationService->create($data);
         });
     }
 
@@ -42,23 +43,11 @@ class ReservationService
      * @return Reservation
      * @throws BusinessValidationException
      */
-    public function cancel(int $reservationId): Reservation
+    public function cancelReservation(int $reservationId,CancelReservationService $cancelReservationService): Reservation
     {
-        $reservation = Reservation::findOrFail($reservationId);
-
-        if ($reservation->status === 'checked_in') {
-            throw new BusinessValidationException('Cannot cancel a reservation that has been checked in.');
-        }
-
-        if ($reservation->status === 'cancelled') {
-            throw new BusinessValidationException('Reservation is already cancelled.');
-        }
-
-        $reservation->status = 'cancelled';
-        $reservation->cancelled_at = Carbon::now();
-        $reservation->save();
-
-        return $reservation;
+        return DB::transaction(function () use ($data) {
+            return $cancelReservationService->cancel($data);
+        });
     }
 
     /**
