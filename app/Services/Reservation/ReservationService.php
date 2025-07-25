@@ -23,7 +23,20 @@ class ReservationService
     public function __construct(protected CreateReservationService $createReservationService)
     {}
 
-   /**
+    /**
+     * Find a reservation by its reservation number.
+     *
+     * @param string $number
+     * @return Reservation|null
+     */
+    public function findByNumber(string $number): ?Reservation
+    {
+        return Reservation::with(['user', 'accommodation', 'academicTerm','equipmentTracking'])
+            ->where('reservation_number', $number)
+            ->first();
+    }
+
+    /**
      * Create a new reservation.
      *
      * @param array $data
@@ -43,10 +56,10 @@ class ReservationService
      * @return Reservation
      * @throws BusinessValidationException
      */
-    public function cancelReservation(int $reservationId,CancelReservationService $cancelReservationService): Reservation
+    public function cancelReservation(int $reservationId, CancelReservationService $cancelReservationService): Reservation
     {
-        return DB::transaction(function () use ($data) {
-            return $cancelReservationService->cancel($data);
+        return DB::transaction(function () use ($reservationId, $cancelReservationService) {
+            return $cancelReservationService->cancel($reservationId);
         });
     }
 

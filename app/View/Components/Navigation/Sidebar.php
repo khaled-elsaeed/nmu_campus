@@ -138,6 +138,12 @@ class Sidebar extends Component
                         'active' => request()->routeIs('reservations.create'),
                     ],
                     [
+                        'title' => 'Check In / Out',
+                        'icon' => 'bx bx-log-in-circle',
+                        'route' => route('reservations.check-in'),
+                        'active' => request()->routeIs('reservations.check-in'),
+                    ],
+                    [
                         'title' => 'Reservation Requests',
                         'icon' => 'bx bx-calendar-check',
                         'route' => route('reservation-requests.index'),

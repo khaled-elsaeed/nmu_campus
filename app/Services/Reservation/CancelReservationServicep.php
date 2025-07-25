@@ -20,7 +20,7 @@ class CompleteReservationService
     public function __construct()
     {
         // $this->validator = new ReservationValidator();
-        $this->equipmentService = new EquipmentReturnService();
+        $damages = $this->equipmentService = new EquipmentReturnService();
         $this->creator = new ReservationCreator();
         $this->accommodationService = new AccommodationService();
         $this->paymentService = new PaymentService();

@@ -91,6 +91,32 @@ class ReservationController extends Controller
         }
     }
 
+    public function showCheckInForm()
+    {
+        return view('reservation.check_in');
+    }
+
+    /**
+     * Find a reservation by its number.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function findByNumber(Request $request): JsonResponse
+    {
+        $number = $request->input('reservation_number');
+        try {
+            $reservation = $this->reservationService->findByNumber($number);
+            if (!$reservation) {
+                return errorResponse('No reservation found for this Reservation Number.', [], 404);
+            }
+            return successResponse('Reservation found.', $reservation);
+        } catch (Exception $e) {
+            logError('ReservationController@findByNumber', $e, ['number' => $number]);
+            return errorResponse('Failed to fetch reservation details.', [$e->getMessage()]);
+        }
+    }
+
     /**
      * Cancel the specified reservation.
      *

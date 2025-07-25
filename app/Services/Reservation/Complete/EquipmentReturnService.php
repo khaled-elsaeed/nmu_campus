@@ -17,14 +17,15 @@ class EquipmentReturnService
      *
      * @param Reservation $reservation
      * @param array $equipmentData
-     * @return void
+     * @return array Returns array of damages found during return process
      */
-    public function returnEquipmentIfProvided(Reservation $reservation, array $equipmentData): void
+    public function returnEquipment(Reservation $reservation, array $equipmentData): array
     {
         if (empty($equipmentData)) {
-            return;
+            return [];
         }
-        $this->markEquipmentAsReturned($reservation, $equipmentData);
+        
+        return $this->markEquipmentAsReturned($reservation, $equipmentData);
     }
 
     /**
@@ -33,11 +34,11 @@ class EquipmentReturnService
      *
      * @param Reservation $reservation
      * @param array $equipmentData
-     * @return void
+     * @return array Returns array of damages
      */
-    private function markEquipmentAsReturned(Reservation $reservation, array $equipmentData): void
+    private function markEquipmentAsReturned(Reservation $reservation, array $equipmentData): array
     {
-        // Find the EquipmentCheckout record for this reservation
+        $damages = [];
         $equipmentCheckout = EquipmentCheckout::where('reservation_id', $reservation->id)->first();
 
         if (!$equipmentCheckout) {
@@ -49,8 +50,10 @@ class EquipmentReturnService
             $quantity = $this->extractEquipmentQuantity($equipmentItem);
             $returnedStatus = $this->extractReturnedStatus($equipmentItem);
             $returnedNotes = $this->extractReturnedNotes($equipmentItem);
+            $estimatedCost = $this->extractEstimatedCost($equipmentItem);
 
             $this->validateEquipment($equipmentId, $quantity);
+            
             $this->updateEquipmentCheckoutDetailReturn(
                 $equipmentCheckout,
                 $equipmentId,
@@ -58,12 +61,28 @@ class EquipmentReturnService
                 $returnedStatus,
                 $returnedNotes
             );
+
+            // Track damages ONLY if equipment is damaged or missing (not good)
+            if ($returnedStatus === 'damaged' || $returnedStatus === 'missing') {
+                $equipment = Equipment::find($equipmentId);
+                $damages[] = [
+                    'equipment_id' => $equipmentId,
+                    'equipment_name' => $equipment->name ?? 'Unknown Equipment',
+                    'quantity_damaged' => $quantity,
+                    'status' => $returnedStatus,
+                    'estimated_cost' => $estimatedCost,
+                    'notes' => $returnedNotes,
+                    'checkout_detail_id' => $this->getCheckoutDetailId($equipmentCheckout, $equipmentId)
+                ];
+            }
         }
 
         $equipmentCheckout->overall_status = 'returned';
         $equipmentCheckout->returned_at = Carbon::now();
         $equipmentCheckout->reviewed_by = Auth::id();
         $equipmentCheckout->save();
+
+        return $damages;
     }
 
     /**
@@ -128,7 +147,37 @@ class EquipmentReturnService
     }
 
     /**
-     * Validate that the equipment exists, the quantity is valid.
+     * Extract estimated cost for damaged/missing equipment.
+     *
+     * @param mixed $equipmentItem
+     * @return float|null
+     */
+    private function extractEstimatedCost($equipmentItem): ?float
+    {
+        if (is_array($equipmentItem) && isset($equipmentItem['estimated_cost'])) {
+            return (float) $equipmentItem['estimated_cost'];
+        }
+        return null;
+    }
+
+    /**
+     * Get checkout detail ID for tracking purposes.
+     *
+     * @param EquipmentCheckout $equipmentCheckout
+     * @param int $equipmentId
+     * @return int|null
+     */
+    private function getCheckoutDetailId(EquipmentCheckout $equipmentCheckout, int $equipmentId): ?int
+    {
+        $checkoutDetail = EquipmentCheckoutDetail::where('equipment_checkout_id', $equipmentCheckout->id)
+            ->where('equipment_id', $equipmentId)
+            ->first();
+        
+        return $checkoutDetail ? $checkoutDetail->id : null;
+    }
+
+    /**
+     * Validate that the equipment exists and the quantity is valid.
      *
      * @param int $equipmentId
      * @param int $quantity
@@ -140,6 +189,10 @@ class EquipmentReturnService
         $equipment = Equipment::find($equipmentId);
         if (!$equipment) {
             throw new BusinessValidationException("Equipment with ID {$equipmentId} not found.");
+        }
+
+        if ($quantity <= 0) {
+            throw new BusinessValidationException("Invalid quantity {$quantity} for equipment ID {$equipmentId}.");
         }
     }
 
