@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Reservation\Request;
+namespace App\Services\Reservation;
 
 use App\Models\Reservation\ReservationRequest;
 use App\Models\User;

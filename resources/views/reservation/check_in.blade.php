@@ -13,6 +13,7 @@
             <i class="bx bx-arrow-back"></i> Back to List
         </a>
     </x-ui.page-header>
+
     <div class="row justify-content-center">
         <!-- Step 1: Reservation Number Search -->
         <div class="card mb-4 shadow-sm border-0">
@@ -54,7 +55,7 @@
             <div class="card mb-4 shadow-sm border-0">
                 <div class="card-header bg-white border-bottom-0 pb-0">
                     <h5 class="mb-0"><i class="bx bx-cube me-2"></i>Equipment Assignment</h5>
-                    <small class="text-muted">Select equipment to assign to the guest</small>
+                    <small class="text-muted">Select equipment to assign to the guest and specify condition</small>
                 </div>
                 <div class="card-body pt-3">
                     <div class="row">
@@ -96,7 +97,7 @@
         </form>
 
         <!-- Step 3: Check-out Form (for checked-in reservations) -->
-        <form id="checkoutReservationForm" method="POST" action="{{ route('reservations.checkout') }}" class="d-none">
+        <form id="checkoutReservationForm" method="POST" action="{{ route('reservations.checkout') }}" class="d-none" enctype="multipart/form-data">
             @csrf
             <input type="hidden" id="checkout_reservation_id" name="reservation_id">
             
@@ -106,7 +107,7 @@
                     <h5 class="mb-0"><i class="bx bx-cube me-2"></i>Equipment Return</h5>
                     <small class="text-muted">Mark the condition of each equipment item being returned</small>
                 </div>
-                <div class="card-body pt-3">
+                <div class="card-body pt-3" style="max-height: 250px; overflow-y: auto;">
                     <div id="equipment-return-list">
                         <!-- Populated by JS -->
                     </div>
@@ -127,19 +128,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Damage Summary (hidden until damages found) -->
-            <div id="damage-summary-section" class="card mb-4 shadow-sm border-0 d-none">
-                <div class="card-header bg-danger text-white border-bottom-0 pb-0">
-                    <h5 class="mb-0"><i class="bx bx-error-circle me-2"></i>Damage Summary</h5>
-                </div>
-                <div class="card-body pt-3">
-                    <div id="damage-summary-content">
-                        <!-- Populated by JS when damages are detected -->
-                    </div>
-                </div>
-            </div>
-
             <div class="d-flex justify-content-end mt-4">
                 <button type="submit" class="btn btn-lg btn-danger px-4 shadow">
                     <i class="bx bx-log-out-circle"></i> Complete Check-out
@@ -151,87 +139,141 @@
 
 <!-- Equipment Image Upload Modal -->
 <div class="modal fade" id="equipmentImageUploadModal" tabindex="-1" aria-labelledby="equipmentImageUploadModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <form id="equipmentImageUploadForm" enctype="multipart/form-data">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="equipmentImageUploadModalLabel">Upload Equipment Image</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="equipmentImageUploadModalLabel">Manage Equipment Images</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modal_equipment_id" name="modal_equipment_id" value="">
+                <input type="hidden" id="modal_equipment_index" name="modal_equipment_index" value="">
+                
+                <!-- File Upload Section -->
+                <div class="mb-3">
+                    <label for="equipment_image_file" class="form-label">Select Images</label>
+                    <input class="form-control" type="file" id="equipment_image_file" name="equipment_image_file" accept="image/*" multiple>
+                    <div class="form-text">You can select multiple images. Supported formats: JPG, PNG, GIF</div>
+                </div>
+
+                <!-- Attached Images Grid -->
+                <div id="attached_images_container" class="mb-3">
+                    <h6>Attached Images</h6>
+                    <div id="attached_images_grid" class="row g-2">
+                        <!-- Images will be populated here -->
+                    </div>
+                    <div id="no_images_message" class="text-muted text-center py-3">
+                        No images attached yet
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" id="attach_images_btn" class="btn btn-primary">
+                    <i class="bx bx-plus"></i> Add Selected Images
+                </button>
+            </div>
         </div>
-        <div class="modal-body">
-          <input type="hidden" id="modal_equipment_id" name="modal_equipment_id" value="">
-          <div class="mb-3">
-            <label for="equipment_image_file" class="form-label">Select Image</label>
-            <input class="form-control" type="file" id="equipment_image_file" name="equipment_image_file" accept="image/*">
-          </div>
-          <div id="equipment_image_preview" class="mb-2" style="display:none;">
-            <img src="" alt="Preview" class="img-fluid rounded" style="max-height:200px;">
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Upload</button>
-        </div>
-      </div>
-    </form>
-  </div>
+    </div>
 </div>
 @endsection 
 
 @push('scripts')
 <script>
 /**
- * Reservation Check-in/Check-out Page JS
- * - Handles both check-in and check-out processes
- * - Dynamically shows appropriate form based on reservation status
+ * ========================================
+ * RESERVATION CHECK-IN/CHECK-OUT SYSTEM
+ * ========================================
+ * 
+ * Organized modular system for handling guest check-in and check-out processes
+ * Features:
+ * - Equipment assignment and return tracking
+ * - Multiple image attachments with delete functionality
+ * - Real-time form validation
+ * - Damage cost estimation
+ * - Status tracking and notifications
  */
 
 // ===========================
-// ROUTES CONSTANTS
+// CONFIGURATION & CONSTANTS
 // ===========================
-const ROUTES = {
-    reservations: {
-        checkin: '{{ route("reservations.checkin") }}',
-        checkout: '{{ route("reservations.checkout") }}',
-        findByNumber: '{{ route("reservations.findByNumber") }}'
+const CONFIG = {
+    routes: {
+        reservations: {
+            checkin: '{{ route("reservations.checkin") }}',
+            checkout: '{{ route("reservations.checkout") }}',
+            findByNumber: '{{ route("reservations.findByNumber") }}'
+        },
+        equipment: {
+            all: '{{ route("equipment.all") }}'
+        }
     },
-    equipment: {
-        all: '{{ route("equipment.all") }}'
+    
+    messages: {
+        success: {
+            checkinCompleted: 'Guest has been checked in successfully.',
+            checkoutCompleted: 'Guest has been checked out successfully.',
+            imagesAttached: 'Images attached successfully.',
+            imageDeleted: 'Image removed successfully.'
+        },
+        error: {
+            enterReservationNumber: 'Please enter a Reservation Number.',
+            reservationNotFound: 'No reservation found for this Reservation Number.',
+            fetchReservationFailed: 'Failed to fetch reservation details.',
+            checkinFailed: 'Failed to complete check-in.',
+            checkoutFailed: 'Failed to complete check-out.',
+            noEquipmentToReturn: 'No equipment found to return.',
+            invalidDamageData: 'Please provide valid damage information (cost and notes) for damaged/missing items.',
+            equipmentLoadFailed: 'Failed to load equipment list.',
+            imageUploadFailed: 'Failed to attach images. Please try again.',
+            noImagesSelected: 'Please select at least one image to attach.'
+        },
+        validation: {
+            required: 'This field is required.',
+            invalidCost: 'Please enter a valid cost amount.',
+            missingNotes: 'Please provide notes for damaged/missing items.'
+        }
+    },
+
+    ui: {
+        statusBadges: {
+            'pending': 'bg-warning',
+            'confirmed': 'bg-info',
+            'checked_in': 'bg-success',
+            'checked_out': 'bg-secondary',
+            'cancelled': 'bg-danger',
+            'good': 'bg-success',
+            'damaged': 'bg-warning',
+            'missing': 'bg-danger'
+        },
+        maxImageSize: 5 * 1024 * 1024, // 5MB
+        supportedImageTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
     }
 };
 
-const MESSAGES = {
-    success: {
-        checkinCompleted: 'Guest has been checked in successfully.',
-        checkoutCompleted: 'Guest has been checked out successfully.',
-        imageUploaded: 'Image uploaded successfully.'
-    },
-    error: {
-        enterReservationNumber: 'Please enter a Reservation Number.',
-        reservationNotFound: 'No reservation found for this Reservation Number.',
-        fetchReservationFailed: 'Failed to fetch reservation details.',
-        checkinFailed: 'Failed to complete check-in.',
-        checkoutFailed: 'Failed to complete check-out.',
-        noEquipmentToReturn: 'No equipment found to return.',
-        invalidDamageData: 'Please provide valid damage information for damaged/missing items.',
-        equipmentLoadFailed: 'Failed to load equipment list.',
-        imageUploadFailed: 'Failed to upload image. Please try again.'
-    }
-};
+// Global storage for equipment images
+window.equipmentImages = {};
 
 // ===========================
 // UTILITY FUNCTIONS
 // ===========================
 const Utils = {
-    showError: (message) => {
+    /**
+     * Show error message using SweetAlert
+     */
+    showError(message) {
         Swal.fire({ 
             title: 'Error', 
             html: message, 
-            icon: 'error' 
+            icon: 'error',
+            confirmButtonColor: '#d33'
         });
     },
 
-    showSuccess: (message) => {
+    /**
+     * Show success message using SweetAlert toast
+     */
+    showSuccess(message) {
         Swal.fire({ 
             toast: true, 
             position: 'top-end', 
@@ -243,51 +285,142 @@ const Utils = {
         });
     },
 
-    showWarning: (message) => {
+    /**
+     * Show warning message using SweetAlert
+     */
+    showWarning(message) {
         Swal.fire({ 
             title: 'Warning', 
             html: message, 
             icon: 'warning',
-            confirmButtonText: 'I Understand'
+            confirmButtonText: 'I Understand',
+            confirmButtonColor: '#f39c12'
         });
     },
 
-    disableButton: ($button, disabled = true) => {
-        $button.prop('disabled', disabled);
+    /**
+     * Show confirmation dialog
+     */
+    async showConfirm(title, message, confirmText = 'Yes', cancelText = 'No') {
+        const result = await Swal.fire({
+            title,
+            html: message,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: confirmText,
+            cancelButtonText: cancelText,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33'
+        });
+        return result.isConfirmed;
     },
 
-    showElement: ($element) => {
-        $element.removeClass('d-none').show();
+    /**
+     * Enable/disable button with loading state
+     */
+    toggleButton($button, disabled = true, loadingText = 'Loading...') {
+        if (disabled) {
+            $button.prop('disabled', true);
+            if (!$button.data('original-text')) {
+                $button.data('original-text', $button.html());
+            }
+            $button.html(`<i class="bx bx-loader-alt bx-spin"></i> ${loadingText}`);
+        } else {
+            $button.prop('disabled', false);
+            const originalText = $button.data('original-text');
+            if (originalText) {
+                $button.html(originalText);
+            }
+        }
     },
 
-    hideElement: ($element) => {
-        $element.addClass('d-none').hide();
+    /**
+     * Show/hide element with animation
+     */
+    showElement($element, animate = true) {
+        $element.removeClass('d-none');
+        if (animate) {
+            $element.hide().fadeIn(300);
+        } else {
+            $element.show();
+        }
     },
 
-    formatCurrency: (amount) => {
+    /**
+     * Hide element with animation
+     */
+    hideElement($element, animate = true) {
+        if (animate) {
+            $element.fadeOut(300, function() {
+                $(this).addClass('d-none');
+            });
+        } else {
+            $element.addClass('d-none').hide();
+        }
+    },
+
+    /**
+     * Format currency amount
+     */
+    formatCurrency(amount) {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: 'USD'
-        }).format(amount);
+        }).format(amount || 0);
     },
 
-    getCurrentDate: () => {
+    /**
+     * Get current date in YYYY-MM-DD format
+     */
+    getCurrentDate() {
         return new Date().toISOString().split('T')[0];
     },
 
-    getCurrentTime: () => {
+    /**
+     * Get current time in HH:MM format
+     */
+    getCurrentTime() {
         return new Date().toTimeString().split(' ')[0].substring(0, 5);
     },
 
-    getStatusBadge: (status) => {
-        const badges = {
-            'pending': 'bg-warning',
-            'confirmed': 'bg-info',
-            'checked_in': 'bg-success',
-            'checked_out': 'bg-secondary',
-            'cancelled': 'bg-danger'
-        };
-        return badges[status] || 'bg-secondary';
+    /**
+     * Get Bootstrap badge class for status
+     */
+    getStatusBadge(status) {
+        return CONFIG.ui.statusBadges[status] || 'bg-secondary';
+    },
+
+    /**
+     * Generate unique ID
+     */
+    generateId() {
+        return Math.random().toString(36).substr(2, 9);
+    },
+
+    /**
+     * Validate image file
+     */
+    validateImageFile(file) {
+        if (!CONFIG.ui.supportedImageTypes.includes(file.type)) {
+            return { valid: false, message: 'Unsupported file type. Please select a valid image file.' };
+        }
+        
+        if (file.size > CONFIG.ui.maxImageSize) {
+            return { valid: false, message: 'File size too large. Maximum size is 5MB.' };
+        }
+        
+        return { valid: true };
+    },
+
+    /**
+     * Format file size for display
+     */
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 };
 
@@ -295,145 +428,431 @@ const Utils = {
 // API SERVICE
 // ===========================
 const ApiService = {
-    request: (options) => {
-        return $.ajax(options);
+    /**
+     * Generic AJAX request wrapper
+     */
+    async request(options) {
+        try {
+            const response = await $.ajax({
+                ...options,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    ...options.headers
+                }
+            });
+            return response;
+        } catch (error) {
+            console.error('API Request failed:', error);
+            throw error;
+        }
     },
 
-    findReservationByNumber: (reservationNumber) => {
-        return ApiService.request({ 
-            url: ROUTES.reservations.findByNumber, 
+    /**
+     * Find reservation by number
+     */
+    findReservationByNumber(reservationNumber) {
+        return this.request({ 
+            url: CONFIG.routes.reservations.findByNumber, 
             method: 'GET', 
-            data: { 
-                reservation_number: reservationNumber
-            } 
+            data: { reservation_number: reservationNumber } 
         });
     },
 
-    fetchEquipment: () => {
-        return ApiService.request({ 
-            url: ROUTES.equipment.all, 
+    /**
+     * Fetch all equipment
+     */
+    fetchEquipment() {
+        return this.request({ 
+            url: CONFIG.routes.equipment.all, 
             method: 'GET' 
         });
     },
 
-    processCheckin: (data) => {
-        return ApiService.request({ 
-            url: ROUTES.reservations.checkin, 
+    /**
+     * Process check-in
+     */
+    processCheckin(formData) {
+        return this.request({ 
+            url: CONFIG.routes.reservations.checkin, 
             method: 'POST', 
-            data 
+            data: formData,
+            processData: false,
+            contentType: false
         });
     },
 
-    processCheckout: (data) => {
-        return ApiService.request({ 
-            url: ROUTES.reservations.checkout, 
+    /**
+     * Process check-out
+     */
+    processCheckout(formData) {
+        return this.request({ 
+            url: CONFIG.routes.reservations.checkout, 
             method: 'POST', 
-            data 
+            data: formData,
+            processData: false,
+            contentType: false
+        });
+    }
+};
+
+// ===========================
+// IMAGE MANAGER
+// ===========================
+const ImageManager = {
+    /**
+     * Initialize image manager
+     */
+    init() {
+        this.bindEvents();
+    },
+
+    /**
+     * Bind image-related events
+     */
+    bindEvents() {
+        // File input change
+        $('#equipment_image_file').on('change', this.handleFileSelection.bind(this));
+        
+        // Add images button
+        $('#attach_images_btn').on('click', this.handleAttachImages.bind(this));
+        
+        // Modal reset on close
+        $('#equipmentImageUploadModal').on('hidden.bs.modal', this.resetModal.bind(this));
+    },
+
+    /**
+     * Handle file selection
+     */
+    handleFileSelection(e) {
+        const files = Array.from(e.target.files);
+        
+        if (files.length === 0) {
+            return;
+        }
+
+        // Validate files
+        const validFiles = [];
+        const invalidFiles = [];
+
+        files.forEach(file => {
+            const validation = Utils.validateImageFile(file);
+            if (validation.valid) {
+                validFiles.push(file);
+            } else {
+                invalidFiles.push({ file, message: validation.message });
+            }
+        });
+
+        // Show validation errors
+        if (invalidFiles.length > 0) {
+            const errorMessages = invalidFiles.map(item => 
+                `${item.file.name}: ${item.message}`
+            ).join('<br>');
+            Utils.showError(`Some files could not be processed:<br>${errorMessages}`);
+        }
+
+        // Update UI to show selection
+        if (validFiles.length > 0) {
+            this.updateFilePreview(validFiles);
+        }
+    },
+
+    /**
+     * Update file selection preview
+     */
+    updateFilePreview(files) {
+        const $btn = $('#attach_images_btn');
+        if (files.length > 0) {
+            $btn.html(`<i class="bx bx-plus"></i> Add ${files.length} Image(s)`);
+            $btn.removeClass('btn-secondary').addClass('btn-primary');
+        } else {
+            $btn.html('<i class="bx bx-plus"></i> Add Selected Images');
+            $btn.removeClass('btn-primary').addClass('btn-secondary');
+        }
+    },
+
+    /**
+     * Handle attach images
+     */
+    async handleAttachImages() {
+        const files = Array.from($('#equipment_image_file')[0].files);
+        
+        if (files.length === 0) {
+            Utils.showError(CONFIG.messages.error.noImagesSelected);
+            return;
+        }
+
+        const equipmentId = $('#modal_equipment_id').val();
+        const equipmentIndex = $('#modal_equipment_index').val();
+        const key = `${equipmentId}_${equipmentIndex}`;
+
+        // Initialize storage if not exists
+        if (!window.equipmentImages[key]) {
+            window.equipmentImages[key] = [];
+        }
+
+        // Process each file
+        for (const file of files) {
+            const validation = Utils.validateImageFile(file);
+            if (validation.valid) {
+                const imageData = await this.processImageFile(file);
+                window.equipmentImages[key].push(imageData);
+            }
+        }
+
+        this.updateAttachedImagesDisplay(key);
+        this.updateEquipmentImageCounter(equipmentId, equipmentIndex);
+        Utils.showSuccess(CONFIG.messages.success.imagesAttached);
+        
+        // Reset file input
+        $('#equipment_image_file').val('');
+        this.updateFilePreview([]);
+    },
+
+    /**
+     * Process image file to base64
+     */
+    processImageFile(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                resolve({
+                    id: Utils.generateId(),
+                    file: file,
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    dataUrl: e.target.result,
+                    timestamp: Date.now()
+                });
+            };
+            reader.readAsDataURL(file);
         });
     },
 
-    uploadEquipmentImage: (equipmentId, file) => {
-        // This is a placeholder. You should implement the backend route and logic for image upload.
-        // For now, we'll just simulate a successful upload with a Promise.
-        // Replace this with your actual AJAX upload logic.
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                // Simulate success
-                resolve({ success: true, url: URL.createObjectURL(file) });
-            }, 1000);
+    /**
+     * Update attached images display in modal
+     */
+    updateAttachedImagesDisplay(key) {
+        const images = window.equipmentImages[key] || [];
+        const $grid = $('#attached_images_grid');
+        const $noMessage = $('#no_images_message');
+
+        $grid.empty();
+
+        if (images.length === 0) {
+            $noMessage.show();
+            return;
+        }
+
+        $noMessage.hide();
+
+        images.forEach(image => {
+            const $imageCard = $(`
+                <div class="col-md-4 col-sm-6">
+                    <div class="card image-card">
+                        <div class="card-body p-2">
+                            <div class="position-relative">
+                                <img src="${image.dataUrl}" class="img-fluid rounded" style="height: 120px; width: 100%; object-fit: cover;">
+                                <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1" 
+                                        onclick="ImageManager.deleteImage('${key}', '${image.id}')">
+                                    <i class="bx bx-x"></i>
+                                </button>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted d-block text-truncate">${image.name}</small>
+                                <small class="text-muted">${Utils.formatFileSize(image.size)}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+            $grid.append($imageCard);
         });
+    },
+
+    /**
+     * Delete image
+     */
+    async deleteImage(key, imageId) {
+        const confirmed = await Utils.showConfirm(
+            'Delete Image',
+            'Are you sure you want to remove this image?',
+            'Delete',
+            'Cancel'
+        );
+
+        if (!confirmed) return;
+
+        // Remove from storage
+        if (window.equipmentImages[key]) {
+            window.equipmentImages[key] = window.equipmentImages[key].filter(img => img.id !== imageId);
+        }
+
+        // Update displays
+        this.updateAttachedImagesDisplay(key);
+        
+        const [equipmentId, equipmentIndex] = key.split('_');
+        this.updateEquipmentImageCounter(equipmentId, equipmentIndex);
+        
+        Utils.showSuccess(CONFIG.messages.success.imageDeleted);
+    },
+
+    /**
+     * Update equipment image counter in main form
+     */
+    updateEquipmentImageCounter(equipmentId, equipmentIndex) {
+        const key = `${equipmentId}`;
+        const images = window.equipmentImages[key] || [];
+        const $counter = $(`#equipment_images_counter_${equipmentId}_${equipmentIndex}`);
+        
+        if (images.length > 0) {
+            $counter.html(`<i class="bx bx-image text-success"></i> ${images.length} image(s)`).show();
+        } else {
+            $counter.hide();
+        }
+    },
+
+    /**
+     * Open image manager modal
+     */
+    openModal(equipmentId, equipmentIndex, equipmentName) {
+        $('#modal_equipment_id').val(equipmentId);
+        $('#modal_equipment_index').val(equipmentIndex);
+        $('#equipmentImageUploadModalLabel').text(`Manage Images for ${equipmentName}`);
+        
+        const key = `${equipmentId}_${equipmentIndex}`;
+        this.updateAttachedImagesDisplay(key);
+        
+        $('#equipmentImageUploadModal').modal('show');
+    },
+
+    /**
+     * Reset modal state
+     */
+    resetModal() {
+        $('#equipment_image_file').val('');
+        $('#modal_equipment_id').val('');
+        $('#modal_equipment_index').val('');
+        $('#attached_images_grid').empty();
+        $('#no_images_message').show();
+        this.updateFilePreview([]);
+    },
+
+    /**
+     * Get all images for form submission
+     */
+    getAllImagesForSubmission() {
+        const formData = new FormData();
+        let imageCount = 0;
+
+        Object.keys(window.equipmentImages).forEach(key => {
+            const images = window.equipmentImages[key];
+            images.forEach((image, index) => {
+                formData.append(`equipment_images[${key}][${index}]`, image.file);
+                imageCount++;
+            });
+        });
+
+        return { formData, imageCount };
     }
 };
 
 // ===========================
 // RESERVATION SEARCH MANAGER
 // ===========================
-const ReservationSearchManager = {
-    init: () => {
-        ReservationSearchManager.bindEvents();
-        ReservationSearchManager.setDefaultDates();
+const ReservationManager = {
+    /**
+     * Initialize reservation manager
+     */
+    init() {
+        this.bindEvents();
+        this.setDefaultDates();
     },
 
-    bindEvents: () => {
-        $('#btnSearchReservation').on('click', ReservationSearchManager.handleSearch);
+    /**
+     * Bind reservation search events
+     */
+    bindEvents() {
+        $('#btnSearchReservation').on('click', this.handleSearch.bind(this));
         $('#search_reservation_number').on('keypress', (e) => {
             if (e.which === 13) { // Enter key
-                ReservationSearchManager.handleSearch();
+                this.handleSearch();
             }
         });
     },
 
-    setDefaultDates: () => {
+    /**
+     * Set default dates and times
+     */
+    setDefaultDates() {
         $('#checkin_date').val(Utils.getCurrentDate());
         $('#checkin_time').val(Utils.getCurrentTime());
         $('#checkout_date').val(Utils.getCurrentDate());
         $('#checkout_time').val(Utils.getCurrentTime());
     },
 
-    handleSearch: () => {
+    /**
+     * Handle reservation search
+     */
+    async handleSearch() {
         const reservationNumber = $('#search_reservation_number').val().trim();
         
         if (!reservationNumber) {
-            Utils.showError(MESSAGES.error.enterReservationNumber);
+            Utils.showError(CONFIG.messages.error.enterReservationNumber);
             return;
         }
 
         const $btn = $('#btnSearchReservation');
-        Utils.disableButton($btn);
+        Utils.toggleButton($btn, true, 'Searching...');
 
-        ApiService.findReservationByNumber(reservationNumber)
-            .done((response) => {
-                if (response.success && response.data) {
-                    ReservationSearchManager.handleReservationFound(response.data);
-                } else {
-                    ReservationSearchManager.handleReservationNotFound(response.message);
-                }
-            })
-            .fail(() => {
-                ReservationSearchManager.handleReservationNotFound();
-            })
-            .always(() => {
-                Utils.disableButton($btn, false);
-            });
+        try {
+            const response = await ApiService.findReservationByNumber(reservationNumber);
+            
+            if (response.success && response.data) {
+                this.handleReservationFound(response.data);
+            } else {
+                this.handleReservationNotFound(response.message);
+            }
+        } catch (error) {
+            this.handleReservationNotFound();
+        } finally {
+            Utils.toggleButton($btn, false);
+        }
     },
 
-    handleReservationFound: (reservation) => {
-        ReservationSearchManager.displayReservationInfo(reservation);
+    /**
+     * Handle successful reservation found
+     */
+    handleReservationFound(reservation) {
+        this.displayReservationInfo(reservation);
         Utils.showElement($('#reservation-info-section'));
-        
-        // Show appropriate form based on reservation status
+
+        // Reset forms
+        this.resetForms();
+
         if (reservation.status === 'confirmed') {
-            // Show check-in form
-            $('#checkin_reservation_id').val(reservation.id);
-            Utils.showElement($('#checkinReservationForm'));
-            Utils.hideElement($('#checkoutReservationForm'));
-            Utils.hideElement($('#damage-summary-section'));
-            EquipmentCheckinManager.loadAvailableEquipment();
+            this.setupCheckinForm(reservation);
         } else if (reservation.status === 'checked_in') {
-            // Show check-out form
-            $('#checkout_reservation_id').val(reservation.id);
-            Utils.hideElement($('#checkinReservationForm'));
-            Utils.showElement($('#checkoutReservationForm'));
-            
-            if (reservation.equipment && reservation.equipment.length > 0) {
-                EquipmentCheckoutManager.renderEquipmentReturnList(reservation.equipment);
-            } else {
-                EquipmentCheckoutManager.showNoEquipmentMessage();
-            }
+            this.setupCheckoutForm(reservation);
         } else {
             Utils.showWarning(`Reservation status is "${reservation.status}". Only confirmed reservations can be checked in, and checked-in guests can be checked out.`);
         }
     },
 
-    handleReservationNotFound: (message = null) => {
+    /**
+     * Handle reservation not found
+     */
+    handleReservationNotFound(message = null) {
+        this.resetForms();
         Utils.hideElement($('#reservation-info-section'));
-        Utils.hideElement($('#checkinReservationForm'));
-        Utils.hideElement($('#checkoutReservationForm'));
-        Utils.hideElement($('#damage-summary-section'));
-        Utils.showError(message || MESSAGES.error.reservationNotFound);
+        Utils.showError(message || CONFIG.messages.error.reservationNotFound);
     },
 
-    displayReservationInfo: (reservation) => {
+    /**
+     * Display reservation information
+     */
+    displayReservationInfo(reservation) {
         const user = reservation.user || {};
         const accommodation = reservation.accommodation || {};
         const statusBadge = Utils.getStatusBadge(reservation.status);
@@ -469,26 +888,78 @@ const ReservationSearchManager = {
             </div>
         `;
         $('#reservation-info-content').html(html);
+    },
+
+    /**
+     * Setup check-in form
+     */
+    setupCheckinForm(reservation) {
+        $('#checkin_reservation_id').val(reservation.id);
+        Utils.showElement($('#checkinReservationForm'));
+        EquipmentManager.loadAvailableEquipment();
+    },
+
+    /**
+     * Setup check-out form
+     */
+    setupCheckoutForm(reservation) {
+        $('#checkout_reservation_id').val(reservation.id);
+        Utils.showElement($('#checkoutReservationForm'));
+
+        let allEquipmentDetails = [];
+        if (Array.isArray(reservation.equipment_tracking)) {
+            reservation.equipment_tracking.forEach(tracking => {
+                if (Array.isArray(tracking.equipment_details)) {
+                    allEquipmentDetails = allEquipmentDetails.concat(tracking.equipment_details);
+                }
+            });
+        }
+
+        if (allEquipmentDetails.length > 0) {
+            EquipmentManager.renderCheckoutEquipment(allEquipmentDetails);
+        } else {
+            EquipmentManager.showNoEquipmentMessage();
+        }
+    },
+
+    /**
+     * Reset all forms
+     */
+    resetForms() {
+        Utils.hideElement($('#checkinReservationForm'), false);
+        Utils.hideElement($('#checkoutReservationForm'), false);
+        
+        // Clear equipment images
+        window.equipmentImages = {};
+        
+        // Reset form fields
+        $('#checkinReservationForm')[0].reset();
+        $('#checkoutReservationForm')[0].reset();
     }
 };
 
 // ===========================
-// EQUIPMENT CHECK-IN MANAGER
+// EQUIPMENT MANAGER
 // ===========================
-const EquipmentCheckinManager = {
-    loadAvailableEquipment: () => {
-        ApiService.fetchEquipment()
-            .done((response) => {
-                if (response.success && response.data) {
-                    EquipmentCheckinManager.renderEquipmentCheckinList(response.data);
-                }
-            })
-            .fail(() => {
-                Utils.showError(MESSAGES.error.equipmentLoadFailed);
-            });
+const EquipmentManager = {
+    /**
+     * Load available equipment for check-in
+     */
+    async loadAvailableEquipment() {
+        try {
+            const response = await ApiService.fetchEquipment();
+            if (response.success && response.data) {
+                this.renderCheckinEquipment(response.data);
+            }
+        } catch (error) {
+            Utils.showError(CONFIG.messages.error.equipmentLoadFailed);
+        }
     },
 
-    renderEquipmentCheckinList: (equipmentData) => {
+    /**
+     * Render equipment list for check-in
+     */
+    renderCheckinEquipment(equipmentData) {
         const $list = $('#equipment-checkin-list');
         $list.empty();
 
@@ -499,91 +970,106 @@ const EquipmentCheckinManager = {
 
         equipmentData.forEach(item => {
             const html = `
-                <div class="col-12 mb-2">
-                    <div class="row align-items-center">
-                        <div class="col-auto">
-                            <input class="form-check-input equipment-checkbox" 
-                                   type="checkbox" 
-                                   value="${item.id}" 
-                                   id="checkin_equipment_${item.id}" 
-                                   data-name="${item.name_en}">
-                        </div>
-                        <div class="col">
-                            <label class="form-check-label" for="checkin_equipment_${item.id}">
-                                ${item.name_en}
-                            </label>
-                        </div>
-                        <div class="col-auto">
-                            <input type="number" 
-                                   min="1" 
-                                   class="form-control equipment-qty" 
-                                   id="checkin_equipment_qty_${item.id}" 
-                                   name="equipment_qty_${item.id}" 
-                                   value="1" 
-                                   style="width:70px;" 
-                                   disabled>
-                        </div>
-                        <div class="col-auto">
-                            <div class="form-check">
-                                <input class="form-check-input equipment-add-note-checkbox" type="checkbox" id="add_note_${item.id}">
-                                <label class="form-check-label small" for="add_note_${item.id}">Add Note</label>
+                <div class="col-12 mb-3 equipment-item" data-equipment-id="${item.id}">
+                    <div class="card border">
+                        <div class="card-body p-3">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <input class="form-check-input equipment-checkbox" 
+                                           type="checkbox" 
+                                           value="${item.id}" 
+                                           id="checkin_equipment_${item.id}" 
+                                           data-name="${item.name_en}">
+                                </div>
+                                <div class="col">
+                                    <label class="form-check-label fw-bold" for="checkin_equipment_${item.id}">
+                                        ${item.name_en}
+                                    </label>
+                                    <div class="text-muted small">${item.description || 'No description available'}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label small mb-1">Quantity</label>
+                                    <input type="number" 
+                                           min="1" 
+                                           max="10"
+                                           class="form-control equipment-qty" 
+                                           id="checkin_equipment_qty_${item.id}" 
+                                           name="equipment_qty_${item.id}" 
+                                           value="1" 
+                                           style="width:80px;" 
+                                           disabled>
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label small mb-1">Condition</label>
+                                    <select class="form-control equipment-status" 
+                                            name="equipment_status_${item.id}" 
+                                            id="checkin_equipment_status_${item.id}" 
+                                            style="width:140px;"
+                                            disabled>
+                                        <option value="good">Good Condition</option>
+                                        <option value="damaged">Damaged</option>
+                                        <option value="missing">Missing/Lost</option>
+                                    </select>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="form-check">
+                                        <input class="form-check-input equipment-add-note-checkbox" 
+                                               type="checkbox" 
+                                               id="add_note_${item.id}">
+                                        <label class="form-check-label small" for="add_note_${item.id}">Add Note</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-2" style="display:none;" id="note_field_${item.id}">
+                                <div class="col-12">
+                                    <input type="text" 
+                                           class="form-control form-control-sm equipment-note-input" 
+                                           name="equipment_note_${item.id}" 
+                                           placeholder="Enter notes about this equipment...">
+                                </div>
                             </div>
                         </div>
-                        <div class="col-auto">
-                            <button type="button" class="btn btn-outline-secondary btn-sm equipment-upload-image-btn" 
-                                data-equipment-id="${item.id}" data-equipment-name="${item.name_en}">
-                                <i class="bx bx-upload"></i> Upload Image
-                            </button>
-                            <span class="equipment-image-preview" id="equipment_image_preview_icon_${item.id}" style="display:none;">
-                                <i class="bx bx-image text-success"></i>
-                            </span>
-                        </div>
-                        <div class="col" style="min-width:120px;display:none;" id="note_field_${item.id}">
-                            <input type="text" class="form-control form-control-sm equipment-note-input" 
-                                name="equipment_note_${item.id}" 
-                                placeholder="Note (optional)">
-                        </div>
-                        <input type="hidden" name="equipment_image_${item.id}" id="equipment_image_input_${item.id}">
                     </div>
                 </div>
             `;
             $list.append(html);
         });
 
-        // Bind equipment checkbox events
+        this.bindCheckinEvents($list);
+    },
+
+    /**
+     * Bind check-in equipment events
+     */
+    bindCheckinEvents($list) {
+        // Equipment checkbox change
         $list.find('.equipment-checkbox').on('change', function() {
             const id = $(this).val();
-            $(`#checkin_equipment_qty_${id}`).prop('disabled', !this.checked);
-            // If unchecked, also uncheck note and hide note field
-            if (!this.checked) {
-                $(`#add_note_${id}`).prop('checked', false);
-                $(`#note_field_${id}`).hide();
+            const isChecked = $(this).is(':checked');
+            
+            $(`#checkin_equipment_qty_${id}`).prop('disabled', !isChecked);
+            $(`#checkin_equipment_status_${id}`).prop('disabled', !isChecked);
+            
+            if (!isChecked) {
+                $(`#add_note_${id}`).prop('checked', false).trigger('change');
+                $(`#checkin_equipment_status_${id}`).val('good');
             }
         });
 
-        // Bind add note checkbox events
+        // Add note checkbox change
         $list.find('.equipment-add-note-checkbox').on('change', function() {
             const id = $(this).attr('id').replace('add_note_', '');
+            const $noteField = $(`#note_field_${id}`);
+            
             if ($(this).is(':checked')) {
-                $(`#note_field_${id}`).show();
+                $noteField.show();
             } else {
-                $(`#note_field_${id}`).hide();
-                $(`#note_field_${id} input`).val('');
+                $noteField.hide();
+                $noteField.find('input').val('');
             }
         });
 
-        // Bind upload image button events
-        $list.find('.equipment-upload-image-btn').on('click', function() {
-            const equipmentId = $(this).data('equipment-id');
-            const equipmentName = $(this).data('equipment-name');
-            $('#modal_equipment_id').val(equipmentId);
-            $('#equipment_image_file').val('');
-            $('#equipment_image_preview').hide();
-            $('#equipmentImageUploadModalLabel').text('Upload Image for ' + equipmentName);
-            $('#equipmentImageUploadModal').modal('show');
-        });
-
-        // Select All functionality
+        // Select all functionality
         $('#select_all_equipment').off('change').on('change', function() {
             const checked = $(this).is(':checked');
             $list.find('.equipment-checkbox').each(function() {
@@ -592,336 +1078,249 @@ const EquipmentCheckinManager = {
                 }
             });
         });
-    }
-};
+    },
 
-// ===========================
-// EQUIPMENT IMAGE UPLOAD HANDLER
-// ===========================
-const EquipmentImageUploadHandler = {
-    init: () => {
-        // Preview image on file select
-        $('#equipment_image_file').on('change', function() {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    $('#equipment_image_preview img').attr('src', e.target.result);
-                    $('#equipment_image_preview').show();
-                };
-                reader.readAsDataURL(file);
-            } else {
-                $('#equipment_image_preview').hide();
-            }
-        });
-
-        // Handle upload form submit
-        $('#equipmentImageUploadForm').on('submit', function(e) {
-            e.preventDefault();
-            const equipmentId = $('#modal_equipment_id').val();
-            const fileInput = $('#equipment_image_file')[0];
-            if (!fileInput.files.length) {
-                Utils.showError('Please select an image to upload.');
-                return;
-            }
-            const file = fileInput.files[0];
-
-            // Simulate upload (replace with real AJAX in production)
-            ApiService.uploadEquipmentImage(equipmentId, file)
-                .then(response => {
-                    if (response.success) {
-                        // Store image data (for demo, just store the object URL)
-                        $(`#equipment_image_input_${equipmentId}`).val(response.url);
-                        $(`#equipment_image_preview_icon_${equipmentId}`).show();
-                        Utils.showSuccess(MESSAGES.success.imageUploaded);
-                        $('#equipmentImageUploadModal').modal('hide');
-                    } else {
-                        Utils.showError(MESSAGES.error.imageUploadFailed);
-                    }
-                })
-                .catch(() => {
-                    Utils.showError(MESSAGES.error.imageUploadFailed);
-                });
-        });
-
-        // Reset modal on close
-        $('#equipmentImageUploadModal').on('hidden.bs.modal', function() {
-            $('#equipment_image_file').val('');
-            $('#equipment_image_preview').hide();
-            $('#modal_equipment_id').val('');
-        });
-    }
-};
-
-// ===========================
-// EQUIPMENT CHECK-OUT MANAGER
-// ===========================
-const EquipmentCheckoutManager = {
-    renderEquipmentReturnList: (equipmentData) => {
+    /**
+     * Render equipment list for check-out
+     */
+    renderCheckoutEquipment(equipmentData) {
         const $list = $('#equipment-return-list');
         $list.empty();
-        
+
         if (!equipmentData.length) {
-            EquipmentCheckoutManager.showNoEquipmentMessage();
+            this.showNoEquipmentMessage();
             return;
         }
-        
+
         equipmentData.forEach((item, index) => {
+            console.log(item);
             const html = `
-                <div class="equipment-item mb-3 p-3 border rounded" data-equipment-id="${item.equipment_id}">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <h6 class="mb-1">${item.equipment_name || item.name_en || 'Unknown Equipment'}</h6>
-                            <small class="text-muted">Checked out: ${item.quantity || 1} ${item.quantity > 1 ? 'items' : 'item'}</small>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Quantity Returned</label>
-                            <input type="number" 
-                                   class="form-control equipment-qty-returned" 
-                                   name="equipment[${index}][quantity]" 
-                                   value="${item.quantity || 1}" 
-                                   min="0" 
-                                   max="${item.quantity || 1}">
-                            <input type="hidden" 
-                                   name="equipment[${index}][equipment_id]" 
-                                   value="${item.equipment_id}">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Condition</label>
-                            <select class="form-control equipment-condition" 
-                                    name="equipment[${index}][returned_status]">
-                                <option value="good">Good Condition</option>
-                                <option value="damaged">Damaged</option>
-                                <option value="missing">Missing/Lost</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 damage-cost-group" style="display:none;">
-                            <label class="form-label">Estimated Cost</label>
-                            <input type="number" 
-                                   class="form-control equipment-cost" 
-                                   name="equipment[${index}][estimated_cost]" 
-                                   placeholder="0.00" 
-                                   step="0.01" 
-                                   min="0">
-                        </div>
+                <div class="equipment-item mb-4 border rounded" data-equipment-id="${item.equipment_id}">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">${item.equipment.name || 'Unknown Equipment'}</h6>
+                        <small class="text-muted">Checked out: ${item.quantity || 1} ${item.quantity > 1 ? 'items' : 'item'}</small>
                     </div>
-                    <div class="row mt-2 damage-notes-group" style="display:none;">
-                        <div class="col-12">
-                            <label class="form-label">Damage/Missing Notes</label>
-                            <textarea class="form-control equipment-notes" 
-                                      name="equipment[${index}][returned_notes]" 
-                                      rows="2" 
-                                      placeholder="Describe the damage or circumstances..."></textarea>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Quantity Returned</label>
+                                <input type="number" 
+                                       class="form-control equipment-qty-returned" 
+                                       name="equipment[${index}][quantity]" 
+                                       value="${item.quantity || 1}" 
+                                       min="0" 
+                                       max="${item.quantity || 1}">
+                                <input type="hidden" 
+                                       name="equipment[${index}][equipment_id]" 
+                                       value="${item.equipment_id}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Condition</label>
+                                <select class="form-control equipment-condition" 
+                                        name="equipment[${index}][returned_status]">
+                                    <option value="good">Good Condition</option>
+                                    <option value="damaged">Damaged</option>
+                                    <option value="missing">Missing/Lost</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 damage-cost-group" style="display:none;">
+                                <label class="form-label">Estimated Cost ($)</label>
+                                <input type="number" 
+                                       class="form-control equipment-cost" 
+                                       name="equipment[${index}][estimated_cost]" 
+                                       placeholder="0.00" 
+                                       step="0.01" 
+                                       min="0">
+                            </div>
+                            <div class="col-md-3 damage-image-group" style="display:none;">
+                                <label class="form-label">Images</label>
+                                <div>
+                                    <button type="button" 
+                                            class="btn btn-outline-secondary btn-sm equipment-manage-images-btn" 
+                                            data-equipment-id="${item.equipment_id}" 
+                                            data-equipment-index="${index}" 
+                                            data-equipment-name="${item.equipment.name || item.equipment.name}">
+                                        <i class="bx bx-image"></i> Manage Images
+                                    </button>
+                                    <div class="mt-1">
+                                        <small class="text-success" 
+                                               id="equipment_images_counter_${item.equipment_id}_${index}" 
+                                               style="display:none;"></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3 damage-notes-group" style="display:none;">
+                            <div class="col-12">
+                                <label class="form-label">Damage/Missing Notes</label>
+                                <textarea class="form-control equipment-notes" 
+                                          name="equipment[${index}][returned_notes]" 
+                                          rows="3" 
+                                          placeholder="Describe the damage, missing circumstances, or any other relevant information..."></textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
             `;
             $list.append(html);
         });
-        
-        // Bind equipment condition change events
-        $list.find('.equipment-condition').on('change', EquipmentCheckoutManager.handleConditionChange);
-        $list.find('.equipment-qty-returned').on('input', EquipmentCheckoutManager.updateDamageSummary);
-        $list.find('.equipment-cost').on('input', EquipmentCheckoutManager.updateDamageSummary);
+
+        this.bindCheckoutEvents($list);
     },
 
-    showNoEquipmentMessage: () => {
-        $('#equipment-return-list').html(`
-            <div class="text-center py-4">
-                <i class="bx bx-info-circle text-muted" style="font-size: 3rem;"></i>
-                <p class="text-muted mt-2">No equipment was checked out with this reservation.</p>
-            </div>
-        `);
-    },
+    /**
+     * Bind check-out equipment events
+     */
+    bindCheckoutEvents($list) {
+        // Condition change events
+        $list.find('.equipment-condition').on('change', function() {
+            const $item = $(this).closest('.equipment-item');
+            const condition = $(this).val();
+            const $costGroup = $item.find('.damage-cost-group');
+            const $notesGroup = $item.find('.damage-notes-group');
+            const $imageGroup = $item.find('.damage-image-group');
 
-    handleConditionChange: function() {
-        const $item = $(this).closest('.equipment-item');
-        const condition = $(this).val();
-        const $costGroup = $item.find('.damage-cost-group');
-        const $notesGroup = $item.find('.damage-notes-group');
-        
-        if (condition === 'damaged' || condition === 'missing') {
-            $costGroup.show();
-            $notesGroup.show();
-            $item.addClass(condition);
-            $item.find('.equipment-cost').prop('required', true);
-            $item.find('.equipment-notes').prop('required', true);
-        } else {
-            $costGroup.hide();
-            $notesGroup.hide();
-            $item.removeClass('damaged missing');
-            $item.find('.equipment-cost').prop('required', false).val('');
-            $item.find('.equipment-notes').prop('required', false).val('');
-        }
-        
-        EquipmentCheckoutManager.updateDamageSummary();
-    },
-
-    updateDamageSummary: () => {
-        const damages = [];
-        let totalDamageCost = 0;
-        
-        $('#equipment-return-list .equipment-item').each(function() {
-            const condition = $(this).find('.equipment-condition').val();
-            
             if (condition === 'damaged' || condition === 'missing') {
-                const equipmentName = $(this).find('h6').text();
-                const quantity = parseInt($(this).find('.equipment-qty-returned').val()) || 0;
-                const cost = parseFloat($(this).find('.equipment-cost').val()) || 0;
-                const notes = $(this).find('.equipment-notes').val();
+                $costGroup.show();
+                $notesGroup.show();
+                $imageGroup.show();
+                $item.addClass(condition === 'damaged' ? 'border-warning' : 'border-danger');
+                $item.find('.equipment-cost').prop('required', true);
+                $item.find('.equipment-notes').prop('required', true);
+            } else {
+                $costGroup.hide();
+                $notesGroup.hide();
+                $imageGroup.hide();
+                $item.removeClass('border-warning border-danger');
+                $item.find('.equipment-cost').prop('required', false).val('');
+                $item.find('.equipment-notes').prop('required', false).val('');
                 
-                if (quantity > 0) {
-                    damages.push({
-                        name: equipmentName,
-                        quantity: quantity,
-                        condition: condition,
-                        cost: cost,
-                        notes: notes
-                    });
-                    totalDamageCost += cost;
+                // Clear images for this equipment
+                const equipmentId = $item.data('equipment-id');
+                const equipmentIndex = $item.find('.equipment-manage-images-btn').data('equipment-index');
+                const key = `${equipmentId}_${equipmentIndex}`;
+                
+                if (window.equipmentImages[key]) {
+                    delete window.equipmentImages[key];
                 }
+                ImageManager.updateEquipmentImageCounter(equipmentId, equipmentIndex);
             }
         });
-        
-        if (damages.length > 0) {
-            EquipmentCheckoutManager.showDamageSummary(damages, totalDamageCost);
-        } else {
-            Utils.hideElement($('#damage-summary-section'));
-        }
+
+        // Image management button events
+        $list.find('.equipment-manage-images-btn').on('click', function() {
+            const equipmentId = $(this).data('equipment-id');
+            const equipmentIndex = $(this).data('equipment-index');
+            const equipmentName = $(this).data('equipment-name');
+            
+            ImageManager.openModal(equipmentId, equipmentIndex, equipmentName);
+        });
     },
 
-    showDamageSummary: (damages, totalCost) => {
-        let html = `
-            <div class="alert alert-danger">
-                <h6><i class="bx bx-error-circle me-2"></i>Equipment Issues Detected</h6>
-                <p class="mb-0">The guest will be charged for the following items:</p>
+    /**
+     * Show no equipment message
+     */
+    showNoEquipmentMessage() {
+        $('#equipment-return-list').html(`
+            <div class="text-center py-5">
+                <i class="bx bx-info-circle text-muted" style="font-size: 4rem;"></i>
+                <h5 class="text-muted mt-3">No Equipment Found</h5>
+                <p class="text-muted">No equipment was checked out with this reservation.</p>
             </div>
-            <div class="table-responsive">
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Equipment</th>
-                            <th>Quantity</th>
-                            <th>Condition</th>
-                            <th>Cost</th>
-                            <th>Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
-        
-        damages.forEach(damage => {
-            html += `
-                <tr>
-                    <td>${damage.name}</td>
-                    <td>${damage.quantity}</td>
-                    <td>
-                        <span class="badge bg-${damage.condition === 'missing' ? 'danger' : 'warning'}">
-                            ${damage.condition.charAt(0).toUpperCase() + damage.condition.slice(1)}
-                        </span>
-                    </td>
-                    <td>${Utils.formatCurrency(damage.cost)}</td>
-                    <td>${damage.notes || '-'}</td>
-                </tr>
-            `;
-        });
-        
-        html += `
-                    </tbody>
-                    <tfoot>
-                        <tr class="table-danger">
-                            <th colspan="3">Total Estimated Cost:</th>
-                            <th>${Utils.formatCurrency(totalCost)}</th>
-                            <th></th>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        `;
-        
-        $('#damage-summary-content').html(html);
-        Utils.showElement($('#damage-summary-section'));
+        `);
     }
 };
 
 // ===========================
-// CHECK-IN MANAGER
+// CHECK-IN PROCESSOR
 // ===========================
-const CheckinManager = {
-    init: () => {
-        CheckinManager.bindEvents();
+const CheckinProcessor = {
+    /**
+     * Initialize check-in processor
+     */
+    init() {
+        this.bindEvents();
     },
 
-    bindEvents: () => {
-        $('#checkinReservationForm').on('submit', CheckinManager.handleSubmit);
+    /**
+     * Bind check-in events
+     */
+    bindEvents() {
+        $('#checkinReservationForm').on('submit', this.handleSubmit.bind(this));
     },
 
-    handleSubmit: (e) => {
+    /**
+     * Handle form submission
+     */
+    async handleSubmit(e) {
         e.preventDefault();
-        CheckinManager.processCheckin();
-    },
-
-    processCheckin: () => {
-        const formData = CheckinManager.getFormData();
         
-        if (!CheckinManager.validateForm(formData)) {
+        const formData = this.getFormData();
+        
+        if (!this.validateForm(formData)) {
             return;
         }
         
         const $btn = $('#checkinReservationForm button[type="submit"]');
-        Utils.disableButton($btn);
-        
-        ApiService.processCheckin(formData)
-            .done((response) => {
-                if (response.success) {
-                    CheckinManager.handleCheckinSuccess(response);
-                } else {
-                    Utils.showError(response.message || MESSAGES.error.checkinFailed);
-                }
-            })
-            .fail((xhr) => {
-                const message = xhr.responseJSON?.message || MESSAGES.error.checkinFailed;
-                Utils.showError(message);
-            })
-            .always(() => {
-                Utils.disableButton($btn, false);
-            });
+        Utils.toggleButton($btn, true, 'Processing...');
+
+        try {
+            const response = await ApiService.processCheckin(formData);
+            
+            if (response.success) {
+                this.handleSuccess(response);
+            } else {
+                Utils.showError(response.message || CONFIG.messages.error.checkinFailed);
+            }
+        } catch (error) {
+            const message = error.responseJSON?.message || CONFIG.messages.error.checkinFailed;
+            Utils.showError(message);
+        } finally {
+            Utils.toggleButton($btn, false);
+        }
     },
 
-    getFormData: () => {
-        const formData = {};
+    /**
+     * Get form data for submission
+     */
+    getFormData() {
+        const fd = new FormData();
+        const reservationId = $('#checkin_reservation_id').val();
+        const notes = $('#checkin_notes').val();
         
-        // Serialize form fields
-        $('#checkinReservationForm').serializeArray().forEach(item => {
-            if (item.value) {
-                formData[item.name] = item.value;
-            }
-        });
+        fd.append('reservation_id', reservationId);
+        fd.append('checkin_notes', notes || '');
         
         // Collect selected equipment
         const equipment = [];
         $('#equipment-checkin-list').find('.equipment-checkbox:checked').each(function() {
             const id = $(this).val();
             const qty = $(`#checkin_equipment_qty_${id}`).val();
-            const note = $(`#add_note_${id}`).is(':checked') ? $(`#note_field_${id} input`).val() : '';
-            const image = $(`#equipment_image_input_${id}`).val();
+            const status = $(`#checkin_equipment_status_${id}`).val();
+            const note = $(`#add_note_${id}`).is(':checked') ? 
+                         $(`#note_field_${id} input`).val() : '';
+            
             equipment.push({ 
                 equipment_id: id, 
                 quantity: parseInt(qty) || 1,
-                note: note,
-                image: image
+                status: status,
+                note: note
             });
         });
         
         if (equipment.length) {
-            formData.equipment = equipment;
+            fd.append('equipment', JSON.stringify(equipment));
         }
         
-        return formData;
+        return fd;
     },
 
-    validateForm: (formData) => {
+    /**
+     * Validate form data
+     */
+    validateForm(formData) {
         const reservationId = $('#checkin_reservation_id').val();
+        
         if (!reservationId) {
             Utils.showError('No reservation selected.');
             return false;
@@ -930,147 +1329,178 @@ const CheckinManager = {
         return true;
     },
 
-    handleCheckinSuccess: (response) => {
-        Utils.showSuccess(MESSAGES.success.checkinCompleted);
-        CheckinManager.resetForm();
+    /**
+     * Handle successful check-in
+     */
+    handleSuccess(response) {
+        Utils.showSuccess(CONFIG.messages.success.checkinCompleted);
+        this.resetForm();
     },
 
-    resetForm: () => {
+    /**
+     * Reset form after successful submission
+     */
+    resetForm() {
         $('#checkinReservationForm')[0].reset();
         $('#checkin_reservation_id').val('');
-        
-        // Hide form sections
         Utils.hideElement($('#reservation-info-section'));
         Utils.hideElement($('#checkinReservationForm'));
-        
-        // Reset search
         $('#search_reservation_number').val('');
-        
-        // Reset default dates
-        ReservationSearchManager.setDefaultDates();
+        ReservationManager.setDefaultDates();
     }
 };
 
 // ===========================
-// CHECK-OUT MANAGER
+// CHECK-OUT PROCESSOR
 // ===========================
-const CheckoutManager = {
-    init: () => {
-        CheckoutManager.bindEvents();
+const CheckoutProcessor = {
+    /**
+     * Initialize check-out processor
+     */
+    init() {
+        this.bindEvents();
     },
 
-    bindEvents: () => {
-        $('#checkoutReservationForm').on('submit', CheckoutManager.handleSubmit);
+    /**
+     * Bind check-out events
+     */
+    bindEvents() {
+        $('#checkoutReservationForm').on('submit', this.handleSubmit.bind(this));
     },
 
-    handleSubmit: (e) => {
+    /**
+     * Handle form submission
+     */
+    async handleSubmit(e) {
         e.preventDefault();
-        CheckoutManager.processCheckout();
-    },
-
-    processCheckout: () => {
-        const formData = CheckoutManager.getFormData();
         
-        if (!CheckoutManager.validateForm(formData)) {
+        if (!this.validateForm()) {
             return;
         }
         
-        const $btn = $('#checkoutReservationForm button[type="submit"]');
-        Utils.disableButton($btn);
+        const formData = this.getFormData();
         
-        ApiService.processCheckout(formData)
-            .done((response) => {
-                if (response.success) {
-                    CheckoutManager.handleCheckoutSuccess(response);
-                } else {
-                    Utils.showError(response.message || MESSAGES.error.checkoutFailed);
-                }
-            })
-            .fail((xhr) => {
-                const message = xhr.responseJSON?.message || MESSAGES.error.checkoutFailed;
-                Utils.showError(message);
-            })
-            .always(() => {
-                Utils.disableButton($btn, false);
-            });
+        const $btn = $('#checkoutReservationForm button[type="submit"]');
+        Utils.toggleButton($btn, true, 'Processing...');
+
+        try {
+            const response = await ApiService.processCheckout(formData);
+            
+            if (response.success) {
+                this.handleSuccess(response);
+            } else {
+                Utils.showError(response.message || CONFIG.messages.error.checkoutFailed);
+            }
+        } catch (error) {
+            const message = error.responseJSON?.message || CONFIG.messages.error.checkoutFailed;
+            Utils.showError(message);
+        } finally {
+            Utils.toggleButton($btn, false);
+        }
     },
 
-    getFormData: () => {
-        const formData = new FormData($('#checkoutReservationForm')[0]);
-        return formData;
+    /**
+     * Get form data for submission
+     */
+    getFormData() {
+        const fd = new FormData($('#checkoutReservationForm')[0]);
+        
+        // Add equipment images
+        const { formData: imageFormData } = ImageManager.getAllImagesForSubmission();
+        
+        // Append image files to main form data
+        for (let [key, value] of imageFormData.entries()) {
+            fd.append(key, value);
+        }
+        
+        return fd;
     },
 
-    validateForm: (formData) => {
+    /**
+     * Validate form data
+     */
+    validateForm() {
         const reservationId = $('#checkout_reservation_id').val();
+        
         if (!reservationId) {
             Utils.showError('No reservation selected.');
             return false;
         }
 
-        const checkoutDate = $('#checkout_date').val();
-        if (!checkoutDate) {
-            Utils.showError('Please select a check-out date.');
-            return false;
-        }
-
-        // Validate damage data for damaged/missing items
+        // Validate damage/missing items
         let hasInvalidDamageData = false;
+        const invalidItems = [];
+        
         $('#equipment-return-list .equipment-item').each(function() {
             const condition = $(this).find('.equipment-condition').val();
+            const equipmentName = $(this).find('.card-header h6').text();
             
             if (condition === 'damaged' || condition === 'missing') {
                 const cost = $(this).find('.equipment-cost').val();
                 const notes = $(this).find('.equipment-notes').val();
                 
                 if (!cost || parseFloat(cost) < 0) {
+                    invalidItems.push(`${equipmentName}: Missing or invalid cost`);
                     hasInvalidDamageData = true;
-                    return false;
                 }
                 
                 if (!notes || notes.trim() === '') {
+                    invalidItems.push(`${equipmentName}: Missing notes`);
                     hasInvalidDamageData = true;
-                    return false;
                 }
             }
         });
 
         if (hasInvalidDamageData) {
-            Utils.showError(MESSAGES.error.invalidDamageData);
+            const errorMessage = `Please fix the following issues:<br>• ${invalidItems.join('<br>• ')}`;
+            Utils.showError(errorMessage);
             return false;
         }
 
         return true;
     },
 
-    handleCheckoutSuccess: (response) => {
-        // Show success message with damage summary if applicable
-        let message = MESSAGES.success.checkoutCompleted;
+    /**
+     * Handle successful check-out
+     */
+    handleSuccess(response) {
+        let message = CONFIG.messages.success.checkoutCompleted;
         
+        // Add damage summary if applicable
         if (response.damages && response.damages.length > 0) {
-            const totalCost = response.damages.reduce((sum, damage) => sum + parseFloat(damage.estimated_cost || 0), 0);
+            const totalCost = response.damages.reduce((sum, damage) => 
+                sum + parseFloat(damage.estimated_cost || 0), 0);
             message += `<br><br><strong>Damage Charges:</strong> ${Utils.formatCurrency(totalCost)}`;
+            
+            const damageList = response.damages.map(damage => 
+                `• ${damage.equipment_name}: ${Utils.formatCurrency(damage.estimated_cost)}`
+            ).join('<br>');
+            message += `<br><br><strong>Details:</strong><br>${damageList}`;
         }
         
-        Utils.showSuccess(message);
+        Swal.fire({
+            title: 'Check-out Complete',
+            html: message,
+            icon: 'success',
+            confirmButtonText: 'OK'
+        });
         
-        // Reset form
-        CheckoutManager.resetForm();
+        this.resetForm();
     },
 
-    resetForm: () => {
+    /**
+     * Reset form after successful submission
+     */
+    resetForm() {
         $('#checkoutReservationForm')[0].reset();
         $('#checkout_reservation_id').val('');
-        
-        // Hide form sections
         Utils.hideElement($('#reservation-info-section'));
         Utils.hideElement($('#checkoutReservationForm'));
-        Utils.hideElement($('#damage-summary-section'));
-        
-        // Reset search
         $('#search_reservation_number').val('');
+        ReservationManager.setDefaultDates();
         
-        // Reset default dates
-        ReservationSearchManager.setDefaultDates();
+        // Clear equipment images
+        window.equipmentImages = {};
     }
 };
 
@@ -1078,11 +1508,36 @@ const CheckoutManager = {
 // APPLICATION INITIALIZER
 // ===========================
 const CheckinCheckoutApp = {
-    init: () => {
-        ReservationSearchManager.init();
-        CheckinManager.init();
-        CheckoutManager.init();
-        EquipmentImageUploadHandler.init();
+    /**
+     * Initialize the entire application
+     */
+    init() {
+        console.log('Initializing Check-in/Check-out System...');
+        
+        // Initialize all managers
+        ReservationManager.init();
+        ImageManager.init();
+        CheckinProcessor.init();
+        CheckoutProcessor.init();
+        
+        // Initialize global storage
+        window.equipmentImages = {};
+        
+        // Set up global error handling
+        this.setupErrorHandling();
+        
+        console.log('Check-in/Check-out System initialized successfully');
+    },
+
+    /**
+     * Setup global error handling
+     */
+    setupErrorHandling() {
+        $(document).ajaxError(function(event, xhr, settings, thrownError) {
+            if (xhr.status === 419) {
+                Utils.showError('Session expired. Please refresh the page and try again.');
+            }
+        });
     }
 };
 
@@ -1092,5 +1547,8 @@ const CheckinCheckoutApp = {
 $(document).ready(() => {
     CheckinCheckoutApp.init();
 });
+
+// Make ImageManager globally accessible for onclick handlers
+window.ImageManager = ImageManager;
 </script>
 @endpush

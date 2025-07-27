@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Reservation\Cancel;
+namespace App\Services\Reservation\Complete;
 
 use App\Models\Reservation\Reservation;
 use App\Models\Equipment;
@@ -24,7 +24,7 @@ class EquipmentReturnService
         if (empty($equipmentData)) {
             return [];
         }
-        
+
         return $this->markEquipmentAsReturned($reservation, $equipmentData);
     }
 
@@ -53,7 +53,7 @@ class EquipmentReturnService
             $estimatedCost = $this->extractEstimatedCost($equipmentItem);
 
             $this->validateEquipment($equipmentId, $quantity);
-            
+
             $this->updateEquipmentCheckoutDetailReturn(
                 $equipmentCheckout,
                 $equipmentId,
@@ -67,7 +67,7 @@ class EquipmentReturnService
                 $equipment = Equipment::find($equipmentId);
                 $damages[] = [
                     'equipment_id' => $equipmentId,
-                    'equipment_name' => $equipment->name ?? 'Unknown Equipment',
+                    'equipment_name' => $equipment ? $equipment->name : 'Unknown Equipment',
                     'quantity_damaged' => $quantity,
                     'status' => $returnedStatus,
                     'estimated_cost' => $estimatedCost,
@@ -94,9 +94,14 @@ class EquipmentReturnService
     private function extractEquipmentId($equipmentItem): int
     {
         if (is_array($equipmentItem)) {
-            return $equipmentItem['equipment_id'] ?? $equipmentItem['id'];
+            if (isset($equipmentItem['equipment_id'])) {
+                return (int)$equipmentItem['equipment_id'];
+            }
+            if (isset($equipmentItem['id'])) {
+                return (int)$equipmentItem['id'];
+            }
         }
-        return $equipmentItem;
+        return (int)$equipmentItem;
     }
 
     /**
@@ -108,7 +113,9 @@ class EquipmentReturnService
     private function extractEquipmentQuantity($equipmentItem): int
     {
         if (is_array($equipmentItem)) {
-            return $equipmentItem['quantity'] ?? 1;
+            if (isset($equipmentItem['quantity']) && is_numeric($equipmentItem['quantity'])) {
+                return (int)$equipmentItem['quantity'];
+            }
         }
         return 1;
     }
@@ -122,12 +129,14 @@ class EquipmentReturnService
      */
     private function extractReturnedStatus($equipmentItem): string
     {
-        if (is_array($equipmentItem) && isset($equipmentItem['returned_status'])) {
-            return $equipmentItem['returned_status'];
-        }
-        // Fallback to legacy 'return_status' for backward compatibility
-        if (is_array($equipmentItem) && isset($equipmentItem['return_status'])) {
-            return $equipmentItem['return_status'];
+        if (is_array($equipmentItem)) {
+            if (isset($equipmentItem['returned_status']) && in_array($equipmentItem['returned_status'], ['good', 'damaged', 'missing'])) {
+                return $equipmentItem['returned_status'];
+            }
+            // Fallback to legacy 'return_status' for backward compatibility
+            if (isset($equipmentItem['return_status']) && in_array($equipmentItem['return_status'], ['good', 'damaged', 'missing'])) {
+                return $equipmentItem['return_status'];
+            }
         }
         return 'good';
     }
@@ -140,8 +149,8 @@ class EquipmentReturnService
      */
     private function extractReturnedNotes($equipmentItem): ?string
     {
-        if (is_array($equipmentItem) && isset($equipmentItem['returned_notes'])) {
-            return $equipmentItem['returned_notes'];
+        if (is_array($equipmentItem) && isset($equipmentItem['notes'])) {
+            return $equipmentItem['notes'];
         }
         return null;
     }
@@ -154,7 +163,7 @@ class EquipmentReturnService
      */
     private function extractEstimatedCost($equipmentItem): ?float
     {
-        if (is_array($equipmentItem) && isset($equipmentItem['estimated_cost'])) {
+        if (is_array($equipmentItem) && isset($equipmentItem['estimated_cost']) && is_numeric($equipmentItem['estimated_cost'])) {
             return (float) $equipmentItem['estimated_cost'];
         }
         return null;
@@ -172,7 +181,7 @@ class EquipmentReturnService
         $checkoutDetail = EquipmentCheckoutDetail::where('equipment_checkout_id', $equipmentCheckout->id)
             ->where('equipment_id', $equipmentId)
             ->first();
-        
+
         return $checkoutDetail ? $checkoutDetail->id : null;
     }
 

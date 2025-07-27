@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->enum('type', ['room', 'apartment']);
             $table->morphs('accommodatable');
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->string('double_room_bed_option')->nullable();
             $table->foreignId('reservation_id')->nullable()->constrained()->cascadeOnDelete();
             $table->timestamps();
@@ -31,7 +31,7 @@ return new class extends Migration
             $table->string('category_ar')->nullable();
             $table->text('description_en')->nullable();
             $table->text('description_ar')->nullable();
-            $table->bool('is_shared')->default(false);
+            $table->boolean('is_shared')->default(false);
             $table->decimal('price_per_quantity', 10, 2)->nullable(); 
             $table->timestamps();
         });

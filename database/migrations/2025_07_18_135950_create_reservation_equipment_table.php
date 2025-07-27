@@ -14,7 +14,7 @@ return new class extends Migration
         // First table: Overall equipment checkout record
         Schema::create('equipment_checkouts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('reservation_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('reservation_id')->constrained()->unique()->cascadeOnDelete();
             
             // Staff who reviewed/handled the equipment return
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
@@ -23,13 +23,11 @@ return new class extends Migration
             $table->enum('overall_status', ['pending', 'given', 'returned', 'completed'])->default('pending');
             
             // Overall timestamps
-            $table->timestamp('given_at')->nullable(); // When equipment was given to user
-            $table->timestamp('returned_at')->nullable(); // When equipment was returned by user
+            $table->timestamp('given_at')->nullable(); 
+            $table->timestamp('returned_at')->nullable(); 
             
             $table->timestamps();
             
-            // One checkout record per reservation
-            $table->unique('reservation_id');
         });
 
         // Second table: Individual equipment details
@@ -43,19 +41,19 @@ return new class extends Migration
 
             // Equipment status when given to user
             $table->enum('given_status', ['good', 'damaged', 'missing'])->default('good');
-            $table->text('given_notes')->nullable(); // Notes about condition when given
+            $table->text('given_notes')->nullable(); 
 
             // Quantity of equipment returned by user
             $table->integer('quantity_returned')->nullable();
 
             // Equipment status when returned by user
             $table->enum('returned_status', ['good', 'damaged', 'missing'])->nullable();
-            $table->text('returned_notes')->nullable(); // Notes about condition when returned
+            $table->text('returned_notes')->nullable(); 
 
             $table->timestamps();
             
             // Ensure unique combination within each checkout
-            $table->unique(['equipment_checkout_id', 'equipment_id']);
+            $table->unique(['equipment_checkout_id', 'equipment_id'], 'eq_checkout_detail_unique');
         });
     }
 

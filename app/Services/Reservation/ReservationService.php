@@ -31,7 +31,7 @@ class ReservationService
      */
     public function findByNumber(string $number): ?Reservation
     {
-        return Reservation::with(['user', 'accommodation', 'academicTerm','equipmentTracking'])
+        return Reservation::with(['user', 'accommodation', 'academicTerm','equipmentTracking.equipmentDetails.equipment'])
             ->where('reservation_number', $number)
             ->first();
     }
@@ -42,10 +42,10 @@ class ReservationService
      * @param array $data
      * @return Reservation|array
      */
-    public function createReservation(array $data, CreateReservationService $createReservationService)
+    public function createReservation(array $data)
     {
         return DB::transaction(function () use ($data) {
-            return $createReservationService->create($data);
+            return $this->createReservationService->create($data);
         });
     }
 

@@ -101,11 +101,13 @@ class RoomService
         return Room::when($apartmentId, function ($query, $apartmentId) {
                 return $query->where('apartment_id', $apartmentId);
             })
-            ->select(['id', 'number'])
+            ->select(['id', 'number','type'])
             ->get()
             ->map(fn ($room) => [
                 'id' => $room->id,
                 'number' => $room->number,
+                'type' => $room->type,
+
             ])
             ->toArray();
     }

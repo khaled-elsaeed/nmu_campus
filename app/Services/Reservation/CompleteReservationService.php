@@ -39,6 +39,6 @@ class CompleteReservationService
         $this->accommodationService->handleAccommodationCreation($data, $reservation->id);
         $this->paymentService->completePaymentRecord($reservation, $data['payment'] ?? []);
         $this->equipmentService->assignEquipmentIfProvided($reservation, $data['equipment'] ?? []);
-        return $reservation->load(['equipment', 'equipmentTracking']);
+        return $reservation->load(['equipmentTracking']);
     }
 }
