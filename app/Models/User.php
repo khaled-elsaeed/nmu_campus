@@ -11,6 +11,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Resident\Student;
 use App\Models\Resident\Staff;
 use App\Models\Reservation\Reservation;
+use App\Models\StudentArchive;
+use App\Models\StudentParent;
+use App\Models\Sibling;
+use App\Models\EmergencyContact;
 
 class User extends Authenticatable
 {
@@ -111,6 +115,46 @@ class User extends Authenticatable
     public function reservations(): HasMany
     {
         return $this->hasMany(Reservation::class);
+    }
+
+    /**
+     * Get the student archive associated with the user.
+     *
+     * @return HasOne
+     */
+    public function studentArchive(): HasOne
+    {
+        return $this->hasOne(StudentArchive::class);
+    }
+
+    /**
+     * Get the parent information associated with the user.
+     *
+     * @return HasOne
+     */
+    public function parent(): HasOne
+    {
+        return $this->hasOne(StudentParent::class);
+    }
+
+    /**
+     * Get the sibling information associated with the user.
+     *
+     * @return HasOne
+     */
+    public function sibling(): HasOne
+    {
+        return $this->hasOne(Sibling::class);
+    }
+
+    /**
+     * Get the emergency contact associated with the user.
+     *
+     * @return HasOne
+     */
+    public function emergencyContact(): HasOne
+    {
+        return $this->hasOne(EmergencyContact::class);
     }
 
     /**

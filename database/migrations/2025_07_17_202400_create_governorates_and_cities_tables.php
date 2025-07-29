@@ -41,6 +41,16 @@ return new class extends Migration
 
             $table->unique(['name_en', 'code']);
         });
+
+        Schema::create('nationalities', function (Blueprint $table) {
+            $table->id();
+            $table->string('code');
+            $table->string('name_en');
+            $table->string('name_ar')->nullable();
+            $table->timestamps();
+
+            $table->unique(['name_en', 'code']);
+        });
     }
 
     /**
@@ -51,5 +61,6 @@ return new class extends Migration
         Schema::dropIfExists('cities');
         Schema::dropIfExists('governorates');
         Schema::dropIfExists('countries');
+        Schema::dropIfExists('nationalities');
     }
 };

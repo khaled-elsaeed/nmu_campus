@@ -136,46 +136,6 @@
         </form>
     </div>
 </div>
-
-<!-- Equipment Image Upload Modal -->
-<div class="modal fade" id="equipmentImageUploadModal" tabindex="-1" aria-labelledby="equipmentImageUploadModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="equipmentImageUploadModalLabel">Manage Equipment Images</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="modal_equipment_id" name="modal_equipment_id" value="">
-                <input type="hidden" id="modal_equipment_index" name="modal_equipment_index" value="">
-                
-                <!-- File Upload Section -->
-                <div class="mb-3">
-                    <label for="equipment_image_file" class="form-label">Select Images</label>
-                    <input class="form-control" type="file" id="equipment_image_file" name="equipment_image_file" accept="image/*" multiple>
-                    <div class="form-text">You can select multiple images. Supported formats: JPG, PNG, GIF</div>
-                </div>
-
-                <!-- Attached Images Grid -->
-                <div id="attached_images_container" class="mb-3">
-                    <h6>Attached Images</h6>
-                    <div id="attached_images_grid" class="row g-2">
-                        <!-- Images will be populated here -->
-                    </div>
-                    <div id="no_images_message" class="text-muted text-center py-3">
-                        No images attached yet
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" id="attach_images_btn" class="btn btn-primary">
-                    <i class="bx bx-plus"></i> Add Selected Images
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection 
 
 @push('scripts')
@@ -188,7 +148,6 @@
  * Organized modular system for handling guest check-in and check-out processes
  * Features:
  * - Equipment assignment and return tracking
- * - Multiple image attachments with delete functionality
  * - Real-time form validation
  * - Damage cost estimation
  * - Status tracking and notifications
@@ -212,9 +171,7 @@ const CONFIG = {
     messages: {
         success: {
             checkinCompleted: 'Guest has been checked in successfully.',
-            checkoutCompleted: 'Guest has been checked out successfully.',
-            imagesAttached: 'Images attached successfully.',
-            imageDeleted: 'Image removed successfully.'
+            checkoutCompleted: 'Guest has been checked out successfully.'
         },
         error: {
             enterReservationNumber: 'Please enter a Reservation Number.',
@@ -224,9 +181,7 @@ const CONFIG = {
             checkoutFailed: 'Failed to complete check-out.',
             noEquipmentToReturn: 'No equipment found to return.',
             invalidDamageData: 'Please provide valid damage information (cost and notes) for damaged/missing items.',
-            equipmentLoadFailed: 'Failed to load equipment list.',
-            imageUploadFailed: 'Failed to attach images. Please try again.',
-            noImagesSelected: 'Please select at least one image to attach.'
+            equipmentLoadFailed: 'Failed to load equipment list.'
         },
         validation: {
             required: 'This field is required.',
@@ -245,14 +200,9 @@ const CONFIG = {
             'good': 'bg-success',
             'damaged': 'bg-warning',
             'missing': 'bg-danger'
-        },
-        maxImageSize: 5 * 1024 * 1024, // 5MB
-        supportedImageTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+        }
     }
 };
-
-// Global storage for equipment images
-window.equipmentImages = {};
 
 // ===========================
 // UTILITY FUNCTIONS
@@ -388,39 +338,6 @@ const Utils = {
      */
     getStatusBadge(status) {
         return CONFIG.ui.statusBadges[status] || 'bg-secondary';
-    },
-
-    /**
-     * Generate unique ID
-     */
-    generateId() {
-        return Math.random().toString(36).substr(2, 9);
-    },
-
-    /**
-     * Validate image file
-     */
-    validateImageFile(file) {
-        if (!CONFIG.ui.supportedImageTypes.includes(file.type)) {
-            return { valid: false, message: 'Unsupported file type. Please select a valid image file.' };
-        }
-        
-        if (file.size > CONFIG.ui.maxImageSize) {
-            return { valid: false, message: 'File size too large. Maximum size is 5MB.' };
-        }
-        
-        return { valid: true };
-    },
-
-    /**
-     * Format file size for display
-     */
-    formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 };
 
@@ -492,269 +409,6 @@ const ApiService = {
             processData: false,
             contentType: false
         });
-    }
-};
-
-// ===========================
-// IMAGE MANAGER
-// ===========================
-const ImageManager = {
-    /**
-     * Initialize image manager
-     */
-    init() {
-        this.bindEvents();
-    },
-
-    /**
-     * Bind image-related events
-     */
-    bindEvents() {
-        // File input change
-        $('#equipment_image_file').on('change', this.handleFileSelection.bind(this));
-        
-        // Add images button
-        $('#attach_images_btn').on('click', this.handleAttachImages.bind(this));
-        
-        // Modal reset on close
-        $('#equipmentImageUploadModal').on('hidden.bs.modal', this.resetModal.bind(this));
-    },
-
-    /**
-     * Handle file selection
-     */
-    handleFileSelection(e) {
-        const files = Array.from(e.target.files);
-        
-        if (files.length === 0) {
-            return;
-        }
-
-        // Validate files
-        const validFiles = [];
-        const invalidFiles = [];
-
-        files.forEach(file => {
-            const validation = Utils.validateImageFile(file);
-            if (validation.valid) {
-                validFiles.push(file);
-            } else {
-                invalidFiles.push({ file, message: validation.message });
-            }
-        });
-
-        // Show validation errors
-        if (invalidFiles.length > 0) {
-            const errorMessages = invalidFiles.map(item => 
-                `${item.file.name}: ${item.message}`
-            ).join('<br>');
-            Utils.showError(`Some files could not be processed:<br>${errorMessages}`);
-        }
-
-        // Update UI to show selection
-        if (validFiles.length > 0) {
-            this.updateFilePreview(validFiles);
-        }
-    },
-
-    /**
-     * Update file selection preview
-     */
-    updateFilePreview(files) {
-        const $btn = $('#attach_images_btn');
-        if (files.length > 0) {
-            $btn.html(`<i class="bx bx-plus"></i> Add ${files.length} Image(s)`);
-            $btn.removeClass('btn-secondary').addClass('btn-primary');
-        } else {
-            $btn.html('<i class="bx bx-plus"></i> Add Selected Images');
-            $btn.removeClass('btn-primary').addClass('btn-secondary');
-        }
-    },
-
-    /**
-     * Handle attach images
-     */
-    async handleAttachImages() {
-        const files = Array.from($('#equipment_image_file')[0].files);
-        
-        if (files.length === 0) {
-            Utils.showError(CONFIG.messages.error.noImagesSelected);
-            return;
-        }
-
-        const equipmentId = $('#modal_equipment_id').val();
-        const equipmentIndex = $('#modal_equipment_index').val();
-        const key = `${equipmentId}_${equipmentIndex}`;
-
-        // Initialize storage if not exists
-        if (!window.equipmentImages[key]) {
-            window.equipmentImages[key] = [];
-        }
-
-        // Process each file
-        for (const file of files) {
-            const validation = Utils.validateImageFile(file);
-            if (validation.valid) {
-                const imageData = await this.processImageFile(file);
-                window.equipmentImages[key].push(imageData);
-            }
-        }
-
-        this.updateAttachedImagesDisplay(key);
-        this.updateEquipmentImageCounter(equipmentId, equipmentIndex);
-        Utils.showSuccess(CONFIG.messages.success.imagesAttached);
-        
-        // Reset file input
-        $('#equipment_image_file').val('');
-        this.updateFilePreview([]);
-    },
-
-    /**
-     * Process image file to base64
-     */
-    processImageFile(file) {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                resolve({
-                    id: Utils.generateId(),
-                    file: file,
-                    name: file.name,
-                    size: file.size,
-                    type: file.type,
-                    dataUrl: e.target.result,
-                    timestamp: Date.now()
-                });
-            };
-            reader.readAsDataURL(file);
-        });
-    },
-
-    /**
-     * Update attached images display in modal
-     */
-    updateAttachedImagesDisplay(key) {
-        const images = window.equipmentImages[key] || [];
-        const $grid = $('#attached_images_grid');
-        const $noMessage = $('#no_images_message');
-
-        $grid.empty();
-
-        if (images.length === 0) {
-            $noMessage.show();
-            return;
-        }
-
-        $noMessage.hide();
-
-        images.forEach(image => {
-            const $imageCard = $(`
-                <div class="col-md-4 col-sm-6">
-                    <div class="card image-card">
-                        <div class="card-body p-2">
-                            <div class="position-relative">
-                                <img src="${image.dataUrl}" class="img-fluid rounded" style="height: 120px; width: 100%; object-fit: cover;">
-                                <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1" 
-                                        onclick="ImageManager.deleteImage('${key}', '${image.id}')">
-                                    <i class="bx bx-x"></i>
-                                </button>
-                            </div>
-                            <div class="mt-2">
-                                <small class="text-muted d-block text-truncate">${image.name}</small>
-                                <small class="text-muted">${Utils.formatFileSize(image.size)}</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `);
-            $grid.append($imageCard);
-        });
-    },
-
-    /**
-     * Delete image
-     */
-    async deleteImage(key, imageId) {
-        const confirmed = await Utils.showConfirm(
-            'Delete Image',
-            'Are you sure you want to remove this image?',
-            'Delete',
-            'Cancel'
-        );
-
-        if (!confirmed) return;
-
-        // Remove from storage
-        if (window.equipmentImages[key]) {
-            window.equipmentImages[key] = window.equipmentImages[key].filter(img => img.id !== imageId);
-        }
-
-        // Update displays
-        this.updateAttachedImagesDisplay(key);
-        
-        const [equipmentId, equipmentIndex] = key.split('_');
-        this.updateEquipmentImageCounter(equipmentId, equipmentIndex);
-        
-        Utils.showSuccess(CONFIG.messages.success.imageDeleted);
-    },
-
-    /**
-     * Update equipment image counter in main form
-     */
-    updateEquipmentImageCounter(equipmentId, equipmentIndex) {
-        const key = `${equipmentId}`;
-        const images = window.equipmentImages[key] || [];
-        const $counter = $(`#equipment_images_counter_${equipmentId}_${equipmentIndex}`);
-        
-        if (images.length > 0) {
-            $counter.html(`<i class="bx bx-image text-success"></i> ${images.length} image(s)`).show();
-        } else {
-            $counter.hide();
-        }
-    },
-
-    /**
-     * Open image manager modal
-     */
-    openModal(equipmentId, equipmentIndex, equipmentName) {
-        $('#modal_equipment_id').val(equipmentId);
-        $('#modal_equipment_index').val(equipmentIndex);
-        $('#equipmentImageUploadModalLabel').text(`Manage Images for ${equipmentName}`);
-        
-        const key = `${equipmentId}_${equipmentIndex}`;
-        this.updateAttachedImagesDisplay(key);
-        
-        $('#equipmentImageUploadModal').modal('show');
-    },
-
-    /**
-     * Reset modal state
-     */
-    resetModal() {
-        $('#equipment_image_file').val('');
-        $('#modal_equipment_id').val('');
-        $('#modal_equipment_index').val('');
-        $('#attached_images_grid').empty();
-        $('#no_images_message').show();
-        this.updateFilePreview([]);
-    },
-
-    /**
-     * Get all images for form submission
-     */
-    getAllImagesForSubmission() {
-        const formData = new FormData();
-        let imageCount = 0;
-
-        Object.keys(window.equipmentImages).forEach(key => {
-            const images = window.equipmentImages[key];
-            images.forEach((image, index) => {
-                formData.append(`equipment_images[${key}][${index}]`, image.file);
-                imageCount++;
-            });
-        });
-
-        return { formData, imageCount };
     }
 };
 
@@ -928,11 +582,6 @@ const ReservationManager = {
     resetForms() {
         Utils.hideElement($('#checkinReservationForm'), false);
         Utils.hideElement($('#checkoutReservationForm'), false);
-        
-        // Clear equipment images
-        window.equipmentImages = {};
-        
-        // Reset form fields
         $('#checkinReservationForm')[0].reset();
         $('#checkoutReservationForm')[0].reset();
     }
@@ -1093,7 +742,6 @@ const EquipmentManager = {
         }
 
         equipmentData.forEach((item, index) => {
-            console.log(item);
             const html = `
                 <div class="equipment-item mb-4 border rounded" data-equipment-id="${item.equipment_id}">
                     <div class="card-header bg-light">
@@ -1132,23 +780,6 @@ const EquipmentManager = {
                                        step="0.01" 
                                        min="0">
                             </div>
-                            <div class="col-md-3 damage-image-group" style="display:none;">
-                                <label class="form-label">Images</label>
-                                <div>
-                                    <button type="button" 
-                                            class="btn btn-outline-secondary btn-sm equipment-manage-images-btn" 
-                                            data-equipment-id="${item.equipment_id}" 
-                                            data-equipment-index="${index}" 
-                                            data-equipment-name="${item.equipment.name || item.equipment.name}">
-                                        <i class="bx bx-image"></i> Manage Images
-                                    </button>
-                                    <div class="mt-1">
-                                        <small class="text-success" 
-                                               id="equipment_images_counter_${item.equipment_id}_${index}" 
-                                               style="display:none;"></small>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                         <div class="row mt-3 damage-notes-group" style="display:none;">
                             <div class="col-12">
@@ -1178,42 +809,20 @@ const EquipmentManager = {
             const condition = $(this).val();
             const $costGroup = $item.find('.damage-cost-group');
             const $notesGroup = $item.find('.damage-notes-group');
-            const $imageGroup = $item.find('.damage-image-group');
 
             if (condition === 'damaged' || condition === 'missing') {
                 $costGroup.show();
                 $notesGroup.show();
-                $imageGroup.show();
                 $item.addClass(condition === 'damaged' ? 'border-warning' : 'border-danger');
                 $item.find('.equipment-cost').prop('required', true);
                 $item.find('.equipment-notes').prop('required', true);
             } else {
                 $costGroup.hide();
                 $notesGroup.hide();
-                $imageGroup.hide();
                 $item.removeClass('border-warning border-danger');
                 $item.find('.equipment-cost').prop('required', false).val('');
                 $item.find('.equipment-notes').prop('required', false).val('');
-                
-                // Clear images for this equipment
-                const equipmentId = $item.data('equipment-id');
-                const equipmentIndex = $item.find('.equipment-manage-images-btn').data('equipment-index');
-                const key = `${equipmentId}_${equipmentIndex}`;
-                
-                if (window.equipmentImages[key]) {
-                    delete window.equipmentImages[key];
-                }
-                ImageManager.updateEquipmentImageCounter(equipmentId, equipmentIndex);
             }
-        });
-
-        // Image management button events
-        $list.find('.equipment-manage-images-btn').on('click', function() {
-            const equipmentId = $(this).data('equipment-id');
-            const equipmentIndex = $(this).data('equipment-index');
-            const equipmentName = $(this).data('equipment-name');
-            
-            ImageManager.openModal(equipmentId, equipmentIndex, equipmentName);
         });
     },
 
@@ -1404,15 +1013,6 @@ const CheckoutProcessor = {
      */
     getFormData() {
         const fd = new FormData($('#checkoutReservationForm')[0]);
-        
-        // Add equipment images
-        const { formData: imageFormData } = ImageManager.getAllImagesForSubmission();
-        
-        // Append image files to main form data
-        for (let [key, value] of imageFormData.entries()) {
-            fd.append(key, value);
-        }
-        
         return fd;
     },
 
@@ -1498,9 +1098,6 @@ const CheckoutProcessor = {
         Utils.hideElement($('#checkoutReservationForm'));
         $('#search_reservation_number').val('');
         ReservationManager.setDefaultDates();
-        
-        // Clear equipment images
-        window.equipmentImages = {};
     }
 };
 
@@ -1516,12 +1113,8 @@ const CheckinCheckoutApp = {
         
         // Initialize all managers
         ReservationManager.init();
-        ImageManager.init();
         CheckinProcessor.init();
         CheckoutProcessor.init();
-        
-        // Initialize global storage
-        window.equipmentImages = {};
         
         // Set up global error handling
         this.setupErrorHandling();
@@ -1547,8 +1140,5 @@ const CheckinCheckoutApp = {
 $(document).ready(() => {
     CheckinCheckoutApp.init();
 });
-
-// Make ImageManager globally accessible for onclick handlers
-window.ImageManager = ImageManager;
 </script>
 @endpush

@@ -1,7 +1,11 @@
-<div @if($id) id="{{ $id }}" @endif class="card card-border-shadow-{{ $color }} h-100 card-hover-effect">
+<div 
+    @if($id) id="{{ $id }}" @endif 
+    class="card card-border-shadow-{{ $color }} h-100 card-hover-effect"
+    @if(app()->getLocale() === 'ar') dir="rtl" @else dir="ltr" @endif
+>
     <div class="card-body">
         <div class="d-flex align-items-center mb-2">
-            <div class="avatar me-4">
+            <div class="avatar @if(app()->getLocale() === 'ar') ms-4 @else me-4 @endif">
                 <span class="avatar-initial rounded bg-label-{{ $color }}">
                     <i class="icon-base {{ $icon }} icon-lg"></i>
                 </span>
@@ -16,7 +20,11 @@
         <p class="mb-2">{{ $label }}</p>
         <p class="mb-0">
             <small class="text-body-secondary">
-                Last updated: 
+                @if(app()->getLocale() === 'ar')
+                    آخر تحديث: 
+                @else
+                    Last updated: 
+                @endif
                 <span class="stat-last-updated-loader" id="{{ $id ? $id . '-last-updated-loader' : '' }}">
                     <span class="spinner-border spinner-border-sm text-{{ $color }}" role="status" ></span>
                 </span>

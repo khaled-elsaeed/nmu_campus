@@ -23,10 +23,11 @@ return new class extends Migration
             $table->date('date_of_birth');
             $table->enum('gender', ['male', 'female', 'other']);
             $table->enum('level', ['1', '2', '3', '4', '5']);
-            $table->foreignId('faculty_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('program_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->foreignId('governorate_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('city_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('faculty_id')->constrained()->restrictOnDelete();
+            $table->foreignId('program_id')->nullable()->constrained()->restrictOnDelete();
+            $table->foreignId('nationality_id')->constrained()->restrictOnDelete();
+            $table->foreignId('governorate_id')->constrained()->restrictOnDelete();
+            $table->foreignId('city_id')->constrained()->restrictOnDelete();
             $table->text('address');
             $table->boolean('is_profile_complete')->default(false);
             $table->timestamps();

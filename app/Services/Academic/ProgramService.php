@@ -91,17 +91,15 @@ class ProgramService
     }
 
     /**
-     * Get all programs (returns only id and name).
+     * Get all programs by faculty id.
      *
-     * @param int|null $facultyId
+     * @param int $facultyId
      * @return array
      */
-    public function getAll(?int $facultyId = null): array
+    public function getAll(int $facultyId): array
     {
-        return Program::when(!is_null($facultyId), function ($query) use ($facultyId) {
-                $query->where('faculty_id', $facultyId);
-            })
-            ->get(['id', 'name_en','name_ar'])
+        return Program::where('faculty_id', $facultyId)
+            ->get(['id', 'name_en', 'name_ar'])
             ->map(function ($program) {
                 return [
                     'id' => $program->id,

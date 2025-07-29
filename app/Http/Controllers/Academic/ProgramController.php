@@ -137,7 +137,7 @@ class ProgramController extends Controller
     }
 
     /**
-     * Get all programs, optionally filtered by faculty_id.
+     * Get all programs by faculty.
      *
      * @param Request $request
      * @return JsonResponse
@@ -145,27 +145,11 @@ class ProgramController extends Controller
     public function all(Request $request): JsonResponse
     {
         try {
-            $facultyId = $request->input('faculty_id');
+            $facultyId = $request->route('facultyId');
             $programs = $this->programService->getAll($facultyId);
             return successResponse('Programs fetched successfully.', $programs);
         } catch (Exception $e) {
             logError('ProgramController@all', $e, ['faculty_id' => $request->input('faculty_id')]);
-            return errorResponse('Internal server error.', [], 500);
-        }
-    }
-
-    /**
-     * Get all faculties for dropdown.
-     *
-     * @return JsonResponse
-     */
-    public function getFaculties(): JsonResponse
-    {
-        try {
-            $faculties = $this->programService->getFaculties();
-            return successResponse('Faculties fetched successfully.', $faculties);
-        } catch (Exception $e) {
-            logError('ProgramController@getFaculties', $e);
             return errorResponse('Internal server error.', [], 500);
         }
     }

@@ -15,6 +15,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
 
+<!-- Utils JS -->
+<script src="{{ asset('js/utils.js') }}?v={{ config('app.version') }}"></script>
+
 <!-- Main JS -->
 <script src="{{ asset('js/main.js') }}?v={{ config('app.version') }}"></script>
 

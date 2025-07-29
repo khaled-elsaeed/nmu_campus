@@ -11,9 +11,15 @@
 <link rel="stylesheet" href="{{ asset('vendor/fonts/boxicons.css') }}?v={{ config('app.version') }}" />
 
 <!-- Core CSS -->
-<link rel="stylesheet" href="{{ asset('vendor/css/core.css') }}?v={{ config('app.version') }}" class="template-customizer-core-css" />
-<link rel="stylesheet" href="{{ asset('vendor/css/theme-default.css') }}?v={{ config('app.version') }}" class="template-customizer-theme-css" />
-<link rel="stylesheet" href="{{ asset('css/demo.css') }}?v={{ config('app.version') }}" />
+@if (app()->getLocale() === 'ar')
+    <link rel="stylesheet" href="{{ asset('vendor/css/core.rtl.css') }}?v={{ config('app.version') }}" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="{{ asset('vendor/css/theme-default.rtl.css') }}?v={{ config('app.version') }}" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="{{ asset('css/demo.rtl.css') }}?v={{ config('app.version') }}" />
+@else
+    <link rel="stylesheet" href="{{ asset('vendor/css/core.css') }}?v={{ config('app.version') }}" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="{{ asset('vendor/css/theme-default.css') }}?v={{ config('app.version') }}" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="{{ asset('css/demo.css') }}?v={{ config('app.version') }}" />
+@endif
 
 <!-- Vendor CSS -->
 <link rel="stylesheet" href="{{ asset('vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}?v={{ config('app.version') }}" />

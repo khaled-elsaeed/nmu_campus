@@ -10,6 +10,7 @@ Route::prefix('reservations')->name('reservations.')->group(function () {
     Route::get('/check-in', [ReservationController::class, 'showCheckInForm'])->name('check-in');
     Route::post('/checkin', [ReservationController::class, 'checkin'])->name('checkin');
     Route::post('/checkout', [ReservationController::class, 'checkout'])->name('checkout');
+
     Route::post('/', [ReservationController::class, 'store'])->name('store');
     Route::delete('/{id}', [ReservationController::class, 'destroy'])->name('destroy');
     Route::post('/{id}/cancel', [ReservationController::class, 'cancel'])->name('cancel');

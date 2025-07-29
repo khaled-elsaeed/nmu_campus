@@ -140,6 +140,27 @@ class ReservationController extends Controller
     }
 
     /**
+     * Complete (end) a reservation (checkout).
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function checkout(Request $request): JsonResponse
+    {
+        try {
+            $completed = $this->reservationService->completeReservation($request->all());
+            if (!$completed) {
+                return errorResponse('Reservation not found or cannot be completed.', [], 404);
+            }
+            return successResponse('Reservation completed successfully.');
+        } catch (BusinessValidationException $e) {
+            return errorResponse($e->getMessage(), [], 422);
+        } catch (Exception $e) {
+            logError('ReservationController@checkout', $e, []);
+            return errorResponse('Failed to complete reservation.', [$e->getMessage()]);
+        }
+    }
+    /**
      * Remove the specified reservation.
      *
      * @param int $id

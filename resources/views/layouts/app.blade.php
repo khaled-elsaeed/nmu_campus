@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html
-  lang="en"
+  lang="{{ app()->getLocale() }}"
   class="light-style layout-menu-fixed"
-  dir="ltr"
+  dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}"
   data-theme="theme-default"
   data-layout="vertical-menu"
 >

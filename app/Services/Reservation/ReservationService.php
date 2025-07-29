@@ -16,12 +16,15 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use App\Services\Reservation\CreateReservationService;
 use App\Services\Reservation\CancelReservationService;
+use App\Services\Reservation\CompleteReservationService;
 use Carbon\Carbon;
 
 class ReservationService
 {
-    public function __construct(protected CreateReservationService $createReservationService)
-    {}
+    public function __construct(
+        protected CreateReservationService $createReservationService,
+        protected CompleteReservationService $completeReservationService
+    ) {}
 
     /**
      * Find a reservation by its reservation number.
@@ -46,6 +49,19 @@ class ReservationService
     {
         return DB::transaction(function () use ($data) {
             return $this->createReservationService->create($data);
+        });
+    }
+
+    /**
+     * Complete a new reservation.
+     *
+     * @param array $data
+     * @return Reservation
+     */
+    public function completeReservation(array $data): Reservation
+    {
+        return DB::transaction(function () use ($data) {
+            return $this->completeReservationService->complete($data);
         });
     }
 

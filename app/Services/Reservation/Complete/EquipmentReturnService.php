@@ -15,17 +15,16 @@ class EquipmentReturnService
     /**
      * Mark equipment as returned for a reservation, if equipment data is provided.
      *
-     * @param Reservation $reservation
-     * @param array $equipmentData
+     * @param array $data The full request data, including reservation_id, equipment, and checkout_notes
      * @return array Returns array of damages found during return process
      */
-    public function returnEquipment(Reservation $reservation, array $equipmentData): array
+    public function returnEquipment(array $data): array
     {
-        if (empty($equipmentData)) {
-            return [];
-        }
-
-        return $this->markEquipmentAsReturned($reservation, $equipmentData);
+        $reservationId = $data['reservation_id'] ?? null;
+        $equipmentData = $data['equipment'] ?? [];
+        $checkoutNotes = $data['checkout_notes'] ?? null;
+        $reservation = Reservation::find($reservationId);
+        return $this->markEquipmentAsReturned($reservation, $equipmentData, $checkoutNotes);
     }
 
     /**
@@ -34,9 +33,10 @@ class EquipmentReturnService
      *
      * @param Reservation $reservation
      * @param array $equipmentData
+     * @param string|null $checkoutNotes
      * @return array Returns array of damages
      */
-    private function markEquipmentAsReturned(Reservation $reservation, array $equipmentData): array
+    private function markEquipmentAsReturned(Reservation $reservation, array $equipmentData, ?string $checkoutNotes = null): array
     {
         $damages = [];
         $equipmentCheckout = EquipmentCheckout::where('reservation_id', $reservation->id)->first();
@@ -80,6 +80,9 @@ class EquipmentReturnService
         $equipmentCheckout->overall_status = 'returned';
         $equipmentCheckout->returned_at = Carbon::now();
         $equipmentCheckout->reviewed_by = Auth::id();
+        if ($checkoutNotes !== null) {
+            $equipmentCheckout->checkout_notes = $checkoutNotes;
+        }
         $equipmentCheckout->save();
 
         return $damages;
@@ -133,24 +136,26 @@ class EquipmentReturnService
             if (isset($equipmentItem['returned_status']) && in_array($equipmentItem['returned_status'], ['good', 'damaged', 'missing'])) {
                 return $equipmentItem['returned_status'];
             }
-            // Fallback to legacy 'return_status' for backward compatibility
-            if (isset($equipmentItem['return_status']) && in_array($equipmentItem['return_status'], ['good', 'damaged', 'missing'])) {
-                return $equipmentItem['return_status'];
-            }
         }
         return 'good';
     }
 
     /**
      * Extract returned notes from the equipment item.
+     * Accepts both 'returned_notes' and 'notes' for compatibility.
      *
      * @param mixed $equipmentItem
      * @return string|null
      */
     private function extractReturnedNotes($equipmentItem): ?string
     {
-        if (is_array($equipmentItem) && isset($equipmentItem['notes'])) {
-            return $equipmentItem['notes'];
+        if (is_array($equipmentItem)) {
+            if (isset($equipmentItem['returned_notes'])) {
+                return $equipmentItem['returned_notes'];
+            }
+            if (isset($equipmentItem['notes'])) {
+                return $equipmentItem['notes'];
+            }
         }
         return null;
     }

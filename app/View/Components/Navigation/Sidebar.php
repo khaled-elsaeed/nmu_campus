@@ -34,32 +34,32 @@ class Sidebar extends Component
     {
         return [
             [
-                'title' => 'Dashboard',
+                'title' => __('sidebar.dashboard'),
                 'icon' => 'bx bx-home-circle',
                 'route' => route('home'),
                 'active' => in_array(request()->route()->getName(), ['home', 'admin.home', 'advisor.home']),
             ],
             [
-                'title' => 'Academic',
+                'title' => __('sidebar.academic'),
                 'icon' => 'bx bx-book',
                 'route' => '#',
                 'type' => 'group',
                 'active' => request()->routeIs('academic.*'),
                 'children' => [
                     [
-                        'title' => 'Academic Terms',
+                        'title' => __('sidebar.academic_terms'),
                         'icon' => 'bx bx-calendar-event',
                         'route' => route('academic.academic_terms.index'),
                         'active' => str_starts_with(request()->route()->getName(), 'academic.academic_terms.'),
                     ],
                     [
-                        'title' => 'Faculties',
+                        'title' => __('sidebar.faculties'),
                         'icon' => 'bx bx-building-house',
                         'route' => route('academic.faculties.index'),
                         'active' => str_starts_with(request()->route()->getName(), 'academic.faculties.'),
                     ],
                     [
-                        'title' => 'Programs',
+                        'title' => __('sidebar.programs'),
                         'icon' => 'bx bx-book-content',
                         'route' => route('academic.programs.index'),
                         'active' => str_starts_with(request()->route()->getName(), 'academic.programs.'),
@@ -67,28 +67,28 @@ class Sidebar extends Component
                 ]
             ],
             [
-                'title' => 'Housing Management',
+                'title' => __('sidebar.housing_management'),
                 'icon' => 'bx bx-buildings',
                 'route' => '#',
                 'type' => 'group',
                 'active' => request()->routeIs('housing.*'),
                 'children' => [
                     [
-                        'title' => 'Building',
+                        'title' => __('sidebar.building'),
                         'icon' => 'bx bx-buildings',
                         'route' => route('housing.buildings.index'),
                         'active' => str_starts_with(request()->route()->getName(), 'housing.buildings.'),
                         'permission' => '',
                     ],
                     [
-                        'title' => 'Apartment',
+                        'title' => __('sidebar.apartment'),
                         'icon' => 'bx bx-building',
                         'route' => route('housing.apartments.index'),
                         'active' => str_starts_with(request()->route()->getName(), 'housing.apartments.'),
                         'permission' => '',
                     ],
                     [
-                        'title' => 'Room',
+                        'title' => __('sidebar.room'),
                         'icon' => 'bx bx-door-open',
                         'route' => route('housing.rooms.index'),
                         'active' => str_starts_with(request()->route()->getName(), 'housing.rooms.'),
@@ -97,21 +97,21 @@ class Sidebar extends Component
                 ]
             ],
             [
-                'title' => 'Residents',
+                'title' => __('sidebar.residents'),
                 'icon' => 'bx bx-group',
                 'route' => '#',
                 'type' => 'group',
                 'active' => request()->routeIs('resident.*'),
                 'children' => [
                     [
-                        'title' => 'Students',
+                        'title' => __('sidebar.students'),
                         'icon' => 'bx bx-user',
                         'route' => route('resident.students.index'),
                         'active' => str_starts_with(request()->route()->getName(), 'resident.students.'),
                         'permission' => '',
                     ],
                     [
-                        'title' => 'Staff',
+                        'title' => __('sidebar.staff'),
                         'icon' => 'bx bx-id-card',
                         'route' => route('resident.staff.index'),
                         'active' => str_starts_with(request()->route()->getName(), 'resident.staff.'),
@@ -120,31 +120,31 @@ class Sidebar extends Component
                 ]
             ],
             [
-                'title' => 'Reservations',
+                'title' => __('sidebar.reservations'),
                 'icon' => 'bx bx-calendar',
                 'route' => route('reservations.index'),
                 'active' => str_starts_with(request()->route()->getName(), 'reservations.') || str_starts_with(request()->route()->getName(), 'reservation-requests.'),
                 'children' => [
                     [
-                        'title' => 'View Reservations',
+                        'title' => __('sidebar.view_reservations'),
                         'icon' => 'bx bx-list-ul',
                         'route' => route('reservations.index'),
                         'active' => request()->routeIs('reservations.index'),
                     ],
                     [
-                        'title' => 'Add Reservation',
+                        'title' => __('sidebar.add_reservation'),
                         'icon' => 'bx bx-plus',
                         'route' => route('reservations.create'),
                         'active' => request()->routeIs('reservations.create'),
                     ],
                     [
-                        'title' => 'Check In / Out',
+                        'title' => __('sidebar.check_in_out'),
                         'icon' => 'bx bx-log-in-circle',
                         'route' => route('reservations.check-in'),
                         'active' => request()->routeIs('reservations.check-in'),
                     ],
                     [
-                        'title' => 'Reservation Requests',
+                        'title' => __('sidebar.reservation_requests'),
                         'icon' => 'bx bx-calendar-check',
                         'route' => route('reservation-requests.index'),
                         'active' => str_starts_with(request()->route()->getName(), 'reservation-requests.'),
@@ -152,19 +152,19 @@ class Sidebar extends Component
                 ],
             ],
             [
-                'title' => 'Payments',
+                'title' => __('sidebar.payments'),
                 'icon' => 'bx bx-money',
                 'route' => route('payments.index'),
                 'active' => str_starts_with(request()->route()->getName(), 'payments.') || str_starts_with(request()->route()->getName(), 'insurances.'),
                 'children' => [
                     [
-                        'title' => 'View Payments',
+                        'title' => __('sidebar.view_payments'),
                         'icon' => 'bx bx-money',
                         'route' => route('payments.index'),
                         'active' => request()->routeIs('payments.index'),
                     ],
                     [
-                        'title' => 'View Insurances',
+                        'title' => __('sidebar.view_insurances'),
                         'icon' => 'bx bx-shield',
                         'route' => route('insurances.index'),
                         'active' => request()->routeIs('insurances.index'),

@@ -277,7 +277,7 @@ var ROUTES = {
     all: '{{ route('academic.programs.all', ':id') }}'
   },
   cities: {
-    all: '{{ route('cities.all', ':id') }}'
+    all: '{{ route('cities.all', ':governorateId') }}'
   },
   faculties: {
     all: '{{ route('academic.faculties.all') }}'

@@ -4,25 +4,22 @@ namespace App\Services\Reservation;
 
 use App\Models\Reservation\Reservation;
 use App\Services\Reservation\Complete\ReservationValidator;
-use App\Services\Reservation\Complete\ReservationCreator;
-use App\Services\Reservation\Complete\AccommodationService;
+use App\Services\Reservation\Complete\ReservationComplete;
 use App\Services\Reservation\Complete\PaymentService;
 use App\Services\Reservation\Complete\EquipmentReturnService;
 
 class CompleteReservationService
 {
     protected ReservationValidator $validator;
-    protected ReservationCreator $creator;
-    protected AccommodationService $accommodationService;
+    protected ReservationComplete $reservationComplete;
     protected PaymentService $paymentService;
     protected EquipmentReturnService $equipmentService;
 
     public function __construct()
     {
-        // $this->validator = new ReservationValidator();
-        $damages = $this->equipmentService = new EquipmentReturnService();
-        $this->creator = new ReservationCreator();
-        $this->accommodationService = new AccommodationService();
+        $this->validator = new ReservationValidator();
+        $this->reservationComplete = new ReservationComplete();
+        $this->equipmentService = new EquipmentReturnService();
         $this->paymentService = new PaymentService();
     }
 
@@ -34,11 +31,18 @@ class CompleteReservationService
      */
     public function complete(array $data): Reservation
     {
-        $this->validator->checkForDuplicateReservation($data);
-        $reservation = $this->creator->completeReservationRecord($data);
-        $this->accommodationService->handleAccommodationCreation($data, $reservation->id);
-        $this->paymentService->completePaymentRecord($reservation, $data['payment'] ?? []);
-        $this->equipmentService->assignEquipmentIfProvided($reservation, $data['equipment'] ?? []);
+        $this->validator->validateBeforeComplete($data);
+        $damages = $this->equipmentService->returnEquipment($data);
+
+        $reservation = $this->reservationComplete->completeReservation($data);
+
+        if (!empty($damages)) {
+            $data['damages'] = $damages;
+            $this->paymentService->createDamagePayment([
+                'reservation_id' => $reservation->id,
+                'damages' => $damages,
+            ]);
+        }
         return $reservation->load(['equipmentTracking']);
     }
 }

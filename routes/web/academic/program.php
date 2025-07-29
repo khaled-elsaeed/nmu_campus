@@ -16,7 +16,7 @@ Route::prefix('programs')
         Route::get('stats', 'stats')->name('stats');
         Route::get('faculties', 'getFaculties')->name('faculties');
         // No middleware: not sensitive, for dropdown
-        Route::get('all/{id}', 'all')->name('all');
+        Route::get('all/{facultyId}', 'all')->name('all');
 
         // ===== CRUD Operations =====
         // List & View

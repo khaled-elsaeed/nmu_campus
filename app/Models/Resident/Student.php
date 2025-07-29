@@ -10,6 +10,7 @@ use App\Models\Academic\Program;
 use App\Models\User;
 use App\Models\Governorate;
 use App\Models\City;
+use App\Models\Nationality;
 
 class Student extends Model
 {
@@ -24,14 +25,13 @@ class Student extends Model
         'name_ar',
         'academic_id',
         'national_id',
-        'name_en',
-        'name_ar',
         'academic_email',
         'phone',
         'date_of_birth',
         'level',
         'faculty_id',
         'program_id',
+        'nationality_id',
         'governorate_id',
         'city_id',
         'address',
@@ -43,7 +43,7 @@ class Student extends Model
      *
      * @var list<string>
      */
-    protected $appends = ['name'];
+    protected $appends = ['name', 'date_of_birth'];
 
     /**
      * The attributes that should be cast.
@@ -54,7 +54,7 @@ class Student extends Model
     {
         return [
             'is_profile_complete' => 'boolean',
-            'date_of_birth' => 'date',
+            'date_of_birth' => 'date:Y-m-d',
         ];
     }
 
@@ -71,6 +71,19 @@ class Student extends Model
                 $attributes['name_en'] ??
                 $attributes['name_ar'] ??
                 null
+        );
+    }
+
+    /**
+     * Get the student's date of birth in Y-m-d format.
+     *
+     * @return Attribute
+     */
+    protected function dateOfBirth(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value, $attributes) => 
+                $attributes['date_of_birth'] ? date('Y-m-d', strtotime($attributes['date_of_birth'])) : null
         );
     }
 
@@ -102,6 +115,16 @@ class Student extends Model
     public function program(): BelongsTo
     {
         return $this->belongsTo(Program::class);
+    }
+
+    /**
+     * Get the nationality for the student.
+     *
+     * @return BelongsTo
+     */
+    public function nationality(): BelongsTo
+    {
+        return $this->belongsTo(Nationality::class);
     }
 
     /**
