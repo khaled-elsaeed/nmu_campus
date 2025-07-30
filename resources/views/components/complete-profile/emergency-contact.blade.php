@@ -1,4 +1,16 @@
-<h5 class="mb-4"><i class='bx bx-first-aid me-2'></i>Emergency Contact Information</h5>
+<div class="mb-4">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <span class="step-icon d-inline-flex align-items-center justify-content-center rounded-circle bg-danger text-white" style="width: 2rem; height: 2rem; font-size: 1.1rem;">
+                6
+            </span>
+        </div>
+        <div class="col">
+            <div class="fw-bold text-danger mb-1">Emergency Contact Information</div>
+            <div class="text-muted">Please provide details for someone we can contact in case of emergency.</div>
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="col-md-6 mb-3">
         <label for="emergencyContactRelationship" class="form-label">Relationship</label>

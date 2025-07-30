@@ -1,4 +1,17 @@
-<h5 class="mb-4"><i class='bx bx-check-shield me-2'></i>Terms and Conditions</h5>
+<div class="mb-4">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <span class="step-icon d-inline-flex align-items-center justify-content-center rounded-circle bg-primary text-white" style="width: 2rem; height: 2rem; font-size: 1.1rem;">
+                7                                
+            </span>
+        </div>
+        <div class="col">
+            <div class="fw-bold text-primary mb-1">Terms and Conditions</div>
+            <div class="text-muted">Please review and accept the terms and conditions to continue.</div>
+        </div>
+    </div>
+</div>
+<div class="row">
 <div class="mb-3">
     <div class="form-check">
         <input class="form-check-input" type="checkbox" id="termsCheckbox" name="termsCheckbox" {{ old('termsCheckbox') ? 'checked' : '' }} >
@@ -8,8 +21,9 @@
         <div class="invalid-feedback"></div>
     </div>
 </div>
+</div>
 <div class="d-flex justify-content-between">
-    <button type="button" class="btn btn-outline-secondary" id="backToStep6">
+<button type="button" class="btn btn-outline-secondary prev-Btn">
         <i class='bx bx-chevron-left'></i> Previous
     </button>
     <button type="submit" class="btn btn-success">

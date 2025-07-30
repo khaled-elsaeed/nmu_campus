@@ -1,10 +1,15 @@
 <div class="mb-4">
-    <h5 class="text-primary mb-1">
-        <i class='bx bx-user-circle me-2'></i>Personal Information
-    </h5>
-    <p class="text-muted ms-3">
-        Please provide your personal details as they appear on your official documents.
-    </p>
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <span class="step-icon d-inline-flex align-items-center justify-content-center rounded-circle bg-primary text-white" style="width: 2rem; height: 2rem; font-size: 1.1rem;">
+                1
+            </span>
+        </div>
+        <div class="col">
+            <div class="fw-bold text-primary mb-1">Personal Information</div>
+            <div class="text-muted">Please provide your personal details as they appear on your official documents.</div>
+        </div>
+    </div>
 </div>
 <div class="row">
     <div class="col-md-6 mb-3">

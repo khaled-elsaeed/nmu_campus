@@ -1,4 +1,16 @@
-<h5 class="mb-4"><i class='bx bx-phone me-2'></i>Contact Information</h5>
+<div class="mb-4">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <span class="step-icon d-inline-flex align-items-center justify-content-center rounded-circle bg-primary text-white" style="width: 2rem; height: 2rem; font-size: 1.1rem;">
+                2
+            </span>
+        </div>
+        <div class="col">
+            <div class="fw-bold text-primary mb-1">Contact Information</div>
+            <div class="text-muted">Please provide your contact details so we can reach you if needed.</div>
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="col-md-6 mb-3">
         <label for="governorate" class="form-label">Governorate <span class="text-danger">*</span></label>

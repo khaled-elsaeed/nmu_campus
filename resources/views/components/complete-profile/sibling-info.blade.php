@@ -1,4 +1,16 @@
-<h5 class="mb-4"><i class='bx bx-group me-2'></i>Sibling Information</h5>
+<div class="mb-4">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <span class="step-icon d-inline-flex align-items-center justify-content-center rounded-circle bg-primary text-white" style="width: 2rem; height: 2rem; font-size: 1.1rem;">
+                5
+            </span>
+        </div>
+        <div class="col">
+            <div class="fw-bold text-primary mb-1">Sibling Information</div>
+            <div class="text-muted">Please provide details about your sibling in the dorm, if applicable.</div>
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="col-md-6 mb-3">
         <label for="hasSiblingInDorm" class="form-label">Do you have a sibling in the dorm?</label>

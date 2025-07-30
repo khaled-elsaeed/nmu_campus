@@ -17,14 +17,16 @@
     .nav-pills .nav-link { border-radius: 0.375rem; margin: 0 2px; }
     .d-none { display: none !important; }
     .nav-link.is-valid {
-        background-color: #28a745 !important;
+        background-color: var(--bs-success) !important;
         color: #fff !important;
-        border-color: #28a745 !important;
+        border-color: var(--bs-success) !important;
+        box-shadow: 0 2px 4px 0 rgba(var(--bs-success-rgb), 0.4);
     }
     .nav-link.is-invalid {
-        background-color: #dc3545 !important;
+      background-color: var(--bs-danger) !important;
         color: #fff !important;
-        border-color: #dc3545 !important;
+        border-color: var(--bs-danger) !important;
+        box-shadow: 0 2px 4px 0 rgba(var(--bs-danger-rgb), 0.4);
     }
 </style>
 @endpush
@@ -32,7 +34,16 @@
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
     <div class="row justify-content-center">
-        <div class="col-12 col-md-11 col-lg-9">
+        <div class="col-12 col-md-11 col-lg-9 position-relative">
+
+            <!-- Start Loader -->
+            <div id="form-loader" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 1050; background: rgba(255,255,255,0.7); backdrop-filter: blur(2px);">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            <!-- End Loader -->
+
             <div class="card shadow-sm">
                 <div class="card-header border-bottom">
                     <ul class="nav nav-pills nav-justified gap-2" id="profile-tab" role="tablist">
@@ -173,13 +184,6 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 <script>
-    window.localization = @json([
-        'validation' => __('validation'),
-        'messages' => __('messages'),
-        'sweetalert' => __('sweetalert'),
-    ]);
-</script>
- <script>
 /**
  * Complete Profile Page JS
  *
@@ -304,62 +308,57 @@ var ProfileManager = {
   /**
    * Initialize profile manager
    */
-  init: function() {
-    this.initializeDropdowns();
-    this.fetchAndPopulateProfile();
-  },
+  init: async function() {
+    // Wait for all dropdowns to be populated before fetching profile
+    try {
+      await Promise.all([
+        this.populateGovernorates(),
+        this.populateParentGovernorates(),
+        this.populateFaculties(),
+        this.populateCountries(),
+        this.populateNationalities()
+      ]);
+    } catch (error) {
+      // Log error but continue
+      console.error('Error populating dropdowns:', error);
+    }
 
-  /**
-   * Initialize dropdowns with data
-   */
-  initializeDropdowns: function() {
-    // Populate all dropdowns on page load
-    this.populateGovernorates().catch(function(error) {
-      console.error('Failed to initialize governorates:', error);
-    });
+    // Now fetch and populate profile
+    await this.fetchAndPopulateProfile();
 
-    // Populate parent governorates as well
-    this.populateParentGovernorates().catch(function(error) {
-      console.error('Failed to initialize parent governorates:', error);
-    });
-
-    this.populateFaculties().catch(function(error) {
-      console.error('Failed to initialize faculties:', error);
-    });
-    
-    this.populateCountries().catch(function(error) {
-      console.error('Failed to initialize countries:', error);
-    });
-    
-    this.populateNationalities().catch(function(error) {
-      console.error('Failed to initialize nationalities:', error);
-    });
+    // Hide loader after all done
+    FormManager.hideLoader();
   },
 
   /**
    * Fetch profile data and populate form
+   * Returns a Promise
    */
   fetchAndPopulateProfile: function() {
     var self = this;
-
-    ApiService.fetchProfile()
-      .done(function(response) {
-        if (response.success && response.data) {
-          self.populateProfileData(response.data);
-          Utils.showSuccess('Profile data loaded successfully.',true);
-        } else {
-          console.log('No profile data found, keeping form empty.');
-          Utils.showSuccess('Profile form ready. Please complete your information.');
-        }
-      })
-      .fail(function(xhr) {
-        if (xhr.status === 404) {
-          console.log('Profile not found, keeping form empty.');
-          Utils.showSuccess('Profile form ready. Please complete your information.');
-        } else {
-          Utils.handleAjaxError(xhr, 'Failed to load profile data.');
-        }
-      })
+    return new Promise(function(resolve, reject) {
+      ApiService.fetchProfile()
+        .done(function(response) {
+          if (response.success && response.data) {
+            self.populateProfileData(response.data);
+            Utils.showSuccess('Profile data loaded successfully.', true);
+          } else {
+            console.log('No profile data found, keeping form empty.');
+            Utils.showSuccess('Profile form ready. Please complete your information.');
+          }
+          resolve();
+        })
+        .fail(function(xhr) {
+          if (xhr.status === 404) {
+            console.log('Profile not found, keeping form empty.');
+            Utils.showSuccess('Profile form ready. Please complete your information.');
+            resolve();
+          } else {
+            Utils.handleAjaxError(xhr, 'Failed to load profile data.');
+            reject(xhr);
+          }
+        });
+    });
   },
 
   /**
@@ -591,19 +590,20 @@ var ProfileManager = {
       loadingIcon: 'bx bx-loader-alt bx-spin me-1'
     });
 
+    FormManager.showLoader();
+
     ApiService.submitProfile(formData)
       .done(function(response) {
         if (response.success) {
           Utils.showSuccess(response.message || 'Profile submitted successfully!');
-          if (typeof callback === 'function') {
-            callback(response);
-          }
         } else {
+          FormManager.hideLoader();
           Utils.showError(response.message || 'Failed to submit profile.');
         }
       })
       .fail(function(xhr) {
         Utils.handleAjaxError(xhr, 'Failed to submit profile.');
+        FormManager.hideLoader();
       })
       .always(function() {
         // Hide loading state
@@ -611,6 +611,8 @@ var ProfileManager = {
           normalText: 'Submit Profile',
           normalIcon: 'bx bx-check me-1'
         });
+        FormManager.hideLoader();
+
       });
   },
 
@@ -1113,13 +1115,28 @@ var ValidationService = {
 
       // Step 6: Emergency Contact
       emergencyName: {
+        dependsOn: {
+          field: '#parentsAbroad',
+          value: 'yes',
+          operator: 'equals'
+        },
         required: true,
         arabicName: true
       },
       emergencyRelation: {
+        dependsOn: {
+          field: '#parentsAbroad',
+          value: 'yes',
+          operator: 'equals'
+        },
         required: true
       },
       emergencyMobile: {
+        dependsOn: {
+          field: '#parentsAbroad',
+          value: 'yes',
+          operator: 'equals'
+        },
         required: true,
         egyptianMobile: true,
         compareField: {
@@ -1128,6 +1145,11 @@ var ValidationService = {
         }
       },
       emergencyAddress: {
+        dependsOn: {
+          field: '#parentsAbroad',
+          value: 'yes',
+          operator: 'equals'
+        },
         required: true,
         minlength: 10
       },
@@ -1254,38 +1276,33 @@ var ValidationService = {
    * @returns {boolean}
    */
   validateStep: function(tabSelector) {
-    if (!this.validator) {
-      return true;
-    }
+    if (!this.validator) return true;
 
-    var isValid = true;
     var $step = $(tabSelector);
     var stepId = $step.attr('id');
     var $stepBtn = $('[data-bs-target="#' + stepId + '"]');
+    var isValid = true;
 
     // Remove previous validation state
     $stepBtn.removeClass('is-valid is-invalid');
 
-    // Validate all fields in the current step
+    // Validate all enabled and visible (or .validate-hidden) fields in the step
     $step.find('input, select, textarea').each(function() {
-      // Only validate fields that are not disabled or hidden (unless .validate-hidden)
-      if (
-        !$(this).is(':disabled') &&
-        (!$(this).is(':hidden') || $(this).hasClass('validate-hidden'))
-      ) {
-        var fieldValid = ValidationService.validator.element(this);
-        if (!fieldValid) {
+      var $field = $(this);
+      var shouldValidate = !$field.is(':disabled') && 
+        (!$field.is(':hidden') || $field.hasClass('validate-hidden'));
+
+      if (shouldValidate) {
+        if (!ValidationService.validator.element(this)) {
           isValid = false;
         }
       }
     });
 
-    // Set step button state based on overall validity
-    if (isValid) {
-      $stepBtn.addClass('is-valid').removeClass('is-invalid');
-    } else {
-      $stepBtn.addClass('is-invalid').removeClass('is-valid');
-    }
+    // Update step button state
+    $stepBtn
+      .toggleClass('is-valid', isValid)
+      .toggleClass('is-invalid', !isValid);
 
     return isValid;
   },
@@ -1355,20 +1372,106 @@ var ValidationService = {
 // NAVIGATION MANAGER
 // ===========================
 var NavigationManager = {
+  // Configuration for steps to skip
+  SkippedSteps: [
+    { step: 6, selector: "isParentAbroad", condition: '=', value: 'no' },
+  ],
+
   /**
-   * Initialize navigation
+   * Initialize navigation manager
    */
   init: function() {
     this.bindEvents();
   },
+
   /**
-   * Bind navigation events
+   * Bind all navigation events
    */
   bindEvents: function() {
     this.handleNextButton();
     this.handlePreviousButton();
     this.handleTabClick();
   },
+
+
+  /**
+   * Check if a step should be skipped based on conditions
+   * @param {string} stepSelector - Step selector (e.g., '#step6')
+   * @returns {boolean}
+   */
+  shouldSkipStep: function(stepSelector) {
+    var self = this;
+    var stepNumber = self.extractStepNumber(stepSelector.replace('#', ''));
+    
+    if (!stepNumber) return false;
+
+    // Find matching skip rules for this step
+    var matchingRules = self.SkippedSteps.filter(function(rule) {
+      return rule.step === stepNumber;
+    });
+
+    // Check each rule
+    for (var i = 0; i < matchingRules.length; i++) {
+      var rule = matchingRules[i];
+      var elementValue = $('#' + rule.selector).val();
+      
+      if (self.evaluateCondition(elementValue, rule.condition, rule.value)) {
+        return true; // Skip this step
+      }
+    }
+
+    return false;
+  },
+
+  /**
+   * Evaluate condition based on operator
+   * @param {string} leftValue - Current form value
+   * @param {string} operator - Comparison operator
+   * @param {string} rightValue - Expected value
+   * @returns {boolean}
+   */
+  evaluateCondition: function(leftValue, operator, rightValue) {
+    // Convert to appropriate types for comparison
+    var left = this.convertValue(leftValue);
+    var right = this.convertValue(rightValue);
+
+    switch (operator) {
+      case '=':
+        return left == right;
+      case '!=':
+        return left != right;
+      case '>':
+        return parseFloat(left) > parseFloat(right);
+      case '<':
+        return parseFloat(left) < parseFloat(right);
+      case '>=':
+        return parseFloat(left) >= parseFloat(right);
+      case '<=':
+        return parseFloat(left) <= parseFloat(right);
+      case 'contains':
+        return String(left).toLowerCase().includes(String(right).toLowerCase());
+      case 'empty':
+        return !left || left.trim() === '';
+      case 'not_empty':
+        return left && left.trim() !== '';
+      default:
+        return false;
+    }
+  },
+
+  /**
+   * Convert value to appropriate type
+   * @param {string} value
+   * @returns {string|number}
+   */
+  convertValue: function(value) {
+    if (value === null || value === undefined) return '';
+    if (!isNaN(value) && !isNaN(parseFloat(value))) {
+      return parseFloat(value);
+    }
+    return String(value).trim();
+  },
+
   /**
    * Extract step number from step ID
    * @param {string} stepId - e.g., "step3"
@@ -1376,104 +1479,266 @@ var NavigationManager = {
    */
   extractStepNumber: function(stepId) {
     var match = stepId.match(/^step(\d+)$/);
-    return match ? parseInt(match[1]) : null;
+    return match ? parseInt(match[1], 10) : null;
   },
+
   /**
-   * Generate step selector
+   * Generate step selector from step number
    * @param {number} stepNumber
    * @returns {string}
    */
   generateStepSelector: function(stepNumber) {
     return '#step' + stepNumber;
   },
+
+  /**
+   * Find next available step
+   * @param {number} currentStep
+   * @returns {string|null}
+   */
+  findNextAvailableStep: function(currentStep) {
+    var nextStep = currentStep + 1;
+    var maxSteps = 20;
+    
+    while (nextStep <= maxSteps) {
+      var nextSelector = this.generateStepSelector(nextStep);
+      
+      // Check if step exists in DOM
+      if ($(nextSelector).length === 0) {
+        break;
+      }
+      
+      // Check if step should be skipped
+      if (!this.shouldSkipStep(nextSelector)) {
+        return nextSelector;
+      }
+      ValidationService.validateStep(nextSelector)      
+      nextStep++;
+    }
+    
+    return null;
+  },
+
+  /**
+   * Find previous available step
+   * @param {number} currentStep
+   * @returns {string|null}
+   */
+  findPreviousAvailableStep: function(currentStep) {
+    var prevStep = currentStep - 1;
+    
+    while (prevStep > 0) {
+      var prevSelector = this.generateStepSelector(prevStep);
+      console.log('Checking previous step:', prevSelector);
+
+      // Check if step exists in DOM
+      if ($(prevSelector).length === 0) {
+        console.log('Step does not exist in DOM:', prevSelector);
+        prevStep--;
+        continue;
+      }
+      
+      // Check if step should be skipped
+      if (!this.shouldSkipStep(prevSelector)) {
+        console.log('Found previous available step:', prevSelector);
+        return prevSelector;
+      } else {
+        console.log('Step should be skipped:', prevSelector);
+      }
+      
+      prevStep--;
+    }
+    
+    console.log('No previous available step found before step', currentStep);
+    return null;
+  },
+
   /**
    * Handle next button clicks
    */
   handleNextButton: function() {
     var self = this;
-    $('.next-Btn').on('click', function() {
+
+    $(document).on('click', '.next-Btn', function(e) {
+      e.preventDefault();
+      
       var $tabPane = $(this).closest('.tab-pane');
       var currentStepId = $tabPane.attr('id');
       var currentStepNumber = self.extractStepNumber(currentStepId);
 
-      if (!currentStepNumber) return;
+      if (!currentStepNumber) {
+        console.warn('Could not extract step number from:', currentStepId);
+        return;
+      }
 
-      var nextStepNumber = currentStepNumber + 1;
-      var nextStepSelector = self.generateStepSelector(nextStepNumber);
+      // Validate current step before proceeding
+      if (!ValidationService.validateStep('#' + currentStepId)) {
+        return;
+      }
 
-      if (ValidationService.validateStep('#' + currentStepId)) {
+      // Find next available step
+      var nextStepSelector = self.findNextAvailableStep(currentStepNumber);
+      
+      if (nextStepSelector) {
         self.showTab(nextStepSelector);
+      } else {
+        // No more steps available - could be end of form
+        console.log('No more available steps after step', currentStepNumber);
       }
     });
   },
+
   /**
    * Handle previous button clicks
    */
   handlePreviousButton: function() {
     var self = this;
-    $('.prev-Btn').on('click', function() {
+
+    $(document).on('click', '.prev-Btn', function(e) {
+      e.preventDefault();
+
       var $tabPane = $(this).closest('.tab-pane');
       var currentStepId = $tabPane.attr('id');
       var currentStepNumber = self.extractStepNumber(currentStepId);
 
-      if (!currentStepNumber) return;
+      console.log('Previous button clicked. Current step ID:', currentStepId, 'Current step number:', currentStepNumber);
 
-      var previousStepNumber = currentStepNumber - 1;
-      var previousStepSelector = self.generateStepSelector(previousStepNumber);
+      if (!currentStepNumber) {
+        console.warn('Could not extract step number from:', currentStepId);
+        return;
+      }
 
-      self.showTab(previousStepSelector);
+      // Find previous available step
+      var prevStepSelector = self.findPreviousAvailableStep(currentStepNumber);
+
+      console.log('Previous available step selector:', prevStepSelector);
+
+      if (prevStepSelector) {
+        self.showTab(prevStepSelector);
+        console.log('Navigated to previous step:', prevStepSelector);
+      } else {
+        console.log('No previous available steps before step', currentStepNumber);
+      }
     });
   },
+
   /**
-   * Handle tab click validation
+   * Handle tab click validation and restrictions
    */
   handleTabClick: function() {
     var self = this;
-    $('button[data-bs-toggle="pill"]').on('show.bs.tab', function(event) {
-      var allTabs = $('button[data-bs-toggle="pill"]');
-      var currentIndex = allTabs.index(event.target);
-      var firstInvalidTabIndex = self.findFirstInvalidTabIndex(allTabs, currentIndex);
+    
+    $(document).on('show.bs.tab', 'button[data-bs-toggle="pill"]', function(event) {
+      var $target = $(event.target);
+      var targetTabId = $target.attr('data-bs-target');
+      
+      // Check if target tab should be skipped (not available)
+      if (self.shouldSkipStep(targetTabId)) {
+        event.preventDefault();
+        var tabName = $target.text().trim();
+        Utils.showError('Step "' + tabName + '" is not available based on your current selections.', true);
+        return false;
+      }
+
+      // Check if user is trying to skip ahead without completing required steps
+      var allTabs = $('button[data-bs-toggle="pill"]:not(.d-none)');
+      var targetIndex = allTabs.index(event.target);
+      var firstInvalidTabIndex = self.findFirstInvalidTabIndex(allTabs, targetIndex);
 
       if (firstInvalidTabIndex !== -1) {
         event.preventDefault();
-        var tabName = allTabs.eq(firstInvalidTabIndex).text().trim();
-        Utils.showError('Please complete all required fields in "' + tabName + '" before proceeding.',true);
+        var invalidTabName = allTabs.eq(firstInvalidTabIndex).text().trim();
+        Utils.showError('Please complete all required fields in "' + invalidTabName + '" before proceeding.', true);
         allTabs.eq(firstInvalidTabIndex).tab('show');
         return false;
       }
     });
   },
+
   /**
-   * Find first invalid tab index
-   * @param {jQuery} allTabs
-   * @param {number} currentIndex
-   * @returns {number}
+   * Find first invalid tab that needs completion
+   * @param {jQuery} allTabs - All visible tabs
+   * @param {number} targetIndex - Index of target tab
+   * @returns {number} Index of first invalid tab, or -1 if none
    */
-  findFirstInvalidTabIndex: function(allTabs, currentIndex) {
-    var firstInvalidTabIndex = -1;
+  findFirstInvalidTabIndex: function(allTabs, targetIndex) {
+    var firstInvalidIndex = -1;
 
-    allTabs.each(function(index) {
-      if (index < currentIndex) {
-        var tabPaneId = $(this).attr('data-bs-target');
-        if (tabPaneId && !ValidationService.validateStep(tabPaneId)) {
-          if (firstInvalidTabIndex === -1) {
-            firstInvalidTabIndex = index;
-          }
-        }
+    for (var i = 0; i < targetIndex; i++) {
+      var $tab = allTabs.eq(i);
+      var tabPaneId = $tab.attr('data-bs-target');
+      
+      if (tabPaneId && !ValidationService.validateStep(tabPaneId)) {
+        firstInvalidIndex = i;
+        break;
       }
-    });
+    }
 
-    return firstInvalidTabIndex;
+    return firstInvalidIndex;
   },
+
   /**
-   * Show specific tab
-   * @param {string} tabId
+   * Show specific tab and update navigation state
+   * @param {string} tabId - Tab selector (e.g., '#step3')
    */
   showTab: function(tabId) {
+    // Hide all tab panes
     $('.tab-pane').removeClass('show active');
+    
+    // Show target tab pane
     $(tabId).addClass('show active');
+    
+    // Update nav links
     $('.nav-link').removeClass('active');
-    $('[data-bs-target="' + tabId + '"]').addClass('active');
+    $('button[data-bs-target="' + tabId + '"]').addClass('active');
+    
+    // Scroll to top of form
+    $('html, body').animate({ scrollTop: 0 }, 300);
+    
+    // Focus first input in the new step
+    setTimeout(function() {
+      $(tabId + ' input:visible:first, ' + tabId + ' select:visible:first, ' + tabId + ' textarea:visible:first').focus();
+    }, 100);
+  },
+
+  /**
+   * Get current active step number
+   * @returns {number|null}
+   */
+  getCurrentStep: function() {
+    var $activeTab = $('.tab-pane.active');
+    if ($activeTab.length) {
+      return this.extractStepNumber($activeTab.attr('id'));
+    }
+    return null;
+  },
+
+  /**
+   * Check if step is available (not skipped)
+   * @param {number} stepNumber
+   * @returns {boolean}
+   */
+  isStepAvailable: function(stepNumber) {
+    var stepSelector = this.generateStepSelector(stepNumber);
+    return !this.shouldSkipStep(stepSelector);
+  },
+
+  /**
+   * Get list of all available steps
+   * @returns {Array<number>}
+   */
+  getAvailableSteps: function() {
+    var self = this;
+    var availableSteps = [];
+    
+    $('.tab-pane[id^="step"]').each(function() {
+      var stepNumber = self.extractStepNumber($(this).attr('id'));
+      if (stepNumber && self.isStepAvailable(stepNumber)) {
+        availableSteps.push(stepNumber);
+      }
+    });
+    
+    return availableSteps.sort(function(a, b) { return a - b; });
   }
 };
 
@@ -1703,7 +1968,6 @@ var ConditionalFieldsManager = {
   }
 };
 
-
 // ===========================
 // FORM MANAGER
 // ===========================
@@ -1739,7 +2003,20 @@ var FormManager = {
   bindEvents: function() {
     this.handleFormSubmission();
   },
-  
+
+  /**
+   * Show the loader 
+   */
+  showLoader: function() {
+    $('#form-loader').removeClass('d-none');
+  },
+
+  /**
+   * Hide the loader
+   */
+  hideLoader: function() {
+    $('#form-loader').addClass('d-none');
+  },
   /**
    * Handle form submission
    */
@@ -1752,11 +2029,7 @@ var FormManager = {
         return false;
       }
 
-      // Use ProfileManager to submit the form
-      ProfileManager.submitProfile(function(response) {
-        // Optional: Redirect or show success message
-        console.log('Profile submitted successfully:', response);
-      });
+      ProfileManager.submitProfile();
     });
   },
   /**
@@ -1791,7 +2064,7 @@ var CompleteProfileApp = {
     NavigationManager.init();
     ConditionalFieldsManager.init();
     await FormManager.init();
-    ProfileManager.init();
+    await ProfileManager.init();
   }
 };
 
