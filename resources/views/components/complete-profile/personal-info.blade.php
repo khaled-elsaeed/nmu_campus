@@ -42,7 +42,7 @@
     </div>
     <div class="col-md-6 mb-3">
         <label for="nationality" class="form-label">Nationality</label>
-        <select class="form-select" id="nationality" name="nationality" disabled>
+        <select class="form-select" id="nationality" name="nationality">
             <option value="">Select Nationality</option>
         </select>
     </div>

@@ -87,7 +87,7 @@ class StudentUpdateRequest extends FormRequest
                 'string',
                 'max:20',
                 function ($attribute, $value, $fail) {
-                    $this->validateEgyptianMobileNumber($attribute, $value, $fail);
+                    $this->validateEgyptianPhoneNumber($attribute, $value, $fail);
                 }
             ],
 
@@ -155,13 +155,13 @@ class StudentUpdateRequest extends FormRequest
 
 
     /**
-     * Validate Egyptian mobile number format.
+     * Validate Egyptian phone number format.
      */
-    private function validateEgyptianMobileNumber(string $attribute, string $value, callable $fail): void
+    private function validateEgyptianPhoneNumber(string $attribute, string $value, callable $fail): void
     {
-        // Egyptian mobile number: starts with 01, followed by 9 digits (total 11 digits)
+        // Egyptian phone number: starts with 01, followed by 9 digits (total 11 digits)
         if (!preg_match('/^01[0-9]{9}$/', $value)) {
-            $fail(__('The :attribute must be a valid Egyptian mobile number (e.g., 01XXXXXXXXX).'));
+            $fail(__('The :attribute must be a valid Egyptian phone number (e.g., 01XXXXXXXXX).'));
         }
     }
 

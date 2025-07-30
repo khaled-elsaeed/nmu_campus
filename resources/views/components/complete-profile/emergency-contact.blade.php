@@ -1,12 +1,12 @@
 <div class="mb-4">
     <div class="row align-items-center">
         <div class="col-auto">
-            <span class="step-icon d-inline-flex align-items-center justify-content-center rounded-circle bg-danger text-white" style="width: 2rem; height: 2rem; font-size: 1.1rem;">
+            <span class="step-icon d-inline-flex align-items-center justify-content-center rounded-circle bg-primary text-white" style="width: 2rem; height: 2rem; font-size: 1.1rem;">
                 6
             </span>
         </div>
         <div class="col">
-            <div class="fw-bold text-danger mb-1">Emergency Contact Information</div>
+            <div class="fw-bold text-primary mb-1">Emergency Contact Information</div>
             <div class="text-muted">Please provide details for someone we can contact in case of emergency.</div>
         </div>
     </div>

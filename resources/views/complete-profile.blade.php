@@ -23,10 +23,23 @@
         box-shadow: 0 2px 4px 0 rgba(var(--bs-success-rgb), 0.4);
     }
     .nav-link.is-invalid {
-      background-color: var(--bs-danger) !important;
+        background-color: var(--bs-danger) !important;
         color: #fff !important;
         border-color: var(--bs-danger) !important;
         box-shadow: 0 2px 4px 0 rgba(var(--bs-danger-rgb), 0.4);
+    }
+    .nav-link.is-valid {
+        background-color: var(--bs-success) !important;
+        color: #fff !important;
+        border-color: var(--bs-success) !important;
+        box-shadow: 0 2px 4px 0 rgba(var(--bs-success-rgb), 0.4);
+    }
+    .nav-link.is-invalid.active,
+    .nav-link.is-valid.active {
+        background-color: var(--bs-primary) !important;
+        color: #fff !important;
+        border-color: var(--bs-primary) !important;
+        box-shadow: 0 2px 4px 0 rgba(var(--bs-primary-rgb), 0.4);
     }
 </style>
 @endpush
@@ -48,7 +61,7 @@
                 <div class="card-header border-bottom">
                     <ul class="nav nav-pills nav-justified gap-2" id="profile-tab" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active d-flex align-items-center" id="step1-tab" data-bs-toggle="pill" data-bs-target="#step1" type="button" role="tab" aria-controls="step1" aria-selected="false">
+                            <button class="nav-link active d-flex align-items-center" id="step1-tab" data-bs-target="#step1" type="button" role="tab" aria-controls="step1" aria-selected="false">
                                 <div class="d-flex align-items-center">
                                     <div class="me-2 d-flex flex-column align-items-center justify-content-center" style="width: 32px;">
                                         <i class='bx bx-user fs-4'></i>
@@ -61,7 +74,7 @@
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link d-flex align-items-center" id="step2-tab" data-bs-toggle="pill" data-bs-target="#step2" type="button" role="tab" aria-controls="step2" aria-selected="false">
+                            <button class="nav-link d-flex align-items-center" id="step2-tab" data-bs-target="#step2" type="button" role="tab" aria-controls="step2" aria-selected="false">
                                 <div class="d-flex align-items-center">
                                     <div class="me-2 d-flex align-items-center justify-content-center" style="width: 32px;">
                                         <i class='bx bx-phone fs-4'></i>
@@ -74,7 +87,7 @@
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link d-flex align-items-center" id="step3-tab" data-bs-toggle="pill" data-bs-target="#step3" type="button" role="tab" aria-controls="step3" aria-selected="false">
+                            <button class="nav-link d-flex align-items-center" id="step3-tab" data-bs-target="#step3" type="button" role="tab" aria-controls="step3" aria-selected="false">
                                 <div class="d-flex align-items-center">
                                     <div class="me-2 d-flex align-items-center justify-content-center" style="width: 32px;">
                                         <i class='bx bx-book fs-4'></i>
@@ -87,7 +100,7 @@
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link d-flex align-items-center" id="step4-tab" data-bs-toggle="pill" data-bs-target="#step4" type="button" role="tab" aria-controls="step4" aria-selected="false">
+                            <button class="nav-link d-flex align-items-center" id="step4-tab" data-bs-target="#step4" type="button" role="tab" aria-controls="step4" aria-selected="false">
                                 <div class="d-flex align-items-center">
                                     <div class="me-2 d-flex align-items-center justify-content-center" style="width: 32px;">
                                         <i class='bx bx-user-voice fs-4'></i>
@@ -100,7 +113,7 @@
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link d-flex align-items-center" id="step5-tab" data-bs-toggle="pill" data-bs-target="#step5" type="button" role="tab" aria-controls="step5" aria-selected="false">
+                            <button class="nav-link d-flex align-items-center" id="step5-tab" data-bs-target="#step5" type="button" role="tab" aria-controls="step5" aria-selected="false">
                                 <div class="d-flex align-items-center">
                                     <div class="me-2 d-flex align-items-center justify-content-center" style="width: 32px;">
                                         <i class='bx bx-group fs-4'></i>
@@ -113,7 +126,7 @@
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link d-flex align-items-center" id="step6-tab" data-bs-toggle="pill" data-bs-target="#step6" type="button" role="tab" aria-controls="step6" aria-selected="false">
+                            <button class="nav-link d-flex align-items-center" id="step6-tab" data-bs-target="#step6" type="button" role="tab" aria-controls="step6" aria-selected="false">
                                 <div class="d-flex align-items-center">
                                     <div class="me-2 d-flex align-items-center justify-content-center" style="width: 32px;">
                                         <i class='bx bx-first-aid fs-4'></i>
@@ -126,7 +139,7 @@
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link d-flex align-items-center" id="step7-tab" data-bs-toggle="pill" data-bs-target="#step7" type="button" role="tab" aria-controls="step7" aria-selected="false">
+                            <button class="nav-link d-flex align-items-center" id="step7-tab" data-bs-target="#step7" type="button" role="tab" aria-controls="step7" aria-selected="false">
                                 <div class="d-flex align-items-center">
                                     <div class="me-2 d-flex align-items-center justify-content-center" style="width: 32px;">
                                         <i class='bx bx-check-shield fs-4'></i>
@@ -396,10 +409,11 @@ var ProfileManager = {
    * @param {object} data
    */
   populatePersonalInfo: function(data) {
+    // Updated to match backend keys from ProfileService
     if (data.national_id) $('#nationalId').val(data.national_id);
-    if (data.full_name_arabic) $('#fullNameArabic').val(data.full_name_arabic);
-    if (data.full_name_english) $('#fullNameEnglish').val(data.full_name_english);
-    if (data.birth_date) $('#birthDate').val(data.birth_date);
+    if (data.name_ar) $('#fullNameArabic').val(data.name_ar);
+    if (data.name_en) $('#fullNameEnglish').val(data.name_en);
+    if (data.birthdate) $('#birthDate').val(data.birthdate);
     if (data.gender) $('#gender').val(data.gender);
     if (data.nationality_id) $('#nationality').val(data.nationality_id);
   },
@@ -409,24 +423,19 @@ var ProfileManager = {
    * @param {object} data
    */
   populateContactInfo: function(data) {
-    if (data.email) $('#email').val(data.email);
-    if (data.mobile_number) $('#mobileNumber').val(data.mobile_number);
-    
-    // Handle governorate and city population
+    // Updated to match backend keys from ProfileService
+    if (data.mobile) $('#mobileNumber').val(data.mobile);
+
     if (data.governorate_id) {
-      // Set governorate value (dropdowns are already populated)
       $('#governorate').val(data.governorate_id);
-      
-      // Trigger change to load cities
       $('#governorate').trigger('change');
-      
-      // Wait for cities to load, then set city value
       setTimeout(function() {
         if (data.city_id) {
           $('#city').val(data.city_id);
         }
       }, 1000);
     }
+    if (data.street) $('#street').val(data.street);
   },
 
   /**
@@ -434,25 +443,27 @@ var ProfileManager = {
    * @param {object} data
    */
   populateAcademicInfo: function(data) {
-    if (data.student_id) $('#studentId').val(data.student_id);
+    // Updated to match backend keys from ProfileService
+    if (data.academic_id) $('#academicId').val(data.academic_id);
+    if (data.academic_email) $('#academicEmail').val(data.academic_email);
+
     if (data.academic_year) $('#academicYear').val(data.academic_year);
-    if (data.gpa) $('#gpa').val(data.gpa);
-    
-    // Handle faculty and program population
+    if (typeof data.gpa !== 'undefined') $('#gpa').val(data.gpa);
+
     if (data.faculty_id) {
-      // Set faculty value (dropdowns are already populated)
       $('#faculty').val(data.faculty_id);
-      
-      // Trigger change to load programs
       $('#faculty').trigger('change');
-      
-      // Wait for programs to load, then set program value
       setTimeout(function() {
         if (data.program_id) {
           $('#program').val(data.program_id);
         }
       }, 1000);
     }
+    if (data.actual_score) $('#actualScore').val(data.actual_score);
+    if (data.actual_percent) $('#actualPercent').val(data.actual_percent);
+    if (data.certificate_type) $('#certificateType').val(data.certificate_type);
+    if (data.certificate_country_id) $('#certificateCountry').val(data.certificate_country_id);
+    if (data.certificate_year) $('#certificateYear').val(data.certificate_year);
   },
 
   /**
@@ -460,49 +471,23 @@ var ProfileManager = {
    * @param {object} data
    */
   populateParentInfo: function(data) {
-    // Set parent name
-    if (data.parent_name) $('#parentName').val(data.parent_name);
+    // Updated to match backend keys from ProfileService
+    if (data.name) $('#parentName').val(data.name);
+    if (data.mobile) $('#parentPhone').val(data.mobile);
+    if (data.email) $('#parentEmail').val(data.email);
 
-    // Set parent mobile
-    if (data.parent_mobile) $('#parentPhone').val(data.parent_mobile);
+    // Always set isParentAbroad, defaulting to 'no' if not provided
+    var isAbroad = (typeof data.is_abroad !== 'undefined') ? data.is_abroad : false;
+    $('#isParentAbroad').val(isAbroad ? 'yes' : 'no');
+    $('#isParentAbroad').trigger('change');
 
-    // Set parent email
-    if (data.parent_email) $('#parentEmail').val(data.parent_email);
-
-    // Set is parent abroad
-    if (typeof data.is_abroad !== 'undefined') {
-      $('#isParentAbroad').val(data.is_abroad ? 'yes' : 'no');
-      $('#isParentAbroad').trigger('change');
-
-      setTimeout(function() {
-        if (data.is_abroad) {
-          // Set abroad country if available
-          if (data.parent_country_id) {
-            $('#abroadCountry').val(data.parent_country_id);
-          }
-        } else {
-          // If not abroad, show living with parent and address fields if available
-          if (typeof data.living_with_parent !== 'undefined') {
-            $('#livingWithParent').val(data.living_with_parent ? 'yes' : 'no');
-            $('#livingWithParent').trigger('change');
-
-            setTimeout(function() {
-              if (data.living_with_parent === false || data.living_with_parent === 'no') {
-                if (data.parent_governorate_id) {
-                  $('#parentGovernorate').val(data.parent_governorate_id);
-                  $('#parentGovernorate').trigger('change');
-                  setTimeout(function() {
-                    if (data.parent_city_id) {
-                      $('#parentCity').val(data.parent_city_id);
-                    }
-                  }, 500);
-                }
-              }
-            }, 300);
-          }
+    setTimeout(function() {
+      if (isAbroad) {
+        if (data.country_id) {
+          $('#abroadCountry').val(data.country_id);
         }
-      }, 300);
-    }
+      }
+    }, 300);
   },
 
   /**
@@ -510,18 +495,15 @@ var ProfileManager = {
    * @param {object} data
    */
   populateSiblingInfo: function(data) {
+    // Updated to match backend keys from ProfileService
     if (data.has_sibling_in_dorm) {
       $('#hasSiblingInDorm').val(data.has_sibling_in_dorm);
-      // Trigger change to show/hide sibling details
       $('#hasSiblingInDorm').trigger('change');
-      
-      // Set sibling details after a short delay
       setTimeout(function() {
         if (data.has_sibling_in_dorm === 'yes') {
-          if (data.sibling_gender) $('#siblingGender').val(data.sibling_gender);
-          if (data.sibling_name) $('#siblingName').val(data.sibling_name);
-          if (data.sibling_national_id) $('#siblingNationalId').val(data.sibling_national_id);
-          if (data.sibling_faculty_id) $('#siblingFaculty').val(data.sibling_faculty_id);
+          if (data.name) $('#siblingName').val(data.name);
+          if (data.faculty_id) $('#siblingFaculty').val(data.faculty_id);
+          if (data.faculty_name) $('#siblingFacultyName').val(data.faculty_name);
         }
       }, 300);
     }
@@ -534,7 +516,7 @@ var ProfileManager = {
   populateEmergencyContact: function(data) {
     if (data.emergency_name) $('#emergencyName').val(data.emergency_name);
     if (data.emergency_relation) $('#emergencyRelation').val(data.emergency_relation);
-    if (data.emergency_mobile) $('#emergencyMobile').val(data.emergency_mobile);
+    if (data.emergency_mobile) $('#emergencyPhone').val(data.emergency_mobile);
     if (data.emergency_address) $('#emergencyAddress').val(data.emergency_address);
   },
 
@@ -606,7 +588,6 @@ var ProfileManager = {
         FormManager.hideLoader();
       })
       .always(function() {
-        // Hide loading state
         Utils.setLoadingState($('#profileForm button[type="submit"]'), false, {
           normalText: 'Submit Profile',
           normalIcon: 'bx bx-check me-1'
@@ -822,13 +803,50 @@ var ValidationService = {
       return regex.test(value);
     }, 'Please enter a valid 14-digit Egyptian National ID.');
 
-    $.validator.addMethod('egyptianMobile', function(value, element) {
-      if (!value) return true;
+   // Updated international phone validation
+   $.validator.addMethod('internationalPhone', function(value, element) {
+      if (!value) return false; // Enforce required
+      var cleanValue = value.replace(/[\s\-\(\)]/g, '');
+      var regex = /^\+?[1-9]\d{6,15}$/;
+      return regex.test(cleanValue);
+    }, 'Please enter a valid international phone number (e.g., +966501234567 or +12025550123).');
+
+    // Updated egyptian phone validation
+    $.validator.addMethod('egyptianPhone', function(value, element) {
+      if (!value) return false; // Enforce required
+      var cleanValue = value.replace(/[\s\-\(\)]/g, '');
       var regex = /^(010|011|012|015)[0-9]{8}$/;
-      return regex.test(value);
+      return regex.test(cleanValue);
     }, 'Please enter a valid Egyptian mobile number (010/011/012/015 followed by 8 digits).');
 
-    $.validator.addMethod('studentId', function(value, element) {
+    /**
+    * Unified phone validation method that checks if the parent is abroad.
+    * If isAbroad is 'yes', uses international regex, else uses Egyptian regex.
+    * Usage: add to rules as: phone: { required: true, parentPhoneConditional: '#isParentAbroad' }
+    */
+   $.validator.addMethod('parentPhoneConditional', function(value, element, param) {
+      var isAbroad = $(param).val();
+      if (!value) return false; // Enforce required
+      var cleanValue = value.replace(/[\s\-\(\)]/g, '');
+      if (isAbroad === 'yes') {
+        // International phone regex
+        var intlRegex = /^\+?[1-9]\d{6,15}$/;
+        return intlRegex.test(cleanValue);
+      } else {
+        // Egyptian phone regex
+        var egyRegex = /^(010|011|012|015)[0-9]{8}$/;
+        return egyRegex.test(cleanValue);
+      }
+   }, function(params, element) {
+      var isAbroad = $(params).val();
+      if (isAbroad === 'yes') {
+        return 'Please enter a valid international phone number (e.g., +966501234567 or +12025550123).';
+      } else {
+        return 'Please enter a valid Egyptian mobile number (010/011/012/015 followed by 8 digits).';
+      }
+   });
+
+    $.validator.addMethod('academicId', function(value, element) {
       if (!value) return true;
       var regex = /^[0-9]{8,12}$/;
       return regex.test(value);
@@ -873,19 +891,38 @@ var ValidationService = {
       var dependentField = params.field;
       var dependentValue = params.value;
       var operator = params.operator || 'equals';
-      var dependentFieldValue = $(dependentField).val();
+      var $dependentField = $(dependentField);
+      var dependentFieldValue;
+
+      // If the dependent field is a select, get its value properly
+      if ($dependentField.is('select')) {
+        dependentFieldValue = $dependentField.find('option:selected').val();
+      } else {
+        dependentFieldValue = $dependentField.val();
+      }
+
+      // Log the relevant values for debugging
+      console.log('dependsOn validation:', {
+        value: value,
+        element: element,
+        params: params,
+        dependentField: dependentField,
+        dependentValue: dependentValue,
+        operator: operator,
+        dependentFieldValue: dependentFieldValue
+      });
 
       switch (operator) {
         case 'equals':
-          return dependentFieldValue !== dependentValue || value.length > 0;
+          return dependentFieldValue !== dependentValue || (value != null && value.length > 0);
         case 'not_equals':
-          return dependentFieldValue === dependentValue || value.length > 0;
+          return dependentFieldValue === dependentValue || (value != null && value.length > 0);
         case 'greater_than':
-          return parseFloat(dependentFieldValue) <= parseFloat(dependentValue) || value.length > 0;
+          return parseFloat(dependentFieldValue) <= parseFloat(dependentValue) || (value != null && value.length > 0);
         case 'less_than':
-          return parseFloat(dependentFieldValue) >= parseFloat(dependentValue) || value.length > 0;
+          return parseFloat(dependentFieldValue) >= parseFloat(dependentValue) || (value != null && value.length > 0);
         case 'contains':
-          return dependentFieldValue.indexOf(dependentValue) === -1 || value.length > 0;
+          return dependentFieldValue.indexOf(dependentValue) === -1 || (value != null && value.length > 0);
         default:
           return true;
       }
@@ -965,10 +1002,6 @@ var ValidationService = {
   getValidationRules: function() {
     return {
       // Step 1: Personal Information
-      nationalId: {
-        required: true,
-        egyptianNationalId: true
-      },
       fullNameArabic: {
         required: true,
         arabicName: true,
@@ -978,6 +1011,10 @@ var ValidationService = {
         required: true,
         englishName: true,
         minlength: 2
+      },
+      nationalId: {
+        required: true,
+        egyptianNationalId: true
       },
       birthDate: {
         required: true,
@@ -992,27 +1029,22 @@ var ValidationService = {
       },
 
       // Step 2: Contact Information
-      email: {
-        required: true,
-        email: true,
-        emailDomain: ['student.nmu.edu.eg', 'nmu.edu.eg']
-      },
-      mobileNumber: {
-        required: true,
-        egyptianMobile: true
-      },
       governorate: {
         required: true
       },
       city: {
         required: true
       },
+      street: {
+        required: true,
+        minlength: 5
+      },
+      phone: {
+        required: true,
+        egyptianPhone: true
+      },
 
       // Step 3: Academic Information
-      studentId: {
-        required: true,
-        studentId: true
-      },
       faculty: {
         required: true
       },
@@ -1026,25 +1058,37 @@ var ValidationService = {
         required: true,
         gpaRange: [0.0, 4.0]
       },
+      academicId: {
+        required: true,
+        academicId: true
+      },
+      academicEmail: {
+        required: true,
+        email: true,
+        emailDomain: ['nmu.edu.eg']
+      },
 
       // Step 4: Parent Information - Basic
-      fatherName: {
+      parentRelationship: {
+        required: true
+      },
+      parentName: {
         required: true,
         arabicName: true
       },
-      motherName: {
+      parentPhone: {
         required: true,
-        arabicName: true
+        parentPhoneConditional: '#isParentAbroad'
       },
-      parentMobile: {
-        required: true,
-        egyptianMobile: true
+      parentEmail: {
+        required: false,
+        email: true
       },
       isParentAbroad: {
         required: true
       },
 
-      // Step 4: Parent abroad conditional validation
+      // Step 4: Parent abroad conditional fields
       abroadCountry: {
         dependsOn: {
           field: '#isParentAbroad',
@@ -1113,45 +1157,33 @@ var ValidationService = {
         }
       },
 
-      // Step 6: Emergency Contact
-      emergencyName: {
+      // Step 6: Emergency Contact (only when parents are abroad)
+      emergencyContactName: {
         dependsOn: {
-          field: '#parentsAbroad',
+          field: '#isParentAbroad',
           value: 'yes',
           operator: 'equals'
         },
-        required: true,
         arabicName: true
       },
-      emergencyRelation: {
+      emergencyContactRelationship: {
         dependsOn: {
-          field: '#parentsAbroad',
+          field: '#isParentAbroad',
           value: 'yes',
           operator: 'equals'
-        },
-        required: true
-      },
-      emergencyMobile: {
-        dependsOn: {
-          field: '#parentsAbroad',
-          value: 'yes',
-          operator: 'equals'
-        },
-        required: true,
-        egyptianMobile: true,
-        compareField: {
-          field: '#mobileNumber',
-          operator: 'not_equals'
         }
       },
-      emergencyAddress: {
+      emergencyContactPhone: {
         dependsOn: {
-          field: '#parentsAbroad',
+          field: '#isParentAbroad',
           value: 'yes',
           operator: 'equals'
         },
-        required: true,
-        minlength: 10
+        egyptianPhone: true,
+        compareField: {
+          field: '#phone',
+          operator: 'not_equals'
+        }
       },
 
       // Step 7: Terms validation
@@ -1191,23 +1223,18 @@ var ValidationService = {
       nationality: 'Please select your nationality.',
 
       // Step 2: Contact Information
-      email: {
-        required: 'Email address is required.',
-        email: 'Please enter a valid email address.',
-        emailDomain: 'Please use your university email address.'
-      },
-      mobileNumber: {
-        required: 'Mobile number is required.',
-        egyptianMobile: 'Please enter a valid Egyptian mobile number.'
-      },
       governorate: 'Please select your governorate.',
       city: 'Please select your city.',
+      street: {
+        required: 'Street address is required.',
+        minlength: 'Street address must be at least 5 characters long.'
+      },
+      phone: {
+        required: 'Phone number is required.',
+        egyptianPhone: 'Please enter a valid Egyptian mobile number. (Starts with 01, 11 digits, e.g., 010xxxxxxxx)',
+      },
 
       // Step 3: Academic Information
-      studentId: {
-        required: 'Student ID is required.',
-        studentId: 'Please enter a valid student ID (8-12 digits).'
-      },
       faculty: 'Please select your faculty.',
       program: 'Please select your program.',
       academicYear: 'Please select your academic year.',
@@ -1215,19 +1242,30 @@ var ValidationService = {
         required: 'GPA is required.',
         gpaRange: 'GPA must be between 0.0 and 4.0.'
       },
+      academicId: {
+        required: 'Student ID is required.',
+        academicId: 'Please enter a valid student ID (8-12 digits).'
+      },
+      universityEmail: {
+        required: 'University email is required.',
+        email: 'Please enter a valid university email address.',
+        emailDomain: 'Please use your university email address.'
+      },
 
       // Step 4: Parent Information
-      fatherName: {
-        required: 'Father\'s name is required.',
-        arabicName: 'Please enter father\'s name in Arabic.'
+      parentRelationship: 'Please select your relationship to the parent.',
+
+      parentName: {
+        required: 'Parent\'s name is required.',
+        arabicName: 'Please enter parent\'s name in Arabic.'
       },
-      motherName: {
-        required: 'Mother\'s name is required.',
-        arabicName: 'Please enter mother\'s name in Arabic.'
+      parentPhone: {
+          required: 'Parent\'s phone number is required.',
+          egyptianPhone: 'Please enter a valid Egyptian mobile number (e.g., 01012345678).',
+          internationalPhone: 'Please enter a valid international phone number (e.g., +966501234567 or +12025550123).'
       },
-      parentMobile: {
-        required: 'Parent\'s mobile number is required.',
-        egyptianMobile: 'Please enter a valid Egyptian mobile number.'
+      parentEmail: {
+        email: 'Please enter a valid email address.'
       },
       isParentAbroad: 'Please specify if parent lives abroad.',
       abroadCountry: 'Please select the country where your parent lives.',
@@ -1250,23 +1288,22 @@ var ValidationService = {
       siblingFaculty: 'Please select sibling\'s faculty.',
 
       // Step 6: Emergency Contact
-      emergencyName: {
+      emergencyContactName: {
         required: 'Emergency contact name is required.',
         arabicName: 'Please enter name in Arabic.'
       },
-      emergencyRelation: 'Please specify your relation to emergency contact.',
-      emergencyMobile: {
-        required: 'Emergency contact mobile is required.',
-        egyptianMobile: 'Please enter a valid Egyptian mobile number.',
+      emergencyContactRelationship: 'Please specify your relation to emergency contact.',
+      emergencyContactPhone: {
+        required: 'Emergency contact phone is required.',
+        egyptianPhone: 'Please enter a valid Egyptian mobile number. (Starts with 01, 11 digits, e.g., 010xxxxxxxx)',
         compareField: 'Emergency contact number must be different from your mobile.'
-      },
-      emergencyAddress: {
-        required: 'Emergency contact address is required.',
-        minlength: 'Address must be at least 10 characters long.'
       },
 
       // Step 7: Terms
-      termsCheckbox: 'You must accept the terms and conditions to proceed.'
+      termsCheckbox: 'You must accept the terms and conditions to proceed.',
+
+      // Fallback for missing messages
+      default: 'This field is required.'
     };
   },
 
@@ -1276,7 +1313,10 @@ var ValidationService = {
    * @returns {boolean}
    */
   validateStep: function(tabSelector) {
-    if (!this.validator) return true;
+    if (!this.validator) {
+      console.log('Validator not initialized, skipping validation for', tabSelector);
+      return true;
+    }
 
     var $step = $(tabSelector);
     var stepId = $step.attr('id');
@@ -1289,20 +1329,19 @@ var ValidationService = {
     // Validate all enabled and visible (or .validate-hidden) fields in the step
     $step.find('input, select, textarea').each(function() {
       var $field = $(this);
-      var shouldValidate = !$field.is(':disabled') && 
-        (!$field.is(':hidden') || $field.hasClass('validate-hidden'));
-
-      if (shouldValidate) {
-        if (!ValidationService.validator.element(this)) {
+      var fieldValid = ValidationService.validator.element(this);
+        console.log('Validating field:', this.name || this.id || this, 'Result:', fieldValid);
+        if (!fieldValid) {
           isValid = false;
         }
-      }
     });
 
     // Update step button state
     $stepBtn
       .toggleClass('is-valid', isValid)
       .toggleClass('is-invalid', !isValid);
+
+    console.log('Step', stepId, 'validation result:', isValid);
 
     return isValid;
   },
@@ -1324,9 +1363,16 @@ var ValidationService = {
    * @returns {number|null}
    */
   findFirstInvalidStep: function() {
-    for (var i = 1; i <= 7; i++) {
-      if (!this.validateStep('#step' + i)) {
-        return i;
+    // Get all step panes dynamically
+    var $steps = $('.tab-pane[id^="step"]');
+    for (var i = 0; i < $steps.length; i++) {
+      var $step = $steps.eq(i);
+      var stepId = $step.attr('id');
+      // Extract step number from id (e.g., "step3" -> 3)
+      var match = stepId.match(/^step(\d+)$/);
+      var stepNumber = match ? parseInt(match[1], 10) : null;
+      if (stepNumber && !this.validateStep('#' + stepId)) {
+        return stepNumber;
       }
     }
     return null;
@@ -1390,7 +1436,6 @@ var NavigationManager = {
   bindEvents: function() {
     this.handleNextButton();
     this.handlePreviousButton();
-    this.handleTabClick();
   },
 
 
@@ -1622,38 +1667,6 @@ var NavigationManager = {
     });
   },
 
-  /**
-   * Handle tab click validation and restrictions
-   */
-  handleTabClick: function() {
-    var self = this;
-    
-    $(document).on('show.bs.tab', 'button[data-bs-toggle="pill"]', function(event) {
-      var $target = $(event.target);
-      var targetTabId = $target.attr('data-bs-target');
-      
-      // Check if target tab should be skipped (not available)
-      if (self.shouldSkipStep(targetTabId)) {
-        event.preventDefault();
-        var tabName = $target.text().trim();
-        Utils.showError('Step "' + tabName + '" is not available based on your current selections.', true);
-        return false;
-      }
-
-      // Check if user is trying to skip ahead without completing required steps
-      var allTabs = $('button[data-bs-toggle="pill"]:not(.d-none)');
-      var targetIndex = allTabs.index(event.target);
-      var firstInvalidTabIndex = self.findFirstInvalidTabIndex(allTabs, targetIndex);
-
-      if (firstInvalidTabIndex !== -1) {
-        event.preventDefault();
-        var invalidTabName = allTabs.eq(firstInvalidTabIndex).text().trim();
-        Utils.showError('Please complete all required fields in "' + invalidTabName + '" before proceeding.', true);
-        allTabs.eq(firstInvalidTabIndex).tab('show');
-        return false;
-      }
-    });
-  },
 
   /**
    * Find first invalid tab that needs completion
@@ -1662,8 +1675,8 @@ var NavigationManager = {
    * @returns {number} Index of first invalid tab, or -1 if none
    */
   findFirstInvalidTabIndex: function(allTabs, targetIndex) {
+    console.log('findFirstInvalidTabIndex called with:', { allTabs: allTabs, targetIndex: targetIndex });
     var firstInvalidIndex = -1;
-
     for (var i = 0; i < targetIndex; i++) {
       var $tab = allTabs.eq(i);
       var tabPaneId = $tab.attr('data-bs-target');
@@ -1677,6 +1690,7 @@ var NavigationManager = {
     return firstInvalidIndex;
   },
 
+
   /**
    * Show specific tab and update navigation state
    * @param {string} tabId - Tab selector (e.g., '#step3')
@@ -1687,7 +1701,7 @@ var NavigationManager = {
     
     // Show target tab pane
     $(tabId).addClass('show active');
-    
+        
     // Update nav links
     $('.nav-link').removeClass('active');
     $('button[data-bs-target="' + tabId + '"]').addClass('active');

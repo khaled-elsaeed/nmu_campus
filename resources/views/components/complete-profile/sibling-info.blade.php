@@ -28,8 +28,8 @@
             <label for="siblingGender" class="form-label">Relationship</label>
             <select class="form-select" id="siblingGender" name="siblingGender">
                 <option value="">Select</option>
-                <option value="brother" {{ old('siblingGender') == 'brother' ? 'selected' : '' }}>Brother</option>
-                <option value="sister" {{ old('siblingGender') == 'sister' ? 'selected' : '' }}>Sister</option>
+                <option value="male" {{ old('siblingGender') == 'male' ? 'selected' : '' }}>Brother</option>
+                <option value="female" {{ old('siblingGender') == 'female' ? 'selected' : '' }}>Sister</option>
             </select>
             <div class="invalid-feedback"></div>
         </div>

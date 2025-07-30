@@ -20,12 +20,16 @@ return new class extends Migration
             $table->string('name_ar')->nullable();
             $table->string('name_en')->nullable();
             $table->string('email')->nullable();
+            $table->string('academic_email')->nullable(); 
+            $table->string('academic_id')->nullable();
             $table->string('national_id', 20)->nullable();
-            $table->string('mobile', 20)->nullable();
+            $table->string('phone', 20)->nullable();
             $table->string('whatsapp', 20)->nullable();
             $table->date('birthdate')->nullable();
             $table->string('gender', 10)->nullable();
             $table->string('nationality_name', 100)->nullable();
+
+            $table->decimal('cum_gpa', 4, 2)->nullable();
 
             // Address info
             $table->string('govern', 100)->nullable();
@@ -34,7 +38,7 @@ return new class extends Migration
 
             // Parent info
             $table->string('parent_name')->nullable();
-            $table->string('parent_mobile', 20)->nullable();
+            $table->string('parent_phone', 20)->nullable();
             $table->string('parent_email')->nullable();
             $table->string('parent_country_name', 100)->nullable();
 

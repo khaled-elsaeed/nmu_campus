@@ -15,17 +15,14 @@
     <div class="col-md-6 mb-3">
         <label for="governorate" class="form-label">Governorate <span class="text-danger">*</span></label>
         <select class="form-select" id="governorate" name="governorate" >
-            <option value="">Select Governorate</option>
-            {{-- @foreach($governorates as $gov) --}}
-            {{-- <option value="{{ $gov->id }}">{{ $gov->name }}</option> --}}
-            {{-- @endforeach --}}
+            {{-- Optionally populate governorates dynamically via JS --}}
         </select>
         <div class="invalid-feedback"></div>
     </div>
     <div class="col-md-6 mb-3">
         <label for="city" class="form-label">City <span class="text-danger">*</span></label>
         <select class="form-select" id="city" name="city" >
-            <option value="">Select City</option>
+        {{-- Optionally populate cities dynamically via JS --}}
         </select>
         <div class="invalid-feedback"></div>
     </div>

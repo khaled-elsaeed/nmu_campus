@@ -7,6 +7,7 @@ use App\Services\ProfileService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Exceptions\BusinessValidationException;
+use Exception; // Added missing import
 
 class ProfileController extends Controller
 {
@@ -45,55 +46,129 @@ class ProfileController extends Controller
         try {
             $validatedData = $request->validate([
                 // Personal Information
-                'nationalId' => 'required|string|size:14',
-                'fullNameArabic' => 'required|string|min:2',
-                'fullNameEnglish' => 'required|string|min:2',
-                'birthDate' => 'required|date|before:today',
-                'gender' => 'required|in:male,female',
-                'nationality' => 'required|exists:nationalities,id',
+                'nationality' => [
+                    'required',
+                    'exists:nationalities,id'
+                ],
 
                 // Contact Information
-                'email' => 'required|email',
-                'mobileNumber' => 'required|string|regex:/^(010|011|012|015)[0-9]{8}$/',
-                'governorate' => 'required|exists:governorates,id',
-                'city' => 'required|exists:cities,id',
+                'phone' => [
+                    'required',
+                    'string',
+                    'regex:/^(010|011|012|015)[0-9]{8}$/'
+                ],
+                'governorate' => [
+                    'required',
+                    'exists:governorates,id'
+                ],
+                'city' => [
+                    'required',
+                    'exists:cities,id'
+                ],
+                'street' => [
+                    'required',
+                    'string',
+                    'min:3'
+                ],
 
                 // Academic Information
-                'studentId' => 'required|string|min:8|max:12',
-                'faculty' => 'required|exists:faculties,id',
-                'program' => 'required|exists:programs,id',
-                'academicYear' => 'required|in:first,second,third,fourth,fifth',
-                'gpa' => 'required|numeric|between:0,4',
+                'program' => [
+                    'required',
+                    'exists:programs,id'
+                ],
+                'academicYear' => [
+                    'required',
+                    'in:1,2,3,4,5'
+                ],
 
                 // Parent Information
-                'fatherName' => 'required|string|min:2',
-                'motherName' => 'required|string|min:2',
-                'parentMobile' => 'required|string|regex:/^(010|011|012|015)[0-9]{8}$/',
-                'isParentAbroad' => 'required|in:yes,no',
+                'parentRelationship' => [
+                    'required',
+                    'in:father,mother'
+                ],
+                'parentName' => [
+                    'required',
+                    'string',
+                    'min:2'
+                ],
+                'parentPhone' => [
+                    'required',
+                    'string'
+                ],
+                'parentEmail' => [
+                    'nullable',
+                    'email'
+                ],
+                'isParentAbroad' => [
+                    'required',
+                    'in:yes,no'
+                ],
 
                 // Conditional Parent Fields
-                'abroadCountry' => 'nullable|exists:countries,id',
-                'livingWithParent' => 'nullable|in:yes,no',
-                'parentGovernorate' => 'nullable|exists:governorates,id',
-                'parentCity' => 'nullable|exists:cities,id',
+                'abroadCountry' => [
+                    'nullable',
+                    'exists:countries,id'
+                ],
+                'livingWithParent' => [
+                    'nullable',
+                    'in:yes,no'
+                ],
+                'parentGovernorate' => [
+                    'nullable',
+                    'exists:governorates,id'
+                ],
+                'parentCity' => [
+                    'nullable',
+                    'exists:cities,id'
+                ],
 
                 // Sibling Information
-                'hasSiblingInDorm' => 'required|in:yes,no',
+                'hasSiblingInDorm' => [
+                    'required',
+                    'in:yes,no'
+                ],
 
                 // Conditional Sibling Fields
-                'siblingGender' => 'nullable|in:male,female',
-                'siblingName' => 'nullable|string|min:2',
-                'siblingNationalId' => 'nullable|string|size:14',
-                'siblingFaculty' => 'nullable|exists:faculties,id',
+                'siblingGender' => [
+                    'nullable',
+                    'in:male,female'
+                ],
+                'siblingName' => [
+                    'nullable',
+                    'string',
+                    'min:2'
+                ],
+                'siblingNationalId' => [
+                    'nullable',
+                    'string',
+                    'size:14'
+                ],
+                'siblingFaculty' => [
+                    'nullable',
+                    'exists:faculties,id'
+                ],
 
                 // Emergency Contact
-                'emergencyName' => 'required|string|min:2',
-                'emergencyRelation' => 'required|string',
-                'emergencyMobile' => 'required|string|regex:/^(010|011|012|015)[0-9]{8}$/',
-                'emergencyAddress' => 'required|string|min:10',
+                'emergencyContactName' => [
+                    'nullable',
+                    'string',
+                    'min:2'
+                ],
+                'emergencyContactRelationship' => [
+                    'nullable',
+                    'string'
+                ],
+                'emergencyContactPhone' => [
+                    'nullable',
+                    'string',
+                    'regex:/^(010|011|012|015)[0-9]{8}$/'
+                ],
 
                 // Terms
-                'termsCheckbox' => 'required|accepted',
+                'termsCheckbox' => [
+                    'required',
+                    'accepted'
+                ],
             ]);
 
             $result = $this->profileService->saveProfileData($validatedData);
@@ -105,7 +180,6 @@ class ProfileController extends Controller
         } catch (Exception $e) {
             logError('ProfileController@submit', $e);
             return errorResponse('Failed to save profile: ' . $e->getMessage(), [], 500);
-
         }
     }
 }

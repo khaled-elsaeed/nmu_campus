@@ -9,11 +9,10 @@ class SyncStudentArchive extends Command
 {
     /**
      * The name and signature of the console command.
-     *
+     * php artisan students:archive-sync --stats
      * @var string
      */
-    protected $signature = 'students:archive-sync 
-                           {--stats : Show current sync statistics}';
+    protected $signature = 'students:archive-sync {--stats : Show current sync statistics}';
 
     /**
      * The console command description.

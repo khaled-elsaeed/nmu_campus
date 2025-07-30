@@ -15,19 +15,35 @@
     <div class="col-md-6 mb-3">
         <label for="faculty" class="form-label">Faculty</label>
         <select class="form-select" id="faculty" name="faculty">
-            <option value="">Select Faculty</option>
-            {{-- @foreach($faculties as $faculty) --}}
-            {{-- <option value="{{ $faculty->id }}">{{ $faculty->name }}</option> --}}
-            {{-- @endforeach --}}
+        {{-- Optionally populate faculties dynamically via JS --}}
         </select>
         <div class="invalid-feedback"></div>
     </div>
     <div class="col-md-6 mb-3">
         <label for="program" class="form-label">Program</label>
         <select class="form-select" id="program" name="program">
-            <option value="">Select Program</option>
+        {{-- Optionally populate programs dynamically via JS --}}
+
         </select>
         <div class="invalid-feedback"></div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="academicYear" class="form-label">Level</label>
+            <select class="form-select" id="academicYear" name="academicYear">
+                <option value="">Select Level</option>
+                <option value="1" {{ old('academicYear') == '1' ? 'selected' : '' }}>First Year</option>
+                <option value="2" {{ old('academicYear') == '2' ? 'selecte' : '' }}>Second Year</option>
+                <option value="3" {{ old('academicYear') == '3' ? 'selected' : '' }}>Third Year</option>
+                <option value="4" {{ old('academicYear') == '4' ? 'selected' : '' }}>Fourth Year</option>
+                <option value="5" {{ old('academicYear') == '5' ? 'selected' : '' }}>Fifth Year</option> 
+            </select>
+            <div class="invalid-feedback"></div>
+        </div>
+        <div class="col-md-6 mb-3">
+        <label for="gpa" class="form-label">Cumulative GPA</label>
+        <input type="number" step="0.01" min="0" max="4" class="form-control" id="gpa" name="gpa" value="{{ old('gpa' ?? '') }}" readonly>
+    </div>
     </div>
 </div>
 <div class="row">

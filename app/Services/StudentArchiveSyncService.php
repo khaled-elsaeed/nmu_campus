@@ -68,9 +68,13 @@ class StudentArchiveSyncService
                 'name_ar' => $student['name_ar'] ?? null,
                 'name_en' => $student['name_en'] ?? null,
                 'email' => $student['email'] ?? null,
+                'academic_id' => $student['academic_id'] ?? null,
+                'academic_email' => $student['academic_email'] ?? null,
+                'cum_gpa' => $student['cum_gpa'] ?? null,
                 'national_id' => $student['national_id'] ?? null,
-                'mobile' => $this->validateAndCleanMobile($student['mobile'] ?? null),
-                'whatsapp' => $this->validateAndCleanMobile($student['whatsapp'] ?? null),
+                // API is 'mobile', DB is 'phone'
+                'phone' => $this->validateAndCleanPhone($student['mobile'] ?? null),
+                'whatsapp' => $this->validateAndCleanPhone($student['whatsapp'] ?? null),
                 'birthdate' => isset($student['birthdate']) ? Carbon::parse($student['birthdate']) : null,
                 'gender' => $student['gender'] ?? null,
                 'nationality_name' => $student['nationality_name'] ?? null,
@@ -78,7 +82,8 @@ class StudentArchiveSyncService
                 'city' => $student['city'] ?? null,
                 'street' => $student['street'] ?? null,
                 'parent_name' => $student['parent_name'] ?? null,
-                'parent_mobile' => $this->validateAndCleanMobile($student['parent_mobile'] ?? null),
+                // API is 'parent_mobile', DB is 'parent_phone'
+                'parent_phone' => $this->validateAndCleanPhone($student['parent_mobile'] ?? null),
                 'parent_email' => $student['parent_email'] ?? null,
                 'parent_country_name' => $student['parent_country_name'] ?? null,
                 'certificate_type_name' => $student['certificate_type_name'] ?? null,
@@ -98,33 +103,33 @@ class StudentArchiveSyncService
     }
 
     /**
-     * Validate and clean mobile number
-     * Returns null if the mobile number is invalid or too long
+     * Validate and clean phone number
+     * Returns null if the phone number is invalid or too long
      */
-    protected function validateAndCleanMobile(?string $mobile): ?string
+    protected function validateAndCleanPhone(?string $phone): ?string
     {
-        if (empty($mobile)) {
+        if (empty($phone)) {
             return null;
         }
 
         // Remove any non-digit characters
-        $cleaned = preg_replace('/[^0-9]/', '', $mobile);
+        $cleaned = preg_replace('/[^0-9]/', '', $phone);
         
         // Check if the cleaned number is within reasonable length (5-15 digits)
         if (strlen($cleaned) < 5 || strlen($cleaned) > 15) {
-            Log::warning('Invalid mobile number length detected', [
-                'original' => $mobile,
+            Log::warning('Invalid phone number length detected', [
+                'original' => $phone,
                 'cleaned' => $cleaned,
                 'length' => strlen($cleaned)
             ]);
             return null;
         }
 
-        // Check if it's a reasonable mobile number format
-        // Most mobile numbers should be between 10-15 digits
+        // Check if it's a reasonable phone number format
+        // Most phone numbers should be between 10-15 digits
         if (strlen($cleaned) > 20) {
-            Log::warning('Mobile number too long, skipping', [
-                'original' => $mobile,
+            Log::warning('Phone number too long, skipping', [
+                'original' => $phone,
                 'cleaned' => $cleaned,
                 'length' => strlen($cleaned)
             ]);
@@ -222,7 +227,8 @@ class StudentArchiveSyncService
             'name_en' => $data['name_en'],
             'email' => $data['email'],
             'national_id' => $data['national_id'],
-            'mobile' => $data['mobile'],
+            // API is 'mobile', DB is 'phone'
+            'phone' => $data['phone'],
             'whatsapp' => $data['whatsapp'],
             'birthdate' => $data['birthdate'],
             'gender' => $data['gender'],
@@ -231,7 +237,8 @@ class StudentArchiveSyncService
             'city' => $data['city'],
             'street' => $data['street'],
             'parent_name' => $data['parent_name'],
-            'parent_mobile' => $data['parent_mobile'],
+            // API is 'parent_mobile', DB is 'parent_phone'
+            'parent_phone' => $data['parent_phone'],
             'parent_email' => $data['parent_email'],
             'parent_country_name' => $data['parent_country_name'],
             'certificate_type_name' => $data['certificate_type_name'],
@@ -245,6 +252,9 @@ class StudentArchiveSyncService
             'candidated_faculty_name' => $data['candidated_faculty_name'],
             'actual_score' => $data['actual_score'],
             'actual_percent' => $data['actual_percent'],
+            'academic_id' => $student['academic_id'] ?? null,
+            'academic_email' => $student['academic_email'] ?? null,
+            'cum_gpa' => $student['cum_gpa'] ?? null,
             'last_updated_at' => $data['last_updated_at'],
             'synced_at' => now(),
         ]);
@@ -261,7 +271,8 @@ class StudentArchiveSyncService
             'name_en' => $data['name_en'],
             'email' => $data['email'],
             'national_id' => $data['national_id'],
-            'mobile' => $data['mobile'],
+            // API is 'mobile', DB is 'phone'
+            'phone' => $data['phone'],
             'whatsapp' => $data['whatsapp'],
             'birthdate' => $data['birthdate'],
             'gender' => $data['gender'],
@@ -270,7 +281,8 @@ class StudentArchiveSyncService
             'city' => $data['city'],
             'street' => $data['street'],
             'parent_name' => $data['parent_name'],
-            'parent_mobile' => $data['parent_mobile'],
+            // API is 'parent_mobile', DB is 'parent_phone'
+            'parent_phone' => $data['parent_phone'],
             'parent_email' => $data['parent_email'],
             'parent_country_name' => $data['parent_country_name'],
             'certificate_type_name' => $data['certificate_type_name'],
@@ -284,6 +296,9 @@ class StudentArchiveSyncService
             'candidated_faculty_name' => $data['candidated_faculty_name'],
             'actual_score' => $data['actual_score'],
             'actual_percent' => $data['actual_percent'],
+            'academic_id' => $data['academic_id'] ?? null,
+            'academic_email' => $data['academic_email'] ?? null,
+            'cum_gpa' => $data['cum_gpa'] ?? null,
             'last_updated_at' => $data['last_updated_at'],
             'synced_at' => now(),
         ]);
