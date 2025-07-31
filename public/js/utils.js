@@ -322,4 +322,43 @@ const Utils = {
         });
       }
     },
+
+    /**
+     * Hide a DOM element (jQuery or native)
+     * @param {jQuery|HTMLElement|string} el - Element, selector, or jQuery object to hide
+     */
+    hideElement(el) {
+      if (window.jQuery && el instanceof jQuery) {
+        el.hide();
+      } else if (typeof el === 'string') {
+        const $el = window.jQuery ? $(el) : document.querySelector(el);
+        if ($el instanceof jQuery) {
+          $el.hide();
+        } else if ($el) {
+          $el.style.display = 'none';
+        }
+      } else if (el instanceof HTMLElement) {
+        el.style.display = 'none';
+      }
+    },
+
+    /**
+     * Show a DOM element (jQuery or native)
+     * @param {jQuery|HTMLElement|string} el - Element, selector, or jQuery object to show
+     * @param {string} [display] - Optional display value (default: '')
+     */
+    showElement(el, display = '') {
+      if (window.jQuery && el instanceof jQuery) {
+        el.show();
+      } else if (typeof el === 'string') {
+        const $el = window.jQuery ? $(el) : document.querySelector(el);
+        if ($el instanceof jQuery) {
+          $el.show();
+        } else if ($el) {
+          $el.style.display = display;
+        }
+      } else if (el instanceof HTMLElement) {
+        el.style.display = display;
+      }
+    },
 };

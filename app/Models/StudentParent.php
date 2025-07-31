@@ -22,7 +22,7 @@ class StudentParent extends Model
      */
     protected $fillable = [
         'user_id',
-        'type',
+        'relation',
         'name_en',
         'name_ar',
         'national_id',

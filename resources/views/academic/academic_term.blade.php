@@ -255,12 +255,13 @@
  * Academic Term Management Page JS
  *
  * Structure:
- * - Utils: Common utility functions
  * - ApiService: Handles all AJAX requests
  * - StatsManager: Handles statistics cards
  * - SearchManager: Handles advanced search
  * - TermManager: Handles CRUD and actions for terms
  * - AcademicTermApp: Initializes all managers
+ * 
+ * NOTE: Uses global Utils from public/js/utils.js
  */
 
 // ===========================

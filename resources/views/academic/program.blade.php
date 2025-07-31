@@ -376,13 +376,35 @@ var StatsManager = {
       $('#' + elementId + '-last-updated').text('N/A');
     });
   },
+      /**
+     * Toggle loading state for a single stat card
+     * @param {string} elementId
+     * @param {boolean} isLoading
+     */
+    toggleLoadingState: function(elementId, isLoading) {
+        var $value = $('#' + elementId + '-value');
+        var $loader = $('#' + elementId + '-loader');
+        var $updated = $('#' + elementId + '-last-updated');
+        var $updatedLoader = $('#' + elementId + '-last-updated-loader');
+        if (isLoading) {
+            $value.addClass('d-none');
+            $loader.removeClass('d-none');
+            $updated.addClass('d-none');
+            $updatedLoader.removeClass('d-none');
+        } else {
+            $value.removeClass('d-none');
+            $loader.addClass('d-none');
+            $updated.removeClass('d-none');
+            $updatedLoader.addClass('d-none');
+        }
+    },
   /**
    * Toggle loading state for all stat cards
    * @param {boolean} isLoading
    */
   toggleAllLoadingStates: function(isLoading) {
     ['programs', 'with-students', 'without-students'].forEach(function(elementId) {
-      Utils.toggleLoadingState(elementId, isLoading);
+      this.toggleLoadingState(elementId, isLoading);
     });
   }
 };

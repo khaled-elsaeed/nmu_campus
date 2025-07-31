@@ -178,11 +178,11 @@
  * Building Management Page JS
  *
  * Structure:
- * - Utils: Common utility functions
  * - ApiService: Handles all AJAX requests
  * - StatsManager: Handles statistics cards
  * - BuildingManager: Handles CRUD and actions for buildings
  * - BuildingApp: Initializes all managers
+ *  * NOTE: Uses global Utils from public/js/utils.js
  */
 
 // ===========================
@@ -201,98 +201,6 @@ var ROUTES = {
 };
 
 // ===========================
-// UTILITY FUNCTIONS
-// ===========================
-var Utils = {
-  /**
-   * Show an error alert
-   * @param {string} message
-   */
-  showError: function(message) {
-    Swal.fire({ title: 'Error', html: message, icon: 'error' });
-  },
-  /**
-   * Show a success toast message
-   * @param {string} message
-   */
-  showSuccess: function(message) {
-    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: message, showConfirmButton: false, timer: 2500, timerProgressBar: true });
-  },
-  /**
-   * Toggle loading state for a stat card
-   * @param {string} elementId
-   * @param {boolean} isLoading
-   */
-  toggleLoadingState: function(elementId, isLoading) {
-    var $value = $('#' + elementId + '-value');
-    var $loader = $('#' + elementId + '-loader');
-    var $updated = $('#' + elementId + '-last-updated');
-    var $updatedLoader = $('#' + elementId + '-last-updated-loader');
-    if (isLoading) {
-      $value.addClass('d-none');
-      $loader.removeClass('d-none');
-      $updated.addClass('d-none');
-      $updatedLoader.removeClass('d-none');
-    } else {
-      $value.removeClass('d-none');
-      $loader.addClass('d-none');
-      $updated.removeClass('d-none');
-      $updatedLoader.addClass('d-none');
-    }
-  },
-  /**
-   * Replace :id in a route string
-   * @param {string} route
-   * @param {string|number} id
-   * @returns {string}
-   */
-  replaceRouteId: function(route, id) {
-    return route.replace(':id', id);
-  },
-  /**
-   * Show a confirmation dialog
-   * @param {object} options
-   * @returns {Promise}
-   */
-  showConfirmDialog: function(options) {
-    return Swal.fire({
-      title: options.title || 'Are you sure?',
-      text: options.text || "You won't be able to revert this!",
-      icon: options.icon || 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: options.confirmButtonText || 'Yes, proceed!'
-    });
-  },
-  /**
-   * Reset a form by ID
-   * @param {string} formId
-   */
-  resetForm: function(formId) {
-    $('#' + formId)[0].reset();
-  },
-  /**
-   * Set form data by object
-   * @param {string} formId
-   * @param {object} data
-   */
-  setFormData: function(formId, data) {
-    var form = $('#' + formId);
-    Object.keys(data).forEach(function(key) {
-      var element = form.find('[name="' + key + '"]');
-      if (element.length) {
-        if (element.attr('type') === 'checkbox') {
-          element.prop('checked', data[key]);
-        } else {
-          element.val(data[key]);
-        }
-      }
-    });
-  }
-};
-
-// ===========================
 // API SERVICE
 // ===========================
 var ApiService = {
@@ -302,6 +210,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   request: function(options) {
+    // Use Utils.handleAjaxError for error handling in all requests
     options.headers = options.headers || {};
     options.headers['X-CSRF-TOKEN'] = $('meta[name="csrf-token"]').attr('content');
     return $.ajax(options);
@@ -319,6 +228,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   fetchBuilding: function(id) {
+    // Use Utils.replaceRouteId
     return this.request({ url: Utils.replaceRouteId(ROUTES.buildings.show, id), method: 'GET' });
   },
   /**
@@ -401,8 +311,9 @@ var StatsManager = {
   /**
    * Handle error in stats fetch
    */
-  handleError: function() {
+  handleError: function(xhr) {
     this.setAllStatsToNA();
+    // Use Utils.showError
     Utils.showError('Failed to load building statistics');
   },
   /**
@@ -412,8 +323,9 @@ var StatsManager = {
    * @param {string} lastUpdateTime
    */
   updateStatElement: function(elementId, value, lastUpdateTime) {
-    $('#' + elementId + '-value').text(value ?? '0');
-    $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--');
+    // Use Utils.isEmpty for null/undefined check
+    $('#' + elementId + '-value').text(Utils.isEmpty(value) ? '0' : value);
+    $('#' + elementId + '-last-updated').text(Utils.isEmpty(lastUpdateTime) ? '--' : lastUpdateTime);
   },
   /**
    * Set all stat cards to N/A
@@ -425,12 +337,34 @@ var StatsManager = {
     });
   },
   /**
+   * Toggle loading state for a stat card
+   * @param {string} elementId
+   * @param {boolean} isLoading
+   */
+  toggleLoadingState: function(elementId, isLoading) {
+    var $value = $('#' + elementId + '-value');
+    var $loader = $('#' + elementId + '-loader');
+    var $updated = $('#' + elementId + '-last-updated');
+    var $updatedLoader = $('#' + elementId + '-last-updated-loader');
+    if (isLoading) {
+      $value.addClass('d-none');
+      $loader.removeClass('d-none');
+      $updated.addClass('d-none');
+      $updatedLoader.removeClass('d-none');
+    } else {
+      $value.removeClass('d-none');
+      $loader.addClass('d-none');
+      $updated.removeClass('d-none');
+      $updatedLoader.addClass('d-none');
+    }
+  },
+  /**
    * Toggle loading state for all stat cards
    * @param {boolean} isLoading
    */
   toggleAllLoadingStates: function(isLoading) {
-    ['buildings', 'buildings-male', 'buildings-female'].forEach(function(elementId) {
-      Utils.toggleLoadingState(elementId, isLoading);
+    ['buildings', 'buildings-male', 'buildings-female'].forEach((elementId) => {
+      this.toggleLoadingState(elementId, isLoading);
     });
   }
 };
@@ -513,18 +447,18 @@ var BuildingManager = {
       e.preventDefault();
       var $btn = $(e.currentTarget);
       var id = $btn.data('id');
-      Swal.fire({
+      // Use Utils.showConfirmDialog
+      Utils.showConfirmDialog({
         title: 'Activate Building?',
         text: 'Are you sure you want to activate this building? This will make it available for use.',
         icon: 'question',
-        showCancelButton: true,
         confirmButtonColor: '#28a745',
         cancelButtonColor: '#6c757d',
         confirmButtonText: 'Yes, activate!',
         cancelButtonText: 'Cancel'
       }).then(function(result) {
         if (result.isConfirmed) {
-          $btn.prop('disabled', true);
+          Utils.setLoadingState($btn, true, { loadingText: 'Activating...' });
           ApiService.activateBuilding(id)
             .done(function(response) {
               Utils.showSuccess(response.message || 'Building activated successfully.');
@@ -532,10 +466,10 @@ var BuildingManager = {
               StatsManager.load();
             })
             .fail(function(xhr) {
-              Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to activate building.');
+              Utils.handleAjaxError(xhr, 'Failed to activate building.');
             })
             .always(function() {
-              $btn.prop('disabled', false);
+              Utils.setLoadingState($btn, false, { normalText: 'Activate', normalIcon: 'bx bx-check' });
             });
         }
       });
@@ -545,18 +479,17 @@ var BuildingManager = {
       e.preventDefault();
       var $btn = $(e.currentTarget);
       var id = $btn.data('id');
-      Swal.fire({
+      Utils.showConfirmDialog({
         title: 'Deactivate Building?',
         text: 'Are you sure you want to deactivate this building? This will make it unavailable for new reservations.',
         icon: 'warning',
-        showCancelButton: true,
         confirmButtonColor: '#ffc107',
         cancelButtonColor: '#6c757d',
         confirmButtonText: 'Yes, deactivate!',
         cancelButtonText: 'Cancel'
       }).then(function(result) {
         if (result.isConfirmed) {
-          $btn.prop('disabled', true);
+          Utils.setLoadingState($btn, true, { loadingText: 'Deactivating...' });
           ApiService.deactivateBuilding(id)
             .done(function(response) {
               Utils.showSuccess(response.message || 'Building deactivated successfully.');
@@ -564,10 +497,10 @@ var BuildingManager = {
               StatsManager.load();
             })
             .fail(function(xhr) {
-              Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to deactivate building.');
+              Utils.handleAjaxError(xhr, 'Failed to deactivate building.');
             })
             .always(function() {
-              $btn.prop('disabled', false);
+              Utils.setLoadingState($btn, false, { normalText: 'Deactivate', normalIcon: 'bx bx-x' });
             });
         }
       });
@@ -586,10 +519,20 @@ var BuildingManager = {
     }
   },
   /**
+   * Reset a form by ID
+   * @param {string} formId
+   */
+  resetForm: function(formId) {
+    // Use Utils.clearValidation and reset
+    var $form = $('#' + formId);
+    $form[0].reset();
+    Utils.clearValidation($form);
+  },
+  /**
    * Reset modal state
    */
   resetModalState: function() {
-    Utils.resetForm('buildingForm');
+    this.resetForm('buildingForm');
     $('#has_double_rooms').prop('checked', false);
   },
   /**
@@ -611,9 +554,9 @@ var BuildingManager = {
           $('#buildingModal').modal('show');
         }
       })
-      .fail(function() {
+      .fail(function(xhr) {
         $('#buildingModal').modal('hide');
-        Utils.showError('Failed to load building data');
+        Utils.handleAjaxError(xhr, 'Failed to load building data');
       });
   },
   /**
@@ -642,9 +585,9 @@ var BuildingManager = {
           $('#viewBuildingModal').modal('show');
         }
       })
-      .fail(function() {
+      .fail(function(xhr) {
         $('#viewBuildingModal').modal('hide');
-        Utils.showError('Failed to load building data');
+        Utils.handleAjaxError(xhr, 'Failed to load building data');
       });
   },
   /**
@@ -691,8 +634,7 @@ var BuildingManager = {
    */
   handleSaveError: function(xhr) {
     $('#buildingModal').modal('hide');
-    var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred. Please check your input.';
-    Utils.showError(message);
+    Utils.handleAjaxError(xhr, 'An error occurred. Please check your input.');
   },
   /**
    * Delete building
@@ -719,8 +661,7 @@ var BuildingManager = {
         StatsManager.load();
       })
       .fail(function(xhr) {
-        var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to delete building.';
-        Utils.showError(message);
+        Utils.handleAjaxError(xhr, 'Failed to delete building.');
       });
   }
 };

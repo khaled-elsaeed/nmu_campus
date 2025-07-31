@@ -180,20 +180,19 @@ class ProfileService
     public function saveProfileData(array $data): array
     {
         // $user = Auth::user();
-        
+
         // if (!$user) {
         //     throw new \Exception('User not authenticated');
         // }
-        $user = User::query()->first();
-        
-        return DB::transaction(function () use ($user, $data) {
-            // Get student archive data for certain fields
-            $studentArchive = StudentArchive::where('is_deleted', false)
-                ->where('national_id', $data['nationalId'])
-                ->first();
 
+        // $studentArchive = $user?->studentArchive;
+
+        // Retrieve the StudentArchive with id 4429 and user_id 5
+        $studentArchive = StudentArchive::where('id', 4429)->where('user_id', 5)->first();
+        $user = $studentArchive?->user;
+
+        return DB::transaction(function () use ($user, $data, $studentArchive) {
             $student = Student::where('user_id', $user?->id)->first();
-            
             if (!$student) {
                 $student = new Student();
                 $student->user_id = $user?->id;
@@ -223,8 +222,7 @@ class ProfileService
      */
     private function updateStudentBasicInfo(Student $student, array $data, ?StudentArchive $studentArchive): void
     {
-        $student->national_id = $data['nationalId'];
-        $student->phone = $data['phoneNumber'];
+        $student->phone = $data['phone'];
         $student->governorate_id = $data['governorate'];
         $student->city_id = $data['city'];
         $student->program_id = $data['program'];
@@ -234,6 +232,8 @@ class ProfileService
         // Use archive data for sensitive student information
         $student->name_ar = $studentArchive?->name_ar;
         $student->name_en = $studentArchive?->name_en;
+        $student->national_id = $studentArchive?->national_id;
+
         $student->date_of_birth = $studentArchive?->birthdate;
         $student->gender = $studentArchive?->gender;
         $student->academic_email = $studentArchive?->email;
@@ -259,8 +259,8 @@ class ProfileService
             $parent->user_id = $student?->user_id;
         }
 
-        $parent->father_name = $data['fatherName'];
-        $parent->mother_name = $data['motherName'];
+        $parent->relation = $data['parentRelationship'];
+        $parent->name = $data['parentName'];
         $parent->phone_number = $data['parentPhone'];
         $parent->is_abroad = $data['isParentAbroad'] === 'yes';
 

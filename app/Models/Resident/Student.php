@@ -82,10 +82,13 @@ class Student extends Model
     protected function dateOfBirth(): Attribute
     {
         return Attribute::make(
-            get: fn ($value, $attributes) => 
-                $attributes['date_of_birth'] ? date('Y-m-d', strtotime($attributes['date_of_birth'])) : null
+            get: fn ($value, $attributes) =>
+                isset($attributes['date_of_birth']) && $attributes['date_of_birth']
+                    ? date('Y-m-d', strtotime($attributes['date_of_birth']))
+                    : null
         );
     }
+
 
     /**
      * Get the user for the student.

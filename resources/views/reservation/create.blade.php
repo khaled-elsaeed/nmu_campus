@@ -172,8 +172,8 @@
 @push('scripts')
 <script>
 /**
- * Reservation Add Page JS (Cleaned)
- * - Only add form, dropdowns, validation, and submission logic
+ * Reservation Add Page JS (using @utils.js)
+ * Uses global Utils from public/js/utils.js
  */
 
 // ===========================
@@ -228,51 +228,13 @@ const MESSAGES = {
 };
 
 // ===========================
-// UTILITY FUNCTIONS
-// ===========================
-const Utils = {
-  showError: (message) => {
-    Swal.fire({ 
-      title: 'Error', 
-      html: message, 
-      icon: 'error' 
-    });
-  },
-
-  showSuccess: (message) => {
-    Swal.fire({ 
-      toast: true, 
-      position: 'top-end', 
-      icon: 'success', 
-      title: message, 
-      showConfirmButton: false, 
-      timer: 2500, 
-      timerProgressBar: true 
-    });
-  },
-
-  disableButton: ($button, disabled = true) => {
-    $button.prop('disabled', disabled);
-  },
-
-  showElement: ($element) => {
-    $element.removeClass('d-none').show();
-  },
-
-  hideElement: ($element) => {
-    $element.addClass('d-none').hide();
-  },
-
-  clearSelect: ($select, placeholder = 'Select...') => {
-    $select.empty().append(`<option value="">${placeholder}</option>`);
-  }
-};
-
-// ===========================
 // API SERVICE
 // ===========================
 const ApiService = {
   request: (options) => {
+    // Always add CSRF token
+    options.headers = options.headers || {};
+    options.headers['X-CSRF-TOKEN'] = $('meta[name="csrf-token"]').attr('content');
     return $.ajax(options);
   },
 
@@ -354,13 +316,13 @@ const UserSearchManager = {
   handleSearch: () => {
     const nationalId = $('#search_national_id').val().trim();
     
-    if (!nationalId) {
+    if (Utils.isEmpty(nationalId)) {
       Utils.showError(MESSAGES.error.enterNationalId);
       return;
     }
 
     const $btn = $('#btnSearchNationalId');
-    Utils.disableButton($btn);
+    Utils.setLoadingState($btn, true, { loadingText: 'Searching...' });
 
     ApiService.findUserByNationalId(nationalId)
       .done((response) => {
@@ -374,7 +336,7 @@ const UserSearchManager = {
         UserSearchManager.handleUserNotFound();
       })
       .always(() => {
-        Utils.disableButton($btn, false);
+        Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-search"></i> Search' });
       });
   },
 
@@ -439,11 +401,8 @@ const SelectManager = {
     const accommodationType = $('#add_accommodation_type').val();
     
     if (buildingId && accommodationType) {
-      if (accommodationType === 'apartment') {
-        SelectManager.loadApartments(buildingId);
-      } else if (accommodationType === 'room') {
-        SelectManager.loadApartments(buildingId);
-      }
+      // Always load apartments for both types (room/apartment)
+      SelectManager.loadApartments(buildingId);
     } else {
       SelectManager.clearAccommodationSelects();
     }
@@ -499,7 +458,11 @@ const SelectManager = {
     ApiService.fetchBuildings()
       .done((response) => {
         if (response.success && response.data) {
-          SelectManager.populateSelect('#add_building_id', response.data, 'number', 'Select Building');
+          Utils.populateSelect($('#add_building_id'), response.data, {
+            valueField: 'id',
+            textField: 'number',
+            placeholder: 'Select Building'
+          });
         }
       })
       .fail(() => {
@@ -511,7 +474,11 @@ const SelectManager = {
     ApiService.fetchApartments(buildingId)
       .done((response) => {
         if (response.success && response.data) {
-          SelectManager.populateSelect('#add_apartment_id', response.data, 'number', 'Select Apartment');
+          Utils.populateSelect($('#add_apartment_id'), response.data, {
+            valueField: 'id',
+            textField: 'number',
+            placeholder: 'Select Apartment'
+          });
         }
       })
       .fail(() => {
@@ -523,7 +490,12 @@ const SelectManager = {
     ApiService.fetchRooms(null, apartmentId)
       .done((response) => {
         if (response.success && response.data) {
-          SelectManager.populateSelect('#add_room_id', response.data, 'number', 'Select Room');
+          // Add data-type for double/single room
+          const $select = $('#add_room_id');
+          Utils.clearSelect($select, 'Select Room');
+          response.data.forEach(item => {
+            $select.append(`<option value="${item.id}" data-type="${item.type}">${item.number}</option>`);
+          });
         }
       })
       .fail(() => {
@@ -535,7 +507,11 @@ const SelectManager = {
     ApiService.fetchAcademicTerms()
       .done((response) => {
         if (response.success && response.data) {
-          SelectManager.populateSelect('#add_academic_term_id', response.data, 'name', 'Select Academic Term');
+          Utils.populateSelect($('#add_academic_term_id'), response.data, {
+            valueField: 'id',
+            textField: 'name',
+            placeholder: 'Select Academic Term'
+          });
         }
       })
       .fail(() => {
@@ -553,20 +529,6 @@ const SelectManager = {
       .fail(() => {
         Utils.showError(MESSAGES.error.equipmentLoadFailed);
       });
-  },
-
-  populateSelect: (selector, data, valueField, placeholder) => {
-    const $select = $(selector);
-    Utils.clearSelect($select, placeholder);
-    // Only add data-type for room selects
-    const isRoomSelect = $select.is('#add_room_id');
-    data.forEach(item => {
-      if (isRoomSelect && item.type) {
-        $select.append(`<option value="${item.id}" data-type="${item.type}">${item[valueField]}</option>`);
-      } else {
-        $select.append(`<option value="${item.id}">${item[valueField]}</option>`);
-      }
-    });
   },
 
   renderEquipmentList: (equipmentData) => {
@@ -680,7 +642,7 @@ const ReservationManager = {
     }
     
     const $btn = $('#addReservationForm button[type="submit"]');
-    Utils.disableButton($btn);
+    Utils.setLoadingState($btn, true, { loadingText: 'Saving...' });
     
     ApiService.createReservation(formData)
       .done((response) => {
@@ -691,11 +653,10 @@ const ReservationManager = {
         }
       })
       .fail((xhr) => {
-        const message = xhr.responseJSON?.message || MESSAGES.error.reservationCreateFailed;
-        Utils.showError(message);
+        Utils.handleAjaxError(xhr, MESSAGES.error.reservationCreateFailed);
       })
       .always(() => {
-        Utils.disableButton($btn, false);
+        Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-save"></i> Save Reservation' });
       });
   },
 
@@ -704,7 +665,7 @@ const ReservationManager = {
     
     // Serialize form fields
     $('#addReservationForm').serializeArray().forEach(item => {
-      if (item.value) {
+      if (!Utils.isEmpty(item.value)) {
         formData[item.name] = item.value;
       }
     });
@@ -742,20 +703,20 @@ const ReservationManager = {
   },
 
   validateForm: (formData) => {
-    if (!formData.user_id) {
+    if (Utils.isEmpty(formData.user_id)) {
       Utils.showError(MESSAGES.error.selectUser);
       return false;
     }
-    if (!formData.period_type) {
+    if (Utils.isEmpty(formData.period_type)) {
       Utils.showError('Please select a period.');
       return false;
     }
-    if (formData.period_type === 'academic' && !formData.academic_term_id) {
+    if (formData.period_type === 'academic' && Utils.isEmpty(formData.academic_term_id)) {
       Utils.showError('Please select an academic term.');
       return false;
     }
     if (formData.period_type === 'calendar') {
-      if (!formData.check_in_date || !formData.check_out_date) {
+      if (Utils.isEmpty(formData.check_in_date) || Utils.isEmpty(formData.check_out_date)) {
         Utils.showError('Please select check-in and check-out dates.');
         return false;
       }
@@ -802,7 +763,5 @@ const ReservationApp = {
 $(document).ready(() => {
   ReservationApp.init();
 });
-
-
 </script>
 @endpush 

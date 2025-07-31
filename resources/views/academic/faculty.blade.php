@@ -123,18 +123,18 @@
  * Faculty Management Page JS
  *
  * Structure:
- * - Utils: Common utility functions
  * - ApiService: Handles all AJAX requests
  * - StatsManager: Handles statistics cards
  * - FacultyManager: Handles CRUD for faculties
  * - SearchManager: Handles advanced search
  * - FacultyManagementApp: Initializes all managers
+ *   NOTE: Uses global Utils from public/js/utils.js
  */
 
 // ===========================
 // ROUTES CONSTANTS
 // ===========================
-var ROUTES = {
+const ROUTES = {
   faculties: {
     stats: '{{ route('academic.faculties.stats') }}',
     store: '{{ route('academic.faculties.store') }}',
@@ -145,97 +145,22 @@ var ROUTES = {
 };
 
 // ===========================
-// UTILITY FUNCTIONS
-// ===========================
-var Utils = {
-  /**
-   * Show a success toast message
-   * @param {string} message
-   */
-  showSuccess: function(message) {
-    Swal.fire({
-      toast: true,
-      position: 'top-end',
-      icon: 'success',
-      title: message,
-      showConfirmButton: false,
-      timer: 2500,
-      timerProgressBar: true
-    });
-  },
-  /**
-   * Show an error alert, optionally closing a modal
-   * @param {string} message
-   * @param {string|null} modalId
-   */
-  showError: function(message, modalId) {
-    if (modalId) {
-      var modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
-      if (modal) modal.hide();
-    }
-    $('.modal.show').each(function() {
-      var modal = bootstrap.Modal.getInstance(this);
-      if (modal) modal.hide();
-    });
-    setTimeout(function() {
-      Swal.fire({
-        title: 'Error',
-        html: message,
-        icon: 'error',
-        confirmButtonText: 'OK'
-      });
-    }, 300);
-  },
-  /**
-   * Toggle loading state for a stat card
-   * @param {string} elementId
-   * @param {boolean} isLoading
-   */
-  toggleLoadingState: function(elementId, isLoading) {
-    var $value = $('#' + elementId + '-value');
-    var $loader = $('#' + elementId + '-loader');
-    var $updated = $('#' + elementId + '-last-updated');
-    var $updatedLoader = $('#' + elementId + '-last-updated-loader');
-    if (isLoading) {
-      $value.addClass('d-none');
-      $loader.removeClass('d-none');
-      $updated.addClass('d-none');
-      $updatedLoader.removeClass('d-none');
-    } else {
-      $value.removeClass('d-none');
-      $loader.addClass('d-none');
-      $updated.removeClass('d-none');
-      $updatedLoader.addClass('d-none');
-    }
-  },
-  /**
-   * Replace :id in a route string
-   * @param {string} route
-   * @param {string|number} id
-   * @returns {string}
-   */
-  replaceRouteId: function(route, id) {
-    return route.replace(':id', id);
-  }
-};
-
-// ===========================
 // API SERVICE
 // ===========================
-var ApiService = {
+const ApiService = {
   /**
    * Generic AJAX request
    * @param {object} options
    * @returns {jqXHR}
    */
-  request: function(options) {
+  request(options) {
     return $.ajax(options);
   },
   /**
    * Fetch faculty statistics
    * @returns {jqXHR}
    */
-  fetchFacultyStats: function() {
+  fetchFacultyStats() {
     return this.request({ url: ROUTES.faculties.stats, method: 'GET' });
   },
   /**
@@ -243,7 +168,7 @@ var ApiService = {
    * @param {string|number} id
    * @returns {jqXHR}
    */
-  fetchFaculty: function(id) {
+  fetchFaculty(id) {
     return this.request({ url: Utils.replaceRouteId(ROUTES.faculties.show, id), method: 'GET' });
   },
   /**
@@ -252,17 +177,17 @@ var ApiService = {
    * @param {string|number|null} id
    * @returns {jqXHR}
    */
-  saveFaculty: function(data, id) {
-    var url = id ? Utils.replaceRouteId(ROUTES.faculties.show, id) : ROUTES.faculties.store;
-    var method = id ? 'PUT' : 'POST';
-    return this.request({ url: url, method: method, data: data });
+  saveFaculty(data, id) {
+    const url = id ? Utils.replaceRouteId(ROUTES.faculties.show, id) : ROUTES.faculties.store;
+    const method = id ? 'PUT' : 'POST';
+    return this.request({ url, method, data });
   },
   /**
    * Delete a faculty by ID
    * @param {string|number} id
    * @returns {jqXHR}
    */
-  deleteFaculty: function(id) {
+  deleteFaculty(id) {
     return this.request({ url: Utils.replaceRouteId(ROUTES.faculties.destroy, id), method: 'DELETE' });
   }
 };
@@ -270,17 +195,17 @@ var ApiService = {
 // ===========================
 // STATISTICS MANAGER
 // ===========================
-var StatsManager = {
+const StatsManager = {
   /**
    * Initialize statistics cards
    */
-  init: function() {
+  init() {
     this.load();
   },
   /**
    * Load statistics data
    */
-  load: function() {
+  load() {
     this.toggleAllLoadingStates(true);
     ApiService.fetchFacultyStats()
       .done(this.handleSuccess.bind(this))
@@ -291,9 +216,9 @@ var StatsManager = {
    * Handle successful stats fetch
    * @param {object} response
    */
-  handleSuccess: function(response) {
+  handleSuccess(response) {
     if (response.success !== false) {
-      let stats = response.data;
+      const stats = response.data;
       this.updateStatElement('faculties', stats.total.count, stats.total.lastUpdateTime);
       this.updateStatElement('with-programs', stats.withPrograms.count, stats.withPrograms.lastUpdateTime);
       this.updateStatElement('without-programs', stats.withoutPrograms.count, stats.withoutPrograms.lastUpdateTime);
@@ -304,7 +229,7 @@ var StatsManager = {
   /**
    * Handle error in stats fetch
    */
-  handleError: function() {
+  handleError() {
     this.setAllStatsToNA();
     Utils.showError('Failed to load faculty statistics');
   },
@@ -314,38 +239,60 @@ var StatsManager = {
    * @param {string|number} value
    * @param {string} lastUpdateTime
    */
-  updateStatElement: function(elementId, value, lastUpdateTime) {
+  updateStatElement(elementId, value, lastUpdateTime) {
     $('#' + elementId + '-value').text(value ?? '0');
     $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--');
   },
   /**
    * Set all stat cards to N/A
    */
-  setAllStatsToNA: function() {
-    ['faculties', 'with-programs', 'without-programs'].forEach(function(elementId) {
+  setAllStatsToNA() {
+    ['faculties', 'with-programs', 'without-programs'].forEach(elementId => {
       $('#' + elementId + '-value').text('N/A');
       $('#' + elementId + '-last-updated').text('N/A');
     });
   },
-  /**
-   * Toggle loading state for all stat cards
-   * @param {boolean} isLoading
-   */
-  toggleAllLoadingStates: function(isLoading) {
-    ['faculties', 'with-programs', 'without-programs'].forEach(function(elementId) {
-      Utils.toggleLoadingState(elementId, isLoading);
-    });
-  }
+      /**
+     * Toggle loading state for a single stat card
+     * @param {string} elementId
+     * @param {boolean} isLoading
+     */
+    toggleLoadingState: function(elementId, isLoading) {
+        var $value = $('#' + elementId + '-value');
+        var $loader = $('#' + elementId + '-loader');
+        var $updated = $('#' + elementId + '-last-updated');
+        var $updatedLoader = $('#' + elementId + '-last-updated-loader');
+        if (isLoading) {
+            $value.addClass('d-none');
+            $loader.removeClass('d-none');
+            $updated.addClass('d-none');
+            $updatedLoader.removeClass('d-none');
+        } else {
+            $value.removeClass('d-none');
+            $loader.addClass('d-none');
+            $updated.removeClass('d-none');
+            $updatedLoader.addClass('d-none');
+        }
+    },
+    /**
+     * Toggle loading state for all stat cards
+     * @param {boolean} isLoading
+     */
+    toggleAllLoadingStates: function(isLoading) {
+        ['faculties', 'with-programs', 'without-programs'].forEach(function(elementId) {
+            this.toggleLoadingState(elementId, isLoading);
+        }, this);
+    }
 };
 
 // ===========================
 // FACULTY MANAGER
 // ===========================
-var FacultyManager = {
+const FacultyManager = {
   /**
    * Bind add faculty button
    */
-  handleAdd: function() {
+  handleAdd() {
     $('#addFacultyBtn').on('click', function() {
       $('#facultyForm')[0].reset();
       $('#faculty_id').val('');
@@ -354,104 +301,136 @@ var FacultyManager = {
       $('#facultyModal .modal-title').text('Add Faculty');
       $('#saveFacultyBtn').text('Save');
       $('#facultyModal').modal('show');
+      if (Utils && Utils.clearValidation) {
+        Utils.clearValidation($('#facultyForm'));
+      }
     });
   },
   /**
    * Bind faculty form submit
    */
-  handleFormSubmit: function() {
+  handleFormSubmit() {
     $('#facultyForm').on('submit', function(e) {
       e.preventDefault();
-      var facultyId = $('#faculty_id').val();
-      var formData = $('#facultyForm').serialize();
-      var $submitBtn = $('#saveFacultyBtn');
-      var originalText = $submitBtn.text();
-      $submitBtn.prop('disabled', true).text('Saving...');
+      const facultyId = $('#faculty_id').val();
+      const formData = $('#facultyForm').serialize();
+      const $submitBtn = $('#saveFacultyBtn');
+      const originalText = $submitBtn.text();
+
+      if (Utils && Utils.setLoadingState) {
+        Utils.setLoadingState($submitBtn, true, { loadingText: facultyId ? 'Updating...' : 'Saving...' });
+      } else {
+        $submitBtn.prop('disabled', true).text(facultyId ? 'Updating...' : 'Saving...');
+      }
+
       ApiService.saveFaculty(formData, facultyId || null)
         .done(function() {
           $('#facultyModal').modal('hide');
           $('#faculties-table').DataTable().ajax.reload(null, false);
-          Utils.showSuccess('Faculty has been saved successfully.');
+          if (Utils && Utils.showSuccess) {
+            Utils.showSuccess('Faculty has been saved successfully.', true);
+          }
           StatsManager.load();
         })
         .fail(function(xhr) {
-          var response = xhr.responseJSON;
-          if (response && response.errors && Object.keys(response.errors).length > 0) {
-            var errorMessages = [];
-            Object.keys(response.errors).forEach(function(field) {
-              if (Array.isArray(response.errors[field])) {
-                errorMessages = errorMessages.concat(response.errors[field]);
-              } else {
-                errorMessages.push(response.errors[field]);
-              }
-            });
-            Utils.showError(errorMessages.join('<br>'), 'facultyModal');
+          if (Utils && Utils.handleAjaxError) {
+            Utils.handleAjaxError(xhr, 'An error occurred. Please check your input.');
           } else {
-            var message = response && response.message ? response.message : 'An error occurred. Please check your input.';
-            Utils.showError(message, 'facultyModal');
+            let response = xhr.responseJSON;
+            let message = response && response.message ? response.message : 'An error occurred. Please check your input.';
+            alert(message);
           }
         })
         .always(function() {
-          $submitBtn.prop('disabled', false).text(originalText);
+          if (Utils && Utils.setLoadingState) {
+            Utils.setLoadingState($submitBtn, false, { normalText: originalText });
+          } else {
+            $submitBtn.prop('disabled', false).text(originalText);
+          }
         });
     });
   },
   /**
    * Bind edit faculty button
    */
-  handleEdit: function() {
+  handleEdit() {
     $(document).on('click', '.editFacultyBtn', function() {
-      var facultyId = $(this).data('id');
+      const facultyId = $(this).data('id');
       ApiService.fetchFaculty(facultyId)
         .done(function(response) {
-          var fac = response.data;
+          const fac = response.data;
           $('#faculty_id').val(fac.id);
           $('#name_en').val(fac.name_en);
           $('#name_ar').val(fac.name_ar);
           $('#facultyModal .modal-title').text('Edit Faculty');
           $('#saveFacultyBtn').text('Update');
           $('#facultyModal').modal('show');
+          if (Utils && Utils.clearValidation) {
+            Utils.clearValidation($('#facultyForm'));
+          }
         })
-        .fail(function() {
-          Utils.showError('Failed to fetch faculty data.', 'facultyModal');
+        .fail(function(xhr) {
+          if (Utils && Utils.handleAjaxError) {
+            Utils.handleAjaxError(xhr, 'Failed to fetch faculty data.');
+          } else {
+            alert('Failed to fetch faculty data.');
+          }
         });
     });
   },
   /**
    * Bind delete faculty button
    */
-  handleDelete: function() {
+  handleDelete() {
     $(document).on('click', '.deleteFacultyBtn', function() {
-      var facultyId = $(this).data('id');
-      Swal.fire({
-        title: 'Are you sure?',
-        text: "You won't be able to revert this!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, delete it!'
-      }).then(function(result) {
-        if (result.isConfirmed) {
+      const facultyId = $(this).data('id');
+      if (Utils && Utils.showConfirmDialog) {
+        Utils.showConfirmDialog({
+          title: 'Are you sure?',
+          text: "You won't be able to revert this!",
+          icon: 'warning',
+          confirmButtonText: 'Yes, delete it!',
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33'
+        }).then(function(result) {
+          if (result.isConfirmed) {
+            ApiService.deleteFaculty(facultyId)
+              .done(function() {
+                $('#faculties-table').DataTable().ajax.reload(null, false);
+                if (Utils && Utils.showSuccess) {
+                  Utils.showSuccess('Faculty has been deleted.', true);
+                }
+                StatsManager.load();
+              })
+              .fail(function(xhr) {
+                if (Utils && Utils.handleAjaxError) {
+                  Utils.handleAjaxError(xhr, 'Failed to delete faculty.');
+                } else {
+                  alert('Failed to delete faculty.');
+                }
+              });
+          }
+        });
+      } else {
+        // fallback
+        if (confirm('Are you sure you want to delete this faculty?')) {
           ApiService.deleteFaculty(facultyId)
             .done(function() {
               $('#faculties-table').DataTable().ajax.reload(null, false);
-              Utils.showSuccess('Faculty has been deleted.');
+              alert('Faculty has been deleted.');
               StatsManager.load();
             })
-            .fail(function(xhr) {
-              var response = xhr.responseJSON;
-              var message = response && response.message ? response.message : 'Failed to delete faculty.';
-              Utils.showError(message, 'facultyModal');
+            .fail(function() {
+              alert('Failed to delete faculty.');
             });
         }
-      });
+      }
     });
   },
   /**
    * Initialize all faculty manager handlers
    */
-  init: function() {
+  init() {
     this.handleAdd();
     this.handleFormSubmit();
     this.handleEdit();
@@ -462,20 +441,25 @@ var FacultyManager = {
 // ===========================
 // SEARCH MANAGER
 // ===========================
-var SearchManager = {
+const SearchManager = {
   /**
    * Bind search and clear events
    */
-  bindEvents: function() {
-    var searchTimeout;
-    $('#search_name').on('keyup change', function() {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(function() {
-        if ($.fn.DataTable.isDataTable('#faculties-table')) {
-          $('#faculties-table').DataTable().ajax.reload();
-        }
-      }, 500);
-    });
+  bindEvents() {
+    const reloadTable = Utils && Utils.debounce
+      ? Utils.debounce(function() {
+          if ($.fn.DataTable.isDataTable('#faculties-table')) {
+            $('#faculties-table').DataTable().ajax.reload();
+          }
+        }, 500)
+      : function() {
+          if ($.fn.DataTable.isDataTable('#faculties-table')) {
+            $('#faculties-table').DataTable().ajax.reload();
+          }
+        };
+
+    $('#search_name').on('keyup change', reloadTable);
+
     $('#clearFiltersBtn').on('click', function() {
       $('#search_name').val('');
       if ($.fn.DataTable.isDataTable('#faculties-table')) {
@@ -486,7 +470,7 @@ var SearchManager = {
   /**
    * Initialize search manager
    */
-  init: function() {
+  init() {
     this.bindEvents();
   }
 };
@@ -494,11 +478,11 @@ var SearchManager = {
 // ===========================
 // MAIN APP INITIALIZER
 // ===========================
-var FacultyManagementApp = {
+const FacultyManagementApp = {
   /**
    * Initialize all managers
    */
-  init: function() {
+  init() {
     StatsManager.init();
     FacultyManager.init();
     SearchManager.init();
