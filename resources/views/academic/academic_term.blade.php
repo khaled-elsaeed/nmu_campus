@@ -281,132 +281,6 @@ var ROUTES = {
 };
 
 // ===========================
-// UTILITY FUNCTIONS
-// ===========================
-var Utils = {
-    /**
-     * Shows success notification
-     * @param {string} message
-     */
-    showSuccess: function(message) {
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'success',
-            title: message,
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true
-        });
-    },
-    /**
-     * Shows error notification with modal handling
-     * @param {string} message
-     * @param {string|null} modalId
-     */
-    showError: function(message, modalId) {
-        if (modalId) {
-            var modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
-            if (modal) modal.hide();
-        }
-        $('.modal.show').each(function() {
-            var modal = bootstrap.Modal.getInstance(this);
-            if (modal) modal.hide();
-        });
-        setTimeout(function() {
-            Swal.fire({
-                title: 'Error',
-                html: message,
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        }, 300);
-    },
-    /**
-     * Shows information notification
-     * @param {string} title
-     * @param {string} message
-     */
-    showInfo: function(title, message) {
-        Swal.fire({
-            title: title,
-            html: message,
-            icon: 'info',
-            confirmButtonText: 'OK'
-        });
-    },
-    /**
-     * Shows/hides loading spinners and content for stat2 component
-     * @param {string} elementId
-     * @param {boolean} isLoading
-     */
-    toggleLoadingState: function(elementId, isLoading) {
-        var $value = $('#' + elementId + '-value');
-        var $loader = $('#' + elementId + '-loader');
-        var $updated = $('#' + elementId + '-last-updated');
-        var $updatedLoader = $('#' + elementId + '-last-updated-loader');
-        if (isLoading) {
-            $value.addClass('d-none');
-            $loader.removeClass('d-none');
-            $updated.addClass('d-none');
-            $updatedLoader.removeClass('d-none');
-        } else {
-            $value.removeClass('d-none');
-            $loader.addClass('d-none');
-            $updated.removeClass('d-none');
-            $updatedLoader.addClass('d-none');
-        }
-    },
-    /**
-     * Replaces :id placeholder in route URLs
-     * @param {string} route
-     * @param {number} id
-     * @returns {string}
-     */
-    replaceRouteId: function(route, id) {
-        return route.replace(':id', id);
-    },
-    /**
-     * Generates academic years for dropdowns
-     * @param {number} yearsBack
-     * @param {number} yearsForward
-     * @returns {Array}
-     */
-    generateAcademicYears: function(yearsBack, yearsForward) {
-        yearsBack = yearsBack || 5;
-        yearsForward = yearsForward || 3;
-        var currentYear = new Date().getFullYear();
-        var years = [];
-        for (var i = currentYear - yearsBack; i <= currentYear + yearsForward; i++) {
-            years.push(i + '-' + (i + 1));
-        }
-        return years.reverse();
-    },
-    /**
-     * Validates form fields
-     * @param {Object} formData
-     * @returns {Object}
-     */
-    validateForm: function(formData) {
-        var errors = [];
-        if (!formData.season) errors.push('Season is required');
-        if (!formData.year) {
-            errors.push('Year is required');
-        } else if (!/^\d{4}-\d{4}$/.test(formData.year)) {
-            errors.push('Year must be in format YYYY-YYYY (e.g., 2024-2025)');
-        }
-        if (!formData.semester_number) errors.push('Semester number is required');
-        if (!formData.start_date) errors.push('Start date is required');
-        if (formData.start_date && formData.end_date) {
-            var startDate = new Date(formData.start_date);
-            var endDate = new Date(formData.end_date);
-            if (endDate <= startDate) errors.push('End date must be after start date');
-        }
-        return { isValid: errors.length === 0, errors: errors };
-    }
-};
-
-// ===========================
 // API SERVICE
 // ===========================
 var ApiService = {
@@ -563,13 +437,35 @@ var StatsManager = {
         });
     },
     /**
+     * Toggle loading state for a single stat card
+     * @param {string} elementId
+     * @param {boolean} isLoading
+     */
+    toggleLoadingState: function(elementId, isLoading) {
+        var $value = $('#' + elementId + '-value');
+        var $loader = $('#' + elementId + '-loader');
+        var $updated = $('#' + elementId + '-last-updated');
+        var $updatedLoader = $('#' + elementId + '-last-updated-loader');
+        if (isLoading) {
+            $value.addClass('d-none');
+            $loader.removeClass('d-none');
+            $updated.addClass('d-none');
+            $updatedLoader.removeClass('d-none');
+        } else {
+            $value.removeClass('d-none');
+            $loader.addClass('d-none');
+            $updated.removeClass('d-none');
+            $updatedLoader.addClass('d-none');
+        }
+    },
+    /**
      * Toggle loading state for all stat cards
      * @param {boolean} isLoading
      */
     toggleAllLoadingStates: function(isLoading) {
         ['terms', 'active', 'inactive', 'current'].forEach(function(elementId) {
-            Utils.toggleLoadingState(elementId, isLoading);
-        });
+            this.toggleLoadingState(elementId, isLoading);
+        }, this);
     }
 };
 
@@ -577,11 +473,22 @@ var StatsManager = {
 // SEARCH MANAGER
 // ===========================
 var SearchManager = {
+
+    generateAcademicYears: function(yearsBack, yearsForward) {
+        yearsBack = yearsBack || 5;
+        yearsForward = yearsForward || 3;
+        var currentYear = new Date().getFullYear();
+        var years = [];
+        for (var i = currentYear - yearsBack; i <= currentYear + yearsForward; i++) {
+            years.push(i + '-' + (i + 1));
+        }
+        return years.reverse();
+    },
     /**
      * Populate search dropdowns with data
      */
     populateSearchDropdowns: function() {
-        var academicYears = Utils.generateAcademicYears();
+        var academicYears = SearchManager.generateAcademicYears();
         var $yearSelect = $('#search_year');
         $yearSelect.find('option:not(:first)').remove();
         academicYears.forEach(function(year) {
@@ -654,6 +561,28 @@ var TermManager = {
         });
     },
     /**
+     * Validates form fields
+     * @param {Object} formData
+     * @returns {Object}
+     */
+    validateForm: function(formData) {
+        var errors = [];
+        if (!formData.season) errors.push('Season is required');
+        if (!formData.year) {
+            errors.push('Year is required');
+        } else if (!/^\d{4}-\d{4}$/.test(formData.year)) {
+            errors.push('Year must be in format YYYY-YYYY (e.g., 2024-2025)');
+        }
+        if (!formData.semester_number) errors.push('Semester number is required');
+        if (!formData.start_date) errors.push('Start date is required');
+        if (formData.start_date && formData.end_date) {
+            var startDate = new Date(formData.start_date);
+            var endDate = new Date(formData.end_date);
+            if (endDate <= startDate) errors.push('End date must be after start date');
+        }
+        return { isValid: errors.length === 0, errors: errors };
+    },
+    /**
      * Handles term form submission
      */
     handleTermFormSubmit: function() {
@@ -663,9 +592,9 @@ var TermManager = {
             var formData = new FormData(e.target);
             var formObject = {};
             formData.forEach(function(value, key) { formObject[key] = value; });
-            var validation = Utils.validateForm(formObject);
+            var validation = TermManager.validateForm(formObject);
             if (!validation.isValid) {
-                Utils.showError(validation.errors.join('<br>'));
+                Utils.showError(validation.errors.join('<br>'), 'termModal');
                 return;
             }
             var $submitBtn = $('#saveTermBtn');

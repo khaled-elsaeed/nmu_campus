@@ -4,9 +4,10 @@ namespace App\Services\Auth;
 
 use App\Models\User;
 use App\Models\StudentArchive;
-use App\Events\UserRegistered;
 use Illuminate\Support\Facades\Hash;
 use App\Exceptions\BusinessValidationException;
+use App\Events\UserRegistered;
+use Illuminate\Support\Facades\DB;
 
 class AuthRegisterService
 {
@@ -19,16 +20,19 @@ class AuthRegisterService
      */
     public function register(array $validated): User
     {
-        $studentArchive = $this->getStudentArchive($validated['national_id']);
+        return DB::transaction(function () use ($validated) {
+            $studentArchive = $this->getStudentArchive($validated['national_id']);
 
-        $this->validateStudentArchive($studentArchive);
+            $this->validateStudentArchive($studentArchive);
 
-        $user = $this->createUserFromArchive($studentArchive);
+            $user = $this->createUserFromArchive($studentArchive);
 
-        // Fire the UserRegistered event to trigger email verification
-        event(new UserRegistered($user));
+            $studentArchive = $this->attachUserToArchive($studentArchive, $user);
 
-        return $user;
+            event(new UserRegistered($user));
+
+            return $user;
+        });
     }
 
     /**
@@ -70,7 +74,6 @@ class AuthRegisterService
         $user = new User();
 
         // Basic information
-        $user->national_id = $studentArchive->national_id;
         $user->gender = $studentArchive->gender;
         $user->email = $studentArchive->email;
         
@@ -81,13 +84,16 @@ class AuthRegisterService
         // Set default password as national ID
         $user->password = Hash::make($studentArchive->national_id);
         $user->force_change_password = true;
-        
-        // Set email verification timestamp to null (unverified)
-        $user->email_verified_at = null;
 
         $user->save();
 
         return $user;
+    }
+
+    private function attachUserToArchive(StudentArchive $studentArchive, User $user)
+    {
+        $studentArchive->user_id = $user->id;
+        $studentArchive->save();
     }
 
     /**

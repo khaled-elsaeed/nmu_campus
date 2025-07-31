@@ -1,20 +1,20 @@
 <?php
 
-use App\Http\Controllers\CityController;
+use App\Http\Controllers\Geography\CountryController;
 use Illuminate\Support\Facades\Route;
 
 // ====================
-// City Routes
+// Country Routes
 // ====================
 
-Route::prefix('cities')
-    ->name('cities.')
-    ->controller(CityController::class)
+Route::prefix('countries')
+    ->name('countries.')
+    ->controller(CountryController::class)
     ->group(function () {
         // ===== Specific Routes First =====
         Route::get('datatable', 'datatable')->name('datatable');
         Route::get('stats', 'stats')->name('stats');
-        Route::get('all/{governorateId}', 'all')->name('all');
+        Route::get('all', 'all')->name('all');
 
         // ===== CRUD Operations =====
         // List & View
@@ -30,4 +30,4 @@ Route::prefix('cities')
         
         // Delete
         Route::delete('{id}', 'destroy')->name('destroy');
-    }); 
+    });

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Geography;
 
 use App\Models\Governorate;
 use Illuminate\Http\Request;

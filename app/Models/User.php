@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -18,7 +19,7 @@ use App\Models\EmergencyContact;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -84,6 +85,21 @@ class User extends Authenticatable
                 $attributes['name_en'] ??
                 $attributes['name_ar'] ??
                 null
+        );
+    }
+
+    /**
+     * Get the user's last login formatted as a readable string.
+     *
+     * @return Attribute
+     */
+    protected function lastLogin(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value, $attributes) =>
+                isset($attributes['last_login']) && $attributes['last_login']
+                    ? formatDate($attributes['last_login'])
+                    : null
         );
     }
 
@@ -171,5 +187,27 @@ class User extends Authenticatable
             return $this->student();
         }
         return null;
+    }
+
+    /**
+     * Determine if the user has verified their email address.
+     *
+     * @return bool
+     */
+    public function hasVerifiedEmail(): bool
+    {
+        return !is_null($this->email_verified_at);
+    }
+
+    /**
+     * Mark the given user's email as verified.
+     *
+     * @return bool
+     */
+    public function markEmailAsVerified(): bool
+    {
+        return $this->forceFill([
+            'email_verified_at' => $this->freshTimestamp(),
+        ])->save();
     }
 }

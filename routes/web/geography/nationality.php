@@ -1,15 +1,15 @@
 <?php
 
-use App\Http\Controllers\CountryController;
+use App\Http\Controllers\Geography\NationalityController;
 use Illuminate\Support\Facades\Route;
 
 // ====================
-// Country Routes
+// Nationality Routes
 // ====================
 
-Route::prefix('countries')
-    ->name('countries.')
-    ->controller(CountryController::class)
+Route::prefix('nationalities')
+    ->name('nationalities.')
+    ->controller(NationalityController::class)
     ->group(function () {
         // ===== Specific Routes First =====
         Route::get('datatable', 'datatable')->name('datatable');

@@ -122,6 +122,7 @@ class SetLocale
             'horizon/*',
             'nova/*',
             'livewire/*',
+            'email/verify*',
         ];
         
         foreach ($excludedPaths as $excludedPath) {

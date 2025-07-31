@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LanguageController;
 use App\Models\Reservation\Reservation;
 use App\Notifications\ReservationActivated;
+use App\Http\Controllers\HomeController;
 
 Route::get('/language/{locale}', [LanguageController::class, 'switchLanguage'])
     ->name('language.switch')
@@ -14,11 +15,6 @@ Route::group([
     'where' => ['locale' => '[a-zA-Z]{2}'],
 ], function () {
 
-    // ====================
-    // Home Routes
-    // ====================
-    Route::get('/', fn () => view('home.admin'));
-    Route::get('/home', fn () => view('home.admin'))->name('home');
 
     // ====================
     // Housing Routes
@@ -57,6 +53,7 @@ Route::group([
     // Reservation & Equipment & User
     // ====================
     require __DIR__.'/web/reservation/reservation.php';
+    require __DIR__.'/web/reservation/my_reservation.php';
     require __DIR__.'/web/equipment.php';
     require __DIR__.'/web/user.php';
     require __DIR__.'/web/reservation/reservation_request.php';
@@ -75,20 +72,19 @@ Route::group([
     // ====================
     // Location Routes
     // ====================
-    require __DIR__.'/web/countries.php';
-    require __DIR__.'/web/nationalities.php';
-    require __DIR__.'/web/city.php';
-
-    Route::prefix('governorates')->name('governorates.')->group(function () {
-        require __DIR__.'/web/governorate.php';
-    });
-
+    require __DIR__.'/web/geography/country.php';
+    require __DIR__.'/web/geography/nationality.php';
+    require __DIR__.'/web/geography/city.php';
+    require __DIR__.'/web/geography/governorate.php';
 
     // ====================
     // Test/Debug Routes
     // ====================
     Route::get('/notification', function () {
         $reservation = Reservation::find(1);
+        if (!$reservation || !$reservation->user) {
+            abort(404, 'Reservation or user not found.');
+        }
         return (new ReservationActivated($reservation))
             ->toMail($reservation->user);
     });
@@ -97,4 +93,25 @@ Route::group([
         return view('complete-profile');
     });
 
+    require __DIR__.'/web/auth/login.php';
+    require __DIR__.'/web/auth/register.php';
+    require __DIR__.'/web/auth/password.php';
+
+    Route::middleware(['auth'])->group(function () {
+
+        // Main landing after login (neutral)
+        Route::get('/home', [HomeController::class, 'index'])->name('home');
+    
+        // Analytics/reporting section
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+        // User profile/settings
+        Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+    });
 });
+
+// ====================
+// Auth Routes
+// ====================
+require __DIR__.'/web/auth/email_verification.php';
+

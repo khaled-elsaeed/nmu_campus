@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             DepartmentSeeder::class,
             StaffCategorySeeder::class,
             EquipmentSeeder::class,
+            RolePermissionSeeder::class,
         ]);
     }
 }
