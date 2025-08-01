@@ -6,7 +6,7 @@ Route::prefix('apartments')->name('apartments.')->group(function () {
     Route::get('/', [ApartmentController::class, 'index'])->name('index');
     Route::get('/datatable', [ApartmentController::class, 'datatable'])->name('datatable');
     Route::get('/stats', [ApartmentController::class, 'stats'])->name('stats');
-    Route::get('/all', [ApartmentController::class, 'all'])->name('all');
+    Route::get('/{id}/all', [ApartmentController::class, 'all'])->name('all');
     Route::get('/{id}', [ApartmentController::class, 'show'])->name('show');
     Route::put('/{id}', [ApartmentController::class, 'update'])->name('update');
     Route::delete('/{id}', [ApartmentController::class, 'destroy'])->name('destroy');

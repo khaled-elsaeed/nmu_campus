@@ -70,7 +70,7 @@ class ApartmentService
     public function deleteApartment($id): void
     {
         $apartment = Apartment::findOrFail($id);
-        $room = $apartment->rooms()->where('capacity', '>', 1)->first();
+        $room = $apartment->rooms()->where('current_occupancy', '>', 0)->first();
         if ($room) {
             throw new BusinessValidationException(
                 "Cannot delete apartment: Room #{$room->number} has active reservation."
@@ -80,15 +80,14 @@ class ApartmentService
     }
 
     /**
-     * Get all apartments.
+     * Get all apartments for a specific building.
      *
+     * @param int $buildingId
      * @return array
      */
-    public function getAll(int $buildingId = null): array
+    public function getAll(int $buildingId): array
     {
-        return Apartment::when($buildingId, function ($query, $buildingId) {
-                return $query->where('building_id', $buildingId);
-            })
+        return Apartment::where('building_id', $buildingId)
             ->select(['id', 'number'])
             ->get()
             ->map(function ($apartment) {
@@ -124,15 +123,15 @@ class ApartmentService
         })->max('updated_at');
 
         return [
-            'total' => [
+            'apartments' => [
                 'count' => formatNumber($total),
                 'lastUpdateTime' => formatDate($lastUpdate),
             ],
-            'male' => [
+            'apartments-male' => [
                 'count' => formatNumber($male),
                 'lastUpdateTime' => formatDate($maleLastUpdate),
             ],
-            'female' => [
+            'apartments-female' => [
                 'count' => formatNumber($female),
                 'lastUpdateTime' => formatDate($femaleLastUpdate),
             ],
@@ -183,10 +182,11 @@ class ApartmentService
         if (!empty($searchActive)) {
             $query->where('active', $searchActive);
         }
-        $searchApartmentNumber = request('search_apartment_number');
-        if (!empty($searchApartmentNumber)) {
-            $query->where('number', 'like', "%$searchApartmentNumber%");
+        $searchApartmentId = request('search_apartment_id');
+        if (!empty($searchApartmentId)) {
+            $query->where('apartments.id', $searchApartmentId);
         }
+
         $searchBuildingId = request('search_building_id');
         if (!empty($searchBuildingId)) {
             $query->where('building_id', $searchBuildingId);
@@ -194,7 +194,7 @@ class ApartmentService
         $searchGenderRestriction = request('search_gender_restriction');
         if (!empty($searchGenderRestriction)) {
             $query->whereHas('building', function ($q) use ($searchGenderRestriction) {
-                $q->where('gender_restriction', $searchGenderRestriction);
+                $q->where('buildings.gender_restriction', $searchGenderRestriction);
             });
         }
         return $query;
@@ -208,8 +208,13 @@ class ApartmentService
      */
     public function renderActionButtons(Apartment $apartment): string
     {
-        $actions = ['edit', 'delete'];
         $singleActions = [];
+        $singleActions[] = [
+            'action' => 'delete',
+            'icon' => 'bx bx-trash',
+            'class' => 'btn-danger',
+            'label' => 'Delete'
+        ];
         $singleActions[] = [
             'action' => $apartment->active ? 'deactivate' : 'activate',
             'icon' => $apartment->active ? 'bx bx-toggle-left' : 'bx bx-toggle-right',
@@ -217,8 +222,8 @@ class ApartmentService
             'label' => $apartment->active ? 'Deactivate' : 'Activate'
         ];
         return view('components.ui.datatable.data-table-actions', [
-            'mode' => 'both',
-            'actions' => $actions,
+            'mode' => 'single',
+            'actions' => [],
             'id' => $apartment->id,
             'type' => 'Apartment',
             'singleActions' => $singleActions

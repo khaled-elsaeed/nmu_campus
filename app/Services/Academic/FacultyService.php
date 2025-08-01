@@ -115,15 +115,15 @@ class FacultyService
         $withoutProgramsLastUpdate = Faculty::doesntHave('programs')->max('updated_at');
 
         return [
-            'total' => [
+            'faculties' => [
                 'count' => formatNumber($total),
                 'lastUpdateTime' => formatDate($totalLastUpdate)
             ],
-            'withPrograms' => [
+            'with-programs' => [
                 'count' => formatNumber($withPrograms),
                 'lastUpdateTime' => formatDate($withProgramsLastUpdate)
             ],
-            'withoutPrograms' => [
+            'without-programs' => [
                 'count' => formatNumber($withoutPrograms),
                 'lastUpdateTime' => formatDate($withoutProgramsLastUpdate)
             ]

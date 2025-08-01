@@ -69,14 +69,14 @@ const Utils = {
     });
   },
 
-
   /**
    * Set loading state for a button
-   * @param {jQuery} $btn - Button element
+   * @param {string} btn - Button selector
    * @param {boolean} isLoading - Whether button is in loading state
    * @param {Object} options - Configuration options
    */
-  setLoadingState($btn, isLoading, options = {}) {
+  setLoadingState(btn, isLoading, options = {}) {
+    const $btn = $(btn);
     const defaults = {
       loadingText: 'Loading...',
       loadingIcon: 'bx bx-loader-alt bx-spin me-1',
@@ -86,12 +86,41 @@ const Utils = {
     const config = { ...defaults, ...options };
 
     if (isLoading) {
-      $btn.prop('disabled', true)
-          .html(`<i class="${config.loadingIcon}"></i>${config.loadingText}`);
+      Utils.disable(btn, true);
+      $btn.html(`<i class="${config.loadingIcon}"></i>${config.loadingText}`);
     } else {
-      $btn.prop('disabled', false)
-          .html(`<i class="${config.normalIcon}"></i>${config.normalText}`);
+      Utils.disable(btn, false);
+      $btn.html(`<i class="${config.normalIcon}"></i>${config.normalText}`);
     }
+  },
+
+  /**
+   * Set the text content of an element
+   * @param {string} selector - Selector string
+   * @param {string} text - Text to set
+   */
+  setElementText(selector, text) {
+    const $el = $(selector);
+    $el.text(text);
+  },
+
+  /**
+   * Disable or enable a button
+   * @param {string} btn - Selector string for the button
+   * @param {boolean} disabled - true to disable, false to enable
+   */
+  disableButton(btn, disabled = true) {
+    Utils.disable(btn, disabled);
+  },
+
+  /**
+   * Disable or enable an element (generic utility)
+   * @param {string} el - Selector string for the element
+   * @param {boolean} disabled - true to disable, false to enable
+   */
+  disable(el, disabled = true) {
+    const $el = $(el);
+    $el.prop('disabled', !!disabled);
   },
 
   /**
@@ -182,11 +211,12 @@ const Utils = {
 
   /**
    * Validate form field
-   * @param {jQuery} $field - Field to validate
+   * @param {string} field - Field selector
    * @param {string} message - Validation message
    * @param {boolean} isValid - Whether field is valid
    */
-  validateField($field, message, isValid) {
+  validateField(field, message, isValid) {
+    const $field = $(field);
     const $feedback = $field.siblings('.invalid-feedback');
     
     if (isValid) {
@@ -204,9 +234,10 @@ const Utils = {
 
   /**
    * Clear validation states from form
-   * @param {jQuery} $form - Form element
+  * @param {string} form - Form selector
    */
-  clearValidation($form) {
+  clearValidation(form) {
+    const $form = $(form);
     $form.find('.is-invalid, .is-valid').removeClass('is-invalid is-valid');
     $form.find('.invalid-feedback').text('');
   },
@@ -355,8 +386,8 @@ const Utils = {
        * @param {string} lastUpdateTime - Last update time
        */
       updateStatElement(elementId, value, lastUpdateTime) {
-        $(`#${elementId}-value`).text(value ?? '0');
-        $(`#${elementId}-last-updated`).text(lastUpdateTime ?? '--');
+        Utils.setElementText(`#${elementId}-value`, value ?? '0');
+        Utils.setElementText(`#${elementId}-last-updated`, lastUpdateTime ?? '--');
       },
 
       /**
@@ -364,8 +395,8 @@ const Utils = {
        */
       setAllStatsToNA() {
         settings.statsKeys.forEach(elementId => {
-          $(`#${elementId}-value`).text('N/A');
-          $(`#${elementId}-last-updated`).text('N/A');
+          Utils.setElementText(`#${elementId}-value`, 'N/A');
+          Utils.setElementText(`#${elementId}-last-updated`, 'N/A');
         });
       },
 
@@ -422,7 +453,7 @@ const Utils = {
 
   /**
    * Populate a <select> element with options.
-   * @param {jQuery} $select - jQuery object for the select element
+   * @param {string} select - Selector string for the select element
    * @param {Array} items - Array of items to populate. Each item can be an object or a string/number.
    * @param {Object} options - Optional config:
    *   - valueField: property name for option value (default: 'id')
@@ -432,9 +463,10 @@ const Utils = {
    *   - includePlaceholder: whether to include placeholder (default: true)
    * @param {boolean} isSelect2 - true if select2 is used, false for normal select (default: false)
    */
-  populateSelect($select, items, options = {}, isSelect2 = false) {
-    // Always treat $select as a jQuery object
-    // (Assume all callers pass a jQuery object)
+  populateSelect(select, items, options = {}, isSelect2 = false) {
+    // Always expect a selector string for select
+    const $select = $(select);
+
     const {
       valueField = 'id',
       textField = 'name',
@@ -476,10 +508,11 @@ const Utils = {
 
   /**
    * Initialize select2 on a select element with optional config.
-   * @param {jQuery} $select - jQuery object for the select element
+   * @param {string} select - Selector string for the select element
    * @param {Object} options - select2 options (optional)
    */
-  initSelect2($select, options = {}) {
+  initSelect2(select, options = {}) {
+    const $select = $(select);
     if ($select.length > 0) {
 
       // If select2 is already applied, destroy it first
@@ -497,85 +530,74 @@ const Utils = {
       });
     }
   },
-/**
-     * Reload DataTable if it exists
-     * @param {string} tableSelector - Table selector 
-     * @param {Function|null} callback - Callback function after reload (optional)
-     * @param {boolean} resetPaging - Whether to reset paging (default: false)
-     * @param {boolean} holdPosition - Whether to hold current position (default: true)
-     * @returns {boolean} - Returns true if table was reloaded, false if not a DataTable
-     */
-reloadDataTable(tableSelector, callback = null, resetPaging = false, holdPosition = true) {
-  try {
-    let $table;
-      $table = $(tableSelector);
 
-    // Check if element exists and is a DataTable
-    if ($table.length === 0) {
-      console.warn('DataTable reload: Table element not found');
-      return false;
-    }
+  /**
+   * Reload DataTable if it exists
+   * @param {string} tableSelector - Table selector 
+   * @param {Function|null} callback - Callback function after reload (optional)
+   * @param {boolean} resetPaging - Whether to reset paging (default: false)
+   * @param {boolean} holdPosition - Whether to hold current position (default: true)
+   * @returns {boolean} - Returns true if table was reloaded, false if not a DataTable
+   */
+  reloadDataTable(tableSelector, callback = null, resetPaging = false, holdPosition = true) {
+    try {
+      let $table = $(tableSelector);
 
-    if (!$.fn.DataTable.isDataTable($table)) {
-      console.warn('DataTable reload: Element is not a DataTable');
-      return false;
-    }
-    
+      // Check if element exists and is a DataTable
+      if ($table.length === 0) {
+        console.warn('DataTable reload: Table element not found');
+        return false;
+      }
 
-    // Reload the DataTable
-    $table.DataTable().ajax.reload(callback, !resetPaging);
-    return true;
+      if (!$.fn.DataTable.isDataTable($table)) {
+        console.warn('DataTable reload: Element is not a DataTable');
+        return false;
+      }
 
-  } catch (error) {
-    console.error('DataTable reload error:', error);
-    return false;
-  }
-},
-
-
-/**
- * Check if element is a DataTable
- * @param {string|jQuery} tableSelector - Table selector or jQuery object
- * @returns {boolean} - Whether element is a DataTable
- */
-isDataTable(tableSelector) {
-  try {
-    let $table;
-    $table = $(tableSelector);
-    return $table.length > 0 && $.fn.DataTable.isDataTable($table);
-  } catch (error) {
-    return false;
-  }
-},
-
-/**
- * Destroy DataTable if it exists
- * @param {string|jQuery} tableSelector - Table selector or jQuery object
- * @param {boolean} remove - Whether to remove from DOM (default: false)
- * @returns {boolean} - Whether DataTable was destroyed
- */
-destroyDataTable(tableSelector, remove = false) {
-  try {
-    let $table;
-    
-    if (typeof tableSelector === 'string') {
-      $table = $(tableSelector);
-    } else if (tableSelector instanceof jQuery) {
-      $table = tableSelector;
-    } else {
-      return false;
-    }
-
-    if ($table.length > 0 && $.fn.DataTable.isDataTable($table)) {
-      $table.DataTable().destroy(remove);
+      // Reload the DataTable
+      $table.DataTable().ajax.reload(callback, !resetPaging);
       return true;
+
+    } catch (error) {
+      console.error('DataTable reload error:', error);
+      return false;
     }
-    
-    return false;
-  } catch (error) {
-    console.error('DataTable destroy error:', error);
-    return false;
-  }
-},
+  },
+
+  /**
+   * Check if element is a DataTable
+   * @param {string} tableSelector - Table selector (string)
+   * @returns {boolean} - Whether element is a DataTable
+   */
+  isDataTable(tableSelector) {
+    try {
+      let $table = $(tableSelector);
+      return $table.length > 0 && $.fn.DataTable.isDataTable($table);
+    } catch (error) {
+      return false;
+    }
+  },
+
+  /**
+   * Destroy DataTable if it exists
+   * @param {string} tableSelector - Table selector (string)
+   * @param {boolean} remove - Whether to remove from DOM (default: false)
+   * @returns {boolean} - Whether DataTable was destroyed
+   */
+  destroyDataTable(tableSelector, remove = false) {
+    try {
+      let $table = $(tableSelector);
+
+      if ($table.length > 0 && $.fn.DataTable.isDataTable($table)) {
+        $table.DataTable().destroy(remove);
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('DataTable destroy error:', error);
+      return false;
+    }
+  },
 
 };

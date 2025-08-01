@@ -8,13 +8,13 @@
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="primary" icon="bx bx-buildings" label="Total Buildings" id="buildings" />
+            <x-ui.card.stat2 color="secondary" icon="bx bx-buildings" label="Total Buildings" id="buildings" />
         </div>
         <div class="col-sm-6 col-xl-4">
             <x-ui.card.stat2 color="info" icon="bx bx-male" label="Male Buildings" id="buildings-male" />
         </div>
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="pink" icon="bx bx-female" label="Female Buildings" id="buildings-female" />
+            <x-ui.card.stat2 color="danger" icon="bx bx-female" label="Female Buildings" id="buildings-female" />
         </div>
     </div>
 
@@ -24,12 +24,14 @@
         description="Manage buildings and their associated apartments."
         icon="bx bx-buildings"
     >
-        <button class="btn btn-primary mx-2" id="addBuildingBtn">
-            <i class="bx bx-plus me-1"></i> Add Building
-        </button>
-        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#buildingSearchCollapse" aria-expanded="false" aria-controls="buildingSearchCollapse">
-            <i class="bx bx-search"></i>
-        </button>
+        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
+            <button class="btn btn-primary mx-2" id="addBuildingBtn" type="button" data-bs-toggle="modal" data-bs-target="#buildingModal">
+                <i class="bx bx-plus me-1"></i> Add Building
+            </button>
+            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#buildingSearchCollapse" aria-expanded="false" aria-controls="buildingSearchCollapse">
+                <i class="bx bx-filter-alt me-1"></i> Search
+            </button>
+        </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
@@ -205,22 +207,19 @@ var ROUTES = {
 // ===========================
 var ApiService = {
   /**
-   * Generic AJAX request
-   * @param {object} options
-   * @returns {jqXHR}
-   */
-  request: function(options) {
-    // Use Utils.handleAjaxError for error handling in all requests
-    options.headers = options.headers || {};
-    options.headers['X-CSRF-TOKEN'] = $('meta[name="csrf-token"]').attr('content');
-    return $.ajax(options);
-  },
+     * Generic AJAX request
+     * @param {object} options
+     * @returns {jqXHR}
+     */
+    request(options) {
+        return $.ajax(options);
+    },
   /**
    * Fetch building statistics
    * @returns {jqXHR}
    */
   fetchStats: function() {
-    return this.request({ url: ROUTES.buildings.stats, method: 'GET' });
+    return ApiService.request({ url: ROUTES.buildings.stats, method: 'GET' });
   },
   /**
    * Fetch a single building by ID
@@ -228,8 +227,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   fetchBuilding: function(id) {
-    // Use Utils.replaceRouteId
-    return this.request({ url: Utils.replaceRouteId(ROUTES.buildings.show, id), method: 'GET' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.buildings.show, id), method: 'GET' });
   },
   /**
    * Save (update) a building
@@ -238,7 +236,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   saveBuilding: function(data, id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.buildings.update, id), method: 'PUT', data: data });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.buildings.update, id), method: 'PUT', data: data });
   },
   /**
    * Create a new building
@@ -246,7 +244,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   createBuilding: function(data) {
-    return this.request({ url: ROUTES.buildings.store, method: 'POST', data: data });
+    return ApiService.request({ url: ROUTES.buildings.store, method: 'POST', data: data });
   },
   /**
    * Delete a building by ID
@@ -254,7 +252,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   deleteBuilding: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.buildings.destroy, id), method: 'DELETE' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.buildings.destroy, id), method: 'DELETE' });
   },
   /**
    * Activate a building by ID
@@ -262,7 +260,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   activateBuilding: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.buildings.activate, id), method: 'PATCH' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.buildings.activate, id), method: 'PATCH' });
   },
   /**
    * Deactivate a building by ID
@@ -270,104 +268,18 @@ var ApiService = {
    * @returns {jqXHR}
    */
   deactivateBuilding: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.buildings.deactivate, id), method: 'PATCH' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.buildings.deactivate, id), method: 'PATCH' });
   }
 };
 
 // ===========================
 // STATISTICS MANAGER
 // ===========================
-var StatsManager = {
-  /**
-   * Initialize statistics cards
-   */
-  init: function() {
-    this.load();
-  },
-  /**
-   * Load statistics data
-   */
-  load: function() {
-    this.toggleAllLoadingStates(true);
-    ApiService.fetchStats()
-      .done(this.handleSuccess.bind(this))
-      .fail(this.handleError.bind(this))
-      .always(this.toggleAllLoadingStates.bind(this, false));
-  },
-  /**
-   * Handle successful stats fetch
-   * @param {object} response
-   */
-  handleSuccess: function(response) {
-    if (response.success) {
-      let stats = response.data;
-      this.updateStatElement('buildings', stats.total.count, stats.total.lastUpdateTime);
-      this.updateStatElement('buildings-male', stats.male.count, stats.male.lastUpdateTime);
-      this.updateStatElement('buildings-female', stats.female.count, stats.female.lastUpdateTime);
-    } else {
-      this.setAllStatsToNA();
-    }
-  },
-  /**
-   * Handle error in stats fetch
-   */
-  handleError: function(xhr) {
-    this.setAllStatsToNA();
-    // Use Utils.showError
-    Utils.showError('Failed to load building statistics');
-  },
-  /**
-   * Update a single stat card
-   * @param {string} elementId
-   * @param {string|number} value
-   * @param {string} lastUpdateTime
-   */
-  updateStatElement: function(elementId, value, lastUpdateTime) {
-    // Use Utils.isEmpty for null/undefined check
-    $('#' + elementId + '-value').text(Utils.isEmpty(value) ? '0' : value);
-    $('#' + elementId + '-last-updated').text(Utils.isEmpty(lastUpdateTime) ? '--' : lastUpdateTime);
-  },
-  /**
-   * Set all stat cards to N/A
-   */
-  setAllStatsToNA: function() {
-    ['buildings', 'buildings-male', 'buildings-female'].forEach(function(elementId) {
-      $('#' + elementId + '-value').text('N/A');
-      $('#' + elementId + '-last-updated').text('N/A');
-    });
-  },
-  /**
-   * Toggle loading state for a stat card
-   * @param {string} elementId
-   * @param {boolean} isLoading
-   */
-  toggleLoadingState: function(elementId, isLoading) {
-    var $value = $('#' + elementId + '-value');
-    var $loader = $('#' + elementId + '-loader');
-    var $updated = $('#' + elementId + '-last-updated');
-    var $updatedLoader = $('#' + elementId + '-last-updated-loader');
-    if (isLoading) {
-      $value.addClass('d-none');
-      $loader.removeClass('d-none');
-      $updated.addClass('d-none');
-      $updatedLoader.removeClass('d-none');
-    } else {
-      $value.removeClass('d-none');
-      $loader.addClass('d-none');
-      $updated.removeClass('d-none');
-      $updatedLoader.addClass('d-none');
-    }
-  },
-  /**
-   * Toggle loading state for all stat cards
-   * @param {boolean} isLoading
-   */
-  toggleAllLoadingStates: function(isLoading) {
-    ['buildings', 'buildings-male', 'buildings-female'].forEach((elementId) => {
-      this.toggleLoadingState(elementId, isLoading);
-    });
-  }
-};
+var StatsManager = Utils.createStatsManager({
+  apiMethod: ApiService.fetchStats,
+  statsKeys: ['buildings', 'buildings-male', 'buildings-female'],
+  onError: 'Failed to load building statistics'
+});
 
 // ===========================
 // BUILDING MANAGER
@@ -447,13 +359,10 @@ var BuildingManager = {
       e.preventDefault();
       var $btn = $(e.currentTarget);
       var id = $btn.data('id');
-      // Use Utils.showConfirmDialog
       Utils.showConfirmDialog({
         title: 'Activate Building?',
         text: 'Are you sure you want to activate this building? This will make it available for use.',
         icon: 'question',
-        confirmButtonColor: '#28a745',
-        cancelButtonColor: '#6c757d',
         confirmButtonText: 'Yes, activate!',
         cancelButtonText: 'Cancel'
       }).then(function(result) {
@@ -462,8 +371,8 @@ var BuildingManager = {
           ApiService.activateBuilding(id)
             .done(function(response) {
               Utils.showSuccess(response.message || 'Building activated successfully.');
-              $('#buildings-table').DataTable().ajax.reload(null, false);
-              StatsManager.load();
+              Utils.reloadDataTable('#buildings-table', null, true);
+              StatsManager.refresh();
             })
             .fail(function(xhr) {
               Utils.handleAjaxError(xhr, 'Failed to activate building.');
@@ -483,8 +392,6 @@ var BuildingManager = {
         title: 'Deactivate Building?',
         text: 'Are you sure you want to deactivate this building? This will make it unavailable for new reservations.',
         icon: 'warning',
-        confirmButtonColor: '#ffc107',
-        cancelButtonColor: '#6c757d',
         confirmButtonText: 'Yes, deactivate!',
         cancelButtonText: 'Cancel'
       }).then(function(result) {
@@ -493,8 +400,8 @@ var BuildingManager = {
           ApiService.deactivateBuilding(id)
             .done(function(response) {
               Utils.showSuccess(response.message || 'Building deactivated successfully.');
-              $('#buildings-table').DataTable().ajax.reload(null, false);
-              StatsManager.load();
+              Utils.reloadDataTable('#buildings-table', null, true);
+              StatsManager.refresh();
             })
             .fail(function(xhr) {
               Utils.handleAjaxError(xhr, 'Failed to deactivate building.');
@@ -523,7 +430,6 @@ var BuildingManager = {
    * @param {string} formId
    */
   resetForm: function(formId) {
-    // Use Utils.clearValidation and reset
     var $form = $('#' + formId);
     $form[0].reset();
     Utils.clearValidation($form);
@@ -564,15 +470,14 @@ var BuildingManager = {
    */
   populateEditForm: function(building) {
     $('#building_number').val(building.number).prop('disabled', false);
-    $('#building_gender_restriction').val(building.gender_restriction).prop('disabled', false);
     $('.edit-hide').hide().find('input, select, textarea').prop('required', false).prop('disabled', true);
-    $('#has_double_rooms').prop('checked', building.has_double_rooms).prop('disabled', false);
-    if (building.has_double_rooms) {
-      $('#apartments-double-rooms-section').show();
-      DoubleRoomManager.renderDoubleRoomSelectors();
-    } else {
-      $('#apartments-double-rooms-section').hide().empty();
-    }
+    Utils.populateSelect('#building_gender_restriction', [{ id: 'male', name: 'Male' }, { id: 'female', name: 'Female' }], {
+      valueField: 'id',
+      textField: 'name',
+      placeholder: 'Select Gender Restriction',
+      selected: building.gender,
+      includePlaceholder: true
+    });
   },
   /**
    * View building details
@@ -625,9 +530,9 @@ var BuildingManager = {
    */
   handleSaveSuccess: function() {
     $('#buildingModal').modal('hide');
-    $('#buildings-table').DataTable().ajax.reload(null, false);
+    Utils.reloadDataTable('#buildings-table', null, true);
     Utils.showSuccess('Building has been saved successfully.');
-    StatsManager.load();
+    StatsManager.refresh();
   },
   /**
    * Handle save error
@@ -656,9 +561,9 @@ var BuildingManager = {
   performDelete: function(buildingId) {
     ApiService.deleteBuilding(buildingId)
       .done(function() {
-        $('#buildings-table').DataTable().ajax.reload(null, false);
+        Utils.reloadDataTable('#buildings-table', null, true);
         Utils.showSuccess('Building has been deleted.');
-        StatsManager.load();
+        StatsManager.refresh();
       })
       .fail(function(xhr) {
         Utils.handleAjaxError(xhr, 'Failed to delete building.');
@@ -688,7 +593,7 @@ var SearchManager = {
    */
   initializeAdvancedSearch: function() {
     $('#search_gender_restriction, #search_active').on('keyup change', function() {
-      $('#buildings-table').DataTable().ajax.reload();
+      Utils.reloadDataTable('#buildings-table');
     });
   },
   /**
@@ -697,7 +602,7 @@ var SearchManager = {
   handleClearFilters: function() {
     $('#clearBuildingFiltersBtn').on('click', function() {
       $('#search_gender_restriction, #search_active').val('');
-      $('#buildings-table').DataTable().ajax.reload();
+      Utils.reloadDataTable('#buildings-table');
     });
   }
 };

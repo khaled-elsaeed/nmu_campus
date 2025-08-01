@@ -6,14 +6,12 @@ use App\Models\Resident\Student;
 use App\Models\StudentParent;
 use App\Models\Sibling;
 use App\Models\EmergencyContact;
-use App\Models\User;
 use App\Models\StudentArchive;
 use App\Models\Governorate;
 use App\Models\City;
 use App\Models\Country;
 use App\Models\Nationality;
 use App\Models\Academic\Faculty;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ProfileService
@@ -30,7 +28,7 @@ class ProfileService
      */
     public function getProfileData(): array
     {
-        // Get student archive data if available 
+        // Get student archive data if available
         $studentArchive = StudentArchive::where('national_id', '30308218800598')
             ->first();
 
@@ -90,12 +88,12 @@ class ProfileService
      */
     private function getAcademicInfo(StudentArchive $studentArchive): array
     {
-        $certificateCountry = $this->getCountry($studentArchive?->cert_country_name); 
+        $certificateCountry = $this->getCountry($studentArchive?->cert_country_name);
         return [
             'academic_id' => $studentArchive?->academic_id,
-            'faculty_id' => $this->getFacultyId($studentArchive?->candidated_faculty_name), 
-            'program_id' => null, 
-            'academic_year' => null, 
+            'faculty_id' => $this->getFacultyId($studentArchive?->candidated_faculty_name),
+            'program_id' => null,
+            'academic_year' => null,
             'gpa' => $studentArchive?->cum_gpa ?? 0.0,
             'academic_email' => $studentArchive?->academic_email,
             'actual_score' => $studentArchive?->actual_score,
@@ -241,7 +239,7 @@ class ProfileService
         $student->faculty_id = $this->getFacultyId($studentArchive?->candidated_faculty_name);
         $student->gpa = $studentArchive?->gpa;
         $student->nationality_id = $this->getNationalityId($studentArchive?->nationality_name);
-        
+
     }
 
     /**
@@ -313,7 +311,7 @@ class ProfileService
             $sibling->name = $data['siblingName'] ?? null;
             $sibling->national_id = $data['siblingNationalId'] ?? null;
             $sibling->faculty_id = $data['siblingFaculty'] ?? null;
-            
+
             $sibling->save();
         }
     }

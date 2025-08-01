@@ -73,25 +73,12 @@ class AcademicTermService
      */
     public function getTerm(int $id): AcademicTerm
     {
-        $term = AcademicTerm::select([
-            'id',
-            'season',
-            'year',
-            'start_date',
-            'end_date',
-            'is_active',
-            'is_current',
-            'activated_at',
-            'started_at',
-            'ended_at',
-            'created_at',
-            'updated_at'
-        ])->withCount('reservations')->find($id);
-    
+        $term = AcademicTerm::withCount('reservations')->find($id);
+
         if (!$term) {
             throw new BusinessValidationException('Academic term not found.');
         }
-    
+
         // Add formatted date attributes
         $term->start_date_formatted = isset($term->start_date) ? formatDate($term->start_date) : null;
         $term->end_date_formatted = isset($term->end_date) ? formatDate($term->end_date) : null;
@@ -100,7 +87,7 @@ class AcademicTermService
         $term->ended_at_formatted = isset($term->ended_at) ? formatDate($term->ended_at) : null;
         $term->created_at_formatted = isset($term->created_at) ? formatDate($term->created_at) : null;
         $term->updated_at_formatted = isset($term->updated_at) ? formatDate($term->updated_at) : null;
-    
+
         return $term;
     }
 
@@ -185,8 +172,7 @@ class AcademicTermService
      */
     protected function handleAcademicTermReservationActivation(AcademicTerm $term)
     {
-        // Use fully qualified class name to avoid namespace conflicts
-        $users = \App\Models\User::whereHas('reservations', function ($query) use ($term) {
+        $users = User::whereHas('reservations', function ($query) use ($term) {
             $query->where('academic_term_id', $term->id)
                   ->where('status', 'confirmed')
                   ->where('active', false);
@@ -195,11 +181,11 @@ class AcademicTermService
                   ->where('status', 'confirmed')
                   ->where('active', false);
         }])->get();
-    
+
         if ($users->isEmpty()) {
-            return 0; 
+            return 0;
         }
-    
+
         $activatedCount = DB::table('reservations')
             ->where('academic_term_id', $term->id)
             ->where('status', 'confirmed')
@@ -209,9 +195,9 @@ class AcademicTermService
                 'active' => true,
                 'activated_at' => now(),
             ]);
-    
+
         Notification::send($users, (new ReservationActivated($term))->afterCommit());
-    
+
         return $activatedCount;
     }
 
@@ -379,9 +365,6 @@ class AcademicTermService
             } else {
                 $query->where('year', 'LIKE', '%' . $searchYear . '%');
             }
-        }
-        if (request()->filled('search_code')) {
-            $query->where('code', 'LIKE', '%' . request('search_code') . '%');
         }
         if (request()->filled('search_active')) {
             $query->where('active', request('search_active'));

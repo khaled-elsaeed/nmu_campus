@@ -66,6 +66,7 @@ class StudentArchive extends Model
      */
     protected $appends = ['name', 'birthdate', 'brother'];
 
+
     /**
      * The attributes that should be cast.
      *
@@ -108,7 +109,7 @@ class StudentArchive extends Model
     protected function birthdate(): Attribute
     {
         return Attribute::make(
-            get: fn ($value, $attributes) => 
+            get: fn ($value, $attributes) =>
                 $attributes['birthdate'] ? date('Y-m-d', strtotime($attributes['birthdate'])) : null
         );
     }
@@ -178,4 +179,4 @@ class StudentArchive extends Model
     {
         $query->where('synced_at', '>=', now()->subHours($hours));
     }
-} 
+}

@@ -11,7 +11,7 @@
             <x-ui.card.stat2 
                 id="programs"
                 label="Total Programs"
-                color="primary"
+                color="secondary"
                 icon="bx bx-book-open"
             />
         </div>
@@ -39,12 +39,14 @@
         description="Manage all program records and add new programs using the options on the right."
         icon="bx bx-book-open"
     >
-        <button class="btn btn-primary mx-2" id="addProgramBtn" type="button" data-bs-toggle="modal" data-bs-target="#programModal">
-            <i class="bx bx-plus me-1"></i> Add Program
-        </button>
-        <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#programSearchCollapse" aria-expanded="false" aria-controls="programSearchCollapse">
-            <i class="bx bx-filter-alt me-1"></i> Search
-        </button>
+        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
+          <button class="btn btn-primary mx-2" id="addProgramBtn" type="button" data-bs-toggle="modal" data-bs-target="#programModal">
+              <i class="bx bx-plus me-1"></i> Add Program
+          </button>
+          <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#programSearchCollapse" aria-expanded="false" aria-controls="programSearchCollapse">
+              <i class="bx bx-filter-alt me-1"></i> Search
+          </button>
+        </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
@@ -173,14 +175,12 @@ var ROUTES = {
 // API SERVICE
 // ===========================
 var ApiService = {
-  /**
-   * Generic AJAX request with CSRF
+   /**
+   * Generic AJAX request
    * @param {object} options
    * @returns {jqXHR}
    */
-  request: function(options) {
-    options.headers = options.headers || {};
-    options.headers['X-CSRF-TOKEN'] = $('meta[name="csrf-token"]').attr('content');
+  request(options) {
     return $.ajax(options);
   },
   /**
@@ -188,14 +188,14 @@ var ApiService = {
    * @returns {jqXHR}
    */
   fetchProgramStats: function() {
-    return this.request({ url: ROUTES.programs.stats, method: 'GET' });
+    return ApiService.request({ url: ROUTES.programs.stats, method: 'GET' });
   },
   /**
    * Fetch all faculties
    * @returns {jqXHR}
    */
   fetchFaculties: function() {
-    return this.request({ url: ROUTES.faculties.all, method: 'GET' });
+    return ApiService.request({ url: ROUTES.faculties.all, method: 'GET' });
   },
   /**
    * Fetch a single program by ID
@@ -203,7 +203,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   fetchProgram: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.programs.show, id), method: 'GET' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.programs.show, id), method: 'GET' });
   },
   /**
    * Save (create or update) a program
@@ -214,7 +214,7 @@ var ApiService = {
   saveProgram: function(data, id) {
     var url = id ? Utils.replaceRouteId(ROUTES.programs.show, id) : ROUTES.programs.store;
     var method = id ? 'PUT' : 'POST';
-    return this.request({ url: url, method: method, data: data });
+    return ApiService.request({ url: url, method: method, data: data });
   },
   /**
    * Delete a program by ID
@@ -222,7 +222,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   deleteProgram: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.programs.destroy, id), method: 'DELETE' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.programs.destroy, id), method: 'DELETE' });
   }
 };
 
@@ -239,129 +239,28 @@ var DropdownManager = {
   loadFaculties: function(selector, selectedId) {
     ApiService.fetchFaculties()
       .done(function(response) {
-        DropdownManager.populateFacultiesModalSelect(selector, response.data, selectedId);
+        Utils.populateSelect(selector, response.data, {
+          valueField: 'id',
+          textField: 'name',
+          placeholder: 'Select Faculty',
+          selected: selectedId,
+          includePlaceholder: true
+        });
       })
-      .fail(function() {
-        Utils.showError('Failed to load faculties');
+      .fail(function(xhr) {
+        Utils.handleAjaxError(xhr, 'An error occurred.');
       });
   },
-
-  /**
-   * Populate faculties into the select element
-   * @param {string} selector
-   * @param {Array} faculties
-   * @param {string|number|null} selectedId
-   */
-  populateFacultiesModalSelect: function(selector, faculties, selectedId) {
-    var $select = $(selector);
-    $select.empty().append('<option value="">Select Faculty</option>');
-    faculties.forEach(function(faculty) {
-      $select.append($('<option>', { value: faculty.id, text: faculty.name }));
-    });
-    if (selectedId) {
-      $select.val(selectedId);
-    }
-    $select.trigger('change');
-  }
 };
 
 // ===========================
 // STATISTICS MANAGER
 // ===========================
-var StatsManager = {
-  /**
-   * Initialize statistics cards
-   */
-  init: function() {
-    this.load();
-  },
-  /**
-   * Load statistics data
-   */
-  load: function() {
-    this.toggleAllLoadingStates(true);
-    ApiService.fetchProgramStats()
-      .done(this.handleSuccess.bind(this))
-      .fail(this.handleError.bind(this))
-      .always(this.toggleAllLoadingStates.bind(this, false));
-  },
-  /**
-   * Handle successful stats fetch
-   * @param {object} response
-   */
-  handleSuccess: function(response) {
-    if (response.success !== false) {
-      let stats = response.data;
-      this.updateStatElement('programs', stats.total.count, stats.total.lastUpdateTime);
-      this.updateStatElement('with-students', stats.withStudents.count, stats.withStudents.lastUpdateTime);
-      this.updateStatElement('without-students', stats.withoutStudents.count, stats.withoutStudents.lastUpdateTime);
-    } else {
-      this.setAllStatsToNA();
-    }
-  },
-  /**
-   * Handle error in stats fetch
-   */
-  handleError: function() {
-    this.setAllStatsToNA();
-    Utils.showError('Failed to load program statistics');
-  },
-  /**
-   * Update a single stat card
-   * @param {string} elementId
-   * @param {string|number} value
-   * @param {string} lastUpdateTime
-   */
-  updateStatElement: function(elementId, value, lastUpdateTime) {
-    $('#' + elementId + '-value').text(value ?? '0');
-    $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--');
-  },
-  /**
-   * Set all stat cards to N/A
-   */
-  setAllStatsToNA: function() {
-    ['programs', 'with-students', 'without-students'].forEach(function(elementId) {
-      $('#' + elementId + '-value').text('N/A');
-      $('#' + elementId + '-last-updated').text('N/A');
-    });
-  },
-  /**
-   * Toggle loading state for a single stat card
-   * @param {string} elementId
-   * @param {boolean} isLoading
-   */
-  toggleLoadingState: function(elementId, isLoading) {
-    // If not found in utils, implement here
-    if (Utils && typeof Utils.toggleLoadingState === 'function') {
-      Utils.toggleLoadingState(elementId, isLoading);
-    } else {
-      var $value = $('#' + elementId + '-value');
-      var $loader = $('#' + elementId + '-loader');
-      var $updated = $('#' + elementId + '-last-updated');
-      var $updatedLoader = $('#' + elementId + '-last-updated-loader');
-      if (isLoading) {
-        $value.addClass('d-none');
-        $loader.removeClass('d-none');
-        $updated.addClass('d-none');
-        $updatedLoader.removeClass('d-none');
-      } else {
-        $value.removeClass('d-none');
-        $loader.addClass('d-none');
-        $updated.removeClass('d-none');
-        $updatedLoader.addClass('d-none');
-      }
-    }
-  },
-  /**
-   * Toggle loading state for all stat cards
-   * @param {boolean} isLoading
-   */
-  toggleAllLoadingStates: function(isLoading) {
-    ['programs', 'with-students', 'without-students'].forEach(function(elementId) {
-      this.toggleLoadingState(elementId, isLoading);
-    }, this);
-  }
-};
+var StatsManager = Utils.createStatsManager({
+  apiMethod: ApiService.fetchProgramStats,
+  statsKeys: ['programs', 'with-students', 'without-students'],
+  onError: 'Failed to load program statistics'
+});
 
 // ===========================
 // PROGRAM MANAGER
@@ -390,21 +289,19 @@ var ProgramManager = {
       var formData = $(this).serialize();
       var $submitBtn = $('#saveProgramBtn');
       var originalText = $submitBtn.text();
-      $submitBtn.prop('disabled', true).text('Saving...');
+      Utils.setLoadingState($submitBtn, true, { loadingText: programId ? 'Updating...' : 'Saving...' });
       ApiService.saveProgram(formData, programId || null)
         .done(function() {
           $('#programModal').modal('hide');
-          $('#programs-table').DataTable().ajax.reload(null, false);
+          Utils.reloadDataTable('#programs-table', null, true);
           Utils.showSuccess('Program has been saved successfully.');
-          StatsManager.load();
+          StatsManager.refresh();
         })
         .fail(function(xhr) {
-          $('#programModal').modal('hide');
-          var message = xhr.responseJSON?.message || 'An error occurred. Please check your input.';
-          Utils.showError(message);
+          Utils.handleAjaxError(xhr, 'An error occurred. Please check your input.');
         })
         .always(function() {
-          $submitBtn.prop('disabled', false).text(originalText);
+          Utils.setLoadingState($submitBtn, false, { normalText: originalText });
         });
     });
   },
@@ -426,8 +323,8 @@ var ProgramManager = {
           $('#saveProgramBtn').text('Update');
           $('#programModal').modal('show');
         })
-        .fail(function() {
-          Utils.showError('Failed to fetch program data.');
+        .fail(function(xhr) {
+          Utils.handleAjaxError(xhr, 'Failed to fetch program data.');
         });
     });
   },
@@ -437,25 +334,21 @@ var ProgramManager = {
   handleDelete: function() {
     $(document).on('click', '.deleteProgramBtn', function() {
       var programId = $(this).data('id');
-      Swal.fire({
+      Utils.showConfirmDialog({
         title: 'Are you sure?',
         text: "You won't be able to revert this!",
         icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
         confirmButtonText: 'Yes, delete it!'
       }).then(function(result) {
         if (result.isConfirmed) {
           ApiService.deleteProgram(programId)
             .done(function() {
-              $('#programs-table').DataTable().ajax.reload(null, false);
+              Utils.reloadDataTable('#programs-table', null, true);
               Utils.showSuccess('Program has been deleted.');
-              StatsManager.load();
+              StatsManager.refresh();
             })
             .fail(function(xhr) {
-              var message = xhr.responseJSON?.message || 'Failed to delete program.';
-              Utils.showError(message);
+              Utils.handleAjaxError(xhr, 'Failed to delete program.');
             });
         }
       });
@@ -489,10 +382,10 @@ var SearchManager = {
   bindEvents: function() {
     $('#clearFiltersBtn').on('click', function() {
       $('#search_name, #search_faculty_id').val('').trigger('change');
-      $('#programs-table').DataTable().ajax.reload();
+      Utils.reloadDataTable('#programs-table');
     });
     $('#search_name, #search_faculty_id').on('keyup change', function() {
-      $('#programs-table').DataTable().ajax.reload();
+      Utils.reloadDataTable('#programs-table');
     });
   }
 };

@@ -80,7 +80,7 @@ class BuildingService
     {
         $building = Building::findOrFail($id);
         foreach ($building->apartments as $apartment) {
-            $room = $apartment->rooms()->where('capacity', '>', 1)->first();
+            $room = $apartment->rooms()->where('current_occupancy', '>', 1)->first();
             if ($room) {
                 throw new BusinessValidationException(
                     "Cannot delete building: Apartment #{$apartment->number} has room #{$room->number} with active reservation."
@@ -119,15 +119,15 @@ class BuildingService
         $maleLastUpdate = Building::where('gender_restriction', 'male')->max('updated_at');
         $femaleLastUpdate = Building::where('gender_restriction', 'female')->max('updated_at');
         return [
-            'total' => [
+            'buildings' => [
                 'count' => formatNumber($total),
                 'lastUpdateTime' => formatDate($lastUpdate),
             ],
-            'male' => [
+            'buildings-male' => [
                 'count' => formatNumber($male),
                 'lastUpdateTime' => formatDate($maleLastUpdate),
             ],
-            'female' => [
+            'buildings-female' => [
                 'count' => formatNumber($female),
                 'lastUpdateTime' => formatDate($femaleLastUpdate),
             ],

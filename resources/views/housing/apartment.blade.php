@@ -7,13 +7,13 @@
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="primary" icon="bx bx-building" label="Total Apartments" id="apartments" />
+            <x-ui.card.stat2 color="secondary" icon="bx bx-building" label="Total Apartments" id="apartments" />
         </div>
         <div class="col-sm-6 col-xl-4">
             <x-ui.card.stat2 color="info" icon="bx bx-male" label="Male Apartments" id="apartments-male" />
         </div>
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="pink" icon="bx bx-female" label="Female Apartments" id="apartments-female" />
+            <x-ui.card.stat2 color="danger" icon="bx bx-female" label="Female Apartments" id="apartments-female" />
         </div>
     </div>
 
@@ -23,9 +23,11 @@
         description="Manage apartments and their associated rooms."
         icon="bx bx-building"
     >
-        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#apartmentSearchCollapse" aria-expanded="false" aria-controls="apartmentSearchCollapse">
-            <i class="bx bx-search"></i>
-        </button>
+        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
+            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#apartmentSearchCollapse" aria-expanded="false" aria-controls="apartmentSearchCollapse">
+                <i class="bx bx-filter-alt me-1"></i> Search
+            </button>
+        </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
@@ -36,14 +38,14 @@
         :collapsed="false"
     >
         <div class="col-md-4">
-            <label for="search_apartment_number" class="form-label">Apartment Number:</label>
-            <select class="form-control" id="search_apartment_number">
+            <label for="search_building_id" class="form-label">Building Number:</label>
+            <select class="form-control" id="search_building_id">
                 <option value="">All</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_building_id" class="form-label">Building Number:</label>
-            <select class="form-control" id="search_building_id">
+            <label for="search_apartment_id" class="form-label">Apartment Number:</label>
+            <select class="form-control" id="search_apartment_id" disabled>
                 <option value="">All</option>
             </select>
         </div>
@@ -84,7 +86,7 @@
         ]"
         :ajax-url="route('housing.apartments.datatable')"
         :table-id="'apartments-table'"
-        :filter-fields="['search_apartment_number','search_building_id','search_gender_restriction','search_active']"
+        :filter-fields="['search_apartment_id','search_building_id','search_gender_restriction','search_active']"
     />
 
     {{-- ===== MODALS SECTION ===== --}}
@@ -144,7 +146,6 @@
  * - SelectManager: Handles dropdown population
  * - ApartmentApp: Initializes all managers
  *  NOTE: Uses global Utils from public/js/utils.js
-
  */
 
 // ===========================
@@ -156,17 +157,17 @@ var ROUTES = {
     show: '{{ route('housing.apartments.show', ':id') }}',
     destroy: '{{ route('housing.apartments.destroy', ':id') }}',
     datatable: '{{ route('housing.apartments.datatable') }}',
-    all: '{{ route('housing.apartments.all') }}',
+    all: '{{ route('housing.apartments.all', ':id') }}',
     update: '{{ route('housing.apartments.update', ':id') }}',
     activate: '{{ route('housing.apartments.activate', ':id') }}',
-    deactivate: '{{ route('housing.apartments.deactivate', ':id') }}'
+    deactivate: '{{ route('housing.apartments.deactivate', ':id') }}',
   },
   buildings: {
     all: '{{ route('housing.buildings.all') }}'
   }
 };
 
-var MESSAGES = {
+const MESSAGES = {
   confirm: {
     activate: {
       title: 'Activate Apartment?',
@@ -268,81 +269,20 @@ var ApiService = {
    * Fetch all apartments
    * @returns {jqXHR}
    */
-  fetchApartments: function() {
-    return ApiService.request({ url: ROUTES.apartments.all, method: 'GET' });
+  fetchApartments: function(buildingId) {
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.apartments.all, buildingId), method: 'GET' });
   }
 };
 
 // ===========================
 // STATISTICS MANAGER
 // ===========================
-var StatsManager = {
-  /**
-   * Initialize statistics cards
-   */
-  init: function() {
-    this.load();
-  },
-  /**
-   * Load statistics data
-   */
-  load: function() {
-    this.toggleAllLoadingStates(true);
-    ApiService.fetchStats()
-      .done(this.handleSuccess.bind(this))
-      .fail(this.handleError.bind(this))
-      .always(this.toggleAllLoadingStates.bind(this, false));
-  },
-  /**
-   * Handle successful stats fetch
-   * @param {object} response
-   */
-  handleSuccess: function(response) {
-    if (response.success) {
-      let stats = response.data;
-      this.updateStatElement('apartments', stats.total.count, stats.total.lastUpdateTime);
-      this.updateStatElement('apartments-male', stats.male.count, stats.male.lastUpdateTime);
-      this.updateStatElement('apartments-female', stats.female.count, stats.female.lastUpdateTime);
-    } else {
-      this.setAllStatsToNA();
-    }
-  },
-  /**
-   * Handle error in stats fetch
-   */
-  handleError: function() {
-    this.setAllStatsToNA();
-    Utils.showError(MESSAGES.error.loadStats || 'Failed to load apartment statistics');
-  },
-  /**
-   * Update a single stat card
-   * @param {string} elementId
-   * @param {string|number} value
-   * @param {string} lastUpdateTime
-   */
-  updateStatElement: function(elementId, value, lastUpdateTime) {
-    $('#' + elementId + '-value').text(value ?? '0');
-    $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--');
-  },
-  /**
-   * Set all stat cards to N/A
-   */
-  setAllStatsToNA: function() {
-    ['apartments', 'apartments-male', 'apartments-female'].forEach(function(elementId) {
-      $('#' + elementId + '-value').text('N/A');
-      $('#' + elementId + '-last-updated').text('N/A');
-    });
-  },
-  /**
-   * Toggle loading state for all stat cards
-   * @param {boolean} isLoading
-   */
-  toggleAllLoadingStates: function(isLoading) {
-    ['apartments', 'apartments-male', 'apartments-female'].forEach(function(elementId) {
-      Utils.toggleLoadingState(elementId, isLoading);
-    });
-  }
-};
+const StatsManager = Utils.createStatsManager({
+  apiMethod: ApiService.fetchStats,
+  statsKeys: ['apartments', 'apartments-male', 'apartments-female'],
+  onError: MESSAGES.error.loadStats
+});
+
 
 // ===========================
 // APARTMENT MANAGER
@@ -386,7 +326,15 @@ var ApartmentManager = {
    */
   handleDeleteApartment: function(e) {
     var apartmentId = $(e.currentTarget).data('id');
-    Utils.showConfirm(MESSAGES.confirm.delete)
+    Utils.showConfirmDialog(
+      {
+        title: MESSAGES.confirm.delete.title,
+        text: MESSAGES.confirm.delete.text,
+        confirmButtonText: MESSAGES.confirm.delete.button,
+        cancelButtonText: 'Cancel',
+        showCancelButton: true,
+      }
+    )
       .then(function(result) {
         if (result.isConfirmed) {
           ApartmentManager.deleteApartment(apartmentId);
@@ -418,84 +366,60 @@ var ApartmentManager = {
     var confirmOptions = isActivate ? MESSAGES.confirm.activate : MESSAGES.confirm.deactivate;
     var apiCall = isActivate ? ApiService.activateApartment : ApiService.deactivateApartment;
     var successMessage = isActivate ? MESSAGES.success.activated : MESSAGES.success.deactivated;
-    Utils.showConfirm(confirmOptions)
-      .then(function(result) {
-        if (result.isConfirmed) {
-          ApartmentManager.executeStatusToggle(id, apiCall, successMessage, $btn);
-        }
-      });
+
+    Utils.showConfirmDialog({
+      title: confirmOptions.title,
+      text: confirmOptions.text,
+      confirmButtonText: confirmOptions.button,
+      cancelButtonText: 'Cancel',
+      showCancelButton: true,
+    }).then(function(result) {
+      if (!result.isConfirmed) return;
+
+      Utils.setLoadingState($btn, true);
+
+      apiCall(id)
+        .done(function(response) {
+          if (response.success) {
+            Utils.showSuccess(successMessage);
+            Utils.reloadDataTable('#apartments-table');
+          } else {
+            Utils.showError(response.message || MESSAGES.error.operationFailed);
+          }
+        })
+        .fail(function(xhr) {
+          Utils.handleAjaxError(xhr, MESSAGES.error.operationFailed);
+        })
+        .always(function() {
+          Utils.setLoadingState($btn, false);
+        });
+    });
   },
-  /**
-   * Execute status toggle API call
-   */
-  executeStatusToggle: function(id, apiCall, successMessage, $btn) {
-    // Use global utils.js disableButton if available, else fallback
-    if (Utils && typeof Utils.disableButton === 'function') {
-      Utils.disableButton($btn);
-    } else {
-      $btn.prop('disabled', true);
-    }
-    apiCall(id)
-      .done(function(response) {
-        if (response.success) {
-          Utils.showSuccess(successMessage);
-          ApartmentManager.reloadTable();
-        } else {
-          Utils.showError(response.message || MESSAGES.error.operationFailed);
-        }
-      })
-      .fail(function(xhr) {
-        Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : MESSAGES.error.operationFailed);
-      })
-      .always(function() {
-        if (Utils && typeof Utils.disableButton === 'function') {
-          Utils.disableButton($btn, false);
-        } else {
-          $btn.prop('disabled', false);
-        }
-      });
-  },
+
   /**
    * Delete an apartment
    */
   deleteApartment: function(apartmentId) {
     ApiService.deleteApartment(apartmentId)
       .done(function() {
-        ApartmentManager.reloadTable();
+        Utils.reloadDataTable('#apartments-table');
         Utils.showSuccess(MESSAGES.success.deleted);
         StatsManager.load();
       })
       .fail(function(xhr) {
-        var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : MESSAGES.error.deleteApartment;
-        Utils.showError(message);
+        Utils.handleAjaxError(xhr, MESSAGES.error.deleteApartment);
       });
   },
   /**
    * Populate the view modal with apartment data
    */
   populateViewModal: function(apartment) {
-    // Use global utils.js setElementText and formatDate if available, else fallback
-    if (Utils && typeof Utils.setElementText === 'function') {
-      Utils.setElementText('#view-apartment-number', apartment.number);
-      Utils.setElementText('#view-apartment-building', apartment.building);
-      Utils.setElementText('#view-apartment-total-rooms', apartment.total_rooms);
-      Utils.setElementText('#view-apartment-gender-restriction', apartment.gender_restriction);
-      Utils.setElementText('#view-apartment-is-active', apartment.active ? 'Active' : 'Inactive');
-      Utils.setElementText('#view-apartment-created', Utils.formatDate ? Utils.formatDate(apartment.created_at) : (new Date(apartment.created_at).toLocaleString()));
-    } else {
-      $('#view-apartment-number').text(apartment.number || '--');
-      $('#view-apartment-building').text(apartment.building || '--');
-      $('#view-apartment-total-rooms').text(apartment.total_rooms || '--');
-      $('#view-apartment-gender-restriction').text(apartment.gender_restriction || '--');
-      $('#view-apartment-is-active').text(apartment.active ? 'Active' : 'Inactive');
-      $('#view-apartment-created').text(new Date(apartment.created_at).toLocaleString());
-    }
-  },
-  /**
-   * Reload the apartments table
-   */
-  reloadTable: function() {
-    $('#apartments-table').DataTable().ajax.reload(null, false);
+    Utils.setElementText('#view-apartment-number', apartment.number);
+    Utils.setElementText('#view-apartment-building', apartment.building);
+    Utils.setElementText('#view-apartment-total-rooms', apartment.total_rooms);
+    Utils.setElementText('#view-apartment-gender-restriction', apartment.gender_restriction);
+    Utils.setElementText('#view-apartment-is-active', apartment.active ? 'Active' : 'Inactive');
+    Utils.setElementText('#view-apartment-created', Utils.formatDate ? Utils.formatDate(apartment.created_at) : (new Date(apartment.created_at).toLocaleString()));
   }
 };
 
@@ -514,23 +438,26 @@ var SearchManager = {
    */
   bindEvents: function() {
     var self = this;
-    $('#search_apartment_number, #search_building_id, #search_gender_restriction, #search_active').on('change', function() { self.handleFilterChange(); });
+    $('#search_building_id, #search_gender_restriction, #search_active').on('change', function() { self.handleFilterChange(); });
+    $('#search_apartment_id').on('change', function() { self.handleFilterChange(); });
     $('#clearApartmentFiltersBtn').on('click', function() { self.clearFilters(); });
   },
   /**
    * Handle filter change
    */
   handleFilterChange: function() {
-    $('#apartments-table').DataTable().ajax.reload();
+    Utils.reloadDataTable('#apartments-table');
   },
   /**
    * Clear all filters
    */
   clearFilters: function() {
-    ['#search_apartment_number', '#search_building_id', '#search_gender_restriction', '#search_active'].forEach(function(selector) {
+    ['#search_apartment_id', '#search_building_id', '#search_gender_restriction', '#search_active'].forEach(function(selector) {
       $(selector).val('').trigger('change');
     });
-    $('#apartments-table').DataTable().ajax.reload();
+    // Reset apartment select to disabled
+    $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">Select Building First</option>');
+    Utils.reloadDataTable('#apartments-table');
   }
 };
 
@@ -543,7 +470,8 @@ var SelectManager = {
    */
   init: function() {
     this.populateBuildingSelect();
-    this.populateApartmentSelect();
+    this.bindBuildingChange();
+    $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">Select Building First</option>');
   },
   /**
    * Populate building select dropdown
@@ -552,7 +480,12 @@ var SelectManager = {
     ApiService.fetchBuildings()
       .done(function(response) {
         if (response.success) {
-          SelectManager.populateSelect('#search_building_id', response.data, 'id', 'number');
+          Utils.populateSelect('#search_building_id', response.data,{
+            valueField: 'id',
+            textField: 'number',
+            placeholder: 'Select Building',
+            includePlaceholder: true
+          });
         }
       })
       .fail(function() {
@@ -560,42 +493,43 @@ var SelectManager = {
       });
   },
   /**
-   * Populate apartment select dropdown
+   * Bind change event for building select to populate apartments
    */
-  populateApartmentSelect: function() {
-    ApiService.fetchApartments()
-      .done(function(response) {
-        if (response.success) {
-          SelectManager.populateApartmentNumbers(response.data);
-        }
-      })
-      .fail(function() {
-        console.error('Failed to load apartments');
-      });
-  },
-  /**
-   * Populate a select dropdown with data
-   */
-  populateSelect: function(selector, data, valueField, textField) {
-    var $select = $(selector);
-    $select.empty().append('<option value="">All</option>');
-    data.forEach(function(item) {
-      $select.append('<option value="' + item[valueField] + '">' + item[textField] + '</option>');
-    });
-  },
-  /**
-   * Populate apartment numbers dropdown
-   */
-  populateApartmentNumbers: function(apartments) {
-    var $select = $('#search_apartment_number');
-    $select.empty().append('<option value="">All</option>');
-    var uniqueNumbers = new Set();
-    apartments.forEach(function(apartment) {
-      if (!uniqueNumbers.has(apartment.number)) {
-        uniqueNumbers.add(apartment.number);
-        $select.append('<option value="' + apartment.number + '">' + apartment.number + '</option>');
+  bindBuildingChange: function() {
+    var self = this;
+    $('#search_building_id').on('change', function() {
+      var buildingId = $(this).val();
+      if (buildingId) {
+        self.populateApartmentSelect(buildingId);
+      } else {
+        $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">Select Building First</option>');
       }
     });
+  },
+  /**
+   * Populate apartment select dropdown based on building
+   */
+  populateApartmentSelect: function(buildingId) {
+    // Fetch all apartments and filter client-side by building_id
+    ApiService.fetchApartments(buildingId)
+      .done(function(response) {
+        if (response.success && Array.isArray(response.data) && response.data.length > 0) {
+          Utils.populateSelect('#search_apartment_id', response.data, {
+            valueField: 'id',
+            textField: 'number',
+            placeholder: 'Select Apartment',
+            includePlaceholder: true
+          });
+          $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">No Apartments</option>');
+        } else {
+          Utils.disable('#search_apartment_id', true);
+          $('#search_apartment_id').empty().append('<option value="">No Apartments</option>');
+        }
+      })
+      .fail(function(xhr) {
+        Utils.disable('#search_apartment_id', true);
+        Utils.handleAjaxError(xhr,"An Error Occured");
+      });
   }
 };
 
@@ -621,6 +555,4 @@ $(document).ready(function() {
   ApartmentApp.init();
 });
 </script>
-@endpush 
-@endpush 
 @endpush 

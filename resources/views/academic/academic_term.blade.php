@@ -8,7 +8,7 @@
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 
+            <x-ui.card.stat2
                 id="terms"
                 label="Total Terms"
                 color="white"
@@ -16,7 +16,7 @@
             />
         </div>
         <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 
+            <x-ui.card.stat2
                 id="active"
                 label="Active Terms"
                 color="success"
@@ -24,7 +24,7 @@
             />
         </div>
         <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 
+            <x-ui.card.stat2
                 id="inactive"
                 label="Inactive Terms"
                 color="warning"
@@ -32,7 +32,7 @@
             />
         </div>
         <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 
+            <x-ui.card.stat2
                 id="current"
                 label="Current Term"
                 color="info"
@@ -42,27 +42,38 @@
     </div>
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
-    <x-ui.page-header 
+    <x-ui.page-header
         title="Terms"
         description="Manage academic terms and their details."
         icon="bx bx-calendar"
     >
-        <button class="btn btn-primary" 
-                id="addTermBtn" 
-                type="button" 
-                data-bs-toggle="modal" 
-                data-bs-target="#termModal">
-            <i class="bx bx-plus me-1"></i> Add Term
-        </button>
-        <button class="btn btn-secondary ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#termSearchCollapse" aria-expanded="false" aria-controls="termSearchCollapse">
-            <i class="bx bx-filter-alt me-1"></i> Search
-        </button>
+        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
+            <button class="btn btn-primary"
+                    id="addTermBtn"
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#termModal">
+                <i class="bx bx-plus me-1"></i> 
+                <span class="d-none d-sm-inline">Add Term</span>
+                <span class="d-inline d-sm-none">Add</span>
+            </button>
+            <button class="btn btn-secondary"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#termSearchCollapse"
+                    aria-expanded="false"
+                    aria-controls="termSearchCollapse">
+                <i class="bx bx-filter-alt me-1"></i> 
+                <span class="d-none d-sm-inline">Search</span>
+                <span class="d-inline d-sm-none">Filter</span>
+            </button>
+        </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
-    <x-ui.advanced-search 
-        title="Advanced Search" 
-        formId="advancedTermSearch" 
+    <x-ui.advanced-search
+        title="Advanced Search"
+        formId="advancedTermSearch"
         collapseId="termSearchCollapse"
         :collapsed="false"
         :show-clear-button="true"
@@ -115,7 +126,7 @@
 
     {{-- ===== MODALS SECTION ===== --}}
     {{-- Add/Edit Term Modal --}}
-    <x-ui.modal 
+    <x-ui.modal
         id="termModal"
         title="Add/Edit Term"
         size="lg"
@@ -170,7 +181,7 @@
     </x-ui.modal>
 
     {{-- View Academic Term Modal --}}
-    <x-ui.modal 
+    <x-ui.modal
         id="viewTermModal"
         title="Academic Term Details"
         size="md"
@@ -251,7 +262,7 @@
  * - SearchManager: Handles advanced search
  * - TermManager: Handles CRUD and actions for terms
  * - AcademicTermApp: Initializes all managers
- * 
+ *
  * NOTE: Uses global Utils from public/js/utils.js
  */
 
@@ -276,13 +287,13 @@ var ROUTES = {
 // API SERVICE
 // ===========================
 var ApiService = {
-    request: function(options) {
-        var defaultOptions = {
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        };
-        return $.ajax($.extend(defaultOptions, options));
+    /**
+     * Generic AJAX request
+     * @param {object} options
+     * @returns {jqXHR}
+     */
+    request(options) {
+        return $.ajax(options);
     },
 
     fetchTermStats: function() {
@@ -368,40 +379,13 @@ var SearchManager = {
      */
     populateSearchDropdowns: function() {
         var academicYears = SearchManager.generateAcademicYears();
-        var $yearSelect = $('#search_year');
-        
-        // Clear all options except the first
-        $yearSelect.find('option:not(:first)').remove();
-
         // Populate academic years using Utils
-        Utils.populateSelect($yearSelect, academicYears, {
+        Utils.populateSelect('#search_year', academicYears, {
             valueField: null,
             textField: null,
             includePlaceholder: true,
             placeholder: 'Select Year',
         });
-
-        // Fetch terms for codes dropdown
-        ApiService.fetchAll()
-            .done(function(response) {
-                var terms = response.data || response;
-
-                if (Array.isArray(terms)) {
-                    var uniqueCodes = [...new Set(
-                        terms.map(function(term) {
-                            return term.code;
-                        }).filter(Boolean)
-                    )].sort();
-
-                    var $codeSelect = $('#search_code');
-                    Utils.populateSelect($codeSelect, uniqueCodes, {
-                        includePlaceholder: false
-                    });
-                }
-            })
-            .fail(function(xhr) {
-                console.warn('Failed to load term codes for search dropdown:', xhr.responseJSON?.message || xhr.statusText);
-            });
     },
 
     /**
@@ -412,14 +396,14 @@ var SearchManager = {
         $('#search_season, #search_year, #search_active').on('change', function() {
             Utils.reloadDataTable('#terms-table');
         });
-        
+
         // Clear filters
         $('#clearTermFiltersBtn').on('click', function() {
             $('#search_season, #search_year, #search_active').val('');
             Utils.reloadDataTable('#terms-table');
         });
     },
-    
+
     /**
      * Initialize SearchManager
      */
@@ -442,11 +426,11 @@ var TermManager = {
             $('#term_id').val('');
             $('#termModal .modal-title').text('Add Term');
             $('#saveTermBtn').text('Save');
-            Utils.clearValidation($('#termForm'));
+            
             $('#termModal').modal('show');
         });
     },
-    
+
     /**
      * Validates form fields using Utils
      * @param {Object} formData
@@ -454,7 +438,7 @@ var TermManager = {
      */
     validateForm: function(formData) {
         var errors = [];
-        
+
         if (Utils.isEmpty(formData.season)) errors.push('Season is required');
         if (Utils.isEmpty(formData.year)) {
             errors.push('Year is required');
@@ -463,42 +447,42 @@ var TermManager = {
         }
         if (Utils.isEmpty(formData.semester_number)) errors.push('Semester number is required');
         if (Utils.isEmpty(formData.start_date)) errors.push('Start date is required');
-        
+
         if (!Utils.isEmpty(formData.start_date) && !Utils.isEmpty(formData.end_date)) {
             var startDate = new Date(formData.start_date);
             var endDate = new Date(formData.end_date);
             if (endDate <= startDate) errors.push('End date must be after start date');
         }
-        
+
         return { isValid: errors.length === 0, errors: errors };
     },
-    
+
     /**
      * Handles term form submission
      */
     handleTermFormSubmit: function() {
         $('#termForm').on('submit', function(e) {
             e.preventDefault();
-            
+
             var termId = $('#term_id').val();
             var formData = new FormData(e.target);
-            
+
             // Convert FormData to object for validation
             var formObject = {};
             formData.forEach(function(value, key) { formObject[key] = value; });
-            
+
             var validation = TermManager.validateForm(formObject);
             if (!validation.isValid) {
                 Utils.showErrorHtml('Validation Error', Utils.formatValidationErrors({errors: validation.errors}));
                 return;
             }
-            
+
             var $submitBtn = $('#saveTermBtn');
             Utils.setLoadingState($submitBtn, true, {
                 loadingText: 'Saving...',
                 normalText: $submitBtn.text()
             });
-            
+
             ApiService.saveTerm(formData, termId || null)
                 .done(function(response) {
                     $('#termModal').modal('hide');
@@ -512,12 +496,12 @@ var TermManager = {
                 })
                 .always(function() {
                     Utils.setLoadingState($submitBtn, false, {
-                        normalText: termId ? 'Update' : 'Save'
+                        normalText: 'Save'
                     });
                 });
         });
     },
-    
+
     /**
      * Handles Edit Term button click
      */
@@ -525,23 +509,15 @@ var TermManager = {
         $(document).on('click', '.editTermBtn', function() {
             var termId = $(this).data('id');
             if (!termId) {
-                Utils.showError('Term ID is missing');
+                Utils.showError('Term is missing');
                 return;
             }
-            
+
             ApiService.fetchTerm(termId)
                 .done(function(response) {
                     var term = response.data;
-                    $('#term_id').val(term.id);
-                    $('#season').val(term.season);
-                    $('#year').val(term.year);
-                    $('#semester_number').val(term.semester_number);
-                    $('#start_date').val(term.start_date ? term.start_date.substring(0, 10) : '');
-                    $('#end_date').val(term.end_date ? term.end_date.substring(0, 10) : '');
-                    $('#active').prop('checked', Boolean(term.active));
-                    $('#termModal .modal-title').text('Edit Term');
-                    $('#saveTermBtn').text('Update');
-                    Utils.clearValidation($('#termForm'));
+                    TermManager.populateModal(term);
+                    TermManager.prepareModal();
                     $('#termModal').modal('show');
                 })
                 .fail(function(xhr) {
@@ -549,7 +525,30 @@ var TermManager = {
                 });
         });
     },
-    
+
+
+    /**
+     * Populates the term modal with data
+     */
+    populateModal: function(term) {
+        $('#term_id').val(term.id);
+        $('#season').val(term.season);
+        $('#year').val(term.year);
+        $('#semester_number').val(term.semester_number);
+        $('#start_date').val(term.start_date ? term.start_date.substring(0, 10) : '');
+        $('#end_date').val(term.end_date ? term.end_date.substring(0, 10) : '');
+        $('#active').prop('checked', Boolean(term.active));
+    },
+
+    /**
+     * Prepares the term modal for editing
+     */
+    prepareModal: function() {
+        $('#termModal .modal-title').text('Edit Term');
+        $('#saveTermBtn').text('Update');
+        
+    },
+
     /**
      * Handles Delete Term button click
      */
@@ -560,7 +559,7 @@ var TermManager = {
                 Utils.showError('Term ID is missing');
                 return;
             }
-            
+
             Utils.showConfirmDialog({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this action!",
@@ -581,7 +580,7 @@ var TermManager = {
             });
         });
     },
-    
+
     /**
      * Handles Start Term button click
      */
@@ -596,7 +595,6 @@ var TermManager = {
                 title: 'Start Academic Term?',
                 text: 'Are you sure you want to start this academic term? Once started, all confirmed reservations for this term will be activated.',
                 confirmButtonText: 'Yes, start term!',
-                confirmButtonColor: '#28a745'
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.startTerm(termId)
@@ -613,7 +611,7 @@ var TermManager = {
             });
         });
     },
-    
+
     /**
      * Handles End Term button click
      */
@@ -624,12 +622,11 @@ var TermManager = {
                 Utils.showError('Term ID is missing');
                 return;
             }
-            
+
             Utils.showConfirmDialog({
                 title: 'End Academic Term?',
                 text: 'Are you sure you want to end this academic term?',
                 confirmButtonText: 'Yes, end term!',
-                confirmButtonColor: '#dc3545'
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.endTerm(termId)
@@ -646,7 +643,7 @@ var TermManager = {
             });
         });
     },
-    
+
     /**
      * Handles Activate Term button click
      */
@@ -657,13 +654,12 @@ var TermManager = {
                 Utils.showError('Term ID is missing');
                 return;
             }
-            
+
             Utils.showConfirmDialog({
                 title: 'Activate Academic Term?',
                 text: 'Are you sure you want to activate this academic term? This will make the term available for reservations.',
                 icon: 'question',
                 confirmButtonText: 'Yes, activate term!',
-                confirmButtonColor: '#28a745'
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.activateTerm(termId)
@@ -680,7 +676,7 @@ var TermManager = {
             });
         });
     },
-    
+
     /**
      * Handles Deactivate Term button click
      */
@@ -691,12 +687,11 @@ var TermManager = {
                 Utils.showError('Term ID is missing');
                 return;
             }
-            
+
             Utils.showConfirmDialog({
                 title: 'Deactivate Academic Term?',
                 text: 'Are you sure you want to deactivate this academic term? This will make the term unavailable for new reservations.',
                 confirmButtonText: 'Yes, deactivate term!',
-                confirmButtonColor: '#ffc107'
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.deactivateTerm(termId)
@@ -713,7 +708,7 @@ var TermManager = {
             });
         });
     },
-    
+
     /**
      * Handles View Term button click
      */
@@ -724,7 +719,7 @@ var TermManager = {
                 Utils.showError('Term ID is missing');
                 return;
             }
-            
+
             ApiService.fetchTerm(termId)
                 .done(function(response) {
                     var term = response.data;
@@ -748,7 +743,7 @@ var TermManager = {
                 });
         });
     },
-    
+
     /**
      * Initializes all event listeners and modal handlers for TermManager
      */

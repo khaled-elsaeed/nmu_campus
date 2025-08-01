@@ -101,17 +101,17 @@ class ApartmentController extends Controller
     }
 
     /**
-     * Get all apartments (for dropdown and forms).
-     *
+     * Get all apartments for a specific building.
+     * @param int $id
      * @return JsonResponse
      */
-    public function all(): JsonResponse
+    public function all($id): JsonResponse
     {
         try {
-            $apartments = $this->apartmentService->getAll();
+            $apartments = $this->apartmentService->getAll($id);
             return successResponse('Apartments fetched successfully.', $apartments);
         } catch (Exception $e) {
-            logError('ApartmentController@all', $e);
+            logError('ApartmentController@all', $e, ['building_id' => $id]);
             return errorResponse('Internal server error.', [], 500);
         }
     }

@@ -23,9 +23,12 @@
         description="Manage rooms and their details."
         icon="bx bx-door-open"
     >
-        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#roomSearchCollapse" aria-expanded="false" aria-controls="roomSearchCollapse">
-            <i class="bx bx-search"></i>
-        </button>
+        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
+
+            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#roomSearchCollapse" aria-expanded="false" aria-controls="buildingSearchCollapse">
+                <i class="bx bx-filter-alt me-1"></i> Search
+            </button>
+        </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}

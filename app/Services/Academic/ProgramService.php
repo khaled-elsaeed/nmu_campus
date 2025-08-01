@@ -121,15 +121,15 @@ class ProgramService
         $programsWithoutStudents = Program::doesntHave('students')->count();
         $lastUpdateTime = formatDate(Program::max('updated_at'));
         return [
-            'total' => [
+            'programs' => [
                 'count' => formatNumber($totalPrograms),
                 'lastUpdateTime' => $lastUpdateTime
             ],
-            'withStudents' => [
+            'with-students' => [
                 'count' => formatNumber($programsWithStudents),
                 'lastUpdateTime' => $lastUpdateTime
             ],
-            'withoutStudents' => [
+            'without-students' => [
                 'count' => formatNumber($programsWithoutStudents),
                 'lastUpdateTime' => $lastUpdateTime
             ]
