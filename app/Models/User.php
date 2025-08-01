@@ -32,7 +32,6 @@ class User extends Authenticatable
         'gender',
         'email',
         'email_verified_at',
-        'profile_complete',
         'password',
         'force_change_password',
         'last_login',

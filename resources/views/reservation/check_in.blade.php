@@ -205,143 +205,6 @@ const CONFIG = {
 };
 
 // ===========================
-// UTILITY FUNCTIONS
-// ===========================
-const Utils = {
-    /**
-     * Show error message using SweetAlert
-     */
-    showError(message) {
-        Swal.fire({ 
-            title: 'Error', 
-            html: message, 
-            icon: 'error',
-            confirmButtonColor: '#d33'
-        });
-    },
-
-    /**
-     * Show success message using SweetAlert toast
-     */
-    showSuccess(message) {
-        Swal.fire({ 
-            toast: true, 
-            position: 'top-end', 
-            icon: 'success', 
-            title: message, 
-            showConfirmButton: false, 
-            timer: 3000, 
-            timerProgressBar: true 
-        });
-    },
-
-    /**
-     * Show warning message using SweetAlert
-     */
-    showWarning(message) {
-        Swal.fire({ 
-            title: 'Warning', 
-            html: message, 
-            icon: 'warning',
-            confirmButtonText: 'I Understand',
-            confirmButtonColor: '#f39c12'
-        });
-    },
-
-    /**
-     * Show confirmation dialog
-     */
-    async showConfirm(title, message, confirmText = 'Yes', cancelText = 'No') {
-        const result = await Swal.fire({
-            title,
-            html: message,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: confirmText,
-            cancelButtonText: cancelText,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33'
-        });
-        return result.isConfirmed;
-    },
-
-    /**
-     * Enable/disable button with loading state
-     */
-    toggleButton($button, disabled = true, loadingText = 'Loading...') {
-        if (disabled) {
-            $button.prop('disabled', true);
-            if (!$button.data('original-text')) {
-                $button.data('original-text', $button.html());
-            }
-            $button.html(`<i class="bx bx-loader-alt bx-spin"></i> ${loadingText}`);
-        } else {
-            $button.prop('disabled', false);
-            const originalText = $button.data('original-text');
-            if (originalText) {
-                $button.html(originalText);
-            }
-        }
-    },
-
-    /**
-     * Show/hide element with animation
-     */
-    showElement($element, animate = true) {
-        $element.removeClass('d-none');
-        if (animate) {
-            $element.hide().fadeIn(300);
-        } else {
-            $element.show();
-        }
-    },
-
-    /**
-     * Hide element with animation
-     */
-    hideElement($element, animate = true) {
-        if (animate) {
-            $element.fadeOut(300, function() {
-                $(this).addClass('d-none');
-            });
-        } else {
-            $element.addClass('d-none').hide();
-        }
-    },
-
-    /**
-     * Format currency amount
-     */
-    formatCurrency(amount) {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD'
-        }).format(amount || 0);
-    },
-
-    /**
-     * Get current date in YYYY-MM-DD format
-     */
-    getCurrentDate() {
-        return new Date().toISOString().split('T')[0];
-    },
-
-    /**
-     * Get current time in HH:MM format
-     */
-    getCurrentTime() {
-        return new Date().toTimeString().split(' ')[0].substring(0, 5);
-    },
-
-    /**
-     * Get Bootstrap badge class for status
-     */
-    getStatusBadge(status) {
-        return CONFIG.ui.statusBadges[status] || 'bg-secondary';
-    }
-};
-
-// ===========================
 // API SERVICE
 // ===========================
 const ApiService = {
@@ -359,7 +222,8 @@ const ApiService = {
             });
             return response;
         } catch (error) {
-            console.error('API Request failed:', error);
+            if (error && error.xhr) {
+                Utils.handleAjaxError(error.xhr, 'API Request failed.');
             throw error;
         }
     },
@@ -440,10 +304,11 @@ const ReservationManager = {
      * Set default dates and times
      */
     setDefaultDates() {
-        $('#checkin_date').val(Utils.getCurrentDate());
-        $('#checkin_time').val(Utils.getCurrentTime());
-        $('#checkout_date').val(Utils.getCurrentDate());
-        $('#checkout_time').val(Utils.getCurrentTime());
+        // Use global Utils for date/time
+        $('#checkin_date').val(Utils.getCurrentDate() : (new Date().toISOString().split('T')[0]));
+        $('#checkin_time').val(Utils.getCurrentTime() : (new Date().toTimeString().split(' ')[0].substring(0, 5)));
+        $('#checkout_date').val(Utils.getCurrentDate() : (new Date().toISOString().split('T')[0]));
+        $('#checkout_time').val(Utils.getCurrentTime() : (new Date().toTimeString().split(' ')[0].substring(0, 5)));
     },
 
     /**
@@ -458,7 +323,7 @@ const ReservationManager = {
         }
 
         const $btn = $('#btnSearchReservation');
-        Utils.toggleButton($btn, true, 'Searching...');
+            Utils.setLoadingState($btn, true, { loadingText: 'Searching...' });
 
         try {
             const response = await ApiService.findReservationByNumber(reservationNumber);
@@ -471,7 +336,8 @@ const ReservationManager = {
         } catch (error) {
             this.handleReservationNotFound();
         } finally {
-            Utils.toggleButton($btn, false);
+                Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-search"></i> Search Reservation' });
+
         }
     },
 
@@ -500,7 +366,7 @@ const ReservationManager = {
     handleReservationNotFound(message = null) {
         this.resetForms();
         Utils.hideElement($('#reservation-info-section'));
-        Utils.showError(message || CONFIG.messages.error.reservationNotFound);
+        Utils.showError(message || CONFIG.messages.error.reservationNotFound) ;
     },
 
     /**
@@ -871,7 +737,7 @@ const CheckinProcessor = {
         }
         
         const $btn = $('#checkinReservationForm button[type="submit"]');
-        Utils.toggleButton($btn, true, 'Processing...');
+            Utils.setLoadingState($btn, true, { loadingText: 'Processing...' });
 
         try {
             const response = await ApiService.processCheckin(formData);
@@ -882,10 +748,12 @@ const CheckinProcessor = {
                 Utils.showError(response.message || CONFIG.messages.error.checkinFailed);
             }
         } catch (error) {
-            const message = error.responseJSON?.message || CONFIG.messages.error.checkinFailed;
-            Utils.showError(message);
+            // Use global error handler if available
+            if (error && error.xhr) {
+                Utils.handleAjaxError(error.xhr, CONFIG.messages.error.checkinFailed);
+            }
         } finally {
-            Utils.toggleButton($btn, false);
+                Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-log-in-circle"></i> Complete Check-in' });
         }
     },
 
@@ -990,7 +858,7 @@ const CheckoutProcessor = {
         const formData = this.getFormData();
         
         const $btn = $('#checkoutReservationForm button[type="submit"]');
-        Utils.toggleButton($btn, true, 'Processing...');
+            Utils.setLoadingState($btn, true, { loadingText: 'Processing...' });
 
         try {
             const response = await ApiService.processCheckout(formData);
@@ -1001,10 +869,11 @@ const CheckoutProcessor = {
                 Utils.showError(response.message || CONFIG.messages.error.checkoutFailed);
             }
         } catch (error) {
-            const message = error.responseJSON?.message || CONFIG.messages.error.checkoutFailed;
-            Utils.showError(message);
+            if (error && error.xhr) {
+                Utils.handleAjaxError(error.xhr, CONFIG.messages.error.checkoutFailed);
+            }
         } finally {
-            Utils.toggleButton($btn, false);
+            Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-log-out-circle"></i> Complete Check-out' });
         }
     },
 
@@ -1068,22 +937,29 @@ const CheckoutProcessor = {
         
         // Add damage summary if applicable
         if (response.damages && response.damages.length > 0) {
+            // Use global Utils.formatCurrency if available
+            const formatCurrency = Utils.formatCurrency : (amt) => '$' + (amt || 0).toFixed(2);
+
             const totalCost = response.damages.reduce((sum, damage) => 
                 sum + parseFloat(damage.estimated_cost || 0), 0);
-            message += `<br><br><strong>Damage Charges:</strong> ${Utils.formatCurrency(totalCost)}`;
+            message += `<br><br><strong>Damage Charges:</strong> ${formatCurrency(totalCost)}`;
             
             const damageList = response.damages.map(damage => 
-                `• ${damage.equipment_name}: ${Utils.formatCurrency(damage.estimated_cost)}`
+                `• ${damage.equipment_name}: ${formatCurrency(damage.estimated_cost)}`
             ).join('<br>');
             message += `<br><br><strong>Details:</strong><br>${damageList}`;
         }
         
-        Swal.fire({
-            title: 'Check-out Complete',
-            html: message,
-            icon: 'success',
-            confirmButtonText: 'OK'
-        });
+        if (window.Swal) {
+            Swal.fire({
+                title: 'Check-out Complete',
+                html: message,
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+        } else {
+            alert(message.replace(/<br>/g, '\n').replace(/<strong>.*?<\/strong>/g, ''));
+        }
         
         this.resetForm();
     },
@@ -1109,7 +985,8 @@ const CheckinCheckoutApp = {
      * Initialize the entire application
      */
     init() {
-        console.log('Initializing Check-in/Check-out System...');
+        // Use global Utils for logging if desired
+        if (window.console) console.log('Initializing Check-in/Check-out System...');
         
         // Initialize all managers
         ReservationManager.init();
@@ -1119,7 +996,7 @@ const CheckinCheckoutApp = {
         // Set up global error handling
         this.setupErrorHandling();
         
-        console.log('Check-in/Check-out System initialized successfully');
+        if (window.console) console.log('Check-in/Check-out System initialized successfully');
     },
 
     /**

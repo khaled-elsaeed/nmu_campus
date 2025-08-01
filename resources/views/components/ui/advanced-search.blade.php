@@ -12,8 +12,9 @@
         <h5 class="mb-3">{{ $title }}</h5>
         <form id="{{ $formId }}" class="row g-3 align-items-end" method="GET" autocomplete="off">
             {{ $slot }}
+
             @if($showClearButton)
-                <div class="col-12">
+                <div class="col-auto ms-auto">
                     <button class="btn btn-outline-secondary" id="{{ $clearButtonId }}" type="button">
                         <i class="bx bx-x"></i> {{ $clearButtonText }}
                     </button>

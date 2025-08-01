@@ -14,158 +14,158 @@
         </a>
     </x-ui.page-header>
     <div class="row justify-content-center">
-            <!-- Step 1: National ID Search -->
+        <!-- Step 1: National ID Search -->
+        <div class="card mb-4 shadow-sm border-0">
+            <div class="card-header bg-white border-bottom-0 pb-0">
+                <h5 class="mb-0"><i class="bx bx-id-card me-2"></i>Enter National ID</h5>
+            </div>
+            <div class="card-body pt-3">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="search_national_id" placeholder="Enter National ID...">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-primary w-100" id="btnSearchNationalId">
+                            <i class="bx bx-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Step 2: User Info (hidden until found) -->
+        <div id="user-info-section" class="card mb-4 shadow-sm border-0 d-none">
+            <div class="card-header bg-white border-bottom-0 pb-0">
+                <h5 class="mb-0"><i class="bx bx-user me-2"></i>User Info</h5>
+            </div>
+            <div class="card-body pt-3">
+                <div id="user-info-content">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+        <!-- Step 3: Reservation Form (hidden until user found) -->
+        <form id="addReservationForm" method="POST" action="{{ route('reservations.store') }}" class="d-none">
+            @csrf
+            <input type="hidden" id="add_user_id" name="user_id">
+            <!-- Accommodation Details -->
             <div class="card mb-4 shadow-sm border-0">
                 <div class="card-header bg-white border-bottom-0 pb-0">
-                    <h5 class="mb-0"><i class="bx bx-id-card me-2"></i>Enter National ID</h5>
+                    <h5 class="mb-0"><i class="bx bx-home me-2"></i>Accommodation Details</h5>
                 </div>
                 <div class="card-body pt-3">
-                    <div class="row g-3 align-items-end">
-                        <div class="col-md-8">
-                            <input type="text" class="form-control" id="search_national_id" placeholder="Enter National ID...">
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-4">
+                            <label for="add_accommodation_type" class="form-label">Accommodation Type <span class="text-danger">*</span></label>
+                            <select class="form-control" id="add_accommodation_type" name="accommodation_type" required>
+                                <option value="">Select Type</option>
+                                <option value="room">Room</option>
+                                <option value="apartment">Apartment</option>
+                            </select>
                         </div>
                         <div class="col-md-4">
-                            <button type="button" class="btn btn-primary w-100" id="btnSearchNationalId">
-                                <i class="bx bx-search"></i> Search
-                            </button>
+                            <label for="add_building_id" class="form-label">Building <span class="text-danger">*</span></label>
+                            <select class="form-control" id="add_building_id" name="building_id" required>
+                                <option value="">Select Building</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4" id="apartment-select-group" style="display:none;">
+                            <label for="add_apartment_id" class="form-label">Apartment <span class="text-danger">*</span></label>
+                            <select class="form-control" id="add_apartment_id" name="apartment_id">
+                                <option value="">Select Apartment</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4" id="room-select-group" style="display:none;">
+                            <label for="add_room_id" class="form-label">Room <span class="text-danger">*</span></label>
+                            <select class="form-control" id="add_room_id" name="room_id">
+                                <option value="">Select Room</option>
+                            </select>
+                            <div id="double-room-bed-options" class="mt-2" style="display:none;">
+                                <label class="form-label">Double Room Option</label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="double_room_bed_option" id="double_room_one_bed" value="one">
+                                        <label class="form-check-label" for="double_room_one_bed">Take one bed</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="double_room_bed_option" id="double_room_both_beds" value="both">
+                                        <label class="form-check-label" for="double_room_both_beds">Take both beds</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <!-- Period Selector -->
+                        <div class="col-md-4">
+                            <label for="add_period" class="form-label">Period <span class="text-danger">*</span></label>
+                            <select class="form-control" id="add_period" name="period_type" required>
+                                <option value="">Select Period</option>
+                                <option value="academic">Academic</option>
+                                <option value="calendar">Calendar</option>
+                            </select>
+                        </div>
+                        <!-- Academic Term (Academic Period) -->
+                        <div class="col-md-4" id="academic-term-group">
+                            <label for="add_academic_term_id" class="form-label">Academic Term</label>
+                            <select class="form-control" id="add_academic_term_id" name="academic_term_id">
+                                <option value="">Select Academic Term</option>
+                            </select>
+                        </div>
+                        <!-- Check-in/Check-out (Calendar Period) -->
+                        <div class="col-md-4" id="checkinout-group">
+                            <div class="row g-2">
+                                <div class="col-12">
+                                    <label for="add_check_in_date" class="form-label">Check-in Date</label>
+                                    <input type="date" class="form-control" id="add_check_in_date" name="check_in_date">
+                                </div>
+                                <div class="col-12">
+                                    <label for="add_check_out_date" class="form-label">Check-out Date</label>
+                                    <input type="date" class="form-control" id="add_check_out_date" name="check_out_date">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="add_status" class="form-label">Status</label>
+                            <select class="form-control" id="add_status" name="status">
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="checked_in">Checked In</option>
+                                <option value="checked_out">Checked Out</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- Step 2: User Info (hidden until found) -->
-            <div id="user-info-section" class="card mb-4 shadow-sm border-0 d-none">
+            <!-- Equipment -->
+            <div class="card mb-4 shadow-sm border-0">
                 <div class="card-header bg-white border-bottom-0 pb-0">
-                    <h5 class="mb-0"><i class="bx bx-user me-2"></i>User Info</h5>
+                    <h5 class="mb-0"><i class="bx bx-cube me-2"></i>Equipment</h5>
                 </div>
                 <div class="card-body pt-3">
-                    <div id="user-info-content">
-                        <!-- Populated by JS -->
+                    <div id="equipment-list" class="row g-3"></div>
+                </div>
+            </div>
+            <!-- Additional Info -->
+            <div class="card mb-4 shadow-sm border-0">
+                <div class="card-header bg-white border-bottom-0 pb-0">
+                    <h5 class="mb-0"><i class="bx bx-info-circle me-2"></i>Additional Info</h5>
+                </div>
+                <div class="card-body pt-3">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="add_notes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="add_notes" name="notes" rows="3" placeholder="Enter any additional notes..."></textarea>
+                        </div>
                     </div>
                 </div>
             </div>
-            <!-- Step 3: Reservation Form (hidden until user found) -->
-            <form id="addReservationForm" method="POST" action="{{ route('reservations.store') }}" class="d-none">
-                @csrf
-                <input type="hidden" id="add_user_id" name="user_id">
-                <!-- Accommodation Details -->
-                <div class="card mb-4 shadow-sm border-0">
-                    <div class="card-header bg-white border-bottom-0 pb-0">
-                        <h5 class="mb-0"><i class="bx bx-home me-2"></i>Accommodation Details</h5>
-                    </div>
-                    <div class="card-body pt-3">
-                        <div class="row g-3 mt-2">
-                            <div class="col-md-4">
-                                <label for="add_accommodation_type" class="form-label">Accommodation Type <span class="text-danger">*</span></label>
-                                <select class="form-control" id="add_accommodation_type" name="accommodation_type" required>
-                                    <option value="">Select Type</option>
-                                    <option value="room">Room</option>
-                                    <option value="apartment">Apartment</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="add_building_id" class="form-label">Building <span class="text-danger">*</span></label>
-                                <select class="form-control" id="add_building_id" name="building_id" required>
-                                    <option value="">Select Building</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4" id="apartment-select-group" style="display:none;">
-                                <label for="add_apartment_id" class="form-label">Apartment <span class="text-danger">*</span></label>
-                                <select class="form-control" id="add_apartment_id" name="apartment_id">
-                                    <option value="">Select Apartment</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4" id="room-select-group" style="display:none;">
-                                <label for="add_room_id" class="form-label">Room <span class="text-danger">*</span></label>
-                                <select class="form-control" id="add_room_id" name="room_id">
-                                    <option value="">Select Room</option>
-                                </select>
-                                <div id="double-room-bed-options" class="mt-2" style="display:none;">
-                                    <label class="form-label">Double Room Option</label>
-                                    <div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="double_room_bed_option" id="double_room_one_bed" value="one">
-                                            <label class="form-check-label" for="double_room_one_bed">Take one bed</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="double_room_bed_option" id="double_room_both_beds" value="both">
-                                            <label class="form-check-label" for="double_room_both_beds">Take both beds</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row g-3">
-                            <!-- Period Selector -->
-                            <div class="col-md-4">
-                                <label for="add_period" class="form-label">Period <span class="text-danger">*</span></label>
-                                <select class="form-control" id="add_period" name="period_type" required>
-                                    <option value="">Select Period</option>
-                                    <option value="academic">Academic</option>
-                                    <option value="calendar">Calendar</option>
-                                </select>
-                            </div>
-                            <!-- Academic Term (Academic Period) -->
-                            <div class="col-md-4" id="academic-term-group">
-                                <label for="add_academic_term_id" class="form-label">Academic Term</label>
-                                <select class="form-control" id="add_academic_term_id" name="academic_term_id">
-                                    <option value="">Select Academic Term</option>
-                                </select>
-                            </div>
-                            <!-- Check-in/Check-out (Calendar Period) -->
-                            <div class="col-md-4" id="checkinout-group">
-                                <div class="row g-2">
-                                    <div class="col-12">
-                                        <label for="add_check_in_date" class="form-label">Check-in Date</label>
-                                        <input type="date" class="form-control" id="add_check_in_date" name="check_in_date">
-                                    </div>
-                                    <div class="col-12">
-                                        <label for="add_check_out_date" class="form-label">Check-out Date</label>
-                                        <input type="date" class="form-control" id="add_check_out_date" name="check_out_date">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="add_status" class="form-label">Status</label>
-                                <select class="form-control" id="add_status" name="status">
-                                    <option value="pending">Pending</option>
-                                    <option value="confirmed">Confirmed</option>
-                                    <option value="checked_in">Checked In</option>
-                                    <option value="checked_out">Checked Out</option>
-                                    <option value="cancelled">Cancelled</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Equipment -->
-                <div class="card mb-4 shadow-sm border-0">
-                    <div class="card-header bg-white border-bottom-0 pb-0">
-                        <h5 class="mb-0"><i class="bx bx-cube me-2"></i>Equipment</h5>
-                    </div>
-                    <div class="card-body pt-3">
-                        <div id="equipment-list" class="row g-3"></div>
-                    </div>
-                </div>
-                <!-- Additional Info -->
-                <div class="card mb-4 shadow-sm border-0">
-                    <div class="card-header bg-white border-bottom-0 pb-0">
-                        <h5 class="mb-0"><i class="bx bx-info-circle me-2"></i>Additional Info</h5>
-                    </div>
-                    <div class="card-body pt-3">
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label for="add_notes" class="form-label">Notes</label>
-                                <textarea class="form-control" id="add_notes" name="notes" rows="3" placeholder="Enter any additional notes..."></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-end mt-4">
-                    <button type="submit" class="btn btn-lg btn-primary px-4 shadow">
-                        <i class="bx bx-save"></i> Save Reservation
-                    </button>
-                </div>
-            </form>
+            <div class="d-flex justify-content-end mt-4">
+                <button type="submit" class="btn btn-lg btn-primary px-4 shadow">
+                    <i class="bx bx-save"></i> Save Reservation
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 @endsection 
@@ -173,7 +173,7 @@
 <script>
 /**
  * Reservation Add Page JS (using @utils.js)
- * Uses global Utils from public/js/utils.js
+ * Reservation Add Page JS (Cleaned)
  */
 
 // ===========================
@@ -232,9 +232,6 @@ const MESSAGES = {
 // ===========================
 const ApiService = {
   request: (options) => {
-    // Always add CSRF token
-    options.headers = options.headers || {};
-    options.headers['X-CSRF-TOKEN'] = $('meta[name="csrf-token"]').attr('content');
     return $.ajax(options);
   },
 
@@ -316,7 +313,7 @@ const UserSearchManager = {
   handleSearch: () => {
     const nationalId = $('#search_national_id').val().trim();
     
-    if (Utils.isEmpty(nationalId)) {
+    if (!nationalId) {
       Utils.showError(MESSAGES.error.enterNationalId);
       return;
     }
@@ -401,8 +398,11 @@ const SelectManager = {
     const accommodationType = $('#add_accommodation_type').val();
     
     if (buildingId && accommodationType) {
-      // Always load apartments for both types (room/apartment)
-      SelectManager.loadApartments(buildingId);
+      if (accommodationType === 'apartment') {
+        SelectManager.loadApartments(buildingId);
+      } else if (accommodationType === 'room') {
+        SelectManager.loadApartments(buildingId);
+      }
     } else {
       SelectManager.clearAccommodationSelects();
     }
@@ -458,11 +458,9 @@ const SelectManager = {
     ApiService.fetchBuildings()
       .done((response) => {
         if (response.success && response.data) {
-          Utils.populateSelect($('#add_building_id'), response.data, {
-            valueField: 'id',
-            textField: 'number',
-            placeholder: 'Select Building'
-          });
+          // Use global Utils.populateSelect if available, else fallback to local
+            Utils.populateSelect($('#add_building_id'), response.data, { valueField: 'id', textField: 'number', placeholder: 'Select Building' });
+
         }
       })
       .fail(() => {
@@ -474,11 +472,8 @@ const SelectManager = {
     ApiService.fetchApartments(buildingId)
       .done((response) => {
         if (response.success && response.data) {
-          Utils.populateSelect($('#add_apartment_id'), response.data, {
-            valueField: 'id',
-            textField: 'number',
-            placeholder: 'Select Apartment'
-          });
+            Utils.populateSelect($('#add_apartment_id'), response.data, { valueField: 'id', textField: 'number', placeholder: 'Select Apartment' });
+
         }
       })
       .fail(() => {
@@ -490,12 +485,9 @@ const SelectManager = {
     ApiService.fetchRooms(null, apartmentId)
       .done((response) => {
         if (response.success && response.data) {
-          // Add data-type for double/single room
-          const $select = $('#add_room_id');
-          Utils.clearSelect($select, 'Select Room');
-          response.data.forEach(item => {
-            $select.append(`<option value="${item.id}" data-type="${item.type}">${item.number}</option>`);
-          });
+            Utils.populateSelect($('#add_room_id'), response.data, { valueField: 'id', textField: 'number', placeholder: 'Select Room', dataTypeField: 'type' });
+            $select.trigger('change');
+
         }
       })
       .fail(() => {
@@ -507,11 +499,8 @@ const SelectManager = {
     ApiService.fetchAcademicTerms()
       .done((response) => {
         if (response.success && response.data) {
-          Utils.populateSelect($('#add_academic_term_id'), response.data, {
-            valueField: 'id',
-            textField: 'name',
-            placeholder: 'Select Academic Term'
-          });
+            Utils.populateSelect($('#add_academic_term_id'), response.data, { valueField: 'id', textField: 'name', placeholder: 'Select Academic Term' });
+
         }
       })
       .fail(() => {
@@ -529,6 +518,26 @@ const SelectManager = {
       .fail(() => {
         Utils.showError(MESSAGES.error.equipmentLoadFailed);
       });
+  },
+
+  // Fallback local populateSelect if Utils.populateSelect is not available
+  populateSelect: (selector, data, valueField, placeholder) => {
+    const $select = $(selector);
+    if (typeof Utils.clearSelect === 'function') {
+      Utils.clearSelect($select, placeholder);
+    } else {
+      $select.empty().append(`<option value="">${placeholder}</option>`);
+    }
+    // Only add data-type for room selects
+    const isRoomSelect = $select.is('#add_room_id');
+    data.forEach(item => {
+      if (isRoomSelect && item.type) {
+        $select.append(`<option value="${item.id}" data-type="${item.type}">${item[valueField]}</option>`);
+      } else {
+        $select.append(`<option value="${item.id}">${item[valueField]}</option>`);
+      }
+    });
+    $select.trigger('change');
   },
 
   renderEquipmentList: (equipmentData) => {
@@ -574,12 +583,21 @@ const SelectManager = {
   },
 
   clearAccommodationSelects: () => {
-    Utils.clearSelect($('#add_apartment_id'), 'Select Apartment');
-    Utils.clearSelect($('#add_room_id'), 'Select Room');
+    if (typeof Utils.clearSelect === 'function') {
+      Utils.clearSelect($('#add_apartment_id'), 'Select Apartment');
+      Utils.clearSelect($('#add_room_id'), 'Select Room');
+    } else {
+      $('#add_apartment_id').empty().append('<option value="">Select Apartment</option>');
+      $('#add_room_id').empty().append('<option value="">Select Room</option>');
+    }
   },
 
   resetForm: () => {
-    Utils.clearSelect($('#add_building_id'), 'Select Building');
+    if (typeof Utils.clearSelect === 'function') {
+      Utils.clearSelect($('#add_building_id'), 'Select Building');
+    } else {
+      $('#add_building_id').empty().append('<option value="">Select Building</option>');
+    }
     SelectManager.clearAccommodationSelects();
     SelectManager.hideAccommodationFields();
   }
@@ -653,7 +671,13 @@ const ReservationManager = {
         }
       })
       .fail((xhr) => {
-        Utils.handleAjaxError(xhr, MESSAGES.error.reservationCreateFailed);
+        // Use global error handler if available
+        if (typeof Utils.handleAjaxError === 'function') {
+          Utils.handleAjaxError(xhr, MESSAGES.error.reservationCreateFailed);
+        } else {
+          const message = xhr.responseJSON?.message || MESSAGES.error.reservationCreateFailed;
+          Utils.showError(message);
+        }
       })
       .always(() => {
         Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-save"></i> Save Reservation' });
@@ -665,7 +689,7 @@ const ReservationManager = {
     
     // Serialize form fields
     $('#addReservationForm').serializeArray().forEach(item => {
-      if (!Utils.isEmpty(item.value)) {
+      if (item.value) {
         formData[item.name] = item.value;
       }
     });
@@ -703,20 +727,20 @@ const ReservationManager = {
   },
 
   validateForm: (formData) => {
-    if (Utils.isEmpty(formData.user_id)) {
+    if (!formData.user_id) {
       Utils.showError(MESSAGES.error.selectUser);
       return false;
     }
-    if (Utils.isEmpty(formData.period_type)) {
+    if (!formData.period_type) {
       Utils.showError('Please select a period.');
       return false;
     }
-    if (formData.period_type === 'academic' && Utils.isEmpty(formData.academic_term_id)) {
+    if (formData.period_type === 'academic' && !formData.academic_term_id) {
       Utils.showError('Please select an academic term.');
       return false;
     }
     if (formData.period_type === 'calendar') {
-      if (Utils.isEmpty(formData.check_in_date) || Utils.isEmpty(formData.check_out_date)) {
+      if (!formData.check_in_date || !formData.check_out_date) {
         Utils.showError('Please select check-in and check-out dates.');
         return false;
       }

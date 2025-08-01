@@ -137,13 +137,14 @@
  * Apartment Management Page JS
  *
  * Structure:
- * - Utils: Common utility functions
  * - ApiService: Handles all AJAX requests
  * - StatsManager: Handles statistics cards
  * - ApartmentManager: Handles CRUD and actions for apartments
  * - SearchManager: Handles advanced search
  * - SelectManager: Handles dropdown population
  * - ApartmentApp: Initializes all managers
+ *  NOTE: Uses global Utils from public/js/utils.js
+
  */
 
 // ===========================
@@ -193,97 +194,6 @@ var MESSAGES = {
     loadApartment: 'Failed to load apartment data',
     deleteApartment: 'Failed to delete apartment.',
     operationFailed: 'Operation failed'
-  }
-};
-
-// ===========================
-// UTILITY FUNCTIONS
-// ===========================
-var Utils = {
-  /**
-   * Show an error alert
-   * @param {string} message
-   */
-  showError: function(message) {
-    Swal.fire({ title: 'Error', html: message, icon: 'error' });
-  },
-  /**
-   * Show a success toast message
-   * @param {string} message
-   */
-  showSuccess: function(message) {
-    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: message, showConfirmButton: false, timer: 2500, timerProgressBar: true });
-  },
-  /**
-   * Show a confirmation dialog
-   * @param {object} options
-   * @returns {Promise}
-   */
-  showConfirm: function(options) {
-    return Swal.fire({
-      title: options.title,
-      text: options.text,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: options.button
-    });
-  },
-  /**
-   * Toggle loading state for a stat card
-   * @param {string} elementId
-   * @param {boolean} isLoading
-   */
-  toggleLoadingState: function(elementId, isLoading) {
-    var $value = $('#' + elementId + '-value');
-    var $loader = $('#' + elementId + '-loader');
-    var $updated = $('#' + elementId + '-last-updated');
-    var $updatedLoader = $('#' + elementId + '-last-updated-loader');
-    if (isLoading) {
-      $value.addClass('d-none');
-      $loader.removeClass('d-none');
-      $updated.addClass('d-none');
-      $updatedLoader.removeClass('d-none');
-    } else {
-      $value.removeClass('d-none');
-      $loader.addClass('d-none');
-      $updated.removeClass('d-none');
-      $updatedLoader.addClass('d-none');
-    }
-  },
-  /**
-   * Replace :id in a route string
-   * @param {string} route
-   * @param {string|number} id
-   * @returns {string}
-   */
-  replaceRouteId: function(route, id) {
-    return route.replace(':id', id);
-  },
-  /**
-   * Set text for an element
-   * @param {string} selector
-   * @param {string} text
-   */
-  setElementText: function(selector, text) {
-    $(selector).text(text || '--');
-  },
-  /**
-   * Format a date string
-   * @param {string} dateString
-   * @returns {string}
-   */
-  formatDate: function(dateString) {
-    return new Date(dateString).toLocaleString();
-  },
-  /**
-   * Enable or disable a button
-   * @param {object} $button
-   * @param {boolean} disabled
-   */
-  disableButton: function($button, disabled) {
-    $button.prop('disabled', disabled === undefined ? true : disabled);
   }
 };
 
@@ -519,7 +429,12 @@ var ApartmentManager = {
    * Execute status toggle API call
    */
   executeStatusToggle: function(id, apiCall, successMessage, $btn) {
-    Utils.disableButton($btn);
+    // Use global utils.js disableButton if available, else fallback
+    if (Utils && typeof Utils.disableButton === 'function') {
+      Utils.disableButton($btn);
+    } else {
+      $btn.prop('disabled', true);
+    }
     apiCall(id)
       .done(function(response) {
         if (response.success) {
@@ -533,7 +448,11 @@ var ApartmentManager = {
         Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : MESSAGES.error.operationFailed);
       })
       .always(function() {
-        Utils.disableButton($btn, false);
+        if (Utils && typeof Utils.disableButton === 'function') {
+          Utils.disableButton($btn, false);
+        } else {
+          $btn.prop('disabled', false);
+        }
       });
   },
   /**
@@ -555,12 +474,22 @@ var ApartmentManager = {
    * Populate the view modal with apartment data
    */
   populateViewModal: function(apartment) {
-    Utils.setElementText('#view-apartment-number', apartment.number);
-    Utils.setElementText('#view-apartment-building', apartment.building);
-    Utils.setElementText('#view-apartment-total-rooms', apartment.total_rooms);
-    Utils.setElementText('#view-apartment-gender-restriction', apartment.gender_restriction);
-    Utils.setElementText('#view-apartment-is-active', apartment.active ? 'Active' : 'Inactive');
-    Utils.setElementText('#view-apartment-created', Utils.formatDate(apartment.created_at));
+    // Use global utils.js setElementText and formatDate if available, else fallback
+    if (Utils && typeof Utils.setElementText === 'function') {
+      Utils.setElementText('#view-apartment-number', apartment.number);
+      Utils.setElementText('#view-apartment-building', apartment.building);
+      Utils.setElementText('#view-apartment-total-rooms', apartment.total_rooms);
+      Utils.setElementText('#view-apartment-gender-restriction', apartment.gender_restriction);
+      Utils.setElementText('#view-apartment-is-active', apartment.active ? 'Active' : 'Inactive');
+      Utils.setElementText('#view-apartment-created', Utils.formatDate ? Utils.formatDate(apartment.created_at) : (new Date(apartment.created_at).toLocaleString()));
+    } else {
+      $('#view-apartment-number').text(apartment.number || '--');
+      $('#view-apartment-building').text(apartment.building || '--');
+      $('#view-apartment-total-rooms').text(apartment.total_rooms || '--');
+      $('#view-apartment-gender-restriction').text(apartment.gender_restriction || '--');
+      $('#view-apartment-is-active').text(apartment.active ? 'Active' : 'Inactive');
+      $('#view-apartment-created').text(new Date(apartment.created_at).toLocaleString());
+    }
   },
   /**
    * Reload the apartments table
@@ -692,4 +621,6 @@ $(document).ready(function() {
   ApartmentApp.init();
 });
 </script>
+@endpush 
+@endpush 
 @endpush 

@@ -31,10 +31,8 @@ class LoginController extends Controller
             return $this->handleLoginError($result, $request);
         }
 
-        // Regenerate session on successful login
         $request->session()->regenerate();
 
-        // Redirect to intended page or dashboard
         return redirect()->intended(route('home'));
     }
 

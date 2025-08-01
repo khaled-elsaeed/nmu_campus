@@ -133,12 +133,12 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('js/utils.js') }}"></script>
 <script>
 /**
  * Reservation Management Page JS
  *
  * Structure:
- * - Utils: Common utility functions
  * - ApiService: Handles all AJAX requests
  * - StatsManager: Handles statistics cards
  * - ReservationManager: Handles CRUD and actions for reservations
@@ -147,7 +147,7 @@
  * - ReservationApp: Initializes all managers
  */
 
- // ===========================
+// ===========================
 // TRANSLATION CONSTANTS
 // ===========================
 var MESSAGES = {
@@ -212,60 +212,6 @@ var ROUTES = {
   },
   academicTerms: {
     all: '{{ route("academic.academic_terms.all") }}'
-  }
-};
-
-
-// ===========================
-// UTILITY FUNCTIONS
-// ===========================
-var Utils = {
-  showError: function(message) {
-    Swal.fire({ title: 'Error', html: message, icon: 'error' });
-  },
-  showSuccess: function(message) {
-    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: message, showConfirmButton: false, timer: 2500, timerProgressBar: true });
-  },
-  toggleLoadingState: function(elementId, isLoading) {
-    var $value = $('#' + elementId + '-value');
-    var $loader = $('#' + elementId + '-loader');
-    var $updated = $('#' + elementId + '-last-updated');
-    var $updatedLoader = $('#' + elementId + '-last-updated-loader');
-    if (isLoading) {
-      $value.addClass('d-none');
-      $loader.removeClass('d-none');
-      $updated.addClass('d-none');
-      $updatedLoader.removeClass('d-none');
-    } else {
-      $value.removeClass('d-none');
-      $loader.addClass('d-none');
-      $updated.removeClass('d-none');
-      $updatedLoader.addClass('d-none');
-    }
-  },
-  replaceRouteId: function(route, id) {
-    return route.replace(':id', id);
-  },
-  formatDate: function(dateString) {
-    return dateString ? new Date(dateString).toLocaleString() : '--';
-  },
-  confirmAction: function(options) {
-    var defaults = {
-      title: 'Are you sure?',
-      text: "You won't be able to revert this!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, do it!'
-    };
-    return Swal.fire(Object.assign({}, defaults, options));
-  },
-  getElementData: function(element, attribute) {
-    return $(element).data(attribute);
-  },
-  disableButton: function($button, disabled) {
-    $button.prop('disabled', disabled === undefined ? true : disabled);
   }
 };
 
@@ -341,6 +287,7 @@ var StatsManager = {
   },
   toggleAllLoadingStates: function(isLoading) {
     ['reservations', 'reservations-active', 'reservations-inactive'].forEach(function(elementId) {
+      // Use global Utils
       Utils.toggleLoadingState(elementId, isLoading);
     });
   }
@@ -456,8 +403,8 @@ var SearchManager = {
     ].join(', ');
     $(filterSelectors).val('');
     // Reset apartment and room selects to disabled
-    $('#search_apartment_number').prop('disabled', true).empty().append('<option value="">Select Apartment</option>');
-    $('#search_room_number').prop('disabled', true).empty().append('<option value="">Select Room</option>');
+    $('#search_apartment_number').prop('disabled', true).empty().append('<option value="">' + MESSAGES.placeholders.selectApartment + '</option>');
+    $('#search_room_number').prop('disabled', true).empty().append('<option value="">' + MESSAGES.placeholders.selectRoom + '</option>');
     this.reloadTable();
   },
   reloadTable: function() {

@@ -11,7 +11,7 @@
             <x-ui.card.stat2 
                 id="terms"
                 label="Total Terms"
-                color="primary"
+                color="white"
                 icon="bx bx-calendar"
             />
         </div>
@@ -76,20 +76,12 @@
                 <option value="Fall">Fall</option>
                 <option value="Spring">Spring</option>
                 <option value="Summer">Summer</option>
-                <option value="Winter">Winter</option>
             </select>
         </div>
         <div class="col-md-3">
             <label for="search_year" class="form-label">Academic Year:</label>
             <select class="form-control" id="search_year">
                 <option value="">All Years</option>
-                <!-- Options will be populated by JavaScript -->
-            </select>
-        </div>
-        <div class="col-md-3">
-            <label for="search_code" class="form-label">Term Code:</label>
-            <select class="form-control" id="search_code">
-                <option value="">All Codes</option>
                 <!-- Options will be populated by JavaScript -->
             </select>
         </div>
@@ -118,7 +110,7 @@
         ]"
         :ajax-url="route('academic.academic_terms.datatable')"
         table-id="terms-table"
-        :filter-fields="['search_season','search_year','search_code','search_active']"
+        :filter-fields="['search_season','search_year','search_active']"
     />
 
     {{-- ===== MODALS SECTION ===== --}}
@@ -141,7 +133,6 @@
                             <option value="fall">Fall</option>
                             <option value="spring">Spring</option>
                             <option value="summer">Summer</option>
-                            <option value="winter">Winter</option>
                         </select>
                     </div>
                     <div class="col-md-4 mb-3">
@@ -256,7 +247,7 @@
  *
  * Structure:
  * - ApiService: Handles all AJAX requests
- * - StatsManager: Handles statistics cards
+ * - StatsManager: Handles statistics cards (using Utils.createStatsManager)
  * - SearchManager: Handles advanced search
  * - TermManager: Handles CRUD and actions for terms
  * - AcademicTermApp: Initializes all managers
@@ -285,11 +276,6 @@ var ROUTES = {
 // API SERVICE
 // ===========================
 var ApiService = {
-    /**
-     * Generic AJAX request wrapper
-     * @param {Object} options
-     * @returns {Promise}
-     */
     request: function(options) {
         var defaultOptions = {
             headers: {
@@ -298,183 +284,74 @@ var ApiService = {
         };
         return $.ajax($.extend(defaultOptions, options));
     },
-    /**
-     * Fetches term statistics
-     * @returns {Promise}
-     */
+
     fetchTermStats: function() {
-        return this.request({ url: ROUTES.terms.stats, method: 'GET' });
+        return ApiService.request({ url: ROUTES.terms.stats, method: 'GET' });
     },
-    /**
-     * Fetches a specific term
-     * @param {number} id
-     * @returns {Promise}
-     */
+
     fetchTerm: function(id) {
-        return this.request({ url: Utils.replaceRouteId(ROUTES.terms.show, id), method: 'GET' });
+        return ApiService.request({ url: Utils.replaceRouteId(ROUTES.terms.show, id), method: 'GET' });
     },
-    /**
-     * Fetches all terms
-     * @returns {Promise}
-     */
+
     fetchAll: function() {
-        return this.request({ url: ROUTES.terms.all, method: 'GET' });
+        return ApiService.request({ url: ROUTES.terms.all, method: 'GET' });
     },
-    /**
-     * Saves a term (create or update)
-     * @param {FormData} formData
-     * @param {number|null} id
-     * @returns {Promise}
-     */
+
     saveTerm: function(formData, id) {
-        var url = id ? Utils.replaceRouteId(ROUTES.terms.show, id) : ROUTES.terms.store;
+        var url = id ? Utils.replaceRouteId(ROUTES.terms.show,academicTermId, id) : ROUTES.terms.store;
         if (id) {
             formData.append('_method', 'PUT');
         }
-        var method = 'POST';
-        return this.request({ url: url, method: method, data: formData, processData: false, contentType: false });
+        return ApiService.request({
+            url: url,
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false
+        });
     },
-    /**
-     * Deletes a term
-     * @param {number} id
-     * @returns {Promise}
-     */
+
     deleteTerm: function(id) {
-        return this.request({ url: Utils.replaceRouteId(ROUTES.terms.destroy, id), method: 'DELETE' });
+        return ApiService.request({ url: Utils.replaceRouteId(ROUTES.terms.destroy, id), method: 'DELETE' });
     },
-    /**
-     * Starts a term
-     * @param {number} id
-     * @returns {Promise}
-     */
+
     startTerm: function(id) {
-        return this.request({ url: Utils.replaceRouteId(ROUTES.terms.start, id), method: 'POST' });
+        return ApiService.request({ url: Utils.replaceRouteId(ROUTES.terms.start, id), method: 'POST' });
     },
-    /**
-     * Ends a term
-     * @param {number} id
-     * @returns {Promise}
-     */
+
     endTerm: function(id) {
-        return this.request({ url: Utils.replaceRouteId(ROUTES.terms.end, id), method: 'POST' });
+        return ApiService.request({ url: Utils.replaceRouteId(ROUTES.terms.end, id), method: 'POST' });
     },
-    /**
-     * Activates a term
-     * @param {number} id
-     * @returns {Promise}
-     */
+
     activateTerm: function(id) {
-        return this.request({ url: Utils.replaceRouteId(ROUTES.terms.activate, id), method: 'PATCH' });
+        return ApiService.request({ url: Utils.replaceRouteId(ROUTES.terms.activate, id), method: 'PATCH' });
     },
-    /**
-     * Deactivates a term
-     * @param {number} id
-     * @returns {Promise}
-     */
+
     deactivateTerm: function(id) {
-        return this.request({ url: Utils.replaceRouteId(ROUTES.terms.deactivate, id), method: 'PATCH' });
+        return ApiService.request({ url: Utils.replaceRouteId(ROUTES.terms.deactivate, id), method: 'PATCH' });
     }
 };
 
+
 // ===========================
-// STATISTICS MANAGER
+// STATISTICS MANAGER (Using Utils)
 // ===========================
-var StatsManager = {
-    /**
-     * Initialize statistics cards
-     */
-    init: function() {
-        this.load();
-    },
-    /**
-     * Load statistics data
-     */
-    load: function() {
-        this.toggleAllLoadingStates(true);
-        ApiService.fetchTermStats()
-            .done(this.handleSuccess.bind(this))
-            .fail(this.handleError.bind(this))
-            .always(this.toggleAllLoadingStates.bind(this, false));
-    },
-    /**
-     * Handle successful stats fetch
-     * @param {object} response
-     */
-    handleSuccess: function(response) {
-        if (response.success !== false) {
-            let stats = response.data;
-            this.updateStatElement('terms', stats.total.count, stats.total.lastUpdateTime);
-            this.updateStatElement('active', stats.active.count, stats.active.lastUpdateTime);
-            this.updateStatElement('inactive', stats.inactive.count, stats.inactive.lastUpdateTime);
-            this.updateStatElement('current', stats.current.title, stats.current.lastUpdateTime);
-        } else {
-            this.setAllStatsToNA();
-        }
-    },
-    /**
-     * Handle error in stats fetch
-     */
-    handleError: function() {
-        this.setAllStatsToNA();
-        Utils.showError('Failed to load term statistics');
-    },
-    /**
-     * Update a single stat card
-     * @param {string} elementId
-     * @param {string|number} value
-     * @param {string} lastUpdateTime
-     */
-    updateStatElement: function(elementId, value, lastUpdateTime) {
-        $('#' + elementId + '-value').text(value ?? '0');
-        $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--');
-    },
-    /**
-     * Set all stat cards to N/A
-     */
-    setAllStatsToNA: function() {
-        ['terms', 'active', 'inactive', 'current'].forEach(function(elementId) {
-            $('#' + elementId + '-value').text('N/A');
-            $('#' + elementId + '-last-updated').text('N/A');
-        });
-    },
-    /**
-     * Toggle loading state for a single stat card
-     * @param {string} elementId
-     * @param {boolean} isLoading
-     */
-    toggleLoadingState: function(elementId, isLoading) {
-        var $value = $('#' + elementId + '-value');
-        var $loader = $('#' + elementId + '-loader');
-        var $updated = $('#' + elementId + '-last-updated');
-        var $updatedLoader = $('#' + elementId + '-last-updated-loader');
-        if (isLoading) {
-            $value.addClass('d-none');
-            $loader.removeClass('d-none');
-            $updated.addClass('d-none');
-            $updatedLoader.removeClass('d-none');
-        } else {
-            $value.removeClass('d-none');
-            $loader.addClass('d-none');
-            $updated.removeClass('d-none');
-            $updatedLoader.addClass('d-none');
-        }
-    },
-    /**
-     * Toggle loading state for all stat cards
-     * @param {boolean} isLoading
-     */
-    toggleAllLoadingStates: function(isLoading) {
-        ['terms', 'active', 'inactive', 'current'].forEach(function(elementId) {
-            this.toggleLoadingState(elementId, isLoading);
-        }, this);
-    }
-};
+const StatsManager = Utils.createStatsManager({
+    apiMethod: ApiService.fetchTermStats,
+    statsKeys: ['terms', 'active', 'inactive', 'current'],
+    onError: 'Failed to load term statistics'
+});
 
 // ===========================
 // SEARCH MANAGER
 // ===========================
 var SearchManager = {
-
+    /**
+     * Generate academic years array
+     * @param {number} yearsBack
+     * @param {number} yearsForward
+     * @returns {Array}
+     */
     generateAcademicYears: function(yearsBack, yearsForward) {
         yearsBack = yearsBack || 5;
         yearsForward = yearsForward || 3;
@@ -485,63 +362,70 @@ var SearchManager = {
         }
         return years.reverse();
     },
+
     /**
      * Populate search dropdowns with data
      */
     populateSearchDropdowns: function() {
         var academicYears = SearchManager.generateAcademicYears();
         var $yearSelect = $('#search_year');
+        
+        // Clear all options except the first
         $yearSelect.find('option:not(:first)').remove();
-        academicYears.forEach(function(year) {
-            $yearSelect.append('<option value="' + year + '">' + year + '</option>');
+
+        // Populate academic years using Utils
+        Utils.populateSelect($yearSelect, academicYears, {
+            valueField: null,
+            textField: null,
+            includePlaceholder: true,
+            placeholder: 'Select Year',
         });
+
+        // Fetch terms for codes dropdown
         ApiService.fetchAll()
             .done(function(response) {
                 var terms = response.data || response;
+
                 if (Array.isArray(terms)) {
-                    var uniqueCodes = [...new Set(terms.map(function(term) { return term.code; }).filter(Boolean))].sort();
+                    var uniqueCodes = [...new Set(
+                        terms.map(function(term) {
+                            return term.code;
+                        }).filter(Boolean)
+                    )].sort();
+
                     var $codeSelect = $('#search_code');
-                    $codeSelect.find('option:not(:first)').remove();
-                    uniqueCodes.forEach(function(code) {
-                        $codeSelect.append('<option value="' + code + '">' + code + '</option>');
+                    Utils.populateSelect($codeSelect, uniqueCodes, {
+                        includePlaceholder: false
                     });
                 }
             })
             .fail(function(xhr) {
-                console.warn('Failed to load term codes for search dropdown:', xhr.responseJSON?.message);
+                console.warn('Failed to load term codes for search dropdown:', xhr.responseJSON?.message || xhr.statusText);
             });
     },
+
     /**
      * Bind search-related event handlers
      */
     bindEvents: function() {
-        var searchTimeout;
-        $('#search_year, #search_code').on('keyup change', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(function() {
-                if ($.fn.DataTable.isDataTable('#terms-table')) {
-                    $('#terms-table').DataTable().ajax.reload();
-                }
-            }, 500);
+        // Immediate search for dropdowns
+        $('#search_season, #search_year, #search_active').on('change', function() {
+            Utils.reloadDataTable('#terms-table');
         });
-        $('#search_season, #search_active').on('change', function() {
-            if ($.fn.DataTable.isDataTable('#terms-table')) {
-                $('#terms-table').DataTable().ajax.reload();
-            }
-        });
+        
+        // Clear filters
         $('#clearTermFiltersBtn').on('click', function() {
-            $('#search_season, #search_year, #search_code, #search_active').val('');
-            if ($.fn.DataTable.isDataTable('#terms-table')) {
-                $('#terms-table').DataTable().ajax.reload();
-            }
+            $('#search_season, #search_year, #search_active').val('');
+            Utils.reloadDataTable('#terms-table');
         });
     },
+    
     /**
      * Initialize SearchManager
      */
     init: function() {
-        this.populateSearchDropdowns();
-        this.bindEvents();
+        SearchManager.populateSearchDropdowns();
+        SearchManager.bindEvents();
     }
 };
 
@@ -558,81 +442,82 @@ var TermManager = {
             $('#term_id').val('');
             $('#termModal .modal-title').text('Add Term');
             $('#saveTermBtn').text('Save');
+            Utils.clearValidation($('#termForm'));
             $('#termModal').modal('show');
         });
     },
+    
     /**
-     * Validates form fields
+     * Validates form fields using Utils
      * @param {Object} formData
      * @returns {Object}
      */
     validateForm: function(formData) {
         var errors = [];
-        if (!formData.season) errors.push('Season is required');
-        if (!formData.year) {
+        
+        if (Utils.isEmpty(formData.season)) errors.push('Season is required');
+        if (Utils.isEmpty(formData.year)) {
             errors.push('Year is required');
         } else if (!/^\d{4}-\d{4}$/.test(formData.year)) {
             errors.push('Year must be in format YYYY-YYYY (e.g., 2024-2025)');
         }
-        if (!formData.semester_number) errors.push('Semester number is required');
-        if (!formData.start_date) errors.push('Start date is required');
-        if (formData.start_date && formData.end_date) {
+        if (Utils.isEmpty(formData.semester_number)) errors.push('Semester number is required');
+        if (Utils.isEmpty(formData.start_date)) errors.push('Start date is required');
+        
+        if (!Utils.isEmpty(formData.start_date) && !Utils.isEmpty(formData.end_date)) {
             var startDate = new Date(formData.start_date);
             var endDate = new Date(formData.end_date);
             if (endDate <= startDate) errors.push('End date must be after start date');
         }
+        
         return { isValid: errors.length === 0, errors: errors };
     },
+    
     /**
      * Handles term form submission
      */
     handleTermFormSubmit: function() {
         $('#termForm').on('submit', function(e) {
             e.preventDefault();
+            
             var termId = $('#term_id').val();
             var formData = new FormData(e.target);
+            
+            // Convert FormData to object for validation
             var formObject = {};
             formData.forEach(function(value, key) { formObject[key] = value; });
+            
             var validation = TermManager.validateForm(formObject);
             if (!validation.isValid) {
-                Utils.showError(validation.errors.join('<br>'), 'termModal');
+                Utils.showErrorHtml('Validation Error', Utils.formatValidationErrors({errors: validation.errors}));
                 return;
             }
+            
             var $submitBtn = $('#saveTermBtn');
-            var originalText = $submitBtn.text();
-            $submitBtn.prop('disabled', true).text('Saving...');
+            Utils.setLoadingState($submitBtn, true, {
+                loadingText: 'Saving...',
+                normalText: $submitBtn.text()
+            });
+            
             ApiService.saveTerm(formData, termId || null)
                 .done(function(response) {
                     $('#termModal').modal('hide');
-                    if ($.fn.DataTable.isDataTable('#terms-table')) {
-                        $('#terms-table').DataTable().ajax.reload(null, false);
-                    }
+                    Utils.reloadDataTable('#terms-table', null, true);
                     Utils.showSuccess(response.message || 'Term saved successfully.');
-                    StatsManager.load();
+                    StatsManager.refresh();
                     SearchManager.populateSearchDropdowns();
                 })
                 .fail(function(xhr) {
-                    var response = xhr.responseJSON;
-                    if (response && response.errors && Object.keys(response.errors).length > 0) {
-                        var errorMessages = [];
-                        Object.keys(response.errors).forEach(function(field) {
-                            if (Array.isArray(response.errors[field])) {
-                                errorMessages = errorMessages.concat(response.errors[field]);
-                            } else {
-                                errorMessages.push(response.errors[field]);
-                            }
-                        });
-                        Utils.showError(errorMessages.join('<br>'), 'termModal');
-                    } else {
-                        var message = response && response.message ? response.message : 'An error occurred. Please check your input.';
-                        Utils.showError(message, 'termModal');
-                    }
+                    Utils.handleAjaxError(xhr, 'Failed to save term. Please check your input.');
                 })
                 .always(function() {
-                    $submitBtn.prop('disabled', false).text(originalText);
+                    Utils.setLoadingState($submitBtn, false, {
+                        normalText: termId ? 'Update' : 'Save'
+                    });
                 });
         });
     },
+    
     /**
      * Handles Edit Term button click
      */
@@ -643,6 +528,7 @@ var TermManager = {
                 Utils.showError('Term ID is missing');
                 return;
             }
+            
             ApiService.fetchTerm(termId)
                 .done(function(response) {
                     var term = response.data;
@@ -655,15 +541,15 @@ var TermManager = {
                     $('#active').prop('checked', Boolean(term.active));
                     $('#termModal .modal-title').text('Edit Term');
                     $('#saveTermBtn').text('Update');
+                    Utils.clearValidation($('#termForm'));
                     $('#termModal').modal('show');
                 })
                 .fail(function(xhr) {
-                    var response = xhr.responseJSON;
-                    var message = response && response.message ? response.message : 'Failed to load term details.';
-                    Utils.showError(message);
+                    Utils.handleAjaxError(xhr, 'Failed to load term details.');
                 });
         });
     },
+    
     /**
      * Handles Delete Term button click
      */
@@ -674,34 +560,28 @@ var TermManager = {
                 Utils.showError('Term ID is missing');
                 return;
             }
-            Swal.fire({
+            
+            Utils.showConfirmDialog({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this action!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, delete it!'
+                confirmButtonText: 'Yes, delete it!',
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.deleteTerm(termId)
                         .done(function(response) {
-                            if ($.fn.DataTable.isDataTable('#terms-table')) {
-                                $('#terms-table').DataTable().ajax.reload(null, false);
-                            }
+                            Utils.reloadDataTable('#terms-table', null, true);
                             Utils.showSuccess(response.message || 'Term has been deleted.');
-                            StatsManager.load();
+                            StatsManager.refresh();
                             SearchManager.populateSearchDropdowns();
                         })
                         .fail(function(xhr) {
-                            var response = xhr.responseJSON;
-                            var message = response && response.message ? response.message : 'Failed to delete term.';
-                            Utils.showError(message);
+                            Utils.handleAjaxError(xhr, 'Failed to delete term.');
                         });
                 }
             });
         });
     },
+    
     /**
      * Handles Start Term button click
      */
@@ -712,35 +592,28 @@ var TermManager = {
                 Utils.showError('Term ID is missing');
                 return;
             }
-            Swal.fire({
+            Utils.showConfirmDialog({
                 title: 'Start Academic Term?',
                 text: 'Are you sure you want to start this academic term? Once started, all confirmed reservations for this term will be activated.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#28a745',
-                cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Yes, start term!',
-                cancelButtonText: 'Cancel'
+                confirmButtonColor: '#28a745'
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.startTerm(termId)
                         .done(function(response) {
-                            if ($.fn.DataTable.isDataTable('#terms-table')) {
-                                $('#terms-table').DataTable().ajax.reload(null, false);
-                            }
-                            Utils.showSuccess(response.message || 'Term has been started successfully. Residents can now select this term for their reservations.');
-                            StatsManager.load();
+                            Utils.reloadDataTable('#terms-table', null, true);
+                            Utils.showSuccess(response.message || 'Term has been started successfully.');
+                            StatsManager.refresh();
                             SearchManager.populateSearchDropdowns();
                         })
                         .fail(function(xhr) {
-                            var response = xhr.responseJSON;
-                            var message = response && response.message ? response.message : 'Failed to start term.';
-                            Utils.showError(message);
+                            Utils.handleAjaxError(xhr, 'Failed to start term.');
                         });
                 }
             });
         });
     },
+    
     /**
      * Handles End Term button click
      */
@@ -751,35 +624,29 @@ var TermManager = {
                 Utils.showError('Term ID is missing');
                 return;
             }
-            Swal.fire({
+            
+            Utils.showConfirmDialog({
                 title: 'End Academic Term?',
                 text: 'Are you sure you want to end this academic term?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Yes, end term!',
-                cancelButtonText: 'Cancel'
+                confirmButtonColor: '#dc3545'
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.endTerm(termId)
                         .done(function(response) {
-                            if ($.fn.DataTable.isDataTable('#terms-table')) {
-                                $('#terms-table').DataTable().ajax.reload(null, false);
-                            }
+                            Utils.reloadDataTable('#terms-table', null, true);
                             Utils.showSuccess(response.message || 'Term has been ended.');
-                            StatsManager.load();
+                            StatsManager.refresh();
                             SearchManager.populateSearchDropdowns();
                         })
                         .fail(function(xhr) {
-                            var response = xhr.responseJSON;
-                            var message = response && response.message ? response.message : 'Failed to end term.';
-                            Utils.showError(message);
+                            Utils.handleAjaxError(xhr, 'Failed to end term.');
                         });
                 }
             });
         });
     },
+    
     /**
      * Handles Activate Term button click
      */
@@ -790,35 +657,30 @@ var TermManager = {
                 Utils.showError('Term ID is missing');
                 return;
             }
-            Swal.fire({
+            
+            Utils.showConfirmDialog({
                 title: 'Activate Academic Term?',
                 text: 'Are you sure you want to activate this academic term? This will make the term available for reservations.',
                 icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#28a745',
-                cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Yes, activate term!',
-                cancelButtonText: 'Cancel'
+                confirmButtonColor: '#28a745'
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.activateTerm(termId)
                         .done(function(response) {
-                            if ($.fn.DataTable.isDataTable('#terms-table')) {
-                                $('#terms-table').DataTable().ajax.reload(null, false);
-                            }
+                            Utils.reloadDataTable('#terms-table', null, true);
                             Utils.showSuccess(response.message || 'Term has been activated.');
-                            StatsManager.load();
+                            StatsManager.refresh();
                             SearchManager.populateSearchDropdowns();
                         })
                         .fail(function(xhr) {
-                            var response = xhr.responseJSON;
-                            var message = response && response.message ? response.message : 'Failed to activate term.';
-                            Utils.showError(message);
+                            Utils.handleAjaxError(xhr, 'Failed to activate term.');
                         });
                 }
             });
         });
     },
+    
     /**
      * Handles Deactivate Term button click
      */
@@ -829,35 +691,29 @@ var TermManager = {
                 Utils.showError('Term ID is missing');
                 return;
             }
-            Swal.fire({
+            
+            Utils.showConfirmDialog({
                 title: 'Deactivate Academic Term?',
                 text: 'Are you sure you want to deactivate this academic term? This will make the term unavailable for new reservations.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ffc107',
-                cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Yes, deactivate term!',
-                cancelButtonText: 'Cancel'
+                confirmButtonColor: '#ffc107'
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.deactivateTerm(termId)
                         .done(function(response) {
-                            if ($.fn.DataTable.isDataTable('#terms-table')) {
-                                $('#terms-table').DataTable().ajax.reload(null, false);
-                            }
+                            Utils.reloadDataTable('#terms-table', null, true);
                             Utils.showSuccess(response.message || 'Term has been deactivated.');
-                            StatsManager.load();
+                            StatsManager.refresh();
                             SearchManager.populateSearchDropdowns();
                         })
                         .fail(function(xhr) {
-                            var response = xhr.responseJSON;
-                            var message = response && response.message ? response.message : 'Failed to deactivate term.';
-                            Utils.showError(message);
+                            Utils.handleAjaxError(xhr, 'Failed to deactivate term.');
                         });
                 }
             });
         });
     },
+    
     /**
      * Handles View Term button click
      */
@@ -868,6 +724,7 @@ var TermManager = {
                 Utils.showError('Term ID is missing');
                 return;
             }
+            
             ApiService.fetchTerm(termId)
                 .done(function(response) {
                     var term = response.data;
@@ -887,12 +744,11 @@ var TermManager = {
                     $('#viewTermModal').modal('show');
                 })
                 .fail(function(xhr) {
-                    var response = xhr.responseJSON;
-                    var message = response && response.message ? response.message : 'Failed to load term details.';
-                    Utils.showError(message);
+                    Utils.handleAjaxError(xhr, 'Failed to load term details.');
                 });
         });
     },
+    
     /**
      * Initializes all event listeners and modal handlers for TermManager
      */
@@ -930,4 +786,4 @@ $(document).ready(function() {
     AcademicTermApp.init();
 });
 </script>
-@endpush 
+@endpush

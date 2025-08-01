@@ -315,7 +315,7 @@ class AcademicTermService
         $currentLastUpdate = $currentTerm ? $currentTerm->updated_at : $totalLastUpdate;
 
         return [
-            'total' => [
+            'terms' => [
                 'count' => formatNumber($totalTerms),
                 'lastUpdateTime' => formatDate($totalLastUpdate)
             ],

@@ -196,11 +196,12 @@
  * Payment Management Page JS
  *
  * Structure:
- * - Utils: Common utility functions
  * - ApiService: Handles all AJAX requests
  * - StatsManager: Handles statistics cards
  * - PaymentManager: Handles CRUD and actions for payments
  * - PaymentApp: Initializes all managers
+ *
+ * Uses global @utils.js functions for common utilities.
  */
 
 // ===========================
@@ -214,98 +215,6 @@ var ROUTES = {
     update: '{{ route('payments.update', ':id') }}',
     destroy: '{{ route('payments.destroy', ':id') }}',
     details: '{{ route('payments.details', ':id') }}',
-  }
-};
-
-// ===========================
-// UTILITY FUNCTIONS
-// ===========================
-var Utils = {
-  /**
-   * Show an error alert
-   * @param {string} message
-   */
-  showError: function(message) {
-    Swal.fire({ title: 'Error', html: message, icon: 'error' });
-  },
-  /**
-   * Show a success toast message
-   * @param {string} message
-   */
-  showSuccess: function(message) {
-    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: message, showConfirmButton: false, timer: 2500, timerProgressBar: true });
-  },
-  /**
-   * Toggle loading state for a stat card
-   * @param {string} elementId
-   * @param {boolean} isLoading
-   */
-  toggleLoadingState: function(elementId, isLoading) {
-    var $value = $('#' + elementId + '-value');
-    var $loader = $('#' + elementId + '-loader');
-    var $updated = $('#' + elementId + '-last-updated');
-    var $updatedLoader = $('#' + elementId + '-last-updated-loader');
-    if (isLoading) {
-      $value.addClass('d-none');
-      $loader.removeClass('d-none');
-      $updated.addClass('d-none');
-      $updatedLoader.removeClass('d-none');
-    } else {
-      $value.removeClass('d-none');
-      $loader.addClass('d-none');
-      $updated.removeClass('d-none');
-      $updatedLoader.addClass('d-none');
-    }
-  },
-  /**
-   * Replace :id in a route string
-   * @param {string} route
-   * @param {string|number} id
-   * @returns {string}
-   */
-  replaceRouteId: function(route, id) {
-    return route.replace(':id', id);
-  },
-  /**
-   * Show a confirmation dialog
-   * @param {object} options
-   * @returns {Promise}
-   */
-  showConfirmDialog: function(options) {
-    return Swal.fire({
-      title: options.title || 'Are you sure?',
-      text: options.text || "You won't be able to revert this!",
-      icon: options.icon || 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: options.confirmButtonText || 'Yes, proceed!'
-    });
-  },
-  /**
-   * Reset a form by ID
-   * @param {string} formId
-   */
-  resetForm: function(formId) {
-    $('#' + formId)[0].reset();
-  },
-  /**
-   * Set form data by object
-   * @param {string} formId
-   * @param {object} data
-   */
-  setFormData: function(formId, data) {
-    var form = $('#' + formId);
-    Object.keys(data).forEach(function(key) {
-      var element = form.find('[name="' + key + '"]');
-      if (element.length) {
-        if (element.attr('type') === 'checkbox') {
-          element.prop('checked', data[key]);
-        } else {
-          element.val(data[key]);
-        }
-      }
-    });
   }
 };
 
@@ -532,7 +441,12 @@ var PaymentManager = {
    * Reset modal state
    */
   resetModalState: function() {
-    Utils.resetForm('paymentForm');
+    if (Utils && typeof Utils.resetForm === 'function') {
+      Utils.resetForm('paymentForm');
+    } else {
+      // fallback
+      $('#paymentForm')[0].reset();
+    }
   },
   /**
    * Setup add modal
@@ -555,7 +469,11 @@ var PaymentManager = {
       })
       .fail(function() {
         $('#paymentModal').modal('hide');
-        Utils.showError('Failed to load payment data');
+        if (Utils && typeof Utils.showError === 'function') {
+          Utils.showError('Failed to load payment data');
+        } else {
+          alert('Failed to load payment data');
+        }
       });
   },
   /**
@@ -581,7 +499,11 @@ var PaymentManager = {
       })
       .fail(function() {
         $('#viewPaymentModal').modal('hide');
-        Utils.showError('Failed to load payment data');
+        if (Utils && typeof Utils.showError === 'function') {
+          Utils.showError('Failed to load payment data');
+        } else {
+          alert('Failed to load payment data');
+        }
       });
   },
   /**
@@ -638,7 +560,9 @@ var PaymentManager = {
   handleSaveSuccess: function() {
     $('#paymentModal').modal('hide');
     $('#payments-table').DataTable().ajax.reload(null, false);
-    Utils.showSuccess('Payment has been saved successfully.');
+    if (Utils && typeof Utils.showSuccess === 'function') {
+      Utils.showSuccess('Payment has been saved successfully.');
+    }
     StatsManager.load();
   },
   /**
@@ -647,21 +571,31 @@ var PaymentManager = {
   handleSaveError: function(xhr) {
     $('#paymentModal').modal('hide');
     var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred. Please check your input.';
-    Utils.showError(message);
+    if (Utils && typeof Utils.showError === 'function') {
+      Utils.showError(message);
+    } else {
+      alert(message);
+    }
   },
   /**
    * Delete payment
    */
   deletePayment: function(paymentId) {
-    Utils.showConfirmDialog({
-      title: 'Are you sure?',
-      text: "You won't be able to revert this!",
-      confirmButtonText: 'Yes, delete it!'
-    }).then(function(result) {
-      if (result.isConfirmed) {
+    if (Utils && typeof Utils.showConfirmDialog === 'function') {
+      Utils.showConfirmDialog({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        confirmButtonText: 'Yes, delete it!'
+      }).then(function(result) {
+        if (result.isConfirmed) {
+          PaymentManager.performDelete(paymentId);
+        }
+      });
+    } else {
+      if (confirm('Are you sure?')) {
         PaymentManager.performDelete(paymentId);
       }
-    });
+    }
   },
   /**
    * Perform actual deletion
@@ -670,12 +604,18 @@ var PaymentManager = {
     ApiService.deletePayment(paymentId)
       .done(function() {
         $('#payments-table').DataTable().ajax.reload(null, false);
-        Utils.showSuccess('Payment has been deleted.');
+        if (Utils && typeof Utils.showSuccess === 'function') {
+          Utils.showSuccess('Payment has been deleted.');
+        }
         StatsManager.load();
       })
       .fail(function(xhr) {
         var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to delete payment.';
-        Utils.showError(message);
+        if (Utils && typeof Utils.showError === 'function') {
+          Utils.showError(message);
+        } else {
+          alert(message);
+        }
       });
   },
   viewDetails: function(paymentId) {

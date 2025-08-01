@@ -11,13 +11,12 @@ class HomeController extends Controller
     {
         $user = auth()->user();
 
-
-        // if ($user->hasRole('resident')) {
-        //     return redirect()->route('home.resident');
-        // }
+        if ($user->hasRole('resident')) {
             return view('home.resident');
+        } elseif ($user->hasRole('admin')) {
+            return view('home.admin');
+        }
 
-        // Default fallback
-        // return redirect()->route('login')->withErrors(['error' => 'Unauthorized access. Please log in.']);
+        return redirect()->route('login')->withErrors(['error' => 'Unauthorized access. Please log in.']);
     }
 }

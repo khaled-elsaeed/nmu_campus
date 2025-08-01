@@ -145,15 +145,15 @@
  * Program Management Page JS
  *
  * Structure:
- * - Utils: Common utility functions
  * - ApiService: Handles all AJAX requests
  * - StatsManager: Handles statistics cards
  * - ProgramManager: Handles CRUD for programs
  * - SearchManager: Handles advanced search
  * - ProgramManagementApp: Initializes all managers
+ * NOTE: Uses global Utils from public/js/utils.js
  */
 
- // ===========================
+// ===========================
 // ROUTES CONSTANTS
 // ===========================
 var ROUTES = {
@@ -166,57 +166,6 @@ var ROUTES = {
   },
   faculties : {
     all: '{{ route('academic.faculties.all') }}'
-  }
-};
-
-// ===========================
-// CONSTANTS AND CONFIGURATION
-// ===========================
-var Utils = {
-  /**
-   * Show a success toast message
-   * @param {string} message
-   */
-  showSuccess: function(message) {
-    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: message, showConfirmButton: false, timer: 2500, timerProgressBar: true });
-  },
-  /**
-   * Show an error alert
-   * @param {string} message
-   */
-  showError: function(message) {
-    Swal.fire({ title: 'Error', html: message, icon: 'error' });
-  },
-  /**
-   * Toggle loading state for a stat card
-   * @param {string} elementId
-   * @param {boolean} isLoading
-   */
-  toggleLoadingState: function(elementId, isLoading) {
-    var $value = $('#' + elementId + '-value');
-    var $loader = $('#' + elementId + '-loader');
-    var $updated = $('#' + elementId + '-last-updated');
-    var $updatedLoader = $('#' + elementId + '-last-updated-loader');
-    if (isLoading) {
-      $value.addClass('d-none');
-      $loader.removeClass('d-none');
-      $updated.addClass('d-none');
-      $updatedLoader.removeClass('d-none');
-    } else {
-      $value.removeClass('d-none');
-      $loader.addClass('d-none');
-      $updated.removeClass('d-none');
-      $updatedLoader.addClass('d-none');
-    }
-  },
-  /**
-   * Replace :id in a route string
-   * @param {string} route
-   * @param {string|number} id
-   * @returns {string}
-   */
-  replaceRouteId: function(route, id) {
-    return route.replace(':id', id);
   }
 };
 
@@ -376,28 +325,33 @@ var StatsManager = {
       $('#' + elementId + '-last-updated').text('N/A');
     });
   },
-      /**
-     * Toggle loading state for a single stat card
-     * @param {string} elementId
-     * @param {boolean} isLoading
-     */
-    toggleLoadingState: function(elementId, isLoading) {
-        var $value = $('#' + elementId + '-value');
-        var $loader = $('#' + elementId + '-loader');
-        var $updated = $('#' + elementId + '-last-updated');
-        var $updatedLoader = $('#' + elementId + '-last-updated-loader');
-        if (isLoading) {
-            $value.addClass('d-none');
-            $loader.removeClass('d-none');
-            $updated.addClass('d-none');
-            $updatedLoader.removeClass('d-none');
-        } else {
-            $value.removeClass('d-none');
-            $loader.addClass('d-none');
-            $updated.removeClass('d-none');
-            $updatedLoader.addClass('d-none');
-        }
-    },
+  /**
+   * Toggle loading state for a single stat card
+   * @param {string} elementId
+   * @param {boolean} isLoading
+   */
+  toggleLoadingState: function(elementId, isLoading) {
+    // If not found in utils, implement here
+    if (Utils && typeof Utils.toggleLoadingState === 'function') {
+      Utils.toggleLoadingState(elementId, isLoading);
+    } else {
+      var $value = $('#' + elementId + '-value');
+      var $loader = $('#' + elementId + '-loader');
+      var $updated = $('#' + elementId + '-last-updated');
+      var $updatedLoader = $('#' + elementId + '-last-updated-loader');
+      if (isLoading) {
+        $value.addClass('d-none');
+        $loader.removeClass('d-none');
+        $updated.addClass('d-none');
+        $updatedLoader.removeClass('d-none');
+      } else {
+        $value.removeClass('d-none');
+        $loader.addClass('d-none');
+        $updated.removeClass('d-none');
+        $updatedLoader.addClass('d-none');
+      }
+    }
+  },
   /**
    * Toggle loading state for all stat cards
    * @param {boolean} isLoading
@@ -405,7 +359,7 @@ var StatsManager = {
   toggleAllLoadingStates: function(isLoading) {
     ['programs', 'with-students', 'without-students'].forEach(function(elementId) {
       this.toggleLoadingState(elementId, isLoading);
-    });
+    }, this);
   }
 };
 

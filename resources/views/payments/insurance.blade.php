@@ -194,6 +194,8 @@
  * - StatsManager: Handles statistics cards
  * - InsuranceManager: Handles CRUD and actions for insurances
  * - InsuranceApp: Initializes all managers
+ * NOTE: Uses global Utils from public/js/utils.js
+
  */
 
 // ===========================
@@ -209,98 +211,7 @@ var ROUTES = {
     all: '{{ route('insurances.all') }}',
     cancel: '{{ route('insurances.cancel', ':id') }}',
     refund: '{{ route('insurances.refund', ':id') }}',
-  }
-};
-
-// ===========================
-// UTILITY FUNCTIONS
-// ===========================
-var Utils = {
-  /**
-   * Show an error alert
-   * @param {string} message
-   */
-  showError: function(message) {
-    Swal.fire({ title: 'Error', html: message, icon: 'error' });
-  },
-  /**
-   * Show a success toast message
-   * @param {string} message
-   */
-  showSuccess: function(message) {
-    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: message, showConfirmButton: false, timer: 2500, timerProgressBar: true });
-  },
-  /**
-   * Toggle loading state for a stat card
-   * @param {string} elementId
-   * @param {boolean} isLoading
-   */
-  toggleLoadingState: function(elementId, isLoading) {
-    var $value = $('#' + elementId + '-value');
-    var $loader = $('#' + elementId + '-loader');
-    var $updated = $('#' + elementId + '-last-updated');
-    var $updatedLoader = $('#' + elementId + '-last-updated-loader');
-    if (isLoading) {
-      $value.addClass('d-none');
-      $loader.removeClass('d-none');
-      $updated.addClass('d-none');
-      $updatedLoader.removeClass('d-none');
-    } else {
-      $value.removeClass('d-none');
-      $loader.addClass('d-none');
-      $updated.removeClass('d-none');
-      $updatedLoader.addClass('d-none');
-    }
-  },
-  /**
-   * Replace :id in a route string
-   * @param {string} route
-   * @param {string|number} id
-   * @returns {string}
-   */
-  replaceRouteId: function(route, id) {
-    return route.replace(':id', id);
-  },
-  /**
-   * Show a confirmation dialog
-   * @param {object} options
-   * @returns {Promise}
-   */
-  showConfirmDialog: function(options) {
-    return Swal.fire({
-      title: options.title || 'Are you sure?',
-      text: options.text || "You won't be able to revert this!",
-      icon: options.icon || 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: options.confirmButtonText || 'Yes, proceed!'
-    });
-  },
-  /**
-   * Reset a form by ID
-   * @param {string} formId
-   */
-  resetForm: function(formId) {
-    $('#' + formId)[0].reset();
-  },
-  /**
-   * Set form data by object
-   * @param {string} formId
-   * @param {object} data
-   */
-  setFormData: function(formId, data) {
-    var form = $('#' + formId);
-    Object.keys(data).forEach(function(key) {
-      var element = form.find('[name="' + key + '"]');
-      if (element.length) {
-        if (element.attr('type') === 'checkbox') {
-          element.prop('checked', data[key]);
-        } else {
-          element.val(data[key]);
-        }
-      }
-    });
+    details: '{{ route('insurances.details', ':id') }}',
   }
 };
 
@@ -359,7 +270,7 @@ var ApiService = {
     return this.request({ url: Utils.replaceRouteId(ROUTES.insurances.destroy, id), method: 'DELETE' });
   },
   fetchInsuranceDetails: function(id) {
-    return this.request({ url: ROUTES.insurances.details.replace(':id', id), method: 'GET' });
+    return this.request({ url: Utils.replaceRouteId(ROUTES.insurances.details, id), method: 'GET' });
   },
   cancelInsurance: function(id) {
     return this.request({ url: Utils.replaceRouteId(ROUTES.insurances.cancel, id), method: 'POST' });
@@ -412,6 +323,12 @@ var StatsManager = {
     this.setAllStatsToNA();
     Utils.showError('Failed to load insurance statistics');
   },
+  /**
+   * Update a single stat card
+   * @param {string} elementId
+   * @param {string|number} value
+   * @param {string} lastUpdateTime
+   */
   updateStatElement: function(elementId, value, lastUpdateTime) {
     // Hide loader, show value and last updated
     $('#' + elementId + '-value').text(value ?? '0').removeClass('d-none');
@@ -427,11 +344,9 @@ var StatsManager = {
       $('#' + elementId + '-last-updated-loader').addClass('d-none');
     });
   },
-   /**
-   * Update a single stat card
-   * @param {string} elementId
-   * @param {string|number} value
-   * @param {string} lastUpdateTime
+  /**
+   * Toggle loading state for all stat cards
+   * @param {boolean} isLoading
    */
   toggleAllLoadingStates: function(isLoading) {
     ['insurances', 'insurances-active', 'insurances-refunded', 'insurances-carried-over', 'insurances-cancelled'].forEach(function(elementId) {
@@ -460,7 +375,7 @@ var InsuranceManager = {
     this.handleViewInsurance();
     this.handleDeleteInsurance();
     this.handleFormSubmit();
-    this.handleVewInsuranceDetails();
+    this.handleViewInsuranceDetails();
     this.handleCancelInsurance();
     this.handleRefundInsurance();
   },
@@ -511,14 +426,19 @@ var InsuranceManager = {
       self.saveInsurance();
     });
   },
-
-  handleVewInsuranceDetails(){
+  /**
+   * Handle view details button click
+   */
+  handleViewInsuranceDetails: function() {
     var self = this;
     $(document).on('click', '.viewDetailsBtn', function(e) {
       var insuranceId = $(e.currentTarget).data('id');
       self.viewDetails(insuranceId);
     });
   },
+  /**
+   * Handle cancel insurance button click
+   */
   handleCancelInsurance: function() {
     $(document).on('click', '.cancelInsuranceBtn', function(e) {
       var insuranceId = $(e.currentTarget).data('id');
@@ -535,13 +455,15 @@ var InsuranceManager = {
               StatsManager.load();
             })
             .fail(function(xhr) {
-              var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to cancel insurance.';
-              Utils.showError(message);
+              Utils.handleAjaxError ? Utils.handleAjaxError(xhr, 'Failed to cancel insurance.') : Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to cancel insurance.');
             });
         }
       });
     });
   },
+  /**
+   * Handle refund insurance button click
+   */
   handleRefundInsurance: function() {
     $(document).on('click', '.refundInsuranceBtn', function(e) {
       var insuranceId = $(e.currentTarget).data('id');
@@ -558,8 +480,7 @@ var InsuranceManager = {
               StatsManager.load();
             })
             .fail(function(xhr) {
-              var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to refund insurance.';
-              Utils.showError(message);
+              Utils.handleAjaxError ? Utils.handleAjaxError(xhr, 'Failed to refund insurance.') : Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to refund insurance.');
             });
         }
       });
@@ -570,42 +491,26 @@ var InsuranceManager = {
    */
   openModal: function(mode, insuranceId) {
     this.currentInsuranceId = insuranceId;
-    this.resetModalState();
+    // Use global Utils.clearValidation and reset form
+    Utils.clearValidation && Utils.clearValidation($('#insuranceForm'));
+    $('#insuranceForm')[0].reset();
     if (mode === 'add') {
-      this.setupAddModal();
+      $('#insuranceModal .modal-title').text('Add Insurance');
+      $('#insuranceModal').modal('show');
     } else if (mode === 'edit') {
-      this.setupEditModal(insuranceId);
+      $('#insuranceModal .modal-title').text('Edit Insurance');
+      ApiService.fetchInsurance(insuranceId)
+        .done(function(response) {
+          if (response.success) {
+            InsuranceManager.populateEditForm(response.data);
+            $('#insuranceModal').modal('show');
+          }
+        })
+        .fail(function() {
+          $('#insuranceModal').modal('hide');
+          Utils.showError('Failed to load insurance data');
+        });
     }
-  },
-  /**
-   * Reset modal state
-   */
-  resetModalState: function() {
-    Utils.resetForm('insuranceForm');
-  },
-  /**
-   * Setup add modal
-   */
-  setupAddModal: function() {
-    $('#insuranceModalTitle').text('Add Insurance');
-    $('#insuranceModal').modal('show');
-  },
-  /**
-   * Setup edit modal
-   */
-  setupEditModal: function(insuranceId) {
-    $('#insuranceModalTitle').text('Edit Insurance');
-    ApiService.fetchInsurance(insuranceId)
-      .done(function(response) {
-        if (response.success) {
-          InsuranceManager.populateEditForm(response.data);
-          $('#insuranceModal').modal('show');
-        }
-      })
-      .fail(function() {
-        $('#insuranceModal').modal('hide');
-        Utils.showError('Failed to load insurance data');
-      });
   },
   /**
    * Populate edit form
@@ -654,12 +559,20 @@ var InsuranceManager = {
     } else {
       apiCall = ApiService.createInsurance(formData);
     }
+    var self = this;
     apiCall
       .done(function() {
-        InsuranceManager.handleSaveSuccess();
+        self.handleSaveSuccess();
       })
       .fail(function(xhr) {
-        InsuranceManager.handleSaveError(xhr);
+        // Use global Utils.handleAjaxError if available, otherwise fallback
+        if (Utils.handleAjaxError) {
+          Utils.handleAjaxError(xhr, 'An error occurred. Please check your input.');
+        } else {
+          $('#insuranceModal').modal('hide');
+          var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred. Please check your input.';
+          Utils.showError(message);
+        }
       });
   },
   /**
@@ -670,14 +583,6 @@ var InsuranceManager = {
     $('#insurances-table').DataTable().ajax.reload(null, false);
     Utils.showSuccess('Insurance has been saved successfully.');
     StatsManager.load();
-  },
-  /**
-   * Handle save error
-   */
-  handleSaveError: function(xhr) {
-    $('#insuranceModal').modal('hide');
-    var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred. Please check your input.';
-    Utils.showError(message);
   },
   /**
    * Delete insurance
@@ -704,10 +609,12 @@ var InsuranceManager = {
         StatsManager.load();
       })
       .fail(function(xhr) {
-        var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to delete insurance.';
-        Utils.showError(message);
+        Utils.handleAjaxError ? Utils.handleAjaxError(xhr, 'Failed to delete insurance.') : Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to delete insurance.');
       });
   },
+  /**
+   * View insurance details (details modal)
+   */
   viewDetails: function(insuranceId) {
     $('#insurance-details-json').html('<div class="text-center py-4"><span class="spinner-border text-info" role="status"></span></div>');
     $('#insuranceDetailsModal').modal('show');

@@ -217,13 +217,14 @@
  * Room Management Page JS
  *
  * Structure:
- * - Utils: Common utility functions
  * - ApiService: Handles all AJAX requests
  * - StatsManager: Handles statistics cards
  * - RoomManager: Handles CRUD and actions for rooms
  * - SearchManager: Handles advanced search
  * - SelectManager: Handles dropdown population
  * - RoomApp: Initializes all managers
+ *  NOTE: Uses global Utils from public/js/utils.js
+
  */
 
 // ===========================
@@ -244,82 +245,6 @@ var ROUTES = {
   },
   apartments: {
     all: '{{ route('housing.apartments.all') }}'
-  }
-};
-
-// ===========================
-// UTILITY FUNCTIONS
-// ===========================
-var Utils = {
-  /**
-   * Show an error alert
-   * @param {string} message
-   */
-  showError: function(message) {
-    Swal.fire({ title: 'Error', html: message, icon: 'error' });
-  },
-  /**
-   * Show a success toast message
-   * @param {string} message
-   */
-  showSuccess: function(message) {
-    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: message, showConfirmButton: false, timer: 2500, timerProgressBar: true });
-  },
-  /**
-   * Toggle loading state for a stat card
-   * @param {string} elementId
-   * @param {boolean} isLoading
-   */
-  toggleLoadingState: function(elementId, isLoading) {
-    var $value = $('#' + elementId + '-value');
-    var $loader = $('#' + elementId + '-loader');
-    var $updated = $('#' + elementId + '-last-updated');
-    var $updatedLoader = $('#' + elementId + '-last-updated-loader');
-    if (isLoading) {
-      $value.addClass('d-none');
-      $loader.removeClass('d-none');
-      $updated.addClass('d-none');
-      $updatedLoader.removeClass('d-none');
-    } else {
-      $value.removeClass('d-none');
-      $loader.addClass('d-none');
-      $updated.removeClass('d-none');
-      $updatedLoader.addClass('d-none');
-    }
-  },
-  /**
-   * Replace :id in a route string
-   * @param {string} route
-   * @param {string|number} id
-   * @returns {string}
-   */
-  replaceRouteId: function(route, id) {
-    return route.replace(':id', id);
-  },
-  /**
-   * Format a date string
-   * @param {string} dateString
-   * @returns {string}
-   */
-  formatDate: function(dateString) {
-    return dateString ? new Date(dateString).toLocaleString() : '--';
-  },
-  /**
-   * Show a confirmation dialog
-   * @param {object} options
-   * @returns {Promise}
-   */
-  confirmAction: function(options) {
-    var defaults = {
-      title: 'Are you sure?',
-      text: "You won't be able to revert this!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, do it!'
-    };
-    return Swal.fire(Object.assign({}, defaults, options));
   }
 };
 
@@ -612,8 +537,12 @@ var RoomManager = {
     $('#view-room-type').text(room.type);
     $('#view-room-gender-restriction').text(room.gender_restriction);
     $('#view-room-is-active').text(room.active ? 'Active' : 'Inactive');
-    $('#view-room-created').text(Utils.formatDate(room.created_at));
-    $('#view-room-updated').text(Utils.formatDate(room.updated_at));
+    // Use global utils.formatDate if available, else fallback
+    var formatDate = Utils && Utils.formatDate ? Utils.formatDate : function(dateString) {
+      return dateString ? new Date(dateString).toLocaleString() : '--';
+    };
+    $('#view-room-created').text(formatDate(room.created_at));
+    $('#view-room-updated').text(formatDate(room.updated_at));
     $('#view-room-capacity').text(room.capacity);
     $('#view-room-current-occupancy').text(room.current_occupancy);
     $('#view-room-available-capacity').text(room.available_capacity);
@@ -771,6 +700,5 @@ var RoomApp = {
 $(document).ready(function() {
   RoomApp.init();
 });
-  
 </script>
 @endpush 

@@ -2086,7 +2086,6 @@ var CompleteProfileApp = {
 // DOCUMENT READY
 // ===========================
 $(document).ready(function() {
-  // Call async init and ignore returned promise
   CompleteProfileApp.init();
 });
 </script>

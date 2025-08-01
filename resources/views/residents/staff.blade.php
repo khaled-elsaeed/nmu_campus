@@ -214,7 +214,6 @@
  * Staff Management Page JS
  *
  * Structure:
- * - Utils: Common utility functions
  * - ApiService: Handles all AJAX requests
  * - SelectManager: Handles dropdown population
  * - StaffManager: Handles CRUD and actions for staff
@@ -242,31 +241,6 @@ var ROUTES = {
   },
   faculties: {
     all: '{{ route('academic.faculties.all') }}'
-  }
-};
-
-// ===========================
-// UTILITY FUNCTIONS
-// ===========================
-var Utils = {
-  showError: function(message) {
-    Swal.fire({ title: 'Error', html: message, icon: 'error' });
-  },
-  showSuccess: function(message) {
-    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: message, showConfirmButton: false, timer: 2500, timerProgressBar: true });
-  },
-  replaceRouteId: function(route, id) {
-    return route.replace(':id', id);
-  },
-  toggleLoadingState: function(id, show) {
-    var loader = document.getElementById(id + '-loader');
-    var valueEl = document.getElementById(id + '-value');
-    var lastUpdatedLoader = document.getElementById(id + '-last-updated-loader');
-    var lastUpdatedEl = document.getElementById(id + '-last-updated');
-    if (loader) loader.classList.toggle('d-none', !show);
-    if (valueEl) valueEl.classList.toggle('d-none', show);
-    if (lastUpdatedLoader) lastUpdatedLoader.classList.toggle('d-none', !show);
-    if (lastUpdatedEl) lastUpdatedEl.classList.toggle('d-none', show);
   }
 };
 
@@ -306,59 +280,57 @@ var ApiService = {
 var SelectManager = {
   populateModalDepartments: function() {
     var $select = $('#staff_department_id');
-    $select.empty().append('<option value="">Select Department</option>');
+    Utils.populateSelect($select, [], { placeholder: 'Select Department' });
     ApiService.fetchDepartments()
       .done(function(response) {
         if (response.success) {
-          response.data.forEach(function(dep) {
-            $select.append(`<option value="${dep.id}">${dep.name}</option>`);
-          });
+          Utils.populateSelect($select, response.data, { valueField: 'id', textField: 'name', placeholder: 'Select Department' });
         }
       })
       .fail(function() {
         $('#staffModal').modal('hide');
-        $select.empty().append('<option value="">Error loading departments</option>');
+        Utils.populateSelect($select, [], { placeholder: 'Error loading departments' });
         Utils.showError('Failed to load departments');
       });
   },
   populateModalCategories: function() {
     var $select = $('#staff_category_id');
-    $select.empty().append('<option value="">Select Category</option>');
+    Utils.populateSelect($select, [], { placeholder: 'Select Category' });
     ApiService.fetchCategories()
       .done(function(response) {
         if (response.success) {
+          // Add data-type attribute for each option
+          $select.empty().append('<option value="">Select Category</option>');
           response.data.forEach(function(cat) {
-            $select.append(`<option value="${cat.id}" data-type="${cat.type.toLowerCase()}">${cat.name}</option>`);
+            $select.append(`<option value="${cat.id}" data-type="${cat.type ? cat.type.toLowerCase() : ''}">${cat.name}</option>`);
           });
         }
       })
       .fail(function() {
         $('#staffModal').modal('hide');
-        $select.empty().append('<option value="">Error loading categories</option>');
+        Utils.populateSelect($select, [], { placeholder: 'Error loading categories' });
         Utils.showError('Failed to load categories');
       });
   },
   populateModalFaculties: function() {
     var $select = $('#staff_faculty_id');
-    $select.empty().append('<option value="">Select Faculty</option>');
+    Utils.populateSelect($select, [], { placeholder: 'Select Faculty' });
     ApiService.fetchFaculties()
       .done(function(response) {
         if (response.success) {
-          response.data.forEach(function(faculty) {
-            $select.append(`<option value="${faculty.id}">${faculty.name}</option>`);
-          });
+          Utils.populateSelect($select, response.data, { valueField: 'id', textField: 'name', placeholder: 'Select Faculty' });
         }
       })
       .fail(function() {
         $('#staffModal').modal('hide');
-        $select.empty().append('<option value="">Error loading faculties</option>');
+        Utils.populateSelect($select, [], { placeholder: 'Error loading faculties' });
         Utils.showError('Failed to load faculties');
       });
   },
   populateUnitField: function(categoryType) {
     var $select = $('#staff_unit_id');
-    $select.empty().append('<option value="">Select Unit</option>');
-    
+    Utils.populateSelect($select, [], { placeholder: 'Select Unit' });
+
     var promise;
     if (categoryType === 'faculty') {
       promise = ApiService.fetchFaculties();
@@ -367,65 +339,58 @@ var SelectManager = {
     } else if (categoryType === 'campus') {
       promise = ApiService.fetchCampusUnits();
     } else {
+      // Return a resolved promise for unknown types
       return $.Deferred().resolve();
     }
-    
+
     return promise.done(function(response) {
       if (response.success) {
-        response.data.forEach(function(item) {
-          $select.append(`<option value="${item.id}">${item.name}</option>`);
-        });
+        Utils.populateSelect($select, response.data, { valueField: 'id', textField: 'name', placeholder: 'Select Unit' });
       }
     }).fail(function() {
-      $select.empty().append('<option value="">Error loading units</option>');
+      Utils.populateSelect($select, [], { placeholder: 'Error loading units' });
       Utils.showError(`Failed to load ${categoryType} units`);
     });
   },
   populateSearchDepartments: function() {
     var $select = $('#search_department_id');
-    $select.empty().append('<option value="">All Departments</option>');
+    Utils.populateSelect($select, [], { placeholder: 'All Departments' });
     ApiService.fetchDepartments()
       .done(function(response) {
         if (response.success) {
-          response.data.forEach(function(dep) {
-            $select.append(`<option value="${dep.id}">${dep.name}</option>`);
-          });
+          Utils.populateSelect($select, response.data, { valueField: 'id', textField: 'name', placeholder: 'All Departments' });
         }
       })
       .fail(function() {
-        $select.empty().append('<option value="">Error loading departments</option>');
+        Utils.populateSelect($select, [], { placeholder: 'Error loading departments' });
         Utils.showError('Failed to load departments');
       });
   },
   populateSearchCategories: function() {
     var $select = $('#search_category_id');
-    $select.empty().append('<option value="">All Categories</option>');
+    Utils.populateSelect($select, [], { placeholder: 'All Categories' });
     ApiService.fetchCategories()
       .done(function(response) {
         if (response.success) {
-          response.data.forEach(function(cat) {
-            $select.append(`<option value="${cat.id}">${cat.name}</option>`);
-          });
+          Utils.populateSelect($select, response.data, { valueField: 'id', textField: 'name', placeholder: 'All Categories' });
         }
       })
       .fail(function() {
-        $select.empty().append('<option value="">Error loading categories</option>');
+        Utils.populateSelect($select, [], { placeholder: 'Error loading categories' });
         Utils.showError('Failed to load categories');
       });
   },
   populateSearchFaculties: function() {
     var $select = $('#search_faculty_id');
-    $select.empty().append('<option value="">All Faculties</option>');
+    Utils.populateSelect($select, [], { placeholder: 'All Faculties' });
     ApiService.fetchFaculties()
       .done(function(response) {
         if (response.success) {
-          response.data.forEach(function(faculty) {
-            $select.append(`<option value="${faculty.id}">${faculty.name}</option>`);
-          });
+          Utils.populateSelect($select, response.data, { valueField: 'id', textField: 'name', placeholder: 'All Faculties' });
         }
       })
       .fail(function() {
-        $select.empty().append('<option value="">Error loading faculties</option>');
+        Utils.populateSelect($select, [], { placeholder: 'Error loading faculties' });
         Utils.showError('Failed to load faculties');
       });
   },
@@ -456,15 +421,11 @@ var StaffManager = {
   handleCategoryChange: function() {
     $(document).on('change', '#staff_category_id', function() {
       var dataType = $(this).find('option:selected').data('type') || '';
-      console.log('Category changed. Selected data-type:', dataType);
-      
       var $unitFieldContainer = $('#unit_field_container');
       var $unitLabel = $('label[for="staff_unit_id"]');
-      
+
       if (dataType === 'administrative' || dataType === 'faculty' || dataType === 'campus') {
-        console.log('Showing unit field for type:', dataType);
         $unitFieldContainer.show();
-        
         switch (dataType) {
           case 'faculty':
             $unitLabel.text('Faculty');
@@ -478,22 +439,18 @@ var StaffManager = {
           default:
             $unitLabel.text('Unit');
         }
-        
         SelectManager.populateUnitField(dataType);
       } else {
-        console.log('Hiding unit field for unknown type:', dataType);
         $unitFieldContainer.hide();
         $unitLabel.text('Unit');
       }
     });
-    
+
     $('#staffModal').on('show.bs.modal', function() {
       if (!$('#staff_category_id').val()) {
-        console.log('Modal opened for new staff. Hiding unit field initially.');
         $('#unit_field_container').hide();
         $('label[for="staff_unit_id"]').text('Unit');
       } else {
-        console.log('Modal opened for editing. Triggering category change.');
         $('#staff_category_id').trigger('change');
       }
     });
@@ -517,21 +474,15 @@ var StaffManager = {
             $('#staff_email').val(staff.email || '');
             $('#staff_national_id').val(staff.national_id || '');
             $('#staff_gender').val(staff.gender || '');
-            
             $('#staff_category_id').val(staff.staff_category_id || '');
-            
-            console.log('Selected option value:', $('#staff_category_id').val());
-            console.log('Selected option data-type:', $('#staff_category_id').find('option:selected').data('type'));
-            
+
             var dataType = $('#staff_category_id').find('option:selected').data('type') || '';
             if (dataType) {
               SelectManager.populateUnitField(dataType).done(function() {
                 $('#staff_unit_id').val(staff.unit && staff.unit.id ? staff.unit.id : '');
-                console.log('staff_unit_id set to:', $('#staff_unit_id').val());
               });
             } else {
               $('#staff_unit_id').val('');
-              console.log('staff_unit_id cleared');
             }
 
             $('#staff_notes').val(staff.notes !== null ? staff.notes : '');
@@ -543,7 +494,8 @@ var StaffManager = {
         })
         .fail(function(jqXHR) {
           $('#staffModal').modal('hide');
-          Utils.showError('Failed to load staff data: ' + (jqXHR.responseJSON?.message || 'Server error'));
+          var msg = jqXHR.responseJSON && jqXHR.responseJSON.message ? jqXHR.responseJSON.message : 'Server error';
+          Utils.showError('Failed to load staff data: ' + msg);
         });
     });
   },
@@ -554,15 +506,12 @@ var StaffManager = {
         .done(function(response) {
           if (response.success) {
             var staff = response.data;
-            // Use direct fields from API response structure
             $('#view-staff-staff-id').text(staff.id ?? 'N/A');
             $('#view-staff-name').text(staff.name_en ?? 'N/A');
             $('#view-staff-email').text(staff.email ?? 'N/A');
             $('#view-staff-national-id').text(staff.national_id ?? 'N/A');
             $('#view-staff-gender').text(staff.gender ?? 'N/A');
-            // Category: try to use staff.staff_category_type or fallback
             $('#view-staff-category').text(staff.staff_category_type ? staff.staff_category_type.charAt(0).toUpperCase() + staff.staff_category_type.slice(1) : 'N/A');
-            // Unit type and name
             var unitType = 'Unassigned';
             var unitName = 'N/A';
             if (staff.unit && staff.unit.type) {
@@ -585,14 +534,12 @@ var StaffManager = {
   handleDelete: function() {
     $(document).on('click', '.deleteStaffBtn', function() {
       var staffId = $(this).data('id');
-      Swal.fire({
+      Utils.showConfirmDialog({
         title: 'Are you sure?',
         text: "You won't be able to revert this!",
         icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, delete it!'
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
       }).then(function(result) {
         if (result.isConfirmed) {
           ApiService.deleteStaff(staffId)
@@ -696,7 +643,7 @@ var StatsManager = {
   },
   toggleAllLoadingStates: function(isLoading) {
     ['staff', 'staff-male', 'staff-female'].forEach(function(elementId) {
-      Utils.toggleLoadingState(elementId, isLoading);
+        Utils.toggleLoadingState(elementId, isLoading);
     });
   }
 };

@@ -3,362 +3,579 @@
 // ===========================
 const Utils = {
 
-    /**
-     * Show success notification (normal alert or toast)
-     * @param {string} message - Success message to display
-     * @param {boolean|null} toast - Show as toast (true), normal alert (false), or auto (null)
-     * @param {string|null} position - Toast position (e.g., 'top-end'), or null for default
-     */
-    showSuccess(message, toast = null, position = null) {
-      if (toast === true) {
-        Swal.fire({
-          toast: true,
-          position: position || 'top-end',
-          icon: 'success',
-          title: message,
-          showConfirmButton: false,
-          timer: 1800,
-          timerProgressBar: true
-        });
-      } else {
-        Swal.fire({
-          icon: 'success',
-          title: 'Success',
-          text: message,
-          showConfirmButton: true
-        });
-      }
-    },
+  /**
+   * Show success notification (normal alert or toast)
+   * @param {string} message - Success message to display
+   * @param {boolean|null} toast - Show as toast (true), normal alert (false), or auto (null)
+   * @param {string|null} position - Toast position (e.g., 'top-end'), or null for default
+   */
+  showSuccess(message, toast = null, position = null) {
+    if (toast === true) {
+      Swal.fire({
+        toast: true,
+        position: position || 'top-end',
+        icon: 'success',
+        title: message,
+        showConfirmButton: false,
+        timer: 1800,
+        timerProgressBar: true
+      });
+    } else {
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: message,
+        showConfirmButton: true
+      });
+    }
+  },
 
-    /**
-     * Show error alert (with option for toast)
-     * @param {string} message - Error message to display
-     * @param {boolean|null} toast - Show as toast (true), normal alert (false), or auto (null)
-     * @param {string|null} position - Toast position (e.g., 'top-end'), or null for default
-     */
-    showError(message, toast = null, position = null) {
-      if (toast === true) {
-        Swal.fire({
-          toast: true,
-          position: position || 'top-end',
-          icon: 'error',
-          title: message,
-          showConfirmButton: false,
-          timer: 2500,
-          timerProgressBar: true
-        });
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: message
-        });
-      }
-    },
-  
-    /**
-     * Show error alert with HTML content
-     * @param {string} title - Error title
-     * @param {string} htmlContent - HTML content for the error
-     */
-    showErrorHtml(title, htmlContent) {
+  /**
+   * Show error alert (with option for toast)
+   * @param {string} message - Error message to display
+   * @param {boolean|null} toast - Show as toast (true), normal alert (false), or auto (null)
+   * @param {string|null} position - Toast position (e.g., 'top-end'), or null for default
+   */
+  showError(message, toast = null, position = null) {
+    if (toast === true) {
+      Swal.fire({
+        toast: true,
+        position: position || 'top-end',
+        icon: 'error',
+        title: message,
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true
+      });
+    } else {
       Swal.fire({
         icon: 'error',
-        title: title,
-        html: htmlContent
+        title: 'Error',
+        text: message
       });
-    },
-  
+    }
+  },
 
-    /**
-     * Set loading state for a button
-     * @param {jQuery} $btn - Button element
-     * @param {boolean} isLoading - Whether button is in loading state
-     * @param {Object} options - Configuration options
-     */
-    setLoadingState($btn, isLoading, options = {}) {
-      const defaults = {
-        loadingText: 'Loading...',
-        loadingIcon: 'bx bx-loader-alt bx-spin me-1',
-        normalText: '',
-        normalIcon: ''
-      };
-      const config = { ...defaults, ...options };
+  /**
+   * Show error alert with HTML content
+   * @param {string} title - Error title
+   * @param {string} htmlContent - HTML content for the error
+   */
+  showErrorHtml(title, htmlContent) {
+    Swal.fire({
+      icon: 'error',
+      title: title,
+      html: htmlContent
+    });
+  },
 
-      if (isLoading) {
-        $btn.prop('disabled', true)
-            .html(`<i class="${config.loadingIcon}"></i>${config.loadingText}`);
-      } else {
-        $btn.prop('disabled', false)
-            .html(`<i class="${config.normalIcon}"></i>${config.normalText}`);
-      }
-    },
-  
-    /**
-     * Replace route parameter with actual ID
-     * @param {string} route - Route with placeholder
-     * @param {string|number} id - ID to replace placeholder with
-     * @returns {string} - Route with ID replaced
-     */
-    replaceRouteId(route, id) {
-      return route.replace(':id', id);
-    },
-  
-    /**
-     * Debounce function to limit function calls
-     * @param {Function} func - Function to debounce
-     * @param {number} wait - Wait time in milliseconds
-     * @returns {Function} - Debounced function
-     */
-    debounce(func, wait) {
-      let timeout;
-      return function executedFunction(...args) {
-        const later = () => {
-          clearTimeout(timeout);
-          func(...args);
-        };
+
+  /**
+   * Set loading state for a button
+   * @param {jQuery} $btn - Button element
+   * @param {boolean} isLoading - Whether button is in loading state
+   * @param {Object} options - Configuration options
+   */
+  setLoadingState($btn, isLoading, options = {}) {
+    const defaults = {
+      loadingText: 'Loading...',
+      loadingIcon: 'bx bx-loader-alt bx-spin me-1',
+      normalText: '',
+      normalIcon: ''
+    };
+    const config = { ...defaults, ...options };
+
+    if (isLoading) {
+      $btn.prop('disabled', true)
+          .html(`<i class="${config.loadingIcon}"></i>${config.loadingText}`);
+    } else {
+      $btn.prop('disabled', false)
+          .html(`<i class="${config.normalIcon}"></i>${config.normalText}`);
+    }
+  },
+
+  /**
+   * Replace route parameter with actual ID
+   * @param {string} route - Route with placeholder
+   * @param {string|number} id - ID to replace placeholder with
+   * @returns {string} - Route with ID replaced
+   */
+  replaceRouteId(route, id) {
+    return route.replace(':id', id);
+  },
+
+  /**
+   * Debounce function to limit function calls
+   * @param {Function} func - Function to debounce
+   * @param {number} wait - Wait time in milliseconds
+   * @returns {Function} - Debounced function
+   */
+  debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
         clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
+        func(...args);
       };
-    },
-  
-    /**
-     * Format validation errors for display
-     * @param {Object} errors - Validation errors object
-     * @returns {string} - Formatted HTML string
-     */
-    formatValidationErrors(errors) {
-      let html = '<ul class="mb-0">';
-      for (let key in errors) {
-        if (Array.isArray(errors[key])) {
-          errors[key].forEach(err => {
-            html += `<li>${err}</li>`;
-          });
-        } else {
-          html += `<li>${errors[key]}</li>`;
-        }
-      }
-      html += '</ul>';
-      return html;
-    },
-  
-    /**
-     * Handle AJAX error responses
-     * @param {Object} xhr - XMLHttpRequest object
-     * @param {string} defaultMessage - Default error message
-     */
-    handleAjaxError(xhr, defaultMessage = 'An error occurred. Please try again.') {
-      let msg = xhr.responseJSON?.message || defaultMessage;
-      let errors = xhr.responseJSON?.errors || {};
-      
-      let html = `<strong>${msg}</strong>`;
-      if (Object.keys(errors).length > 0) {
-        html += this.formatValidationErrors(errors);
-      }
-      
-      this.showErrorHtml('Error', html);
-    },
-  
-    /**
-     * Show confirmation dialog
-     * @param {Object} options - Configuration options
-     * @returns {Promise} - Promise that resolves with user's choice
-     */
-    showConfirmDialog(options = {}) {
-      const defaults = {
-        title: 'Are you sure?',
-        text: 'This action cannot be undone.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, proceed!',
-        cancelButtonText: 'Cancel'
-      };
-      
-      const config = { ...defaults, ...options };
-      return Swal.fire(config);
-    },
-  
-    /**
-     * Validate form field
-     * @param {jQuery} $field - Field to validate
-     * @param {string} message - Validation message
-     * @param {boolean} isValid - Whether field is valid
-     */
-    validateField($field, message, isValid) {
-      const $feedback = $field.siblings('.invalid-feedback');
-      
-      if (isValid) {
-        $field.removeClass('is-invalid').addClass('is-valid');
-        $feedback.text('');
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  },
+
+  /**
+   * Format validation errors for display
+   * @param {Object} errors - Validation errors object
+   * @returns {string} - Formatted HTML string
+   */
+  formatValidationErrors(errors) {
+    let html = '<ul class="mb-0">';
+    for (let key in errors) {
+      if (Array.isArray(errors[key])) {
+        errors[key].forEach(err => {
+          html += `<li>${err}</li>`;
+        });
       } else {
-        $field.removeClass('is-valid').addClass('is-invalid');
-        if ($feedback.length === 0) {
-          $field.after(`<div class="invalid-feedback">${message}</div>`);
-        } else {
-          $feedback.text(message);
-        }
+        html += `<li>${errors[key]}</li>`;
       }
-    },
-  
-    /**
-     * Clear validation states from form
-     * @param {jQuery} $form - Form element
-     */
-    clearValidation($form) {
-      $form.find('.is-invalid, .is-valid').removeClass('is-invalid is-valid');
-      $form.find('.invalid-feedback').text('');
-    },
-  
-    /**
-     * Check if value is empty
-     * @param {*} value - Value to check
-     * @returns {boolean} - Whether value is empty
-     */
-    isEmpty(value) {
-      if (value === null || value === undefined) return true;
-      if (typeof value === 'string') return value.trim() === '';
-      if (Array.isArray(value)) return value.length === 0;
-      if (typeof value === 'object') return Object.keys(value).length === 0;
-      return false;
-    },
-  
-    /**
-     * Redirect after delay
-     * @param {string} url - URL to redirect to
-     * @param {number} delay - Delay in milliseconds
-     */
-    redirectAfterDelay(url, delay = 2000) {
-      setTimeout(() => {
-        window.location.href = url;
-      }, delay);
-    },
-  
-    /**
-     * Get URL parameter value
-     * @param {string} name - Parameter name
-     * @returns {string|null} - Parameter value or null
-     */
-    getUrlParameter(name) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(name);
-    },
+    }
+    html += '</ul>';
+    return html;
+  },
 
-    /**
-     * Populate a <select> element with options.
-     * @param {jQuery} $select - jQuery object for the select element
-     * @param {Array} items - Array of items to populate. Each item can be an object or a string/number.
-     * @param {Object} options - Optional config:
-     *   - valueField: property name for option value (default: 'id')
-     *   - textField: property name for option text (default: 'name')
-     *   - placeholder: placeholder text for the first option (default: 'Select')
-     *   - selected: value to be selected by default
-     *   - includePlaceholder: whether to include placeholder (default: true)
-     * @param {boolean} isSelect2 - true if select2 is used, false for normal select (default: false)
-     */
-    populateSelect($select, items, options = {}, isSelect2 = false) {
-      // Always treat $select as a jQuery object
-      // (Assume all callers pass a jQuery object)
-      const {
-        valueField = 'id',
-        textField = 'name',
-        placeholder = 'Select',
-        selected = null,
-        includePlaceholder = true
-      } = options;
+  /**
+   * Handle AJAX error responses
+   * @param {Object} xhr - XMLHttpRequest object
+   * @param {string} defaultMessage - Default error message
+   */
+  handleAjaxError(xhr, defaultMessage = 'An error occurred. Please try again.') {
+    let msg = xhr.responseJSON?.message || defaultMessage;
+    let errors = xhr.responseJSON?.errors || {};
+    
+    let html = `<strong>${msg}</strong>`;
+    if (Object.keys(errors).length > 0) {
+      html += this.formatValidationErrors(errors);
+    }
+    
+    this.showErrorHtml('Error', html);
+  },
 
-      let html = '';
-      if (includePlaceholder) {
-        html += `<option value="">${placeholder}</option>`;
+  /**
+   * Show confirmation dialog
+   * @param {Object} options - Configuration options
+   * @returns {Promise} - Promise that resolves with user's choice
+   */
+  showConfirmDialog(options = {}) {
+    const defaults = {
+      title: 'Are you sure?',
+      text: 'This action cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, proceed!',
+      cancelButtonText: 'Cancel'
+    };
+    
+    const config = { ...defaults, ...options };
+    return Swal.fire(config);
+  },
+
+  /**
+   * Validate form field
+   * @param {jQuery} $field - Field to validate
+   * @param {string} message - Validation message
+   * @param {boolean} isValid - Whether field is valid
+   */
+  validateField($field, message, isValid) {
+    const $feedback = $field.siblings('.invalid-feedback');
+    
+    if (isValid) {
+      $field.removeClass('is-invalid').addClass('is-valid');
+      $feedback.text('');
+    } else {
+      $field.removeClass('is-valid').addClass('is-invalid');
+      if ($feedback.length === 0) {
+        $field.after(`<div class="invalid-feedback">${message}</div>`);
+      } else {
+        $feedback.text(message);
       }
+    }
+  },
 
-      items.forEach(item => {
-        let value, text;
-        if (typeof item === 'object') {
-          value = item[valueField];
-          text = item[textField];
+  /**
+   * Clear validation states from form
+   * @param {jQuery} $form - Form element
+   */
+  clearValidation($form) {
+    $form.find('.is-invalid, .is-valid').removeClass('is-invalid is-valid');
+    $form.find('.invalid-feedback').text('');
+  },
+
+  /**
+   * Check if value is empty
+   * @param {*} value - Value to check
+   * @returns {boolean} - Whether value is empty
+   */
+  isEmpty(value) {
+    if (value === null || value === undefined) return true;
+    if (typeof value === 'string') return value.trim() === '';
+    if (Array.isArray(value)) return value.length === 0;
+    if (typeof value === 'object') return Object.keys(value).length === 0;
+    return false;
+  },
+
+  /**
+   * Redirect after delay
+   * @param {string} url - URL to redirect to
+   * @param {number} delay - Delay in milliseconds
+   */
+  redirectAfterDelay(url, delay = 2000) {
+    setTimeout(() => {
+      window.location.href = url;
+    }, delay);
+  },
+
+  /**
+   * Get URL parameter value
+   * @param {string} name - Parameter name
+   * @returns {string|null} - Parameter value or null
+   */
+  getUrlParameter(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+  },
+
+  /**
+   * Generic Statistics Manager
+   * Creates reusable stats management functionality
+   * @param {Object} config - Configuration object
+   * @returns {Object} - Stats manager instance
+   */
+  createStatsManager(config) {
+    const defaults = {
+      apiMethod: null,           // Required: API method to call (e.g., ApiService.fetchTermStats)
+      statsKeys: [],             // Required: Array of stat keys (e.g., ['terms', 'active', 'inactive'])
+      onError: 'Failed to load statistics', // Error message
+      dataPath: 'data',          // Path to data in response (default: response.data)
+      successCheck: (response) => response.success !== false // Function to check if response is successful
+    };
+
+    const settings = { ...defaults, ...config };
+
+    if (!settings.apiMethod || !Array.isArray(settings.statsKeys) || settings.statsKeys.length === 0) {
+      console.error('StatsManager: apiMethod and statsKeys are required');
+      return null;
+    }
+
+    return {
+      /**
+       * Initialize statistics cards
+       */
+      init() {
+        this.load();
+      },
+
+      /**
+       * Load statistics data
+       */
+      load() {
+        this.toggleAllLoadingStates(true);
+        settings.apiMethod()
+          .done(this.handleSuccess.bind(this))
+          .fail(this.handleError.bind(this))
+          .always(() => this.toggleAllLoadingStates(false));
+      },
+
+      /**
+       * Handle successful stats fetch
+       * @param {Object} response - API response
+       */
+      handleSuccess(response) {
+        if (settings.successCheck(response)) {
+          const stats = this.getStatsData(response);
+          this.updateAllStats(stats);
         } else {
-          value = item;
-          text = item;
+          this.setAllStatsToNA();
         }
-        html += `<option value="${value}"${selected != null && value == selected ? ' selected' : ''}>${text}</option>`;
-      });
+      },
 
-      $select.html(html);
+      /**
+       * Extract stats data from response
+       * @param {Object} response - API response
+       * @returns {Object} - Stats data
+       */
+      getStatsData(response) {
+        const pathParts = settings.dataPath.split('.');
+        let data = response;
+        for (const part of pathParts) {
+          data = data[part];
+          if (!data) break;
+        }
+        return data || {};
+      },
 
-      // If select2 is requested, trigger the appropriate event
-      if (isSelect2) {
-        if ($select.hasClass('select2-hidden-accessible')) {
-          $select.trigger('change.select2');
+      /**
+       * Update all stat elements
+       * @param {Object} stats - Stats data object
+       */
+      updateAllStats(stats) {
+        settings.statsKeys.forEach(key => {
+          const statData = stats[key];
+          if (statData) {
+            // Handle different stat data structures
+            let value, lastUpdateTime;
+            
+            if (typeof statData === 'object') {
+              value = statData.count ?? statData.value ?? statData.title ?? statData;
+              lastUpdateTime = statData.lastUpdateTime ?? statData.updated_at ?? '--';
+            } else {
+              value = statData;
+              lastUpdateTime = '--';
+            }
+            
+            this.updateStatElement(key, value, lastUpdateTime);
+          } else {
+            this.updateStatElement(key, 'N/A', 'N/A');
+          }
+        });
+      },
+
+      /**
+       * Handle error in stats fetch
+       */
+      handleError() {
+        this.setAllStatsToNA();
+        Utils.showError(settings.onError);
+      },
+
+      /**
+       * Update a single stat card
+       * @param {string} elementId - Element ID
+       * @param {string|number} value - Stat value
+       * @param {string} lastUpdateTime - Last update time
+       */
+      updateStatElement(elementId, value, lastUpdateTime) {
+        $(`#${elementId}-value`).text(value ?? '0');
+        $(`#${elementId}-last-updated`).text(lastUpdateTime ?? '--');
+      },
+
+      /**
+       * Set all stat cards to N/A
+       */
+      setAllStatsToNA() {
+        settings.statsKeys.forEach(elementId => {
+          $(`#${elementId}-value`).text('N/A');
+          $(`#${elementId}-last-updated`).text('N/A');
+        });
+      },
+
+      /**
+       * Toggle loading state for a single stat card
+       * @param {string} elementId - Element ID
+       * @param {boolean} isLoading - Loading state
+       */
+      toggleLoadingState(elementId, isLoading) {
+        const $value = $(`#${elementId}-value`);
+        const $loader = $(`#${elementId}-loader`);
+        const $updated = $(`#${elementId}-last-updated`);
+        const $updatedLoader = $(`#${elementId}-last-updated-loader`);
+
+        if (isLoading) {
+          $value.addClass('d-none');
+          $loader.removeClass('d-none');
+          $updated.addClass('d-none');
+          $updatedLoader.removeClass('d-none');
         } else {
-          $select.trigger('change');
+          $value.removeClass('d-none');
+          $loader.addClass('d-none');
+          $updated.removeClass('d-none');
+          $updatedLoader.addClass('d-none');
         }
+      },
+
+      /**
+       * Toggle loading state for all stat cards
+       * @param {boolean} isLoading - Loading state
+       */
+      toggleAllLoadingStates(isLoading) {
+        settings.statsKeys.forEach(elementId => {
+          this.toggleLoadingState(elementId, isLoading);
+        });
+      },
+
+      /**
+       * Refresh stats (alias for load)
+       */
+      refresh() {
+        this.load();
+      },
+
+      /**
+       * Get current configuration
+       * @returns {Object} - Current settings
+       */
+      getConfig() {
+        return { ...settings };
+      }
+    };
+  },
+
+  /**
+   * Populate a <select> element with options.
+   * @param {jQuery} $select - jQuery object for the select element
+   * @param {Array} items - Array of items to populate. Each item can be an object or a string/number.
+   * @param {Object} options - Optional config:
+   *   - valueField: property name for option value (default: 'id')
+   *   - textField: property name for option text (default: 'name')
+   *   - placeholder: placeholder text for the first option (default: 'Select')
+   *   - selected: value to be selected by default
+   *   - includePlaceholder: whether to include placeholder (default: true)
+   * @param {boolean} isSelect2 - true if select2 is used, false for normal select (default: false)
+   */
+  populateSelect($select, items, options = {}, isSelect2 = false) {
+    // Always treat $select as a jQuery object
+    // (Assume all callers pass a jQuery object)
+    const {
+      valueField = 'id',
+      textField = 'name',
+      placeholder = 'Select',
+      selected = null,
+      includePlaceholder = true
+    } = options;
+
+    let html = '';
+    if (includePlaceholder) {
+      html += `<option value="">${placeholder}</option>`;
+    }
+
+    items.forEach(item => {
+      let value, text;
+      if (typeof item === 'object') {
+        value = item[valueField];
+        text = item[textField];
+      } else {
+        value = item;
+        text = item;
+      }
+      html += `<option value="${value}"${selected != null && value == selected ? ' selected' : ''}>${text}</option>`;
+    });
+
+    $select.html(html);
+
+    // If select2 is requested, trigger the appropriate event
+    if (isSelect2) {
+      if ($select.hasClass('select2-hidden-accessible')) {
+        $select.trigger('change.select2');
       } else {
         $select.trigger('change');
       }
-    },
+    } else {
+      $select.trigger('change');
+    }
+  },
 
-    /**
-     * Initialize select2 on a select element with optional config.
-     * @param {jQuery} $select - jQuery object for the select element
-     * @param {Object} options - select2 options (optional)
-     */
-    initSelect2($select, options = {}) {
-      if ($select.length > 0) {
+  /**
+   * Initialize select2 on a select element with optional config.
+   * @param {jQuery} $select - jQuery object for the select element
+   * @param {Object} options - select2 options (optional)
+   */
+  initSelect2($select, options = {}) {
+    if ($select.length > 0) {
 
-        // If select2 is already applied, destroy it first
-        if ($select.hasClass('select2-hidden-accessible')) {
-          $select.select2('destroy');
-        }
-
-        $select.select2({
-          theme: 'bootstrap-5',
-          width: '100%',
-          placeholder:  options.placeholder,
-          allowClear: true,
-          dropdownParent: options.dropdownParent,
-          ...options
-        });
+      // If select2 is already applied, destroy it first
+      if ($select.hasClass('select2-hidden-accessible')) {
+        $select.select2('destroy');
       }
-    },
 
-    /**
-     * Hide a DOM element (jQuery or native)
-     * @param {jQuery|HTMLElement|string} el - Element, selector, or jQuery object to hide
+      $select.select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder:  options.placeholder,
+        allowClear: true,
+        dropdownParent: options.dropdownParent,
+        ...options
+      });
+    }
+  },
+/**
+     * Reload DataTable if it exists
+     * @param {string} tableSelector - Table selector 
+     * @param {Function|null} callback - Callback function after reload (optional)
+     * @param {boolean} resetPaging - Whether to reset paging (default: false)
+     * @param {boolean} holdPosition - Whether to hold current position (default: true)
+     * @returns {boolean} - Returns true if table was reloaded, false if not a DataTable
      */
-    hideElement(el) {
-      if (window.jQuery && el instanceof jQuery) {
-        el.hide();
-      } else if (typeof el === 'string') {
-        const $el = window.jQuery ? $(el) : document.querySelector(el);
-        if ($el instanceof jQuery) {
-          $el.hide();
-        } else if ($el) {
-          $el.style.display = 'none';
-        }
-      } else if (el instanceof HTMLElement) {
-        el.style.display = 'none';
-      }
-    },
+reloadDataTable(tableSelector, callback = null, resetPaging = false, holdPosition = true) {
+  try {
+    let $table;
+      $table = $(tableSelector);
 
-    /**
-     * Show a DOM element (jQuery or native)
-     * @param {jQuery|HTMLElement|string} el - Element, selector, or jQuery object to show
-     * @param {string} [display] - Optional display value (default: '')
-     */
-    showElement(el, display = '') {
-      if (window.jQuery && el instanceof jQuery) {
-        el.show();
-      } else if (typeof el === 'string') {
-        const $el = window.jQuery ? $(el) : document.querySelector(el);
-        if ($el instanceof jQuery) {
-          $el.show();
-        } else if ($el) {
-          $el.style.display = display;
-        }
-      } else if (el instanceof HTMLElement) {
-        el.style.display = display;
-      }
-    },
+    // Check if element exists and is a DataTable
+    if ($table.length === 0) {
+      console.warn('DataTable reload: Table element not found');
+      return false;
+    }
+
+    if (!$.fn.DataTable.isDataTable($table)) {
+      console.warn('DataTable reload: Element is not a DataTable');
+      return false;
+    }
+    
+
+    // Reload the DataTable
+    $table.DataTable().ajax.reload(callback, !resetPaging);
+    return true;
+
+  } catch (error) {
+    console.error('DataTable reload error:', error);
+    return false;
+  }
+},
+
+
+/**
+ * Check if element is a DataTable
+ * @param {string|jQuery} tableSelector - Table selector or jQuery object
+ * @returns {boolean} - Whether element is a DataTable
+ */
+isDataTable(tableSelector) {
+  try {
+    let $table;
+    $table = $(tableSelector);
+    return $table.length > 0 && $.fn.DataTable.isDataTable($table);
+  } catch (error) {
+    return false;
+  }
+},
+
+/**
+ * Destroy DataTable if it exists
+ * @param {string|jQuery} tableSelector - Table selector or jQuery object
+ * @param {boolean} remove - Whether to remove from DOM (default: false)
+ * @returns {boolean} - Whether DataTable was destroyed
+ */
+destroyDataTable(tableSelector, remove = false) {
+  try {
+    let $table;
+    
+    if (typeof tableSelector === 'string') {
+      $table = $(tableSelector);
+    } else if (tableSelector instanceof jQuery) {
+      $table = tableSelector;
+    } else {
+      return false;
+    }
+
+    if ($table.length > 0 && $.fn.DataTable.isDataTable($table)) {
+      $table.DataTable().destroy(remove);
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('DataTable destroy error:', error);
+    return false;
+  }
+},
+
 };
