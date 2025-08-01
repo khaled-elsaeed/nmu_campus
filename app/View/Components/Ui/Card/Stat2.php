@@ -12,16 +12,23 @@ class Stat2 extends Component
     public $icon;
     public $label;
     public $id;
+    public $subStats;
 
     /**
      * Create a new component instance.
      */
-    public function __construct($color = 'primary', $icon = 'bx bx-user', $label = '', $id = null)
-    {
+    public function __construct(
+        $color = 'primary', 
+        $icon = 'bx bx-user', 
+        $label = '', 
+        $id = null,
+        $subStats = null
+    ) {
         $this->color = $color;
         $this->icon = $icon;
         $this->label = $label;
         $this->id = $id;
+        $this->subStats = $subStats;
     }
 
     /**

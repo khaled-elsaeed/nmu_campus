@@ -95,13 +95,18 @@ const Utils = {
   },
 
   /**
-   * Set the text content of an element
+   * Set the text content or value of an element
+   * If the element is a <select>, set its value; otherwise, set its text content.
    * @param {string} selector - Selector string
    * @param {string} text - Text to set
    */
   setElementText(selector, text) {
     const $el = $(selector);
-    $el.text(text);
+    if ($el.is('select')) {
+      $el.val(text).trigger('change');
+    } else {
+      $el.text(text);
+    }
   },
 
   /**
@@ -278,7 +283,7 @@ const Utils = {
 
   /**
    * Generic Statistics Manager
-   * Creates reusable stats management functionality
+   * Creates reusable stats management functionality with optional sub-statistics support
    * @param {Object} config - Configuration object
    * @returns {Object} - Stats manager instance
    */
@@ -286,6 +291,7 @@ const Utils = {
     const defaults = {
       apiMethod: null,           // Required: API method to call (e.g., ApiService.fetchTermStats)
       statsKeys: [],             // Required: Array of stat keys (e.g., ['terms', 'active', 'inactive'])
+      subStatsConfig: {},        // Optional: Object mapping stat keys to their sub-stats config
       onError: 'Failed to load statistics', // Error message
       dataPath: 'data',          // Path to data in response (default: response.data)
       successCheck: (response) => response.success !== false // Function to check if response is successful
@@ -365,10 +371,68 @@ const Utils = {
             }
             
             this.updateStatElement(key, value, lastUpdateTime);
+            
+            // Update sub-stats if configured
+            if (settings.subStatsConfig[key]) {
+              this.updateSubStats(key, statData);
+            }
           } else {
             this.updateStatElement(key, 'N/A', 'N/A');
+            
+            // Set sub-stats to N/A if configured
+            if (settings.subStatsConfig[key]) {
+              this.setSubStatsToNA(key);
+            }
           }
         });
+      },
+
+      /**
+       * Update sub-statistics for a given stat key
+       * @param {string} statKey - Main stat key
+       * @param {Object} statData - Main stat data object
+       */
+      updateSubStats(statKey, statData) {
+        const subStatsKeys = settings.subStatsConfig[statKey];
+        if (!subStatsKeys || !Array.isArray(subStatsKeys)) return;
+
+        subStatsKeys.forEach(subStatKey => {
+          let subValue = 'N/A';
+          
+          // Try to extract sub-stat value from different possible paths
+          if (statData && typeof statData === 'object') {
+            subValue = statData[subStatKey] ?? 
+                      statData.subStats?.[subStatKey] ?? 
+                      statData.breakdown?.[subStatKey] ?? 
+                      statData.details?.[subStatKey] ?? 
+                      'N/A';
+          }
+          
+          this.updateSubStatElement(statKey, subStatKey, subValue);
+        });
+      },
+
+      /**
+       * Set sub-statistics to N/A for a given stat key
+       * @param {string} statKey - Main stat key
+       */
+      setSubStatsToNA(statKey) {
+        const subStatsKeys = settings.subStatsConfig[statKey];
+        if (!subStatsKeys || !Array.isArray(subStatsKeys)) return;
+
+        subStatsKeys.forEach(subStatKey => {
+          this.updateSubStatElement(statKey, subStatKey, 'N/A');
+        });
+      },
+
+      /**
+       * Update a single sub-stat element
+       * @param {string} statKey - Main stat key
+       * @param {string} subStatKey - Sub-stat key
+       * @param {string|number} value - Sub-stat value
+       */
+      updateSubStatElement(statKey, subStatKey, value) {
+        Utils.setElementText(`#${statKey}-${subStatKey}-value`, value ?? 'N/A');
       },
 
       /**
@@ -397,6 +461,11 @@ const Utils = {
         settings.statsKeys.forEach(elementId => {
           Utils.setElementText(`#${elementId}-value`, 'N/A');
           Utils.setElementText(`#${elementId}-last-updated`, 'N/A');
+          
+          // Set sub-stats to N/A if configured
+          if (settings.subStatsConfig[elementId]) {
+            this.setSubStatsToNA(elementId);
+          }
         });
       },
 
@@ -422,6 +491,34 @@ const Utils = {
           $updated.removeClass('d-none');
           $updatedLoader.addClass('d-none');
         }
+
+        // Toggle sub-stats loading states if configured
+        if (settings.subStatsConfig[elementId]) {
+          this.toggleSubStatsLoadingState(elementId, isLoading);
+        }
+      },
+
+      /**
+       * Toggle loading state for sub-statistics
+       * @param {string} statKey - Main stat key
+       * @param {boolean} isLoading - Loading state
+       */
+      toggleSubStatsLoadingState(statKey, isLoading) {
+        const subStatsKeys = settings.subStatsConfig[statKey];
+        if (!subStatsKeys || !Array.isArray(subStatsKeys)) return;
+
+        subStatsKeys.forEach(subStatKey => {
+          const $subValue = $(`#${statKey}-${subStatKey}-value`);
+          const $subLoader = $(`#${statKey}-${subStatKey}-loader`);
+
+          if (isLoading) {
+            $subValue.addClass('d-none');
+            $subLoader.removeClass('d-none');
+          } else {
+            $subValue.removeClass('d-none');
+            $subLoader.addClass('d-none');
+          }
+        });
       },
 
       /**
@@ -447,6 +544,14 @@ const Utils = {
        */
       getConfig() {
         return { ...settings };
+      },
+
+      /**
+       * Update sub-stats configuration dynamically
+       * @param {Object} newSubStatsConfig - New sub-stats configuration
+       */
+      updateSubStatsConfig(newSubStatsConfig) {
+        settings.subStatsConfig = { ...settings.subStatsConfig, ...newSubStatsConfig };
       }
     };
   },

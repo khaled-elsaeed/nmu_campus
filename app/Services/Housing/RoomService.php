@@ -31,17 +31,50 @@ class RoomService
      * @param int $id
      * @param array $data
      * @return Room
+     * @throws BusinessValidationException
      */
     public function updateRoom(int $id, array $data): Room
     {
         $room = Room::findOrFail($id);
+        
+        $newType = $data['type'] ?? $room->type;
+        $isTypeChanging = $newType !== $room->type;
+        
+        // Determine new capacity based on type
+        $newCapacity = ($newType === 'double') ? 2 : 1;
+        
+        
+        // If changing from double to single, check current occupancy
+        if ($isTypeChanging && $room->type === 'double' && $newType === 'single') {
+            if ($room->current_occupancy > 1) {
+                throw new BusinessValidationException(
+                    "Cannot change room #{$room->number} from double to single: Room currently has {$room->current_occupancy} occupants. Please relocate occupants first or ensure only 1 occupant remains."
+                );
+            }
+        }
+        
+        
+        // Calculate new available capacity
+        $newAvailableCapacity = $newCapacity - $room->current_occupancy;
+        
+        // Update the room
         $room->update([
-            'type' => $data['type'] ?? $room->type,
+            'type' => $newType,
+            'capacity' => $newCapacity,
+            'available_capacity' => $newAvailableCapacity,
             'purpose' => $data['purpose'] ?? $room->purpose,
             'description' => $data['description'] ?? $room->description,
         ]);
+        
+        // Refresh the room to get updated values from database
+        $room->refresh();
+        
+        
+        
         return $room->fresh('apartment.building');
     }
+
+
 
     /**
      * Get a single room with its apartment and building.
@@ -119,32 +152,51 @@ class RoomService
      */
     public function getStats(): array
     {
-        $rooms = Room::with('apartment.building')->get();
-
-        $total = $rooms->count();
-        $maleRooms = $rooms->filter(function ($room) {
-            return $room->apartment->building->gender_restriction === 'male';
-        });
-        $femaleRooms = $rooms->filter(function ($room) {
-            return $room->apartment->building->gender_restriction === 'female';
-        });
-
-        $lastUpdate = $rooms->max('updated_at');
-        $maleLastUpdate = $maleRooms->max('updated_at');
-        $femaleLastUpdate = $femaleRooms->max('updated_at');
+        $stats = Room::join('apartments', 'rooms.apartment_id', '=', 'apartments.id')
+            ->join('buildings', 'apartments.building_id', '=', 'buildings.id')
+            ->selectRaw('
+                COUNT(*) as total_count,
+                SUM(rooms.capacity) as total_beds_count,
+                SUM(CASE WHEN buildings.gender_restriction = "male" THEN 1 ELSE 0 END) as male_count,
+                SUM(CASE WHEN buildings.gender_restriction = "male" THEN rooms.capacity ELSE 0 END) as male_beds_count,
+                SUM(CASE WHEN buildings.gender_restriction = "male" AND rooms.type = "double" THEN 1 ELSE 0 END) as male_count_double_rooms,
+                SUM(CASE WHEN buildings.gender_restriction = "female" THEN 1 ELSE 0 END) as female_count,
+                SUM(CASE WHEN buildings.gender_restriction = "female" THEN rooms.capacity ELSE 0 END) as female_beds_count,
+                SUM(CASE WHEN buildings.gender_restriction = "female" AND rooms.type = "double" THEN 1 ELSE 0 END) as female_count_double_rooms,
+                SUM(CASE WHEN rooms.type = "double" THEN 1 ELSE 0 END) as total_double_rooms_count,
+                SUM(CASE WHEN rooms.purpose = "housing" AND rooms.active = 1 THEN rooms.capacity ELSE 0 END) as available_beds_count,
+                SUM(CASE WHEN rooms.purpose = "housing" AND rooms.active = 1 AND buildings.gender_restriction = "male" THEN rooms.capacity ELSE 0 END) as available_male_beds_count,
+                SUM(CASE WHEN rooms.purpose = "housing" AND rooms.active = 1 AND buildings.gender_restriction = "female" THEN rooms.capacity ELSE 0 END) as available_female_beds_count,
+                MAX(rooms.updated_at) as last_update,
+                MAX(CASE WHEN buildings.gender_restriction = "male" THEN rooms.updated_at END) as male_last_update,
+                MAX(CASE WHEN buildings.gender_restriction = "female" THEN rooms.updated_at END) as female_last_update
+            ')
+            ->first();
 
         return [
-            'total' => [
-                'count' => formatNumber($total),
-                'lastUpdateTime' => formatDate($lastUpdate),
+            'rooms' => [
+                'count' => formatNumber($stats->total_count ?? 0),
+                'male' => formatNumber($stats->male_count ?? 0),
+                'female' => formatNumber($stats->female_count ?? 0),
+                'lastUpdateTime' => formatDate($stats->last_update),
             ],
-            'male' => [
-                'count' => formatNumber($maleRooms->count()),
-                'lastUpdateTime' => formatDate($maleLastUpdate),
+            'beds' => [
+                'count' => formatNumber($stats->total_beds_count ?? 0),
+                'male' => formatNumber($stats->male_beds_count ?? 0),
+                'female' => formatNumber($stats->female_beds_count ?? 0),
+                'lastUpdateTime' => formatDate($stats->last_update), 
             ],
-            'female' => [
-                'count' => formatNumber($femaleRooms->count()),
-                'lastUpdateTime' => formatDate($femaleLastUpdate),
+            'double-rooms' => [ 
+                'count' => formatNumber($stats->total_double_rooms_count ?? 0),
+                'male' => formatNumber($stats->male_count_double_rooms ?? 0), 
+                'female' => formatNumber($stats->female_count_double_rooms ?? 0), 
+                'lastUpdateTime' => formatDate($stats->last_update), 
+            ],
+            'available-beds' => [
+                'count' => formatNumber($stats->available_beds_count ?? 0),
+                'male' => formatNumber($stats->available_male_beds_count ?? 0),
+                'female' => formatNumber($stats->available_female_beds_count ?? 0),
+                'lastUpdateTime' => formatDate($stats->last_update),
             ],
         ];
     }
@@ -201,9 +253,9 @@ class RoomService
      */
     protected function applySearchFilters($query): Builder
     {
-        $searchApartment = request('search_apartment_number');
+        $searchApartment = request('search_apartment_id');
         if (!empty($searchApartment)) {
-            $query->where('apartments.number', $searchApartment);
+            $query->where('apartments.id', $searchApartment);
         }
 
         $searchBuilding = request('search_building_id');

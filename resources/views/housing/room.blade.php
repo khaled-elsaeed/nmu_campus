@@ -5,16 +5,87 @@
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
     {{-- ===== STATISTICS CARDS ===== --}}
-    <div class="row g-4 mb-4">
-        <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="primary" icon="bx bx-door-open" label="Total Rooms" id="rooms" />
-        </div>
-        <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="info" icon="bx bx-male" label="Male Rooms" id="rooms-male" />
-        </div>
-        <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="pink" icon="bx bx-female" label="Female Rooms" id="rooms-female" />
-        </div>
+    <div class="row mb-4 g-2">
+      <div class="col-12 col-sm-6 col-lg-3">
+          <x-ui.card.stat2 
+              color="secondary"
+              icon="bx bx-door-open"
+              label="Total Rooms"
+              id="rooms"
+              :subStats="[
+                  'male' => [
+                      'label' => 'Male Rooms',
+                      'icon' => 'bx bx-male-sign',
+                      'color' => 'info'
+                  ],
+                  'female' => [
+                      'label' => 'Female Rooms', 
+                      'icon' => 'bx bx-female-sign',
+                      'color' => 'danger'
+                  ]
+              ]"
+          />
+      </div>
+      <div class="col-12 col-sm-6 col-lg-3">
+          <x-ui.card.stat2 
+              color="info"
+              icon="bx bx-door-open"
+              label="Total Double Rooms"
+              id="double-rooms"
+              :subStats="[
+                  'male' => [
+                      'label' => 'Male Double Rooms',
+                      'icon' => 'bx bx-male-sign',
+                      'color' => 'info'
+                  ],
+                  'female' => [
+                      'label' => 'Female Double Rooms', 
+                      'icon' => 'bx bx-female-sign',
+                      'color' => 'danger'
+                  ]
+              ]"
+          />
+      </div>
+      <div class="col-12 col-sm-6 col-lg-3">
+          <x-ui.card.stat2 
+              color="secondary"
+              icon="bx bx-door-open"
+              label="Total Beds"
+              id="beds"
+              :subStats="[
+                  'male' => [
+                      'label' => 'Male Beds',
+                      'icon' => 'bx bx-male-sign',
+                      'color' => 'info'
+                  ],
+                  'female' => [
+                      'label' => 'Female Beds', 
+                      'icon' => 'bx bx-female-sign',
+                      'color' => 'danger'
+                  ]
+              ]"
+          />
+      </div>
+      <div class="col-12 col-sm-6 col-lg-3">
+          <x-ui.card.stat2 
+              color="secondary"
+              icon="bx bx-door-open"
+              label="Total Available Beds"
+              id="available-beds"
+              :subStats="[
+                  'male' => [
+                      'label' => 'Available Male Beds',
+                      'icon' => 'bx bx-male-sign',
+                      'color' => 'info'
+                  ],
+                  'female' => [
+                      'label' => 'Available Female Beds', 
+                      'icon' => 'bx bx-female-sign',
+                      'color' => 'danger'
+                  ]
+              ]"
+          />
+      </div>
     </div>
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
@@ -41,14 +112,12 @@
         <div class="col-md-4">
             <label for="search_building_id" class="form-label">Building:</label>
             <select class="form-control" id="search_building_id">
-                <option value="">All</option>
                 <!-- Building options will be loaded by JS -->
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_apartment_number" class="form-label">Apartment:</label>
-            <select class="form-control" id="search_apartment_number">
-                <option value="">All</option>
+            <label for="search_apartment_id" class="form-label">Apartment:</label>
+            <select class="form-control" id="search_apartment_id">
                 <!-- Apartment options will be loaded by JS -->
             </select>
         </div>
@@ -83,7 +152,7 @@
         ]"
         :ajax-url="route('housing.rooms.datatable')"
         :table-id="'rooms-table'"
-        :filter-fields="['search_apartment_number','search_building_id','search_gender_restriction']"
+        :filter-fields="['search_apartment_id','search_building_id','search_gender_restriction']"
     />
 
     {{-- ===== MODALS SECTION ===== --}}
@@ -227,7 +296,6 @@
  * - SelectManager: Handles dropdown population
  * - RoomApp: Initializes all managers
  *  NOTE: Uses global Utils from public/js/utils.js
-
  */
 
 // ===========================
@@ -247,7 +315,7 @@ var ROUTES = {
     all: '{{ route('housing.buildings.all') }}'
   },
   apartments: {
-    all: '{{ route('housing.apartments.all') }}'
+    all: '{{ route('housing.apartments.all', ':id') }}'
   }
 };
 
@@ -319,84 +387,28 @@ var ApiService = {
     return ApiService.request({ url: ROUTES.buildings.all, method: 'GET' });
   },
   /**
-   * Fetch all apartments
+   * Fetch all apartments for specific building
    * @returns {jqXHR}
    */
-  fetchApartments: function() {
-    return ApiService.request({ url: ROUTES.apartments.all, method: 'GET' });
+  fetchApartments: function(id) {
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.apartments.all,id), method: 'GET' });
   }
 };
 
 // ===========================
 // STATISTICS MANAGER
-// ===========================
-var StatsManager = {
-  /**
-   * Initialize statistics cards
-   */
-  init: function() {
-    this.load();
+// =========================== 
+var StatsManager = Utils.createStatsManager({
+  apiMethod: ApiService.fetchStats,
+  statsKeys: ['rooms','double-rooms', 'beds','available-beds'],
+  subStatsConfig: {
+    'rooms': ['male', 'female'],
+    'double-rooms': ['male', 'female'],
+    'beds': ['male', 'female'],
+    'available-beds':['male', 'female']
   },
-  /**
-   * Load statistics data
-   */
-  load: function() {
-    this.toggleAllLoadingStates(true);
-    ApiService.fetchStats()
-      .done(this.handleSuccess.bind(this))
-      .fail(this.handleError.bind(this))
-      .always(this.toggleAllLoadingStates.bind(this, false));
-  },
-  /**
-   * Handle successful stats fetch
-   * @param {object} response
-   */
-  handleSuccess: function(response) {
-    if (response.success) {
-      let stats = response.data;
-      this.updateStatElement('rooms', stats.total.count, stats.total.lastUpdateTime);
-      this.updateStatElement('rooms-male', stats.male.count, stats.male.lastUpdateTime);
-      this.updateStatElement('rooms-female', stats.female.count, stats.female.lastUpdateTime);
-    } else {
-      this.setAllStatsToNA();
-    }
-  },
-  /**
-   * Handle error in stats fetch
-   */
-  handleError: function() {
-    this.setAllStatsToNA();
-    Utils.showError('Failed to load room statistics');
-  },
-  /**
-   * Update a single stat card
-   * @param {string} elementId
-   * @param {string|number} value
-   * @param {string} lastUpdateTime
-   */
-  updateStatElement: function(elementId, value, lastUpdateTime) {
-    $('#' + elementId + '-value').text(value ?? '0');
-    $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--');
-  },
-  /**
-   * Set all stat cards to N/A
-   */
-  setAllStatsToNA: function() {
-    ['rooms', 'rooms-male', 'rooms-female'].forEach(function(elementId) {
-      $('#' + elementId + '-value').text('N/A');
-      $('#' + elementId + '-last-updated').text('N/A');
-    });
-  },
-  /**
-   * Toggle loading state for all stat cards
-   * @param {boolean} isLoading
-   */
-  toggleAllLoadingStates: function(isLoading) {
-    ['rooms', 'rooms-male', 'rooms-female'].forEach(function(elementId) {
-      Utils.toggleLoadingState(elementId, isLoading);
-    });
-  }
-};
+  onError: 'Failed to load room statistics'
+});
 
 // ===========================
 // ROOM MANAGER
@@ -434,9 +446,9 @@ var RoomManager = {
           $('#roomModal').modal('show');
         }
       })
-      .fail(function() {
+      .fail(function(xhr) {
         $('#roomModal').modal('hide');
-        Utils.showError('Failed to load room data');
+        Utils.handleAjaxError(xhr,'An error occurred')
       });
   },
   /**
@@ -451,9 +463,9 @@ var RoomManager = {
           $('#viewRoomModal').modal('show');
         }
       })
-      .fail(function() {
+      .fail(function(xhr) {
         $('#viewRoomModal').modal('hide');
-        Utils.showError('Failed to load room data');
+        Utils.handleAjaxError(xhr,'An error occurred')
       });
   },
   /**
@@ -461,7 +473,7 @@ var RoomManager = {
    */
   handleDeleteRoom: function(e) {
     var roomId = $(e.currentTarget).data('id');
-    Utils.confirmAction({
+    Utils.showConfirmDialog({
       title: 'Delete Room?',
       text: "You won't be able to revert this!",
       confirmButtonText: 'Yes, delete it!'
@@ -477,7 +489,7 @@ var RoomManager = {
   handleActivateRoom: function(e) {
     e.preventDefault();
     var roomId = $(e.currentTarget).data('id');
-    Utils.confirmAction({
+    Utils.showConfirmDialog({
       title: 'Activate Room?',
       text: 'Are you sure you want to activate this room?',
       confirmButtonText: 'Yes, activate it!'
@@ -493,7 +505,7 @@ var RoomManager = {
   handleDeactivateRoom: function(e) {
     e.preventDefault();
     var roomId = $(e.currentTarget).data('id');
-    Utils.confirmAction({
+    Utils.showConfirmDialog({
       title: 'Deactivate Room?',
       text: 'Are you sure you want to deactivate this room?',
       confirmButtonText: 'Yes, deactivate it!'
@@ -512,43 +524,43 @@ var RoomManager = {
     ApiService.saveRoom(formData, this.currentRoomId)
       .done(function() {
         $('#roomModal').modal('hide');
-        RoomManager.reloadTable();
+        Utils.reloadDataTable('#rooms-table');
         Utils.showSuccess('Room has been saved successfully.');
-        StatsManager.load();
+        StatsManager.refresh();
       })
       .fail(function(xhr) {
-        $('#roomModal').modal('hide');
-        var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred. Please check your input.';
-        Utils.showError(message);
+        Utils.handleAjaxError(xhr,'An error occurred. Please check your input.')
       });
   },
   /**
    * Populate edit form
    */
   populateEditForm: function(room) {
-    $('#type').val(room.type).prop('disabled', false);
-    $('#purpose').val(room.purpose).prop('disabled', false);
-    $('#room_description').val(room.description).prop('disabled', false);
+    Utils.setElementText('#type', room.type);
+    Utils.disable('#type', false);
+    Utils.setElementText('#purpose', room.purpose);
+    Utils.disable('#purpose', false);
+    Utils.setElementText('#room_description', room.description);
+    Utils.disable('#room_description', false);
   },
   /**
    * Populate view modal
    */
   populateViewModal: function(room) {
-    $('#view-room-number').text('Room ' + room.number);
-    $('#view-room-apartment').text('Apartment ' + room.apartment);
-    $('#view-room-building').text('Building ' + room.building);
-    $('#view-room-type').text(room.type);
-    $('#view-room-gender-restriction').text(room.gender_restriction);
-    $('#view-room-is-active').text(room.active ? 'Active' : 'Inactive');
-    // Use global utils.formatDate if available, else fallback
+    Utils.setElementText('#view-room-number', 'Room ' + room.number);
+    Utils.setElementText('#view-room-apartment', 'Apartment ' + room.apartment);
+    Utils.setElementText('#view-room-building', 'Building ' + room.building);
+    Utils.setElementText('#view-room-type', room.type);
+    Utils.setElementText('#view-room-gender-restriction', room.gender_restriction);
+    Utils.setElementText('#view-room-is-active', room.active ? 'Active' : 'Inactive');
     var formatDate = Utils && Utils.formatDate ? Utils.formatDate : function(dateString) {
       return dateString ? new Date(dateString).toLocaleString() : '--';
     };
-    $('#view-room-created').text(formatDate(room.created_at));
-    $('#view-room-updated').text(formatDate(room.updated_at));
-    $('#view-room-capacity').text(room.capacity);
-    $('#view-room-current-occupancy').text(room.current_occupancy);
-    $('#view-room-available-capacity').text(room.available_capacity);
+    Utils.setElementText('#view-room-created', formatDate(room.created_at));
+    Utils.setElementText('#view-room-updated', formatDate(room.updated_at));
+    Utils.setElementText('#view-room-capacity', room.capacity);
+    Utils.setElementText('#view-room-current-occupancy', room.current_occupancy);
+    Utils.setElementText('#view-room-available-capacity', room.available_capacity);
   },
   /**
    * Delete room
@@ -556,13 +568,12 @@ var RoomManager = {
   deleteRoom: function(roomId) {
     ApiService.deleteRoom(roomId)
       .done(function() {
-        RoomManager.reloadTable();
+        Utils.reloadDataTable('#rooms-table');
         Utils.showSuccess('Room has been deleted.');
         StatsManager.load();
       })
       .fail(function(xhr) {
-        var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to delete room.';
-        Utils.showError(message);
+        Utils.handleAjaxError(xhr,'An error occurred')
       });
   },
   /**
@@ -571,21 +582,21 @@ var RoomManager = {
   toggleRoomStatus: function(roomId, isActivate, $button) {
     var apiCall = isActivate ? ApiService.activateRoom : ApiService.deactivateRoom;
     var successMessage = isActivate ? 'activated' : 'deactivated';
-    $button.prop('disabled', true);
+    Utils.disableButton($button, true);
     apiCall(roomId)
       .done(function(response) {
         if (response.success) {
           Utils.showSuccess('Room ' + successMessage + ' successfully');
-          RoomManager.reloadTable();
+          Utils.reloadDataTable('#rooms-table');
         } else {
           Utils.showError(response.message || 'Operation failed');
         }
       })
       .fail(function(xhr) {
-        Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Operation failed');
+        Utils.handleAjaxError(xhr,'An error occurred')
       })
       .always(function() {
-        $button.prop('disabled', false);
+        Utils.disableButton($button, false);
       });
   },
   /**
@@ -611,21 +622,17 @@ var SearchManager = {
    */
   bindEvents: function() {
     var self = this;
-    $('#search_building_id, #search_apartment_number, #search_gender_restriction').on('keyup change', function() { self.reloadTable(); });
+    $('#search_building_id, #search_apartment_id, #search_gender_restriction').on('keyup change', function() { Utils.reloadDataTable('#rooms-table'); });
     $('#clearRoomFiltersBtn').on('click', function() { self.clearFilters(); });
   },
   /**
    * Clear all filters
    */
   clearFilters: function() {
-    $('#search_building_id, #search_apartment_number, #search_gender_restriction').val('');
-    this.reloadTable();
-  },
-  /**
-   * Reload the rooms table
-   */
-  reloadTable: function() {
-    $('#rooms-table').DataTable().ajax.reload();
+    Utils.setElementText('#search_building_id', '');
+    Utils.setElementText('#search_apartment_id', '');
+    Utils.setElementText('#search_gender_restriction', '');
+    Utils.reloadDataTable('#rooms-table');
   }
 };
 
@@ -638,7 +645,8 @@ var SelectManager = {
    */
   init: function() {
     this.populateBuildingSelect();
-    this.populateApartmentSelect();
+    this.bindBuildingChange();
+    $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">Select Building First</option>');
   },
   /**
    * Populate building select dropdown
@@ -647,37 +655,55 @@ var SelectManager = {
     ApiService.fetchBuildings()
       .done(function(response) {
         if (response.success) {
-          var $select = $('#search_building_id');
-          $select.empty().append('<option value="">All</option>');
-          response.data.forEach(function(building) {
-            $select.append('<option value="' + building.id + '">Building ' + building.number + '</option>');
+          Utils.populateSelect('#search_building_id', response.data,{
+            valueField: 'id',
+            textField: 'number',
+            placeholder: 'Select Building',
+            includePlaceholder: true
           });
         }
       })
       .fail(function() {
-        Utils.showError('Failed to load buildings');
+        console.error('Failed to load buildings');
       });
   },
   /**
-   * Populate apartment select dropdown
+   * Bind change event for building select to populate apartments
    */
-  populateApartmentSelect: function() {
-    ApiService.fetchApartments()
+  bindBuildingChange: function() {
+    var self = this;
+    $('#search_building_id').on('change', function() {
+      var buildingId = $(this).val();
+      if (buildingId) {
+        self.populateApartmentSelect(buildingId);
+      } else {
+        $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">Select Building First</option>');
+      }
+    });
+  },
+  /**
+   * Populate apartment select dropdown based on building
+   */
+  populateApartmentSelect: function(buildingId) {
+    // Fetch all apartments and filter client-side by building_id
+    ApiService.fetchApartments(buildingId)
       .done(function(response) {
-        if (response.success) {
-          var $select = $('#search_apartment_number');
-          $select.empty().append('<option value="">All</option>');
-          var uniqueNumbers = new Set();
-          response.data.forEach(function(apartment) {
-            if (!uniqueNumbers.has(apartment.number)) {
-              uniqueNumbers.add(apartment.number);
-              $select.append('<option value="' + apartment.number + '">Apartment ' + apartment.number + '</option>');
-            }
+        if (response.success && response.data.length > 0) {
+          Utils.populateSelect('#search_apartment_id', response.data, {
+            valueField: 'id',
+            textField: 'number',
+            placeholder: 'Select Apartment',
+            includePlaceholder: true
           });
+          Utils.disable('#search_apartment_id', false);
+        } else {
+          Utils.disable('#search_apartment_id', true);
+          $('#search_apartment_id').empty().append('<option value="">No Apartments</option>');
         }
       })
-      .fail(function() {
-        Utils.showError('Failed to load apartments');
+      .fail(function(xhr) {
+        Utils.disable('#search_apartment_id', true);
+        Utils.handleAjaxError(xhr,"An Error Occured");
       });
   }
 };
