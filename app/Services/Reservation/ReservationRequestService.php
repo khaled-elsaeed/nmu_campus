@@ -104,39 +104,67 @@ class ReservationRequestService
      */
     public function getStats(): array
     {
-        $totalRequests = ReservationRequest::count();
-        $pendingRequests = ReservationRequest::where('status', 'pending')->count();
-        $approvedRequests = ReservationRequest::where('status', 'approved')->count();
-        $rejectedRequests = ReservationRequest::where('status', 'rejected')->count();
-        $cancelledRequests = ReservationRequest::where('status', 'cancelled')->count();
+        $stats = ReservationRequest::leftJoin('users', 'reservation_requests.user_id', '=', 'users.id')
+            ->selectRaw("
+                COUNT(*) as total,
+                MAX(reservation_requests.updated_at) as last_update,
 
-        $lastUpdateTime = formatDate(ReservationRequest::max('updated_at'));
-        $pendingLastUpdate = formatDate(ReservationRequest::where('status', 'pending')->max('updated_at'));
-        $approvedLastUpdate = formatDate(ReservationRequest::where('status', 'approved')->max('updated_at'));
-        $rejectedLastUpdate = formatDate(ReservationRequest::where('status', 'rejected')->max('updated_at'));
-        $cancelledLastUpdate = formatDate(ReservationRequest::where('status', 'cancelled')->max('updated_at'));
+                SUM(CASE WHEN reservation_requests.status = 'pending' THEN 1 ELSE 0 END) as pending,
+                MAX(CASE WHEN reservation_requests.status = 'pending' THEN reservation_requests.updated_at ELSE NULL END) as pending_last_update,
+                SUM(CASE WHEN reservation_requests.status = 'pending' AND users.gender = 'male' THEN 1 ELSE 0 END) as pending_male,
+                SUM(CASE WHEN reservation_requests.status = 'pending' AND users.gender = 'female' THEN 1 ELSE 0 END) as pending_female,
+
+                SUM(CASE WHEN reservation_requests.status = 'approved' THEN 1 ELSE 0 END) as approved,
+                MAX(CASE WHEN reservation_requests.status = 'approved' THEN reservation_requests.updated_at ELSE NULL END) as approved_last_update,
+                SUM(CASE WHEN reservation_requests.status = 'approved' AND users.gender = 'male' THEN 1 ELSE 0 END) as approved_male,
+                SUM(CASE WHEN reservation_requests.status = 'approved' AND users.gender = 'female' THEN 1 ELSE 0 END) as approved_female,
+
+                SUM(CASE WHEN reservation_requests.status = 'rejected' THEN 1 ELSE 0 END) as rejected,
+                MAX(CASE WHEN reservation_requests.status = 'rejected' THEN reservation_requests.updated_at ELSE NULL END) as rejected_last_update,
+                SUM(CASE WHEN reservation_requests.status = 'rejected' AND users.gender = 'male' THEN 1 ELSE 0 END) as rejected_male,
+                SUM(CASE WHEN reservation_requests.status = 'rejected' AND users.gender = 'female' THEN 1 ELSE 0 END) as rejected_female,
+
+                SUM(CASE WHEN reservation_requests.status = 'cancelled' THEN 1 ELSE 0 END) as cancelled,
+                MAX(CASE WHEN reservation_requests.status = 'cancelled' THEN reservation_requests.updated_at ELSE NULL END) as cancelled_last_update,
+                SUM(CASE WHEN reservation_requests.status = 'cancelled' AND users.gender = 'male' THEN 1 ELSE 0 END) as cancelled_male,
+                SUM(CASE WHEN reservation_requests.status = 'cancelled' AND users.gender = 'female' THEN 1 ELSE 0 END) as cancelled_female,
+
+                SUM(CASE WHEN users.gender = 'male' THEN 1 ELSE 0 END) as total_male,
+                SUM(CASE WHEN users.gender = 'female' THEN 1 ELSE 0 END) as total_female
+            ")
+            ->first(); // Add this to execute the query and get a single result
 
         return [
-            'total' => [
-                'count' => formatNumber($totalRequests),
-                'lastUpdateTime' => $lastUpdateTime
+            'requests' => [
+                'count' => formatNumber($stats->total),
+                'male' => formatNumber($stats->total_male),
+                'female' => formatNumber($stats->total_female),
+                'lastUpdateTime' => formatDate($stats->last_update)
             ],
-            'pending' => [
-                'count' => formatNumber($pendingRequests),
-                'lastUpdateTime' => $pendingLastUpdate
+            'requests-pending' => [
+                'count' => formatNumber($stats->pending),
+                'male' => formatNumber($stats->pending_male),
+                'female' => formatNumber($stats->pending_female),
+                'lastUpdateTime' => formatDate($stats->pending_last_update)
             ],
-            'approved' => [
-                'count' => formatNumber($approvedRequests),
-                'lastUpdateTime' => $approvedLastUpdate
+            'requests-approved' => [
+                'count' => formatNumber($stats->approved),
+                'male' => formatNumber($stats->approved_male),
+                'female' => formatNumber($stats->approved_female),
+                'lastUpdateTime' => formatDate($stats->approved_last_update)
             ],
-            'rejected' => [
-                'count' => formatNumber($rejectedRequests),
-                'lastUpdateTime' => $rejectedLastUpdate
+            'requests-rejected' => [
+                'count' => formatNumber($stats->rejected),
+                'male' => formatNumber($stats->rejected_male),
+                'female' => formatNumber($stats->rejected_female),
+                'lastUpdateTime' => formatDate($stats->rejected_last_update)
             ],
             'cancelled' => [
-                'count' => formatNumber($cancelledRequests),
-                'lastUpdateTime' => $cancelledLastUpdate
-            ]
+                'count' => formatNumber($stats->cancelled),
+                'male' => formatNumber($stats->cancelled_male),
+                'female' => formatNumber($stats->cancelled_female),
+                'lastUpdateTime' => formatDate($stats->cancelled_last_update)
+            ],
         ];
     }
 

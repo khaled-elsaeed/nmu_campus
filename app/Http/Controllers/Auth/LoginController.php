@@ -6,7 +6,7 @@ use App\Services\Auth\AuthLoginService as AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
-
+use Illuminate\Http\RedirectResponse; 
 
 class LoginController extends Controller
 {
@@ -45,15 +45,15 @@ class LoginController extends Controller
             'email_not_verified' => redirect()->route('verification.notice')
                 ->with('email', $result['user']->email)
                 ->with('warning', $result['message']),
-                
+
             'account_inactive' => redirect()->route('login')
                 ->with('error', $result['message'])
                 ->with('contact_support', true),
-                
+
             'invalid_credentials' => redirect()->back()
                 ->withErrors(['email' => $result['message']])
                 ->withInput($request->except('password')),
-                
+
             default => redirect()->back()
                 ->with('error', 'An unexpected error occurred. Please try again.')
                 ->withInput($request->except('password'))

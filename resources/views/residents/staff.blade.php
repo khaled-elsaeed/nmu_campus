@@ -7,7 +7,7 @@
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="primary" icon="bx bx-group" label="Total Staff" id="staff" />
+            <x-ui.card.stat2 color="secondary" icon="bx bx-group" label="Total Staff" id="staff" />
         </div>
         <div class="col-sm-6 col-xl-4">
             <x-ui.card.stat2 color="info" icon="bx bx-male" label="Male Staff" id="staff-male" />
@@ -23,12 +23,15 @@
         description="Manage staff and their information."
         icon="bx bx-group"
     >
+    <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
         <button class="btn btn-primary mx-2" id="addStaffBtn">
             <i class="bx bx-plus me-1"></i> Add Staff
         </button>
-        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#staffSearchCollapse" aria-expanded="false" aria-controls="staffSearchCollapse">
-            <i class="bx bx-search"></i>
+        <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#staffSearchCollapse" aria-expanded="false" aria-controls="staffSearchCollapse">
+            <i class="bx bx-filter-alt me-1"></i> Search
         </button>
+    </div>
+
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
@@ -231,7 +234,8 @@ var ROUTES = {
     store: '{{ route('resident.staff.store') }}',
     update: '{{ route('resident.staff.update', ':id') }}',
     destroy: '{{ route('resident.staff.destroy', ':id') }}',
-    datatable: '{{ route('resident.staff.datatable') }}'
+    datatable: '{{ route('resident.staff.datatable') }}',
+    stats: '{{ route('resident.staff.stats') }}'
   },
   departments: {
     all: '{{ route('departments.all') }}'
@@ -248,29 +252,37 @@ var ROUTES = {
 // API SERVICE
 // ===========================
 var ApiService = {
+
   request: function(options) { return $.ajax(options); },
+
   fetchStaff: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.staff.show, id), method: 'GET' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.staff.show, id), method: 'GET' });
   },
+
   saveStaff: function(data, id) {
     var url = id ? Utils.replaceRouteId(ROUTES.staff.update, id) : ROUTES.staff.store;
     var method = id ? 'PUT' : 'POST';
-    return this.request({ url: url, method: method, data: data });
+    return ApiService.request({ url: url, method: method, data: data });
   },
+
   deleteStaff: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.staff.destroy, id), method: 'DELETE' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.staff.destroy, id), method: 'DELETE' });
   },
+
   fetchDepartments: function() {
-    return this.request({ url: ROUTES.departments.all, method: 'GET' });
+    return ApiService.request({ url: ROUTES.departments.all, method: 'GET' });
   },
   fetchCategories: function() {
-    return this.request({ url: ROUTES.categories.all, method: 'GET' });
+    return ApiService.request({ url: ROUTES.categories.all, method: 'GET' });
   },
   fetchFaculties: function() {
-    return this.request({ url: ROUTES.faculties.all, method: 'GET' });
+    return ApiService.request({ url: ROUTES.faculties.all, method: 'GET' });
   },
   fetchCampusUnits: function() {
-    return this.request({ url: '{{ route('campus-units.all') }}', method: 'GET' });
+    return ApiService.request({ url: '{{ route('campus-units.all') }}', method: 'GET' });
+  },
+  fetchStats: function() {
+    return ApiService.request({ url: ROUTES.staff.stats, method: 'GET' });
   }
 };
 
@@ -287,10 +299,10 @@ var SelectManager = {
           Utils.populateSelect($select, response.data, { valueField: 'id', textField: 'name', placeholder: 'Select Department' });
         }
       })
-      .fail(function() {
+      .fail(function(xhr) {
         $('#staffModal').modal('hide');
         Utils.populateSelect($select, [], { placeholder: 'Error loading departments' });
-        Utils.showError('Failed to load departments');
+        Utils.handleAjaxError(xhr, 'An error occurred');
       });
   },
   populateModalCategories: function() {
@@ -306,10 +318,10 @@ var SelectManager = {
           });
         }
       })
-      .fail(function() {
+      .fail(function(xhr) {
         $('#staffModal').modal('hide');
         Utils.populateSelect($select, [], { placeholder: 'Error loading categories' });
-        Utils.showError('Failed to load categories');
+        Utils.handleAjaxError(xhr, 'An error occurred');
       });
   },
   populateModalFaculties: function() {
@@ -321,10 +333,10 @@ var SelectManager = {
           Utils.populateSelect($select, response.data, { valueField: 'id', textField: 'name', placeholder: 'Select Faculty' });
         }
       })
-      .fail(function() {
+      .fail(function(xhr) {
         $('#staffModal').modal('hide');
         Utils.populateSelect($select, [], { placeholder: 'Error loading faculties' });
-        Utils.showError('Failed to load faculties');
+        Utils.handleAjaxError(xhr, 'An error occurred');
       });
   },
   populateUnitField: function(categoryType) {
@@ -339,17 +351,16 @@ var SelectManager = {
     } else if (categoryType === 'campus') {
       promise = ApiService.fetchCampusUnits();
     } else {
-      // Return a resolved promise for unknown types
       return $.Deferred().resolve();
     }
 
     return promise.done(function(response) {
       if (response.success) {
-        Utils.populateSelect($select, response.data, { valueField: 'id', textField: 'name', placeholder: 'Select Unit' });
+        Utils.populateSelect($select, response.data, { valueField: 'id', textField: 'name', placeholder: 'Select Unit', triggerChange: true});
       }
-    }).fail(function() {
+    }).fail(function(xhr) {
       Utils.populateSelect($select, [], { placeholder: 'Error loading units' });
-      Utils.showError(`Failed to load ${categoryType} units`);
+      Utils.handleAjaxError(xhr, 'An error occurred');
     });
   },
   populateSearchDepartments: function() {
@@ -361,9 +372,9 @@ var SelectManager = {
           Utils.populateSelect($select, response.data, { valueField: 'id', textField: 'name', placeholder: 'All Departments' });
         }
       })
-      .fail(function() {
+      .fail(function(xhr) {
         Utils.populateSelect($select, [], { placeholder: 'Error loading departments' });
-        Utils.showError('Failed to load departments');
+        Utils.handleAjaxError(xhr, 'An error occurred');
       });
   },
   populateSearchCategories: function() {
@@ -375,9 +386,9 @@ var SelectManager = {
           Utils.populateSelect($select, response.data, { valueField: 'id', textField: 'name', placeholder: 'All Categories' });
         }
       })
-      .fail(function() {
+      .fail(function(xhr) {
         Utils.populateSelect($select, [], { placeholder: 'Error loading categories' });
-        Utils.showError('Failed to load categories');
+        Utils.handleAjaxError(xhr, 'An error occurred');
       });
   },
   populateSearchFaculties: function() {
@@ -389,9 +400,9 @@ var SelectManager = {
           Utils.populateSelect($select, response.data, { valueField: 'id', textField: 'name', placeholder: 'All Faculties' });
         }
       })
-      .fail(function() {
+      .fail(function(xhr) {
         Utils.populateSelect($select, [], { placeholder: 'Error loading faculties' });
-        Utils.showError('Failed to load faculties');
+        Utils.handleAjaxError(xhr, 'An error occurred');
       });
   },
   init: function() {
@@ -443,15 +454,6 @@ var StaffManager = {
       } else {
         $unitFieldContainer.hide();
         $unitLabel.text('Unit');
-      }
-    });
-
-    $('#staffModal').on('show.bs.modal', function() {
-      if (!$('#staff_category_id').val()) {
-        $('#unit_field_container').hide();
-        $('label[for="staff_unit_id"]').text('Unit');
-      } else {
-        $('#staff_category_id').trigger('change');
       }
     });
   },
@@ -525,9 +527,9 @@ var StaffManager = {
             $('#viewStaffModal').modal('show');
           }
         })
-        .fail(function() {
+        .fail(function(xhr) {
           $('#viewStaffModal').modal('hide');
-          Utils.showError('Failed to load staff data');
+          Utils.handleAjaxError(xhr,'An error occurred')
         });
     });
   },
@@ -549,8 +551,7 @@ var StaffManager = {
               Utils.showSuccess('Staff has been deleted.');
             })
             .fail(function(xhr) {
-              var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to delete staff.';
-              Utils.showError(message);
+              Utils.handleAjaxError(xhr,'An error occurred')
             });
         }
       });
@@ -570,8 +571,8 @@ var StaffManager = {
         })
         .fail(function(xhr) {
           $('#staffModal').modal('hide');
-          var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred. Please check your input.';
-          Utils.showError(message);
+          Utils.handleAjaxError(xhr,'An error occurred')
+
         });
     });
   },
@@ -606,47 +607,11 @@ var SearchManager = {
 // ===========================
 // STATISTICS MANAGER
 // ===========================
-var StatsManager = {
-  init: function() {
-    this.load();
-  },
-  load: function() {
-    this.toggleAllLoadingStates(true);
-    $.ajax({ url: '{{ route('resident.staff.stats') }}', method: 'GET' })
-      .done(this.handleSuccess.bind(this))
-      .fail(this.handleError.bind(this))
-      .always(this.toggleAllLoadingStates.bind(this, false));
-  },
-  handleSuccess: function(response) {
-    if (response.success) {
-      let stats = response.data;
-      this.updateStatElement('staff', stats.total.count, stats.total.lastUpdateTime);
-      this.updateStatElement('staff-male', stats.male.count, stats.male.lastUpdateTime);
-      this.updateStatElement('staff-female', stats.female.count, stats.female.lastUpdateTime);
-    } else {
-      this.setAllStatsToNA();
-    }
-  },
-  handleError: function() {
-    this.setAllStatsToNA();
-    Utils.showError('Failed to load staff statistics');
-  },
-  updateStatElement: function(elementId, value, lastUpdateTime) {
-    $('#' + elementId + '-value').text(value ?? '0');
-    $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--');
-  },
-  setAllStatsToNA: function() {
-    ['staff', 'staff-male', 'staff-female'].forEach(function(elementId) {
-      $('#' + elementId + '-value').text('N/A');
-      $('#' + elementId + '-last-updated').text('N/A');
-    });
-  },
-  toggleAllLoadingStates: function(isLoading) {
-    ['staff', 'staff-male', 'staff-female'].forEach(function(elementId) {
-        Utils.toggleLoadingState(elementId, isLoading);
-    });
-  }
-};
+var StatsManager = Utils.createStatsManager({
+  apiMethod: ApiService.fetchStats,
+  statsKeys: ['staff','staff-male', 'staff-female'],
+  onError: 'Failed to load staff statistics'
+});
 
 // ===========================
 // MAIN APP INITIALIZER

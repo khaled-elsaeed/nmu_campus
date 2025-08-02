@@ -566,6 +566,7 @@ const Utils = {
    *   - placeholder: placeholder text for the first option (default: 'Select')
    *   - selected: value to be selected by default
    *   - includePlaceholder: whether to include placeholder (default: true)
+   *   - triggerChange: whether to trigger change event after populating (default: true)
    * @param {boolean} isSelect2 - true if select2 is used, false for normal select (default: false)
    */
   populateSelect(select, items, options = {}, isSelect2 = false) {
@@ -577,7 +578,8 @@ const Utils = {
       textField = 'name',
       placeholder = 'Select',
       selected = null,
-      includePlaceholder = true
+      includePlaceholder = true,
+      triggerChange = false
     } = options;
 
     let html = '';
@@ -600,14 +602,16 @@ const Utils = {
     $select.html(html);
 
     // If select2 is requested, trigger the appropriate event
-    if (isSelect2) {
-      if ($select.hasClass('select2-hidden-accessible')) {
-        $select.trigger('change.select2');
+    if (triggerChange) {
+      if (isSelect2) {
+        if ($select.hasClass('select2-hidden-accessible')) {
+          $select.trigger('change.select2');
+        } else {
+          $select.trigger('change');
+        }
       } else {
         $select.trigger('change');
       }
-    } else {
-      $select.trigger('change');
     }
   },
 

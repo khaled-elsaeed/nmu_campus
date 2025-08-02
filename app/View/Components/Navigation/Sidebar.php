@@ -233,9 +233,26 @@ class Sidebar extends Component
                 [
                     'title' => __('sidebar.check_in_out'),
                     'icon' => 'bx bx-log-in-circle',
-                    'route' => route('reservations.check-in'),
-                    'active' => request()->routeIs('reservations.check-in'),
+                    'route' => '#',
+                    'active' => request()->routeIs('reservations.check-in') || request()->routeIs('reservations.check-out'),
+                    'type' => 'group',
                     'permission' => 'reservations.check_in_out',
+                    'children' => [
+                        [
+                            'title' => __('sidebar.check_in'),
+                            'icon' => 'bx bx-log-in',
+                            'route' => route('reservations.check-in'),
+                            'active' => request()->routeIs('reservations.check-in'),
+                            'permission' => 'reservations.check_in_out',
+                        ],
+                        [
+                            'title' => __('sidebar.check_out'),
+                            'icon' => 'bx bx-log-out',
+                            'route' => route('reservations.check-out'),
+                            'active' => request()->routeIs('reservations.check-out'),
+                            'permission' => 'reservations.check_in_out',
+                        ],
+                    ],
                 ],
                 [
                     'title' => __('sidebar.reservation_requests'),

@@ -8,6 +8,8 @@ Route::prefix('reservations')->name('reservations.')->group(function () {
     Route::get('/stats', [ReservationController::class, 'stats'])->name('stats');
     Route::get('/create', [ReservationController::class, 'create'])->name('create');
     Route::get('/check-in', [ReservationController::class, 'showCheckInForm'])->name('check-in');
+    Route::get('/check-out', [ReservationController::class, 'showCheckOutForm'])->name('check-out');
+
     Route::post('/checkin', [ReservationController::class, 'checkin'])->name('checkin');
     Route::post('/checkout', [ReservationController::class, 'checkout'])->name('checkout');
 

@@ -87,6 +87,9 @@ class AuthRegisterService
 
         $user->save();
 
+        // Assign spatie role 'resident'
+        $user->assignRole('resident');
+
         return $user;
     }
 

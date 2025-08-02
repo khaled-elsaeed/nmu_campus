@@ -162,7 +162,7 @@ if (!function_exists('formatNumber')) {
     function formatNumber($number, $decimals = 0)
     {
         if ($number === null) {
-            return null;
+            return 0;
         }
         return number_format($number, $decimals, '.', ',');
     }

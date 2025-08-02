@@ -275,24 +275,29 @@ class StaffService
      */
     public function getStats(): array
     {
-        $totalStaff = Staff::count();
-        $maleStaff = Staff::whereHas('user', fn($q) => $q->where('gender', 'male'))->count();
-        $femaleStaff = Staff::whereHas('user', fn($q) => $q->where('gender', 'female'))->count();
-        $lastUpdateTime = formatDate(Staff::max('updated_at'));
-        $maleLastUpdate = formatDate(Staff::whereHas('user', fn($q) => $q->where('gender', 'male'))->max('updated_at'));
-        $femaleLastUpdate = formatDate(Staff::whereHas('user', fn($q) => $q->where('gender', 'female'))->max('updated_at'));
+        $stats = Staff::join('users', 'staff.user_id', '=', 'users.id')
+            ->selectRaw('
+                COUNT(staff.id) as total,
+                SUM(CASE WHEN users.gender = "male" THEN 1 ELSE 0 END) as male,
+                SUM(CASE WHEN users.gender = "female" THEN 1 ELSE 0 END) as female,
+                MAX(staff.updated_at) as last_update,
+                MAX(CASE WHEN users.gender = "male" THEN staff.updated_at ELSE NULL END) as male_last_update,
+                MAX(CASE WHEN users.gender = "female" THEN staff.updated_at ELSE NULL END) as female_last_update
+            ')
+            ->first();
+
         return [
-            'total' => [
-                'count' => formatNumber($totalStaff),
-                'lastUpdateTime' => $lastUpdateTime
+            'staff' => [
+                'count' => formatNumber($stats->total ?? 0),
+                'lastUpdateTime' => formatDate($stats->last_update ?? null)
             ],
-            'male' => [
-                'count' => formatNumber($maleStaff),
-                'lastUpdateTime' => $maleLastUpdate
+            'staff-male' => [
+                'count' => formatNumber($stats->male ?? 0),
+                'lastUpdateTime' => formatDate($stats->male_last_update ?? null)
             ],
-            'female' => [
-                'count' => formatNumber($femaleStaff),
-                'lastUpdateTime' => $femaleLastUpdate
+            'staff-female' => [
+                'count' => formatNumber($stats->female ?? 0),
+                'lastUpdateTime' => formatDate($stats->female_last_update ?? null)
             ],
         ];
     }

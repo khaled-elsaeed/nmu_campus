@@ -6,14 +6,85 @@
 <div class="container-xxl flex-grow-1 container-p-y">
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
-        <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="primary" icon="bx bx-calendar" :label="__('reservations.stats.total')" id="reservations" />
+        <div class="col-sm-6 col-xl-3">
+            <x-ui.card.stat2 
+                color="secondary"
+                icon="bx bx-calendar"
+                label="Total Reservations"
+                id="reservations"
+                :subStats="[
+                    'male' => [
+                        'label' => 'Male Reservations',
+                        'icon' => 'bx bx-male-sign',
+                        'color' => 'info'
+                    ],
+                    'female' => [
+                        'label' => 'Female Reservations',
+                        'icon' => 'bx bx-female-sign',
+                        'color' => 'danger'
+                    ]
+                ]"
+            />
         </div>
-        <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="info" icon="bx bx-check-circle" :label="__('reservations.stats.active')" id="reservations-active" />
+        <div class="col-sm-6 col-xl-3">
+            <x-ui.card.stat2 
+                color="warning"
+                icon="bx bx-time"
+                label="Pending Reservations"
+                id="pending"
+                :subStats="[
+                    'male' => [
+                        'label' => 'Pending Male',
+                        'icon' => 'bx bx-male-sign',
+                        'color' => 'info'
+                    ],
+                    'female' => [
+                        'label' => 'Pending Female',
+                        'icon' => 'bx bx-female-sign',
+                        'color' => 'danger'
+                    ]
+                ]"
+            />
         </div>
-        <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="pink" icon="bx bx-x-circle" :label="__('reservations.stats.inactive')" id="reservations-inactive" />
+        <div class="col-sm-6 col-xl-3">
+            <x-ui.card.stat2 
+                color="info"
+                icon="bx bx-check-circle"
+                label="Confirmed Reservations"
+                id="confirmed"
+                :subStats="[
+                    'male' => [
+                        'label' => 'Confirmed Male',
+                        'icon' => 'bx bx-male-sign',
+                        'color' => 'info'
+                    ],
+                    'female' => [
+                        'label' => 'Confirmed Female',
+                        'icon' => 'bx bx-female-sign',
+                        'color' => 'danger'
+                    ]
+                ]"
+            />
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <x-ui.card.stat2 
+                color="success"
+                icon="bx bx-log-in"
+                label="Checked In"
+                id="checked_in"
+                :subStats="[
+                    'male' => [
+                        'label' => 'Checked In Male',
+                        'icon' => 'bx bx-male-sign',
+                        'color' => 'info'
+                    ],
+                    'female' => [
+                        'label' => 'Checked In Female',
+                        'icon' => 'bx bx-female-sign',
+                        'color' => 'danger'
+                    ]
+                ]"
+            />
         </div>
     </div>
 
@@ -23,9 +94,14 @@
         :description="__('reservations.page_description')"
         icon="bx bx-calendar"
     >
-        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#reservationSearchCollapse" aria-expanded="false" aria-controls="reservationSearchCollapse" title="{{ __('reservations.search.button_tooltip') }}">
-            <i class="bx bx-search"></i>
+    <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
+        <button class="btn btn-primary mx-2" id="addStaffBtn">
+            <i class="bx bx-plus me-1"></i> Add Staff
         </button>
+        <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#reservationSearchCollapse" aria-expanded="false" aria-controls="reservationSearchCollapse">
+            <i class="bx bx-filter-alt me-1"></i> Search
+        </button>
+    </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
@@ -133,7 +209,6 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/utils.js') }}"></script>
 <script>
 /**
  * Reservation Management Page JS
@@ -205,10 +280,10 @@ var ROUTES = {
     all: '{{ route("housing.buildings.all") }}'
   },
   apartments: {
-    all: '{{ route("housing.apartments.all") }}'
+    all: '{{ route("housing.apartments.all", ":id") }}'
   },
   rooms: {
-    all: '{{ route("housing.rooms.all") }}'
+    all: '{{ route("housing.rooms.all", ":id") }}'
   },
   academicTerms: {
     all: '{{ route("academic.academic_terms.all") }}'
@@ -223,75 +298,47 @@ var ApiService = {
     return $.ajax(options);
   },
   fetchStats: function() {
-    return this.request({ url: ROUTES.reservations.stats, method: 'GET' });
+    return ApiService.request({ url: ROUTES.reservations.stats, method: 'GET' });
   },
   deleteReservation: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.reservations.destroy, id), method: 'DELETE' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.reservations.destroy, id), method: 'DELETE' });
   },
   cancelReservation: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.reservations.cancel, id), method: 'POST' }); // Added cancelReservation
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.reservations.cancel, id), method: 'POST' });
   },
   fetchBuildings: function() {
-    return this.request({ url: ROUTES.buildings.all, method: 'GET' });
+    return ApiService.request({ url: ROUTES.buildings.all, method: 'GET' });
   },
   fetchApartments: function(buildingId) {
-    var data = buildingId ? { building_id: buildingId } : {};
-    return this.request({ url: ROUTES.apartments.all, method: 'GET', data: data });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.apartments.all,buildingId ), method: 'GET'});
   },
   fetchRooms: function(apartmentId) {
-    var data = apartmentId ? { apartment_id: apartmentId } : {};
-    return this.request({ url: ROUTES.rooms.all, method: 'GET', data: data });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.rooms.all, apartmentId), method: 'GET'});
   },
   fetchAcademicTerms: function() {
-    return this.request({ url: ROUTES.academicTerms.all, method: 'GET' });
+    return ApiService.request({ url: ROUTES.academicTerms.all, method: 'GET' });
   },
 };
 
 // ===========================
 // STATISTICS MANAGER
 // ===========================
-var StatsManager = {
-  init: function() {
-    this.load();
+var StatsManager = Utils.createStatsManager({
+  apiMethod: ApiService.fetchStats,
+  statsKeys: [
+    'reservations',
+    'pending',
+    'confirmed',
+    'checked_in'
+  ],
+  subStatsConfig: {
+    'reservations': ['male', 'female'],
+    'pending': ['male', 'female'],
+    'confirmed': ['male', 'female'],
+    'checked_in': ['male', 'female']
   },
-  load: function() {
-    this.toggleAllLoadingStates(true);
-    ApiService.fetchStats()
-      .done(this.handleSuccess.bind(this))
-      .fail(this.handleError.bind(this))
-      .always(this.toggleAllLoadingStates.bind(this, false));
-  },
-  handleSuccess: function(response) {
-    if (response.success) {
-      let stats = response.data;
-      this.updateStatElement('reservations', stats.total.count, stats.total.lastUpdateTime);
-      this.updateStatElement('reservations-active', stats.active.count, stats.active.lastUpdateTime);
-      this.updateStatElement('reservations-inactive', stats.inactive.count, stats.inactive.lastUpdateTime);
-    } else {
-      this.setAllStatsToNA();
-    }
-  },
-  handleError: function() {
-    this.setAllStatsToNA();
-    Utils.showError('Failed to load reservation statistics');
-  },
-  updateStatElement: function(elementId, value, lastUpdateTime) {
-    $('#' + elementId + '-value').text(value ?? '0');
-    $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--');
-  },
-  setAllStatsToNA: function() {
-    ['reservations', 'reservations-active', 'reservations-inactive'].forEach(function(elementId) {
-      $('#' + elementId + '-value').text('N/A');
-      $('#' + elementId + '-last-updated').text('N/A');
-    });
-  },
-  toggleAllLoadingStates: function(isLoading) {
-    ['reservations', 'reservations-active', 'reservations-inactive'].forEach(function(elementId) {
-      // Use global Utils
-      Utils.toggleLoadingState(elementId, isLoading);
-    });
-  }
-};
+  onError: 'Failed to load Reservation statistics'
+});
 
 // ===========================
 // RESERVATION MANAGER
@@ -322,7 +369,7 @@ var ReservationManager = {
     ApiService.deleteReservation(reservationId)
       .done(function(response) {
         if (response.success) {
-          ReservationManager.reloadTable();
+          Utils.reloadDataTable('#reservations-table');
           Utils.showSuccess(MESSAGES.success.reservationDeleted);
           StatsManager.load();
         } else {
@@ -330,8 +377,7 @@ var ReservationManager = {
         }
       })
       .fail(function(xhr) {
-        var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : MESSAGES.error.reservationDeleteFailed;
-        Utils.showError(message);
+        Utils.handleAjaxError(xhr,'An error occurred')
       });
   },
   // --- Cancel Reservation Handlers ---
@@ -351,20 +397,16 @@ var ReservationManager = {
     ApiService.cancelReservation(reservationId)
       .done(function(response) {
         if (response.success) {
-          ReservationManager.reloadTable();
+          Utils.reloadDataTable('#reservations-table');
           Utils.showSuccess(MESSAGES.success.reservationCancelled);
-          StatsManager.load();
+          StatsManager.refresh();
         } else {
           Utils.showError(response.message || MESSAGES.error.reservationCancelFailed);
         }
       })
       .fail(function(xhr) {
-        var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : MESSAGES.error.reservationCancelFailed;
-        Utils.showError(message);
+        Utils.handleAjaxError(xhr,'An error occurred')
       });
-  },
-  reloadTable: function() {
-    $('#reservations-table').DataTable().ajax.reload(null, false);
   }
 };
 
@@ -387,7 +429,7 @@ var SearchManager = {
       '#search_room_number',
       '#search_period_type'
     ].join(', ');
-    $(filterSelectors).on('keyup change', function() { self.reloadTable(); });
+    $(filterSelectors).on('keyup change', function() {Utils.reloadDataTable('#reservations-table');});
     $('#clearReservationFiltersBtn').on('click', function() { self.clearFilters(); });
   },
   clearFilters: function() {
@@ -405,10 +447,7 @@ var SearchManager = {
     // Reset apartment and room selects to disabled
     $('#search_apartment_number').prop('disabled', true).empty().append('<option value="">' + MESSAGES.placeholders.selectApartment + '</option>');
     $('#search_room_number').prop('disabled', true).empty().append('<option value="">' + MESSAGES.placeholders.selectRoom + '</option>');
-    this.reloadTable();
-  },
-  reloadTable: function() {
-    $('#reservations-table').DataTable().ajax.reload();
+    Utils.reloadDataTable('#reservations-table');
   }
 };
 
@@ -458,8 +497,8 @@ var SelectManager = {
           SelectManager.populateSelect('#search_building_id', response.data, 'number', MESSAGES.placeholders.selectBuilding);
         }
       })
-      .fail(function() {
-        Utils.showError(MESSAGES.error.buildingsLoadFailed);
+      .fail(function(xhr) {
+        Utils.handleAjaxError(xhr,'An error occurred')
       });
   },
   populateApartmentSelect: function(buildingId) {
@@ -476,8 +515,8 @@ var SelectManager = {
           SelectManager.clearSelect('#search_apartment_number', MESSAGES.placeholders.selectApartment);
         }
       })
-      .fail(function() {
-        Utils.showError(MESSAGES.error.apartmentsLoadFailed);
+      .fail(function(xhr) {
+        Utils.handleAjaxError(xhr,'An error occurred')
         SelectManager.clearSelect('#search_apartment_number', MESSAGES.placeholders.selectApartment);
       });
   },
@@ -495,8 +534,8 @@ var SelectManager = {
           SelectManager.clearSelect('#search_room_number', MESSAGES.placeholders.selectRoom);
         }
       })
-      .fail(function() {
-        Utils.showError(MESSAGES.error.roomsLoadFailed);
+      .fail(function(xhr) {
+        Utils.handleAjaxError(xhr,'An error occurred')
         SelectManager.clearSelect('#search_room_number', MESSAGES.placeholders.selectRoom);
       });
   },
@@ -509,8 +548,8 @@ var SelectManager = {
           SelectManager.clearSelect('#search_academic_term_id', MESSAGES.placeholders.allTerms);
         }
       })
-      .fail(function() {
-        Utils.showError(MESSAGES.error.academicTermsLoadFailed);
+      .fail(function(xhr) {
+        Utils.handleAjaxError(xhr,'An error occurred')
         SelectManager.clearSelect('#search_academic_term_id', MESSAGES.placeholders.allTerms);
       });
   },

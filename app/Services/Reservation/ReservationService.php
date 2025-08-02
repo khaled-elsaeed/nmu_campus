@@ -116,39 +116,57 @@ class ReservationService
      */
     public function getStats(): array
     {
-        $totalReservations = Reservation::count();
-        $activeReservations = Reservation::where('active', true)->count();
-        $inactiveReservations = Reservation::where('active', false)->count();
-        $pendingReservations = Reservation::where('status', 'pending')->count();
-        $confirmedReservations = Reservation::where('status', 'confirmed')->count();
-        $checkedInReservations = Reservation::where('status', 'checked_in')->count();
-        $checkedOutReservations = Reservation::where('status', 'checked_out')->count();
-        $cancelledReservations = Reservation::where('status', 'cancelled')->count();
-        
-        $lastUpdateTime = formatDate(Reservation::max('updated_at'));
-        $activeLastUpdate = formatDate(Reservation::where('active', true)->max('updated_at'));
-        $inactiveLastUpdate = formatDate(Reservation::where('active', false)->max('updated_at'));
-        
+        $stats = Reservation::leftJoin('users', 'reservations.user_id', '=', 'users.id')
+                ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN users.gender = 'male' THEN 1 ELSE 0 END) as total_male,
+                SUM(CASE WHEN users.gender = 'female' THEN 1 ELSE 0 END) as total_female,
+                SUM(CASE WHEN reservations.status = 'pending' THEN 1 ELSE 0 END) as pending,
+                SUM(CASE WHEN reservations.status = 'pending' AND users.gender = 'male' THEN 1 ELSE 0 END) as pending_male,
+                SUM(CASE WHEN reservations.status = 'pending' AND users.gender = 'female' THEN 1 ELSE 0 END) as pending_female,
+                SUM(CASE WHEN reservations.status = 'confirmed' THEN 1 ELSE 0 END) as confirmed,
+                SUM(CASE WHEN reservations.status = 'confirmed' AND users.gender = 'male' THEN 1 ELSE 0 END) as confirmed_male,
+                SUM(CASE WHEN reservations.status = 'confirmed' AND users.gender = 'female' THEN 1 ELSE 0 END) as confirmed_female,
+                SUM(CASE WHEN reservations.status = 'checked_in' THEN 1 ELSE 0 END) as checked_in,
+                SUM(CASE WHEN reservations.status = 'checked_in' AND users.gender = 'male' THEN 1 ELSE 0 END) as checked_in_male,
+                SUM(CASE WHEN reservations.status = 'checked_in' AND users.gender = 'female' THEN 1 ELSE 0 END) as checked_in_female,
+                MAX(reservations.updated_at) as last_update_time,
+                MAX(CASE WHEN reservations.status = 'pending' THEN reservations.updated_at ELSE NULL END) as pending_last_update,
+                MAX(CASE WHEN reservations.status = 'confirmed' THEN reservations.updated_at ELSE NULL END) as confirmed_last_update,
+                MAX(CASE WHEN reservations.status = 'checked_in' THEN reservations.updated_at ELSE NULL END) as checked_in_last_update
+            ")->first();
+
+        $lastUpdateTime = formatDate($stats->last_update_time);
+        $pendingLastUpdate = formatDate($stats->pending_last_update);
+        $confirmedLastUpdate = formatDate($stats->confirmed_last_update);
+        $checkedInLastUpdate = formatDate($stats->checked_in_last_update);
+
         return [
-            'total' => [
-                'count' => formatNumber($totalReservations),
+            'reservations' => [
+                'count' => formatNumber($stats->total),
+                'male' => formatNumber($stats->total_male),
+                'female' => formatNumber($stats->total_female),
                 'lastUpdateTime' => $lastUpdateTime
             ],
-            'active' => [
-                'count' => formatNumber($activeReservations),
-                'lastUpdateTime' => $activeLastUpdate
+            'pending' => [
+                'count' => formatNumber($stats->pending),
+                'male' => formatNumber($stats->pending_male),
+                'female' => formatNumber($stats->pending_female),
+                'lastUpdateTime' => $pendingLastUpdate
             ],
-            'inactive' => [
-                'count' => formatNumber($inactiveReservations),
-                'lastUpdateTime' => $inactiveLastUpdate
+            'confirmed' => [
+                'count' => formatNumber($stats->confirmed),
+                'male' => formatNumber($stats->confirmed_male),
+                'female' => formatNumber($stats->confirmed_female),
+                'lastUpdateTime' => $confirmedLastUpdate
             ],
-            'statuses' => [
-                'pending' => formatNumber($pendingReservations),
-                'confirmed' => formatNumber($confirmedReservations),
-                'checked_in' => formatNumber($checkedInReservations),
-                'checked_out' => formatNumber($checkedOutReservations),
-                'cancelled' => formatNumber($cancelledReservations),
-            ]
+            'checked_in' => [
+                'count' => formatNumber($stats->checked_in),
+                'male' => formatNumber($stats->checked_in_male),
+                'female' => formatNumber($stats->checked_in_female),
+                'lastUpdateTime' => $checkedInLastUpdate
+            ],
+            
         ];
     }
 

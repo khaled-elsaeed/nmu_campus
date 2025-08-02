@@ -96,6 +96,12 @@ class ReservationController extends Controller
         return view('reservation.check_in');
     }
 
+    public function showCheckOutForm()
+    {
+        return view('reservation.check_out');
+    }
+
+
     /**
      * Find a reservation by its number.
      *

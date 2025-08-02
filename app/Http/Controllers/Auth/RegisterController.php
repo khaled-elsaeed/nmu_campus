@@ -49,7 +49,6 @@ class RegisterController extends Controller
             if ($user) {
                 return redirect()->route('login')->with('status', 'Registration successful! Please check your email to verify your account.');
             }
-
             return back()->withErrors(['national_id' => 'Registration failed. Please try again.']);
         } catch (BusinessValidationException $e) {
             return back()->withErrors(['national_id' => $e->getMessage()]);

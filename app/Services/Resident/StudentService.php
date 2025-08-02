@@ -214,24 +214,29 @@ class StudentService
      */
     public function getStats(): array
     {
-        $totalStudents = Student::count();
-        $maleStudents = Student::whereHas('user', fn($q) => $q->where('gender', 'male'))->count();
-        $femaleStudents = Student::whereHas('user', fn($q) => $q->where('gender', 'female'))->count();
-        $lastUpdateTime = Student::max('updated_at');
-        $maleLastUpdate = Student::whereHas('user', fn($q) => $q->where('gender', 'male'))->max('updated_at');
-        $femaleLastUpdate = Student::whereHas('user', fn($q) => $q->where('gender', 'female'))->max('updated_at');
+        $stats = Student::join('users', 'students.user_id', '=', 'users.id')
+            ->selectRaw('
+                COUNT(*) AS total_count,
+                SUM(CASE WHEN users.gender = "male" THEN 1 ELSE 0 END) AS male_count,
+                SUM(CASE WHEN users.gender = "female" THEN 1 ELSE 0 END) AS female_count,
+                MAX(students.updated_at) AS last_update_time,
+                MAX(CASE WHEN users.gender = "male" THEN students.updated_at ELSE NULL END) AS male_last_update,
+                MAX(CASE WHEN users.gender = "female" THEN students.updated_at ELSE NULL END) AS female_last_update
+            ')
+            ->first();
+
         return [
-            'total' => [
-                'count' => formatNumber($totalStudents),
-                'lastUpdateTime' => formatDate($lastUpdateTime)
+            'students' => [
+                'count' => formatNumber($stats->total_count ?? 0),
+                'lastUpdateTime' => formatDate($stats->last_update_time ?? null)
             ],
-            'male' => [
-                'count' => formatNumber($maleStudents),
-                'lastUpdateTime' => formatDate($maleLastUpdate)
+            'students-male' => [
+                'count' => formatNumber($stats->male_count ?? 0),
+                'lastUpdateTime' => formatDate($stats->male_last_update ?? null)
             ],
-            'female' => [
-                'count' => formatNumber($femaleStudents),
-                'lastUpdateTime' => formatDate($femaleLastUpdate)
+            'students-female' => [
+                'count' => formatNumber($stats->female_count ?? 0),
+                'lastUpdateTime' => formatDate($stats->female_last_update ?? null)
             ],
         ];
     }
@@ -309,12 +314,21 @@ class StudentService
      */
     protected function renderActionButtons($student): string
     {
+        $singleActions = [
+            [
+                'action' => 'view',
+                'icon' => 'bx bx-show',
+                'class' => 'btn-primary',
+                'label' => 'View'
+            ]
+        ];
+
         return view('components.ui.datatable.data-table-actions', [
-            'mode' => 'dropdown',
-            'actions' => ['view', 'delete'],
+            'mode' => 'single',
+            'actions' => [],
             'id' => $student->id,
             'type' => 'Student',
-            'singleActions' => []
+            'singleActions' => $singleActions
         ])->render();
     }
 } 

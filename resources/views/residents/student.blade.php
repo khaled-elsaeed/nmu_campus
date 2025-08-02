@@ -8,7 +8,7 @@
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="primary" icon="bx bx-students" label="Total Students" id="students" />
+            <x-ui.card.stat2 color="secondary" icon="bx bx-user" label="Total Students" id="students" />
         </div>
         <div class="col-sm-6 col-xl-4">
             <x-ui.card.stat2 color="info" icon="bx bx-male" label="Male Students" id="students-male" />
@@ -24,9 +24,13 @@
         description="Manage students and their information."
         icon="bx bx-user"
     >
-        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#studentSearchCollapse" aria-expanded="false" aria-controls="studentSearchCollapse">
-            <i class="bx bx-search"></i>
-        </button>
+    <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
+
+<button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#studentSearchCollapse" aria-expanded="false" aria-controls="studentSearchCollapse">
+    <i class="bx bx-filter-alt me-1"></i> Search
+</button>
+</div>
+
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
@@ -168,7 +172,8 @@
 var ROUTES = {
   students: {
     show: '{{ route('resident.students.show', ':id') }}',
-    datatable: '{{ route('resident.students.datatable') }}'
+    datatable: '{{ route('resident.students.datatable') }}',
+    stats: '{{ route('resident.students.stats') }}'
   },
   governorates: {
     all: '{{ route('governorates.all') }}'
@@ -200,14 +205,14 @@ var ApiService = {
    * @returns {jqXHR}
    */
   fetchStudent: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.students.show, id), method: 'GET' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.students.show, id), method: 'GET' });
   },
   /**
    * Fetch all governorates
    * @returns {jqXHR}
    */
   fetchGovernorates: function() {
-    return this.request({ url: ROUTES.governorates.all, method: 'GET' });
+    return ApiService.request({ url: ROUTES.governorates.all, method: 'GET' });
   },
   /**
    * Fetch all cities for a governorate
@@ -215,14 +220,14 @@ var ApiService = {
    * @returns {jqXHR}
    */
   fetchCities: function(governorateId) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.cities.all, governorateId), method: 'GET' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.cities.all, governorateId), method: 'GET' });
   },
   /**
    * Fetch all faculties
    * @returns {jqXHR}
    */
   fetchFaculties: function() {
-    return this.request({ url: ROUTES.faculties.all, method: 'GET' });
+    return ApiService.request({ url: ROUTES.faculties.all, method: 'GET' });
   },
   /**
    * Fetch all programs for a faculty
@@ -230,7 +235,14 @@ var ApiService = {
    * @returns {jqXHR}
    */
   fetchPrograms: function(facultyId) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.programs.all, facultyId), method: 'GET', data: { faculty_id: facultyId } });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.programs.all, facultyId), method: 'GET', data: { faculty_id: facultyId } });
+  },
+  /**
+   * Fetch student statistics
+   * @returns {jqXHR}
+   */
+  fetchStats: function() {
+    return ApiService.request({ url: ROUTES.students.stats, method: 'GET' });
   }
 };
 
@@ -244,7 +256,6 @@ var SelectManager = {
   populateSearchGovernorates: function() {
     var $select = $('#search_governorate_id');
     $select.empty();
-    Utils.populateSelect($select, [], { placeholder: 'All Governorates' });
     ApiService.fetchGovernorates()
       .done(function(response) {
         if (response.success) {
@@ -261,7 +272,6 @@ var SelectManager = {
   populateSearchFaculties: function() {
     var $select = $('#faculty_id');
     $select.empty();
-    Utils.populateSelect($select, [], { placeholder: 'All Faculties' });
     ApiService.fetchFaculties()
       .done(function(response) {
         if (response.success) {
@@ -308,9 +318,9 @@ var StudentManager = {
             $('#viewStudentModal').modal('show');
           }
         })
-        .fail(function() {
+        .fail(function(xhr) {
           $('#viewStudentModal').modal('hide');
-          Utils.showError('Failed to load student data');
+          Utils.handleAjaxError(xhr,'An error occurred')
         });
     });
   },
@@ -337,11 +347,11 @@ var SearchManager = {
    */
   bindEvents: function() {
     $('#search_id, #search_name, #search_gender, #search_governorate_id, #faculty_id').on('keyup change', function() {
-      $('#students-table').DataTable().ajax.reload();
+      Utils.reloadDataTable('#students-table');
     });
     $('#clearStudentFiltersBtn').on('click', function() {
       $('#search_id, #search_name, #search_gender, #search_governorate_id, #faculty_id').val('');
-      $('#students-table').DataTable().ajax.reload();
+      Utils.reloadDataTable('#students-table');
     });
   }
 };
@@ -349,89 +359,12 @@ var SearchManager = {
 // ===========================
 // STATISTICS MANAGER
 // ===========================
-var StatsManager = {
-  /**
-   * Initialize statistics cards
-   */
-  init: function() {
-    this.load();
-  },
-  /**
-   * Load statistics data
-   */
-  load: function() {
-    this.toggleAllLoadingStates(true);
-    $.ajax({ url: '{{ route('resident.students.stats') }}', method: 'GET' })
-      .done(this.handleSuccess.bind(this))
-      .fail(this.handleError.bind(this))
-      .always(this.toggleAllLoadingStates.bind(this, false));
-  },
-  /**
-   * Handle successful stats fetch
-   * @param {object} response
-   */
-  handleSuccess: function(response) {
-    if (response.success) {
-      let stats = response.data;
-      this.updateStatElement('students', stats.total.count, stats.total.lastUpdateTime);
-      this.updateStatElement('students-male', stats.male.count, stats.male.lastUpdateTime);
-      this.updateStatElement('students-female', stats.female.count, stats.female.lastUpdateTime);
-    } else {
-      this.setAllStatsToNA();
-    }
-  },
-  /**
-   * Handle error in stats fetch
-   */
-  handleError: function() {
-    this.setAllStatsToNA();
-    Utils.showError('Failed to load student statistics');
-  },
-  /**
-   * Update a single stat card
-   * @param {string} elementId
-   * @param {string|number} value
-   * @param {string} lastUpdateTime
-   */
-  updateStatElement: function(elementId, value, lastUpdateTime) {
-    $('#' + elementId + '-value').text(value ?? '0');
-    $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--');
-  },
-  /**
-   * Set all stat cards to N/A
-   */
-  setAllStatsToNA: function() {
-    ['students', 'students-male', 'students-female'].forEach(function(elementId) {
-      $('#' + elementId + '-value').text('N/A');
-      $('#' + elementId + '-last-updated').text('N/A');
-    });
-  },
-    /**
-   * Toggle loading state for a stat card
-   * @param {string} id
-   * @param {boolean} show
-   */
-  toggleLoadingState: function(id, show) {
-    var loader = document.getElementById(id + '-loader');
-    var valueEl = document.getElementById(id + '-value');
-    var lastUpdatedLoader = document.getElementById(id + '-last-updated-loader');
-    var lastUpdatedEl = document.getElementById(id + '-last-updated');
-    if (loader) loader.classList.toggle('d-none', !show);
-    if (valueEl) valueEl.classList.toggle('d-none', show);
-    if (lastUpdatedLoader) lastUpdatedLoader.classList.toggle('d-none', !show);
-    if (lastUpdatedEl) lastUpdatedEl.classList.toggle('d-none', show);
-  },
-  /**
-   * Toggle loading state for all stat cards
-   * @param {boolean} isLoading
-   */
-  toggleAllLoadingStates: function(isLoading) {
-    var self = this;
-    ['students', 'students-male', 'students-female'].forEach(function(elementId) {
-      self.toggleLoadingState(elementId, isLoading);
-    });
-  }
-};
+var StatsManager = Utils.createStatsManager({
+  apiMethod: ApiService.fetchStats,
+  statsKeys: ['students','students-male', 'students-female'],
+  onError: 'Failed to load student statistics'
+});
+
 
 // ===========================
 // MAIN APP INITIALIZER
