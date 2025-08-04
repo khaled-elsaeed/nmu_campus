@@ -424,7 +424,7 @@ var ProfileManager = {
    */
   populateContactInfo: function(data) {
     // Updated to match backend keys from ProfileService
-    if (data.mobile) $('#phone').val(data.mobile);
+    if (data.phone) $('#phone').val(data.phone);
 
     if (data.governorate_id) {
       $('#governorate').val(data.governorate_id);
@@ -459,7 +459,8 @@ var ProfileManager = {
         }
       }, 1000);
     }
-    if (data.actual_score) $('#actual-score').val(data.actual_score);
+    if (data.score) $('#actual-score').val(data.score);
+    if (data.gpa_available) $('#gpa-available').val(data.gpa_available);
     if (data.actual_percent) $('#actual-percent').val(data.actual_percent);
     if (data.certificate_type) $('#certificate-type').val(data.certificate_type);
     if (data.certificate_country_id) $('#certificate-country').val(data.certificate_country_id);
@@ -474,7 +475,7 @@ var ProfileManager = {
     // Updated to match backend keys from ProfileService
     if (data.name_ar) $('#parent-name-ar').val(data.name_ar);
     if (data.name_en) $('#parent-name-en').val(data.name_en);
-    if (data.mobile) $('#parent-phone').val(data.mobile);
+    if (data.phone) $('#parent-phone').val(data.phone);
     if (data.email) $('#parent-email').val(data.email);
 
     // Always set is_parent_abroad, defaulting to 'no' if not provided
@@ -487,6 +488,14 @@ var ProfileManager = {
         if (data.country_id) {
           $('#abroad-country').val(data.country_id);
         }
+      }else if(data.governorate_id) {
+        $('#parent-governorate').val(data.governorate_id);
+        $('#parent-governorate').trigger('change');
+        setTimeout(function() {
+          if (data.city_id) {
+            $('#parent-city').val(data.city_id);
+          }
+        }, 200);
       }
     }, 300);
   },
@@ -502,11 +511,11 @@ var ProfileManager = {
       $('#has-sibling-in-dorm').trigger('change');
       setTimeout(function() {
         if (data.has_sibling_in_dorm === 'yes') {
-          if (data.sibling_name_ar) $('#sibling-name-ar').val(data.sibling_name_ar);
-          if (data.sibling_name_en) $('#sibling-name-en').val(data.sibling_name_en);
-          if (data.sibling_gender) $('#sibling-gender').val(data.sibling_gender);
-          if (data.sibling_national_id) $('#sibling-national-id').val(data.sibling_national_id);
-          if (data.sibling_faculty) $('#sibling-faculty').val(data.sibling_faculty);
+          if (data.name_ar) $('#sibling-name-ar').val(data.name_ar);
+          if (data.name_en) $('#sibling-name-en').val(data.name_en);
+          if (data.gender) $('#sibling-gender').val(data.gender);
+          if (data.national_id) $('#sibling-national-id').val(data.national_id);
+          if (data.faculty_id) $('#sibling-faculty').val(data.faculty_id);
         }
       }, 300);
     }
@@ -517,9 +526,21 @@ var ProfileManager = {
    * @param {object} data
    */
   populateEmergencyContact: function(data) {
-    if (data.emergency_contact_name) $('#emergency-contact-name').val(data.emergency_contact_name);
-    if (data.emergency_contact_relationship) $('#emergency-contact-relationship').val(data.emergency_contact_relationship);
-    if (data.emergency_contact_phone) $('#emergency-contact-phone').val(data.emergency_contact_phone);
+    if (data.name_en) $('#emergency-contact-name-en').val(data.name_en);
+    if (data.name_ar) $('#emergency-contact-name-ar').val(data.name_ar);
+    if (data.phone) $('#emergency-contact-phone').val(data.phone);
+    if (data.relationship) $('#emergency-contact-relationship').val(data.relationship);
+    if (data.governorate_id) {
+      $('#emergency-contact-governorate').val(data.governorate_id);
+      $('#emergency-contact-governorate').trigger('change');
+      setTimeout(function() {
+        if (data.city_id) {
+          $('#emergency-contact-city').val(data.city_id);
+        }
+      }, 300);
+    }
+    if (data.street) $('#emergency-contact-street').val(data.street);
+    if (data.notes) $('#emergency-contact-notes').val(data.notes);
   },
 
   /**
@@ -1056,9 +1077,24 @@ var ValidationService = {
       academic_year: {
         required: true
       },
+      gpa_available: {
+        required: true
+      },
       gpa: {
-        required: true,
+        dependsOn: {
+          field: '#gpa-available',
+          value: 'yes',
+          operator: 'equals'
+        },
         gpaRange: [0.0, 4.0]
+      },
+      score: {
+        dependsOn: {
+          field: '#gpa-available',
+          value: 'no',
+          operator: 'equals'
+        },
+        number: true
       },
       academic_id: {
         required: true,
@@ -1176,13 +1212,21 @@ var ValidationService = {
       },
 
       // Step 6: Emergency Contact (only when parents are abroad)
-      emergency_contact_name: {
+      emergency_contact_name_ar: {
         dependsOn: {
           field: '#is-parent-abroad',
           value: 'yes',
           operator: 'equals'
         },
         arabicName: true
+      },
+      emergency_contact_name_en: {
+        dependsOn: {
+          field: '#is-parent-abroad',
+          value: 'yes',
+          operator: 'equals'
+        },
+        englishName: true
       },
       emergency_contact_relationship: {
         dependsOn: {
@@ -1201,6 +1245,27 @@ var ValidationService = {
         compareField: {
           field: '#phone',
           operator: 'not_equals'
+        }
+      },
+      emergency_contact_governorate: {
+        dependsOn: {
+          field: '#is-parent-abroad',
+          value: 'yes',
+          operator: 'equals'
+        }
+      },
+      emergency_contact_city: {
+        dependsOn: {
+          field: '#is-parent-abroad',
+          value: 'yes',
+          operator: 'equals'
+        }
+      },
+      emergency_contact_street: {
+        dependsOn: {
+          field: '#is-parent-abroad',
+          value: 'yes',
+          operator: 'equals'
         }
       },
 
@@ -1256,9 +1321,14 @@ var ValidationService = {
       faculty: 'Please select your faculty.',
       program: 'Please select your program.',
       academic_year: 'Please select your academic year.',
+      gpa_available: 'Please specify if you have a GPA.',
       gpa: {
-        required: 'GPA is required.',
+        dependsOn: 'GPA is required when available.',
         gpaRange: 'GPA must be between 0.0 and 4.0.'
+      },
+      score: {
+        dependsOn: 'Actual score is required when GPA is not available.',
+        number: 'Please enter a valid score.'
       },
       academic_id: {
         required: 'Student ID is required.',
@@ -1319,9 +1389,13 @@ var ValidationService = {
       sibling_faculty: 'Please select sibling\'s faculty.',
 
       // Step 6: Emergency Contact
-      emergency_contact_name: {
+      emergency_contact_name_ar: {
         required: 'Emergency contact name is required.',
         arabicName: 'Please enter name in Arabic.'
+      },
+      emergency_contact_name_en: {
+        required: 'Emergency contact name is required.',
+        englishName: 'Please enter name in English.'
       },
       emergency_contact_relationship: 'Please specify your relation to emergency contact.',
       emergency_contact_phone: {
@@ -1329,6 +1403,9 @@ var ValidationService = {
         egyptianPhone: 'Please enter a valid Egyptian mobile number. (Starts with 01, 11 digits, e.g., 010xxxxxxxx)',
         compareField: 'Emergency contact number must be different from your mobile.'
       },
+      emergency_contact_governorate: 'Please select emergency contact\'s governorate.',
+      emergency_contact_city: 'Please select emergency contact\'s city.',
+      emergency_contact_street: 'Please enter emergency contact\'s street address.',
 
       // Step 7: Terms
       terms_checkbox: 'You must accept the terms and conditions to proceed.',
@@ -1438,9 +1515,13 @@ var ValidationService = {
       '#sibling-name-en',
       '#sibling-national-id',
       '#sibling-faculty',
-      '#emergency-contact-name',
+      '#emergency-contact-name_ar',
+      '#emergency-contact-name_en',
       '#emergency-contact-relationship',
-      '#emergency-contact-phone'
+      '#emergency-contact-phone',
+      '#emergency-contact-governorate',
+      '#emergency-contact-city',
+      '#emergency-contact-street'
     ];
     
     conditionalFields.forEach(function(field) {

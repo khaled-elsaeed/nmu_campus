@@ -100,9 +100,18 @@ class CompleteRequest extends FormRequest
                 'between:1,5'
             ],
             'gpa' => [
-                'required',
+                'required_if:gpa_available,true',
                 'numeric',
                 'between:0,4'
+            ],
+            'gpa_available' => [
+                'required',
+                'boolean'
+            ],
+            'score' => [
+                'required_if:gpa_available,false',
+                'numeric',
+                'between:0,100'
             ],
             'academic_id' => [
                 'required',
@@ -218,12 +227,19 @@ class CompleteRequest extends FormRequest
             // ============================================
             // Step 6: Emergency Contact
             // ============================================
-            'emergency_contact_name' => [
+            'emergency_contact_name_ar' => [
                 'required_if:is_parent_abroad,yes',
                 'nullable',
                 'string',
                 'max:255',
                 'regex:/^[\x{0600}-\x{06FF}\x{0020}]+$/u' // Arabic characters and spaces
+            ],
+            'emergency_contact_name_en' => [
+                'required_if:is_parent_abroad,yes',
+                'nullable',
+                'string',
+                'max:255',
+                'regex:/^[A-Za-z\s]+$/' // English letters and spaces
             ],
             'emergency_contact_relationship' => [
                 'required_if:is_parent_abroad,yes',
@@ -237,16 +253,29 @@ class CompleteRequest extends FormRequest
                 'regex:/^(010|011|012|015)[0-9]{8}$/', // Egyptian mobile format
                 'different:phone'
             ],
+            'emergency_contact_governorate' => [
+                'required_if:is_parent_abroad,yes',
+                'nullable',
+                'exists:governorates,id'
+            ],
+            'emergency_contact_city' => [
+                'required_if:is_parent_abroad,yes',
+                'nullable',
+                'exists:cities,id'
+            ],
+            'emergency_contact_street' => [
+                'required_if:is_parent_abroad,yes',
+                'nullable',
+                'string',
+                'min:5',
+                'max:255'
+            ],
 
             // ============================================
             // Step 7: Terms and Conditions
             // ============================================
-            // 'terms_checkbox' => [ // Fixed naming convention
-            //     'required',
-            //     'accepted'
-            // ],
-            'terms_Checkbox' => [ // Legacy field name support
-                'sometimes',
+            'terms_checkbox' => [ // Fixed naming convention
+                'required',
                 'accepted'
             ],
         ];
@@ -339,13 +368,21 @@ class CompleteRequest extends FormRequest
             // ============================================
             // Emergency Contact Messages
             // ============================================
-            'emergency_contact_name.required_if' => 'Emergency contact name is required when parent is abroad.',
-            'emergency_contact_name.regex' => 'Emergency contact name must contain only Arabic characters and spaces.',
+            'emergency_contact_name_ar.required_if' => 'Emergency contact name is required when parent is abroad.',
+            'emergency_contact_name_ar.regex' => 'Emergency contact name must contain only Arabic characters and spaces.',
+            'emergency_contact_name_en.required_if' => 'Emergency contact name is required when parent is abroad.',
+            'emergency_contact_name_en.regex' => 'Emergency contact name must contain only English letters and spaces.',
             'emergency_contact_relationship.required_if' => 'Please specify your relationship to the emergency contact.',
             'emergency_contact_phone.required_if' => 'Emergency contact phone is required when parent is abroad.',
             'emergency_contact_phone.regex' => 'Emergency contact phone must be a valid Egyptian mobile number.',
             'emergency_contact_phone.different' => 'Emergency contact number must be different from your mobile number.',
-
+            'emergency_contact_governorate.required_if' => 'Please select emergency contact\'s governorate.',
+            'emergency_contact_governorate.exists' => 'Selected emergency contact governorate is invalid.',
+            'emergency_contact_city.required_if' => 'Please select emergency contact\'s city.',
+            'emergency_contact_city.exists' => 'Selected emergency contact city is invalid.',
+            'emergency_contact_street.required_if' => 'Emergency contact street address is required.',
+            'emergency_contact_street.min' => 'Emergency contact street address must be at least 5 characters.',
+            'emergency_contact_street.max' => 'Emergency contact street address must not exceed 255 characters.',
             // ============================================
             // Terms Messages
             // ============================================
@@ -371,11 +408,25 @@ class CompleteRequest extends FormRequest
             'parent_name_ar' => 'Parent Arabic name',
             'parent_name_en' => 'Parent English name',
             'parent_phone' => 'Parent phone',
+            'parent_email' => 'Parent email',
+            'parent_national_id' => 'Parent National ID',
+            'is_parent_abroad' => 'Is parent abroad',
+            'abroad_country' => 'Country where parent lives',
+            'living_with_parent' => 'Living with parent',
+            'parent_governorate' => 'Parent governorate',
+            'parent_city' => 'Parent city',
+            'governorate' => 'Your governorate',
+            'city' => 'Your city',
+            'street' => 'Street address',
             'sibling_name_ar' => 'Sibling Arabic name',
             'sibling_name_en' => 'Sibling English name',
             'sibling_national_id' => 'Sibling National ID',
-            'emergency_contact_name' => 'Emergency contact name',
+            'emergency_contact_name_ar' => 'Emergency contact name (Arabic)',
+            'emergency_contact_name_en' => 'Emergency contact name (English)',
             'emergency_contact_phone' => 'Emergency contact phone',
+            'emergency_contact_governorate' => 'Emergency contact governorate',
+            'emergency_contact_city' => 'Emergency contact city',
+            'emergency_contact_street' => 'Emergency contact street address',
             'terms_checkbox' => 'Terms and conditions',
             'terms_Checkbox' => 'Terms and conditions',
         ];

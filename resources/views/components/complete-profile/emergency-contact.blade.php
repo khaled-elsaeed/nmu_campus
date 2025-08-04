@@ -13,6 +13,16 @@
 </div>
 <div class="row">
     <div class="col-md-6 mb-3">
+        <label for="emergency-contact-name-en" class="form-label">Name (English)</label>
+        <input type="text" class="form-control" id="emergency-contact-name-en" name="emergency_contact_name_en">
+    </div>
+    <div class="col-md-6 mb-3">
+        <label for="emergency-contact-name-ar" class="form-label">Name (Arabic)</label>
+        <input type="text" class="form-control" id="emergency-contact-name-ar" name="emergency_contact_name_ar">
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6 mb-3">
         <label for="emergency-contact-relationship" class="form-label">Relationship</label>
         <select class="form-select" id="emergency-contact-relationship" name="emergency_contact_relationship">
             <option value="">Select</option>
@@ -24,14 +34,33 @@
         </select>
     </div>
     <div class="col-md-6 mb-3">
-        <label for="emergency-contact-name" class="form-label">Name</label>
-        <input type="text" class="form-control" id="emergency-contact-name" name="emergency_contact_name">
+        <label for="emergency-contact-phone" class="form-label">Phone Number</label>
+        <input type="tel" class="form-control" id="emergency-contact-phone" name="emergency_contact_phone">
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label for="emergency-contact-governorate" class="form-label">Governorate</label>
+        <select class="form-select" id="emergency-contact-governorate" name="emergency_contact_governorate_id">
+            <option value="">Select Governorate</option>
+            <!-- Add governorate options here -->
+        </select>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label for="emergency-contact-city" class="form-label">City</label>
+        <select class="form-select" id="emergency-contact-city" name="emergency_contact_city_id">
+            <option value="">Select City</option>
+            <!-- Add city options here -->
+        </select>
     </div>
 </div>
 <div class="mb-3">
-    <label for="emergency-contact-phone" class="form-label">Phone Number</label>
-    <input type="tel" class="form-control" id="emergency-contact-phone" name="emergency_contact_phone">
-    <div class="invalid-feedback"></div>
+    <label for="emergency-contact-street" class="form-label">Street</label>
+    <input type="text" class="form-control" id="emergency-contact-street" name="emergency_contact_street">
+</div>
+<div class="mb-3">
+    <label for="emergency-contact-notes" class="form-label">Notes</label>
+    <textarea class="form-control" id="emergency-contact-notes" name="emergency_contact_notes"></textarea>
 </div>
 <div class="d-flex justify-content-between">
     <button type="button" class="btn btn-outline-secondary prev-Btn">
@@ -40,4 +69,4 @@
     <button type="button" class="btn btn-primary next-Btn">
         Next <i class='bx bx-chevron-right'></i>
     </button>
-</div> 
+</div>

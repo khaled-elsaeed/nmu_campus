@@ -31,6 +31,8 @@ class Student extends Model
         'level',
         'faculty_id',
         'program_id',
+        'cum_gpa',
+        'score',
         'nationality_id',
         'governorate_id',
         'city_id',

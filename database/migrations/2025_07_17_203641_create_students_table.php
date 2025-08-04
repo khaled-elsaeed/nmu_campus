@@ -23,6 +23,8 @@ return new class extends Migration
             $table->date('date_of_birth');
             $table->enum('gender', ['male', 'female', 'other']);
             $table->enum('level', ['1', '2', '3', '4', '5']);
+            $table->decimal('cum_gpa', 3, 2)->default(0.00);
+            $table->decimal('score', 5, 2)->default(0.00);
             $table->foreignId('faculty_id')->constrained()->restrictOnDelete();
             $table->foreignId('program_id')->nullable()->constrained()->restrictOnDelete();
             $table->foreignId('nationality_id')->constrained()->restrictOnDelete();

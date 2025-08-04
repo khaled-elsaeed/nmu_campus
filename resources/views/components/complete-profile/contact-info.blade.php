@@ -32,7 +32,7 @@
 </div>
 <div class="mb-3">
     <label for="phone" class="form-label">Phone Number</label>
-    <input type="tel" class="form-control" id="phone" name="phone"">
+    <input type="tel" class="form-control" id="phone" name="phone">
     <div class="invalid-feedback"></div>
 </div>
 <div class="d-flex justify-content-between">

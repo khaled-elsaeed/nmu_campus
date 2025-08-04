@@ -36,11 +36,15 @@
                 <option value="4">Fourth Year</option>
                 <option value="5">Fifth Year</option> 
             </select>
-            </div>
+        </div>
+        <input type="hidden" id="gpa-available" name="gpa_available">
         <div class="col-md-6 mb-3">
-        <label for="gpa" class="form-label">Cumulative GPA</label>
-        <input type="number" step="0.01" min="0" max="4" class="form-control" id="gpa" name="gpa" readonly>
-    </div>
+            <label for="gpa" class="form-label">Cumulative GPA</label>
+            <input type="number" step="0.01" min="0" max="4" class="form-control" id="gpa" name="gpa" readonly>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="score" class="form-label">Score</label>
+            <input type="number" step="0.01" min="0" max="100" class="form-control" id="score" name="score" readonly>
     </div>
 </div>
 <div class="row">
