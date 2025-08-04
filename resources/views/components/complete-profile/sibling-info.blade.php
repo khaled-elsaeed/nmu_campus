@@ -13,47 +13,45 @@
 </div>
 <div class="row">
     <div class="col-md-6 mb-3">
-        <label for="hasSiblingInDorm" class="form-label">Do you have a sibling in the dorm?</label>
-        <select class="form-select" id="hasSiblingInDorm" name="hasSiblingInDorm">
+        <label for="has-sibling-in-dorm" class="form-label">Do you have a sibling in the dorm?</label>
+        <select class="form-select" id="has-sibling-in-dorm" name="has_sibling_in_dorm">
             <option value="">Select</option>
-            <option value="yes" {{ old('hasSiblingInDorm') == 'yes' ? 'selected' : '' }}>Yes</option>
-            <option value="no" {{ old('hasSiblingInDorm') == 'no' ? 'selected' : '' }}>No</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
         </select>
-        <div class="invalid-feedback"></div>
     </div>
 </div>
 <div id="siblingDetails" class="d-none">
     <div class="row">
         <div class="col-md-6 mb-3">
-            <label for="siblingGender" class="form-label">Relationship</label>
-            <select class="form-select" id="siblingGender" name="siblingGender">
+            <label for="sibling-gender" class="form-label">Relationship</label>
+            <select class="form-select" id="sibling-gender" name="sibling_gender">
                 <option value="">Select</option>
-                <option value="male" {{ old('siblingGender') == 'male' ? 'selected' : '' }}>Brother</option>
-                <option value="female" {{ old('siblingGender') == 'female' ? 'selected' : '' }}>Sister</option>
+                <option value="male">Brother</option>
+                <option value="female">Sister</option>
             </select>
-            <div class="invalid-feedback"></div>
         </div>
         <div class="col-md-6 mb-3">
-            <label for="siblingName" class="form-label">Name</label>
-            <input type="text" class="form-control" id="siblingName" name="siblingName" value="{{ old('siblingName') }}">
-            <div class="invalid-feedback"></div>
+            <label for="sibling-name-ar" class="form-label">Name (Arabic)</label>
+            <input type="text" class="form-control" id="sibling-name-ar" name="sibling_name_ar">
         </div>
     </div>
     <div class="row">
         <div class="col-md-6 mb-3">
-            <label for="siblingNationalId" class="form-label">National ID</label>
-            <input type="text" class="form-control" id="siblingNationalId" name="siblingNationalId" value="{{ old('siblingNationalId') }}">
-            <div class="invalid-feedback"></div>
+            <label for="sibling-name-en" class="form-label">Name (English)</label>
+            <input type="text" class="form-control" id="sibling-name-en" name="sibling_name_en">
         </div>
         <div class="col-md-6 mb-3">
-            <label for="siblingFaculty" class="form-label">Faculty</label>
-            <select class="form-select" id="siblingFaculty" name="siblingFaculty">
+            <label for="sibling-national-id" class="form-label">National ID</label>
+            <input type="text" class="form-control" id="sibling-national-id" name="sibling_national_id">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="sibling-faculty" class="form-label">Faculty</label>
+            <select class="form-select" id="sibling-faculty" name="sibling_faculty">
                 <option value="">Select Faculty</option>
-                {{-- @foreach($faculties as $faculty) --}}
-                {{-- <option value="{{ $faculty->id }}">{{ $faculty->name }}</option> --}}
-                {{-- @endforeach --}}
             </select>
-            <div class="invalid-feedback"></div>
         </div>
     </div>
 </div>

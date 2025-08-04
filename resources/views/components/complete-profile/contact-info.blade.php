@@ -17,24 +17,22 @@
         <select class="form-select" id="governorate" name="governorate" >
             {{-- Optionally populate governorates dynamically via JS --}}
         </select>
-        <div class="invalid-feedback"></div>
     </div>
     <div class="col-md-6 mb-3">
         <label for="city" class="form-label">City <span class="text-danger">*</span></label>
         <select class="form-select" id="city" name="city" >
         {{-- Optionally populate cities dynamically via JS --}}
         </select>
-        <div class="invalid-feedback"></div>
     </div>
 </div>
 <div class="mb-3">
     <label for="street" class="form-label">Street</label>
-    <input type="text" class="form-control" id="street" name="street" value="{{ old('street', Auth::user()->street ?? '') }}">
+    <input type="text" class="form-control" id="street" name="street">
     <div class="invalid-feedback"></div>
 </div>
 <div class="mb-3">
     <label for="phone" class="form-label">Phone Number</label>
-    <input type="tel" class="form-control" id="phone" name="phone" value="{{ old('phone', Auth::user()->phone ?? '') }}">
+    <input type="tel" class="form-control" id="phone" name="phone"">
     <div class="invalid-feedback"></div>
 </div>
 <div class="d-flex justify-content-between">

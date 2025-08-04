@@ -16,94 +16,100 @@
 
 <div class="row">
     <div class="col-md-6 mb-3">
-        <label for="parentRelationship" class="form-label">Relationship</label>
-        <select class="form-select" id="parentRelationship" name="parentRelationship">
+        <label for="parent-relationship" class="form-label">Relationship</label>
+        <select class="form-select" id="parent-relationship" name="parent_relationship">
             <option value="">Select Relationship</option>
-            <option value="father" {{ old('parentRelationship') == 'father' ? 'selected' : '' }}>Father</option>
-            <option value="mother" {{ old('parentRelationship') == 'mother' ? 'selected' : '' }}>Mother</option>
+            <option value="father">Father</option>
+            <option value="mother">Mother</option>
         </select>
-        <div class="invalid-feedback"></div>
     </div>
     <div class="col-md-6 mb-3">
-        <label for="parentName" class="form-label">Name</label>
+        <label for="parent-name-ar" class="form-label">Name (Arabic)</label>
         <input 
             type="text" 
             class="form-control" 
-            id="parentName" 
-            name="parentName" 
-            value="{{ old('parentName') }}"
+            id="parent-name-ar" 
+            name="parent_name_ar"
         >
-        <div class="invalid-feedback"></div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label for="parent-name-en" class="form-label">Name (English)</label>
+        <input 
+            type="text" 
+            class="form-control" 
+            id="parent-name-en" 
+            name="parent_name_en"
+        >
     </div>
 </div>
 
 <div class="row">
     <div class="col-md-6 mb-3">
-        <label for="parentPhone" class="form-label">Phone Number</label>
+        <label for="parent-phone" class="form-label">Phone Number</label>
         <input 
             type="tel" 
             class="form-control" 
-            id="parentPhone" 
-            name="parentPhone" 
-            value="{{ old('parentPhone') }}"
+            id="parent-phone" 
+            name="parent_phone" 
         >
-        <div class="invalid-feedback"></div>
     </div>
     <div class="col-md-6 mb-3">
-        <label for="parentEmail" class="form-label">Email (optional)</label>
+        <label for="parent-national-id" class="form-label">National ID</label>
+        <input 
+            type="text" 
+            class="form-control" 
+            id="parent-national-id" 
+            name="parent_national_id"
+        >
+    </div>
+    <div class="col-md-6 mb-3">
+        <label for="parent-email" class="form-label">Email (optional)</label>
         <input 
             type="email" 
             class="form-control" 
-            id="parentEmail" 
-            name="parentEmail" 
-            value="{{ old('parentEmail') }}"
+            id="parent-email" 
+            name="parent_email" 
         >
-        <div class="invalid-feedback"></div>
     </div>
 </div>
 
 <div class="row">
     <div class="col-md-6 mb-3">
-        <label for="isParentAbroad" class="form-label">Is the parent abroad?</label>
-        <select class="form-select" id="isParentAbroad" name="isParentAbroad">
+        <label for="is-parent-abroad" class="form-label">Is the parent abroad?</label>
+        <select class="form-select" id="is-parent-abroad" name="is_parent_abroad">
             <option value="">Select</option>
-            <option value="yes" {{ old('isParentAbroad') == 'yes' ? 'selected' : '' }}>Yes</option>
-            <option value="no" {{ old('isParentAbroad') == 'no' ? 'selected' : '' }}>No</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
         </select>
-        <div class="invalid-feedback"></div>
     </div>
-    <div class="col-md-6 mb-3 d-none" id="abroadCountryDiv">
-        <label for="abroadCountry" class="form-label">Country</label>
-        <select class="form-select" id="abroadCountry" name="abroadCountry">
+    <div class="col-md-6 mb-3 d-none" id="abroad-country-div">
+        <label for="abroad-country" class="form-label">Country</label>
+        <select class="form-select" id="abroad-country" name="abroad_country">
             {{-- Optionally populate countries dynamically via JS --}}
         </select>
-        <div class="invalid-feedback"></div>
     </div>
-    <div class="col-md-6 mb-3 d-none" id="livingWithParentDiv">
-        <label for="livingWithParent" class="form-label">Do you live with them?</label>
-        <select class="form-select" id="livingWithParent" name="livingWithParent">
+    <div class="col-md-6 mb-3 d-none" id="living-with-parent-div">
+        <label for="living-with-parent" class="form-label">Do you live with them?</label>
+        <select class="form-select" id="living-with-parent" name="living_with_parent">
             <option value="">Select</option>
-            <option value="yes" {{ old('livingWithParent') == 'yes' ? 'selected' : '' }}>Yes</option>
-            <option value="no" {{ old('livingWithParent') == 'no' ? 'selected' : '' }}>No</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
         </select>
-        <div class="invalid-feedback"></div>
     </div>
 </div>
 
-<div class="row d-none" id="parentAddressDiv">
+<div class="row d-none" id="parent-address-div">
     <div class="col-md-6 mb-3">
-        <label for="parentGovernorate" class="form-label">Parent's Governorate</label>
-        <select class="form-select" id="parentGovernorate" name="parentGovernorate">
+        <label for="parent-governorate" class="form-label">Parent's Governorate</label>
+        <select class="form-select" id="parent-governorate" name="parent_governorate">
             {{-- Optionally populate governorates dynamically via JS --}}
         </select>
-        <div class="invalid-feedback"></div>
     </div>
     <div class="col-md-6 mb-3">
-        <label for="parentCity" class="form-label">Parent's City</label>
-        <select class="form-select" id="parentCity" name="parentCity">
+        <label for="parent-city" class="form-label">Parent's City</label>
+        <select class="form-select" id="parent-city" name="parent_city">
             {{-- Optionally populate cities dynamically via JS --}}
         </select>
-        <div class="invalid-feedback"></div>
     </div>
 </div>
 

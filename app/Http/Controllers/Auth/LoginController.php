@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Services\Auth\AuthLoginService as AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse; 
 
@@ -16,56 +17,203 @@ class LoginController extends Controller
 
     public function showLoginForm()
     {
-        return view('auth.login');
-    }
+        try {
+            Log::info('Login form accessed', [
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent()
+            ]);
 
-    public function login(Request $request)
-    {
-        $credentials = $request->only('email', 'password');
-        $remember = $request->boolean('remember');
+            return view('auth.login');
 
-        $result = $this->authService->login($credentials, $remember);
+        } catch (\Exception $e) {
+            Log::error('Error showing login form', [
+                'ip_address' => request()->ip(),
+                'error_message' => $e->getMessage(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+                'stack_trace' => $e->getTraceAsString()
+            ]);
 
-        // Handle different error cases with appropriate redirects
-        if (!$result['success']) {
-            return $this->handleLoginError($result, $request);
+            // Return a basic error response if view fails
+            return response('Login form unavailable. Please try again later.', 500);
         }
-
-        $request->session()->regenerate();
-
-        return redirect()->intended(route('home'));
     }
 
     /**
-     * Handle login errors with appropriate redirects.
+     * Handle user login attempt.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
      */
-    private function handleLoginError(array $result, Request $request): RedirectResponse
+    public function login(Request $request)
     {
-        return match ($result['error']) {
-            'email_not_verified' => redirect()->route('verification.notice')
-                ->with('email', $result['user']->email)
-                ->with('warning', $result['message']),
+        try {
+            $credentials = $request->only('email', 'password');
+            $remember = $request->boolean('remember');
 
-            'account_inactive' => redirect()->route('login')
-                ->with('error', $result['message'])
-                ->with('contact_support', true),
+            Log::info('Login attempt started', [
+                'email' => $credentials['email'],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'remember' => $remember
+            ]);
 
-            'invalid_credentials' => redirect()->back()
-                ->withErrors(['email' => $result['message']])
-                ->withInput($request->except('password')),
+            $result = $this->authService->login($credentials, $remember);
 
-            default => redirect()->back()
-                ->with('error', 'An unexpected error occurred. Please try again.')
-                ->withInput($request->except('password'))
-        };
+            // Handle different error cases with appropriate redirects
+            if (!$result['success']) {
+                Log::warning('Login attempt failed', [
+                    'email' => $credentials['email'],
+                    'error' => $result['error'],
+                    'message' => $result['message'],
+                    'ip_address' => $request->ip()
+                ]);
+                return $this->handleLoginError($result, $request);
+            }
+
+            Log::info('Login successful', [
+                'email' => $credentials['email'],
+                'user_id' => Auth::id(),
+                'ip_address' => $request->ip(),
+                'redirect_to' => $result['redirect_to'] ?? route('home')
+            ]);
+
+            $request->session()->regenerate();
+
+            $redirectTo = $result['redirect_to'] ?? route('home');
+
+            return redirect()->intended($redirectTo);
+
+        } catch (\Exception $e) {
+            Log::error('Login process exception', [
+                'email' => $request->input('email'),
+                'ip_address' => $request->ip(),
+                'error_message' => $e->getMessage(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+                'stack_trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->route('login')
+                ->withErrors(['email' => 'An unexpected error occurred. Please try again.'])
+                ->withInput($request->only('email', 'remember'));
+        }
+    }
+
+  /**
+     * Handle login errors and return appropriate redirect response.
+     *
+     * @param array $result
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    protected function handleLoginError(array $result, Request $request)
+    {
+        try {
+            $error = $result['error'];
+            $message = $result['message'];
+
+            Log::info('Handling login error', [
+                'error_type' => $error,
+                'email' => $request->input('email'),
+                'ip_address' => $request->ip()
+            ]);
+
+            // Handle specific error cases with appropriate redirects
+            switch ($error) {
+                case 'incomplete_profile':
+                    Log::info('Redirecting to complete profile', [
+                        'email' => $request->input('email'),
+                        'redirect_to' => $result['redirect_to']
+                    ]);
+                    return redirect()->to($result['redirect_to']);
+
+                case 'password_expired':
+                    Log::info('Redirecting to password reset', [
+                        'email' => $request->input('email'),
+                        'redirect_to' => $result['redirect_to']
+                    ]);
+                    return redirect()->to($result['redirect_to']);
+
+                case 'email_not_verified':
+                    Log::info('Redirecting to email verification', [
+                        'email' => $request->input('email')
+                    ]);
+                    return redirect()->route('login')
+                        ->withErrors(['email' => $message])
+                        ->withInput($request->only('email', 'remember'));
+
+                case 'account_banned':
+                    Log::warning('Account banned login attempt', [
+                        'email' => $request->input('email'),
+                        'ip_address' => $request->ip()
+                    ]);
+                    return redirect()->route('login')
+                        ->withErrors(['email' => $message])
+                        ->withInput($request->only('email', 'remember'));
+                default:
+                    Log::error('Unknown login error', [
+                        'error_type' => $error,
+                        'message' => $message,
+                        'email' => $request->input('email'),
+                        'ip_address' => $request->ip()
+                    ]);
+                    return redirect()->route('login')
+                        ->withErrors(['email' => $message])
+                        ->withInput($request->only('email', 'remember'));
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error handling login error', [
+                'email' => $request->input('email'),
+                'ip_address' => $request->ip(),
+                'original_error' => $result['error'] ?? 'unknown',
+                'exception_message' => $e->getMessage(),
+                'exception_file' => $e->getFile(),
+                'exception_line' => $e->getLine(),
+                'stack_trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->route('login')
+                ->withErrors(['email' => 'An unexpected error occurred. Please try again.'])
+                ->withInput($request->only('email', 'remember'));
+        }
     }
 
 
     public function logout(Request $request)
     {
-        $this->authService->logout();
+        try {
+            $user = Auth::user();
+            
+            Log::info('User logout initiated', [
+                'user_id' => $user ? $user->id : null,
+                'email' => $user ? $user->email : null,
+                'ip_address' => $request->ip()
+            ]);
 
-        return redirect()->route('login')
-            ->with('success', 'You have been logged out successfully.');
+            $this->authService->logout();
+
+            Log::info('User logout completed', [
+                'ip_address' => $request->ip()
+            ]);
+
+            return redirect()->route('login')
+                ->with('success', 'You have been logged out successfully.');
+
+        } catch (\Exception $e) {
+            Log::error('Logout process exception', [
+                'user_id' => Auth::id(),
+                'ip_address' => $request->ip(),
+                'error_message' => $e->getMessage(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+                'stack_trace' => $e->getTraceAsString()
+            ]);
+
+            // Even if logout fails, redirect to login page
+            return redirect()->route('login')
+                ->with('error', 'An error occurred during logout, but you have been logged out.');
+        }
     }
 }

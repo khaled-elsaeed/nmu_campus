@@ -22,6 +22,8 @@ return new class extends Migration
             $table->string('phone')->unique();
             $table->string('email')->nullable();
             $table->boolean('is_abroad')->default(false);
+            $table->foreignId('country_id')->nullable()->constrained()->restrictOnDelete();
+            $table->boolean('living_with_parent')->default(false);
             $table->foreignId('governorate_id')->nullable()->constrained()->restrictOnDelete();
             $table->foreignId('city_id')->nullable()->constrained()->restrictOnDelete();
             $table->timestamps();
@@ -31,6 +33,7 @@ return new class extends Migration
         Schema::create('siblings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('faculty_id')->nullable()->constrained()->restrictOnDelete();
             $table->string('name_en');
             $table->string('name_ar');
             $table->string('national_id', 14)->unique();
@@ -54,7 +57,7 @@ return new class extends Migration
             ]);
             $table->foreignId('governorate_id')->nullable()->constrained()->restrictOnDelete();
             $table->foreignId('city_id')->nullable()->constrained()->restrictOnDelete();
-            $table->text('address');
+            $table->text('street');
             $table->text('notes')->nullable();
             $table->timestamps();
         });

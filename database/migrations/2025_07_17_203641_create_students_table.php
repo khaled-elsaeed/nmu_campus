@@ -28,7 +28,7 @@ return new class extends Migration
             $table->foreignId('nationality_id')->constrained()->restrictOnDelete();
             $table->foreignId('governorate_id')->constrained()->restrictOnDelete();
             $table->foreignId('city_id')->constrained()->restrictOnDelete();
-            $table->text('address');
+            $table->text('street');
             $table->boolean('is_profile_complete')->default(false);
             $table->timestamps();
         });

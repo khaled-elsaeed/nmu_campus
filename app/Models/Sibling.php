@@ -21,6 +21,7 @@ class Sibling extends Model
         'gender',
         'date_of_birth',
         'relationship',
+        'faculty_id',
         'academic_level',
         'notes',
     ];
@@ -57,4 +58,14 @@ class Sibling extends Model
     {
         return $this->belongsTo(User::class);
     }
-} 
+
+    /**
+     * Get the faculty for the sibling.
+     *
+     * @return BelongsTo
+     */
+    public function faculty(): BelongsTo
+    {
+        return $this->belongsTo(Faculty::class);
+    }
+}

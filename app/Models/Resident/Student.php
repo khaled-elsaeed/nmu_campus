@@ -34,8 +34,17 @@ class Student extends Model
         'nationality_id',
         'governorate_id',
         'city_id',
-        'address',
+        'street',
         'is_profile_complete',
+    ];
+
+    /**
+     * The model's default values for attributes.
+     *
+     * @var array
+     */
+    protected $attributes = [
+        'is_profile_complete' => false,
     ];
 
     /**
@@ -148,5 +157,27 @@ class Student extends Model
     public function city(): BelongsTo
     {
         return $this->belongsTo(City::class);
+    }
+
+    /**
+     * Check if the student's profile is complete.
+     * 
+     * @return bool
+     */
+    public function isProfileComplete(): bool
+    {
+        return $this->is_profile_complete;
+    }
+
+    /**
+     * Set the student's profile as complete or incomplete.
+     *
+     * @param bool $status
+     * @return void
+     */
+    public function setProfileComplete(bool $status): void
+    {
+        $this->is_profile_complete = $status;
+        $this->save();
     }
 }

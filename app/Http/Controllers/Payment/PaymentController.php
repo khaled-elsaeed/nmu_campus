@@ -73,6 +73,8 @@ class PaymentController extends Controller
             $validated = $request->all();
             $payment = $this->paymentService->createPayment($validated);
             return successResponse('Payment created successfully.', $payment);
+        } catch (BusinessValidationException $e) {
+            return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('PaymentController@store', $e, ['request' => $request->all()]);
             return errorResponse('Internal server error.', [], 500);

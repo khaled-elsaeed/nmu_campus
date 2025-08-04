@@ -3,6 +3,7 @@
 namespace App\Services\Payment;
 
 use App\Models\Payment;
+use App\Models\Reservation\Reservation;
 use App\Exceptions\BusinessValidationException;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
@@ -19,7 +20,43 @@ class PaymentService
      */
     public function createPayment(array $data): Payment
     {
-        return Payment::create($data);
+        $preparedDetails = $this->preapreDetails($data);
+
+        $reservation = $this->getReservationByNumber($data);
+
+        if(!$reservation){
+            throw new BusinessValidationException('Reservation not found.');
+        }
+
+        $paymentData = [
+            'reservation_id' => $reservation ? $reservation->id : null,
+            'amount' => $data['amount'] ?? null,
+            'status' => $data['status'] ?? 'pending',
+            'notes' => $data['notes'] ?? null,
+            'details' => $data['details'] ?? null,
+        ];
+
+        return Payment::create($paymentData);
+    }
+
+    private function preapreDetails(array $data): array
+    {
+        if (isset($data['details']) && is_array($data['details'])) {
+            foreach ($data['details'] as &$detail) {
+                $detail['amount'] = isset($detail['amount']) ? (float)$detail['amount'] : 0.0;
+                $detail['type'] = $detail['type'] ?? 'other';
+            }
+            return $data['details'];
+        }
+        return [];
+    }
+    
+    private function getReservationByNumber(array $data)
+    {
+        if (isset($data['reservation_number'])) {
+            return Reservation::where('reservation_number', $data['reservation_number'])->first();
+        }
+        return null;
     }
 
     /**
@@ -93,38 +130,59 @@ class PaymentService
      *
      * @return array
      */
-    public function getStats(): array
+   public function getStats(): array
     {
-        $total = Payment::count();
-        $pending = Payment::where('status', 'pending')->count();
-        $completed = Payment::where('status', 'completed')->count();
-        $refunded = Payment::where('status', 'refunded')->count();
-        $cancelled = Payment::where('status', 'cancelled')->count();
-        $lastUpdate = Payment::max('updated_at');
-        $pendingLastUpdate = Payment::where('status', 'pending')->max('updated_at');
-        $completedLastUpdate = Payment::where('status', 'completed')->max('updated_at');
-        $refundedLastUpdate = Payment::where('status', 'refunded')->max('updated_at');
-        $cancelledLastUpdate = Payment::where('status', 'cancelled')->max('updated_at');
+        $stats = Payment::leftJoin('reservations as r', 'payments.reservation_id', '=', 'r.id')
+            ->leftJoin('users as u', 'r.user_id', '=', 'u.id')
+            ->selectRaw("
+                COUNT(*) as total_count,
+                COUNT(CASE WHEN payments.status = 'pending' THEN 1 END) as pending_count,
+                COUNT(CASE WHEN payments.status = 'completed' THEN 1 END) as completed_count,
+                COUNT(CASE WHEN payments.status = 'cancelled' THEN 1 END) as cancelled_count,
+                
+                COUNT(CASE WHEN u.gender = 'male' THEN 1 END) as total_male,
+                COUNT(CASE WHEN u.gender = 'female' THEN 1 END) as total_female,
+                
+                COUNT(CASE WHEN payments.status = 'pending' AND u.gender = 'male' THEN 1 END) as pending_male,
+                COUNT(CASE WHEN payments.status = 'pending' AND u.gender = 'female' THEN 1 END) as pending_female,
+                
+                COUNT(CASE WHEN payments.status = 'completed' AND u.gender = 'male' THEN 1 END) as completed_male,
+                COUNT(CASE WHEN payments.status = 'completed' AND u.gender = 'female' THEN 1 END) as completed_female,
+                
+                COUNT(CASE WHEN payments.status = 'cancelled' AND u.gender = 'male' THEN 1 END) as cancelled_male,
+                COUNT(CASE WHEN payments.status = 'cancelled' AND u.gender = 'female' THEN 1 END) as cancelled_female,
+                
+                MAX(payments.updated_at) as last_update,
+                MAX(CASE WHEN payments.status = 'pending' THEN payments.updated_at END) as pending_last_update,
+                MAX(CASE WHEN payments.status = 'completed' THEN payments.updated_at END) as completed_last_update,
+                MAX(CASE WHEN payments.status = 'cancelled' THEN payments.updated_at END) as cancelled_last_update
+            ")
+            ->first();
+
         return [
-            'total' => [
-                'count' => $total,
-                'lastUpdateTime' => $lastUpdate,
+            'payments' => [
+            'count' => formatNumber($stats->total_count),
+            'male' => formatNumber($stats->total_male),
+            'female' => formatNumber($stats->total_female),
+            'lastUpdateTime' => $stats->last_update,
             ],
-            'pending' => [
-                'count' => $pending,
-                'lastUpdateTime' => $pendingLastUpdate,
+            'payments-pending' => [
+            'count' => formatNumber($stats->pending_count),
+            'male' => formatNumber($stats->pending_male),
+            'female' => formatNumber($stats->pending_female),
+            'lastUpdateTime' => $stats->pending_last_update,
             ],
-            'completed' => [
-                'count' => $completed,
-                'lastUpdateTime' => $completedLastUpdate,
+            'payments-completed' => [
+            'count' => formatNumber($stats->completed_count),
+            'male' => formatNumber($stats->completed_male),
+            'female' => formatNumber($stats->completed_female),
+            'lastUpdateTime' => $stats->completed_last_update,
             ],
-            'refunded' => [
-                'count' => $refunded,
-                'lastUpdateTime' => $refundedLastUpdate,
-            ],
-            'cancelled' => [
-                'count' => $cancelled,
-                'lastUpdateTime' => $cancelledLastUpdate,
+            'payments-cancelled' => [
+            'count' => formatNumber($stats->cancelled_count),
+            'male' => formatNumber($stats->cancelled_male),
+            'female' => formatNumber($stats->cancelled_female),
+            'lastUpdateTime' => $stats->cancelled_last_update,
             ],
         ];
     }

@@ -31,6 +31,8 @@ class StudentParent extends Model
         'is_abroad',
         'governorate_id',
         'city_id',
+        'country_id',
+        'living_with_parent'
     ];
 
     /**

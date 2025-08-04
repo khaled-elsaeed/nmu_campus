@@ -21,7 +21,7 @@ class EmergencyContact extends Model
         'relationship',
         'governorate_id',
         'city_id',
-        'address',
+        'street',
         'notes',
     ];
 

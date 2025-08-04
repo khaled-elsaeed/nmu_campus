@@ -12,7 +12,9 @@ use App\Models\City;
 use App\Models\Country;
 use App\Models\Nationality;
 use App\Models\Academic\Faculty;
+use App\Exceptions\BusinessValidationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class ProfileService
 {
@@ -28,31 +30,205 @@ class ProfileService
      */
     public function getProfileData(): array
     {
-        // Get student archive data if available
-        $studentArchive = StudentArchive::where('national_id', '30308218800598')
-            ->first();
+        $user = auth()->user();
 
-        // If no archive data, return empty structure
-        if (!$studentArchive) {
-            return $this->getEmptyProfileStructure();
+        // First check if user has an active student record
+        if ($user?->student) {
+            return $this->getProfileDataFromStudent($user->student);
         }
 
+        // If no student record, check for archive data
+        $studentArchive = StudentArchive::where('user_id', $user->id)->first();
+        
+        if ($studentArchive) {
+            return $this->getProfileDataFromArchive($studentArchive);
+        }
+
+        // If neither student nor archive data exists, throw exception
+        throw new BusinessValidationException('No student record found.');
+    }
+
+    /**
+     * Get profile data from student record
+     *
+     * @param Student $student
+     * @return array
+     */
+    private function getProfileDataFromStudent($student): array
+    {
         return [
-            'personal_info' => $this->getPersonalInfo($studentArchive),
-            'contact_info' => $this->getContactInfo($studentArchive),
-            'academic_info' => $this->getAcademicInfo($studentArchive),
-            'parent_info' => $this->getParentInfo($studentArchive),
-            'sibling_info' => $this->getSiblingInfo($studentArchive),
+            'personal_info' => $this->getPersonalInfoFromStudent($student),
+            'contact_info' => $this->getContactInfoFromStudent($student),
+            'academic_info' => $this->getAcademicInfoFromStudent($student),
+            'parent_info' => $this->getParentInfoFromStudent($student),
+            'sibling_info' => $this->getSiblingInfoFromStudent($student),
         ];
     }
 
     /**
-     * Get personal information
+     * Get profile data from archive record
      *
      * @param StudentArchive $studentArchive
      * @return array
      */
-    private function getPersonalInfo(StudentArchive $studentArchive): array
+    private function getProfileDataFromArchive(StudentArchive $studentArchive): array
+    {
+        return [
+            'personal_info' => $this->getPersonalInfoFromArchive($studentArchive),
+            'contact_info' => $this->getContactInfoFromArchive($studentArchive),
+            'academic_info' => $this->getAcademicInfoFromArchive($studentArchive),
+            'parent_info' => $this->getParentInfoFromArchive($studentArchive),
+            'sibling_info' => $this->getSiblingInfoFromArchive($studentArchive),
+        ];
+    }
+
+    /**
+     * Get personal information from student record
+     *
+     * @param Student $student
+     * @return array
+     */
+    private function getPersonalInfoFromStudent($student): array
+    {
+        return [
+            'national_id' => $student?->national_id,
+            'name_ar' => $student?->name_ar,
+            'name_en' => $student?->name_en,
+            'birthdate' => $student?->date_of_birth,
+            'gender' => $student?->gender ?? 'male',
+            'nationality_id' => $student?->nationality_id,
+        ];
+    }
+
+    /**
+     * Get contact information from student record
+     *
+     * @param Student $student
+     * @return array
+     */
+    private function getContactInfoFromStudent($student): array
+    {
+        return [
+            'phone' => $student?->phone,
+            'governorate_id' => $student?->governorate_id,
+            'city_id' => $student?->city_id,
+            'street' => $student?->street, // Not available in student model
+        ];
+    }
+
+    /**
+     * Get academic information from student record
+     *
+     * @param Student $student
+     * @return array
+     */
+    private function getAcademicInfoFromStudent($student): array
+    {
+        return [
+            'academic_id' => $student?->academic_id,
+            'faculty_id' => $student?->faculty_id,
+            'program_id' => $student?->program_id,
+            'academic_year' => $student?->level,
+            'gpa' => 0.0,
+            'academic_email' => $student?->academic_email,
+            'actual_score' => null,
+            'actual_percent' => null,
+            'certificate_type' => null,
+            'certificate_country' => null,
+            'certificate_country_id' => null,
+            'certificate_year' => null,
+        ];
+    }
+
+    /**
+     * Get parent information from student record
+     *
+     * @param Student $student
+     * @return array
+     */
+    private function getParentInfoFromStudent($student): array
+    {
+        $parent = $student?->user?->parent;
+        
+        if (!$parent) {
+            return [
+                'relation' => null,
+                'name' => null,
+                'name_en' => null,
+                'name_ar' => null,
+                'national_id' => null,
+                'phone' => null,
+                'email' => null,
+                'is_abroad' => false,
+                'governorate_id' => null,
+                'city_id' => null,
+                'country_id' => null,
+            ];
+        }
+
+        return [
+            'relation' => $parent?->relation,
+            'name' => $parent?->name_en ?? $parent?->name_ar,
+            'name_en' => $parent?->name_en,
+            'name_ar' => $parent?->name_ar,
+            'national_id' => $parent?->national_id,
+            'phone' => $parent?->phone,
+            'email' => $parent?->email,
+            'is_abroad' => $parent?->is_abroad ?? false,
+            'governorate_id' => $parent?->governorate_id,
+            'city_id' => $parent?->city_id,
+            'country_id' => $parent?->country_id,
+        ];
+    }
+
+    /**
+     * Get sibling information from student record
+     *
+     * @param Student $student
+     * @return array
+     */
+    private function getSiblingInfoFromStudent($student): array
+    {
+        $sibling = $student?->user?->sibling;
+        
+        if (!$sibling) {
+            return [
+                'has_sibling_in_dorm' => 'no',
+                'name_en' => null,
+                'name_ar' => null,
+                'name' => null,
+                'national_id' => null,
+                'gender' => null,
+                'date_of_birth' => null,
+                'relationship' => null,
+                'academic_level' => null,
+                'notes' => null,
+                'faculty_id' => null,
+            ];
+        }
+
+        return [
+            'has_sibling_in_dorm' => 'yes',
+            'name_en' => $sibling?->name_en,
+            'name_ar' => $sibling?->name_ar,
+            'name' => $sibling?->name_en ?? $sibling?->name_ar,
+            'national_id' => $sibling?->national_id,
+            'gender' => $sibling?->gender,
+            'date_of_birth' => $sibling?->date_of_birth,
+            'relationship' => $sibling?->relationship,
+            'academic_level' => $sibling?->academic_level,
+            'notes' => $sibling?->notes,
+            'faculty_id' => $sibling?->faculty_id,
+        ];
+    }
+
+    /**
+     * Get personal information from archive record
+     *
+     * @param StudentArchive $studentArchive
+     * @return array
+     */
+    private function getPersonalInfoFromArchive(StudentArchive $studentArchive): array
     {
         return [
             'national_id' => $studentArchive?->national_id,
@@ -65,12 +241,12 @@ class ProfileService
     }
 
     /**
-     * Get contact information
+     * Get contact information from archive record
      *
      * @param StudentArchive $studentArchive
      * @return array
      */
-    private function getContactInfo(StudentArchive $studentArchive): array
+    private function getContactInfoFromArchive(StudentArchive $studentArchive): array
     {
         return [
             'phone' => $studentArchive?->phone,
@@ -81,12 +257,12 @@ class ProfileService
     }
 
     /**
-     * Get academic information
+     * Get academic information from archive record
      *
      * @param StudentArchive $studentArchive
      * @return array
      */
-    private function getAcademicInfo(StudentArchive $studentArchive): array
+    private function getAcademicInfoFromArchive(StudentArchive $studentArchive): array
     {
         $certificateCountry = $this->getCountry($studentArchive?->cert_country_name);
         return [
@@ -106,12 +282,12 @@ class ProfileService
     }
 
     /**
-     * Get parent information
+     * Get parent information from archive record
      *
      * @param StudentArchive $studentArchive
      * @return array
      */
-    private function getParentInfo(StudentArchive $studentArchive): array
+    private function getParentInfoFromArchive(StudentArchive $studentArchive): array
     {
         $parentCountry = $this->getCountry($studentArchive?->parent_country_name);
         return [
@@ -124,12 +300,12 @@ class ProfileService
     }
 
     /**
-     * Get sibling information
+     * Get sibling information from archive record
      *
      * @param StudentArchive $studentArchive
      * @return array
      */
-    private function getSiblingInfo(StudentArchive $studentArchive): array
+    private function getSiblingInfoFromArchive(StudentArchive $studentArchive): array
     {
         $data = [
             'has_sibling_in_dorm' => 'no'
@@ -177,16 +353,14 @@ class ProfileService
      */
     public function saveProfileData(array $data): array
     {
-        // $user = Auth::user();
+        $user = Auth::user();
 
-        // if (!$user) {
-        //     throw new \Exception('User not authenticated');
-        // }
+        if (!$user) {
+            throw new \Exception('User not authenticated');
+        }
 
-        // $studentArchive = $user?->studentArchive;
+        $studentArchive = $user?->studentArchive;
 
-        // Retrieve the StudentArchive with id 4429 and user_id 5
-        $studentArchive = StudentArchive::where('id', 4429)->where('user_id', 5)->first();
         $user = $studentArchive?->user;
 
         return DB::transaction(function () use ($user, $data, $studentArchive) {
@@ -220,11 +394,13 @@ class ProfileService
      */
     private function updateStudentBasicInfo(Student $student, array $data, ?StudentArchive $studentArchive): void
     {
-        $student->phone = $data['phone'];
-        $student->governorate_id = $data['governorate'];
-        $student->city_id = $data['city'];
-        $student->program_id = $data['program'];
-        $student->level = $data['academicYear'];
+        $student->phone = $data['phone'] ?? null;
+        $student->governorate_id = $data['governorate'] ?? null;
+        $student->city_id = $data['city'] ?? null;
+        $student->street = $data['street'] ?? null;
+        $student->faculty_id = $data['faculty'] ?? null;
+        $student->program_id = $data['program'] ?? null;
+        $student->level = $data['academic_year'] ?? null;
         $student->is_profile_complete = true;
 
         // Use archive data for sensitive student information
@@ -237,7 +413,6 @@ class ProfileService
         $student->academic_email = $studentArchive?->email;
         $student->academic_id = $studentArchive?->academic_id;
         $student->faculty_id = $this->getFacultyId($studentArchive?->candidated_faculty_name);
-        $student->gpa = $studentArchive?->gpa;
         $student->nationality_id = $this->getNationalityId($studentArchive?->nationality_name);
 
     }
@@ -257,23 +432,26 @@ class ProfileService
             $parent->user_id = $student?->user_id;
         }
 
-        $parent->relation = $data['parentRelationship'];
-        $parent->name = $data['parentName'];
-        $parent->phone_number = $data['parentPhone'];
-        $parent->is_abroad = $data['isParentAbroad'] === 'yes';
+        $parent->relation = $data['parent_relationship'] ?? null;
+        $parent->name_en = $data['parent_name_en'] ?? null;
+        $parent->name_ar = $data['parent_name_ar'] ?? null;
+        $parent->phone = $data['parent_phone'] ?? null;
+        $parent->email = $data['parent_email'] ?? null;
+        $parent->national_id = $data['parent_national_id'] ?? null;
+        $parent->is_abroad = ($data['is_abroad'] ?? false) === true || ($data['is_abroad'] ?? 'no') === 'yes';
 
-        if ($data['isParentAbroad'] === 'yes') {
-            $parent->country_id = $data['abroadCountry'] ?? null;
+        if ($parent->is_abroad) {
+            $parent->country_id = $data['parent_country_id'] ?? null;
             $parent->living_with_parent = false;
             $parent->governorate_id = null;
             $parent->city_id = null;
         } else {
             $parent->country_id = null;
-            $parent->living_with_parent = $data['livingWithParent'] === 'yes';
+            $parent->living_with_parent = ($data['living_with_parent'] ?? 'no') === 'yes';
 
-            if ($data['livingWithParent'] === 'no') {
-                $parent->governorate_id = $data['parentGovernorate'] ?? null;
-                $parent->city_id = $data['parentCity'] ?? null;
+            if (($data['living_with_parent'] ?? 'no') === 'no') {
+                $parent->governorate_id = $data['parent_governorate_id'] ?? null;
+                $parent->city_id = $data['parent_city_id'] ?? null;
             } else {
                 $parent->governorate_id = null;
                 $parent->city_id = null;
@@ -294,23 +472,25 @@ class ProfileService
     {
         $sibling = $student?->user?->sibling;
 
-        if ($data['hasSiblingInDorm'] === 'no') {
+        if ($data['has_sibling_in_dorm'] === 'no') {
             if ($sibling) {
                 $sibling->delete();
             }
             return;
         }
 
-        if ($data['hasSiblingInDorm'] === 'yes') {
+        if ($data['has_sibling_in_dorm'] === 'yes') {
             if (!$sibling) {
                 $sibling = new Sibling();
                 $sibling->user_id = $student?->user_id;
             }
 
-            $sibling->gender = $data['siblingGender'] ?? null;
-            $sibling->name = $data['siblingName'] ?? null;
-            $sibling->national_id = $data['siblingNationalId'] ?? null;
-            $sibling->faculty_id = $data['siblingFaculty'] ?? null;
+            $sibling->gender = $data['sibling_gender'] ?? null;
+            $sibling->relation = isset($data['sibling_gender']) && $data['sibling_gender'] === 'male' ? 'brother' : 'sister';
+            $sibling->name_en = $data['sibling_name_en'] ?? null;
+            $sibling->name_ar = $data['sibling_name_ar'] ?? null;
+            $sibling->national_id = $data['sibling_national_id'] ?? null;
+            $sibling->faculty_id = $data['sibling_faculty_id'] ?? null;
 
             $sibling->save();
         }
@@ -327,22 +507,22 @@ class ProfileService
     {
         $emergencyContact = $student?->user?->emergencyContact;
 
-        if ($data['isParentAbroad'] === 'no') {
+        if ($data['is_parent_abroad'] === 'no') {
             if ($emergencyContact) {
                 $emergencyContact->delete();
             }
             return;
         }
 
-        if ($data['isParentAbroad'] === 'yes') {
+        if ($data['is_parent_abroad'] === 'yes') {
             if (!$emergencyContact) {
                 $emergencyContact = new EmergencyContact();
                 $emergencyContact->user_id = $student?->user_id;
             }
 
-            $emergencyContact->relation = $data['emergencyContactRelationship'] ?? null;
-            $emergencyContact->name = $data['emergencyContactName'] ?? null;
-            $emergencyContact->phone_number = $data['emergencyContactPhone'] ?? null;
+            $emergencyContact->relation = $data['emergency_contact_relationship'] ?? null;
+            $emergencyContact->name = $data['emergency_contact_name'] ?? null;
+            $emergencyContact->phone_number = $data['emergency_contact_phone'] ?? null;
 
             $emergencyContact->save();
         }

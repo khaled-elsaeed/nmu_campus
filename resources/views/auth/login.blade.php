@@ -3,6 +3,18 @@
 @section('title', 'Login | AcadOps')
 
 @section('content')
+<!-- Logo -->
+<div class="app-brand justify-content-center">
+    <a href="/" class="app-brand-link gap-2">
+        <span class="app-brand-logo demo">
+            <!-- SVG logo here (copy from layout if needed) -->
+        </span>
+        <span class="app-brand-text demo text-body fw-bolder text-primary">AcadOps</span>
+    </a>
+</div>
+<!-- /Logo -->
+<h4 class="mb-2">Welcome to AcadOps! 👋</h4>
+<p class="mb-4">Please sign-in to your account and start the adventure</p>
 @if (
     session('status')
 )
@@ -19,18 +31,6 @@
         </ul>
     </div>
 @endif
-<!-- Logo -->
-<div class="app-brand justify-content-center">
-    <a href="/" class="app-brand-link gap-2">
-        <span class="app-brand-logo demo">
-            <!-- SVG logo here (copy from layout if needed) -->
-        </span>
-        <span class="app-brand-text demo text-body fw-bolder text-primary">AcadOps</span>
-    </a>
-</div>
-<!-- /Logo -->
-<h4 class="mb-2">Welcome to AcadOps! 👋</h4>
-<p class="mb-4">Please sign-in to your account and start the adventure</p>
 <form id="formAuthentication" class="mb-3" action="{{ route('login') }}" method="POST">
     @csrf
     <div class="mb-3">

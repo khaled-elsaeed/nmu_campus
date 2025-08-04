@@ -709,4 +709,26 @@ const Utils = {
     }
   },
 
+  /**
+   * Reset form fields and clear validation states
+   * @param {string} formId - Form ID (without #)
+   */
+  resetForm(formId) {
+    const $form = $(`#${formId}`);
+    if ($form.length === 0) return;
+
+    // Reset all form fields
+    $form[0].reset();
+
+    // Clear validation states
+    this.clearValidation(`#${formId}`);
+
+    // Reset any select2 fields
+    $form.find('select').each(function() {
+      if ($(this).hasClass('select2-hidden-accessible')) {
+        $(this).val('').trigger('change.select2');
+      }
+    });
+  },
+
 };

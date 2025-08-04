@@ -69,7 +69,7 @@ class EmailVerificationController extends Controller
      */
     public function notice(Request $request)
     {
-        if ($request->user()->hasVerifiedEmail()) {
+        if ($request->user() && $request->user()->hasVerifiedEmail()) {
             return redirect()->route('login')->with('status', 'Email already verified.');
         }
         return redirect()->route('login')->with('info', 'Please verify your email address before logging in.');

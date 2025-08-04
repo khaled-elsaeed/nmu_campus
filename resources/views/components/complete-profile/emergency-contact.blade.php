@@ -13,26 +13,24 @@
 </div>
 <div class="row">
     <div class="col-md-6 mb-3">
-        <label for="emergencyContactRelationship" class="form-label">Relationship</label>
-        <select class="form-select" id="emergencyContactRelationship" name="emergencyContactRelationship">
+        <label for="emergency-contact-relationship" class="form-label">Relationship</label>
+        <select class="form-select" id="emergency-contact-relationship" name="emergency_contact_relationship">
             <option value="">Select</option>
-            <option value="father" {{ old('emergencyContactRelationship') == 'father' ? 'selected' : '' }}>Father</option>
-            <option value="mother" {{ old('emergencyContactRelationship') == 'mother' ? 'selected' : '' }}>Mother</option>
-            <option value="brother" {{ old('emergencyContactRelationship') == 'brother' ? 'selected' : '' }}>Brother</option>
-            <option value="sister" {{ old('emergencyContactRelationship') == 'sister' ? 'selected' : '' }}>Sister</option>
-            <option value="other" {{ old('emergencyContactRelationship') == 'other' ? 'selected' : '' }}>Other</option>
+            <option value="father">Father</option>
+            <option value="mother">Mother</option>
+            <option value="brother">Brother</option>
+            <option value="sister">Sister</option>
+            <option value="other">Other</option>
         </select>
-        <div class="invalid-feedback"></div>
     </div>
     <div class="col-md-6 mb-3">
-        <label for="emergencyContactName" class="form-label">Name</label>
-        <input type="text" class="form-control" id="emergencyContactName" name="emergencyContactName" value="{{ old('emergencyContactName') }}">
-        <div class="invalid-feedback"></div>
+        <label for="emergency-contact-name" class="form-label">Name</label>
+        <input type="text" class="form-control" id="emergency-contact-name" name="emergency_contact_name">
     </div>
 </div>
 <div class="mb-3">
-    <label for="emergencyContactPhone" class="form-label">Phone Number</label>
-    <input type="tel" class="form-control" id="emergencyContactPhone" name="emergencyContactPhone" value="{{ old('emergencyContactPhone') }}">
+    <label for="emergency-contact-phone" class="form-label">Phone Number</label>
+    <input type="tel" class="form-control" id="emergency-contact-phone" name="emergency_contact_phone">
     <div class="invalid-feedback"></div>
 </div>
 <div class="d-flex justify-content-between">

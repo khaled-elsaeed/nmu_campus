@@ -215,8 +215,8 @@
 // ===========================
 var ROUTES = {
   profile: {
-    fetch: '{{ route('profile.fetch') }}',
-    submit: '{{ route('profile.submit') }}',
+    fetch: '{{ route('profile.resident.student.fetch') }}',
+    submit: '{{ route('profile.resident.student.submit') }}',
   },
   faculty: {
     fetch: '{{ route('academic.faculties.all') }}',
@@ -410,10 +410,10 @@ var ProfileManager = {
    */
   populatePersonalInfo: function(data) {
     // Updated to match backend keys from ProfileService
-    if (data.national_id) $('#nationalId').val(data.national_id);
-    if (data.name_ar) $('#fullNameArabic').val(data.name_ar);
-    if (data.name_en) $('#fullNameEnglish').val(data.name_en);
-    if (data.birthdate) $('#birthDate').val(data.birthdate);
+    if (data.national_id) $('#national-id').val(data.national_id);
+    if (data.name_ar) $('#name-ar').val(data.name_ar);
+    if (data.name_en) $('#name-en').val(data.name_en);
+    if (data.birthdate) $('#birth-date').val(data.birthdate);
     if (data.gender) $('#gender').val(data.gender);
     if (data.nationality_id) $('#nationality').val(data.nationality_id);
   },
@@ -424,7 +424,7 @@ var ProfileManager = {
    */
   populateContactInfo: function(data) {
     // Updated to match backend keys from ProfileService
-    if (data.mobile) $('#mobileNumber').val(data.mobile);
+    if (data.mobile) $('#phone').val(data.mobile);
 
     if (data.governorate_id) {
       $('#governorate').val(data.governorate_id);
@@ -444,11 +444,11 @@ var ProfileManager = {
    */
   populateAcademicInfo: function(data) {
     // Updated to match backend keys from ProfileService
-    if (data.academic_id) $('#academicId').val(data.academic_id);
-    if (data.academic_email) $('#academicEmail').val(data.academic_email);
+    if (data.academic_id) $('#academic-id').val(data.academic_id);
+    if (data.academic_email) $('#academic-email').val(data.academic_email);
 
-    if (data.academic_year) $('#academicYear').val(data.academic_year);
-    if (typeof data.gpa !== 'undefined') $('#gpa').val(data.gpa);
+    if (data.academic_year) $('#academic-year').val(data.academic_year);
+    if (data.gpa) $('#gpa').val(data.gpa);
 
     if (data.faculty_id) {
       $('#faculty').val(data.faculty_id);
@@ -459,11 +459,11 @@ var ProfileManager = {
         }
       }, 1000);
     }
-    if (data.actual_score) $('#actualScore').val(data.actual_score);
-    if (data.actual_percent) $('#actualPercent').val(data.actual_percent);
-    if (data.certificate_type) $('#certificateType').val(data.certificate_type);
-    if (data.certificate_country_id) $('#certificateCountry').val(data.certificate_country_id);
-    if (data.certificate_year) $('#certificateYear').val(data.certificate_year);
+    if (data.actual_score) $('#actual-score').val(data.actual_score);
+    if (data.actual_percent) $('#actual-percent').val(data.actual_percent);
+    if (data.certificate_type) $('#certificate-type').val(data.certificate_type);
+    if (data.certificate_country_id) $('#certificate-country').val(data.certificate_country_id);
+    if (data.certificate_year) $('#certificate-year').val(data.certificate_year);
   },
 
   /**
@@ -472,19 +472,20 @@ var ProfileManager = {
    */
   populateParentInfo: function(data) {
     // Updated to match backend keys from ProfileService
-    if (data.name) $('#parentName').val(data.name);
-    if (data.mobile) $('#parentPhone').val(data.mobile);
-    if (data.email) $('#parentEmail').val(data.email);
+    if (data.name_ar) $('#parent-name-ar').val(data.name_ar);
+    if (data.name_en) $('#parent-name-en').val(data.name_en);
+    if (data.mobile) $('#parent-phone').val(data.mobile);
+    if (data.email) $('#parent-email').val(data.email);
 
-    // Always set isParentAbroad, defaulting to 'no' if not provided
-    var isAbroad = (typeof data.is_abroad !== 'undefined') ? data.is_abroad : false;
-    $('#isParentAbroad').val(isAbroad ? 'yes' : 'no');
-    $('#isParentAbroad').trigger('change');
+    // Always set is_parent_abroad, defaulting to 'no' if not provided
+    var isAbroad = (data.is_abroad) ? data.is_abroad : false;
+    $('#is-parent-abroad').val(isAbroad ? 'yes' : 'no');
+    $('#is-parent-abroad').trigger('change');
 
     setTimeout(function() {
       if (isAbroad) {
         if (data.country_id) {
-          $('#abroadCountry').val(data.country_id);
+          $('#abroad-country').val(data.country_id);
         }
       }
     }, 300);
@@ -497,13 +498,15 @@ var ProfileManager = {
   populateSiblingInfo: function(data) {
     // Updated to match backend keys from ProfileService
     if (data.has_sibling_in_dorm) {
-      $('#hasSiblingInDorm').val(data.has_sibling_in_dorm);
-      $('#hasSiblingInDorm').trigger('change');
+      $('#has-sibling-in-dorm').val(data.has_sibling_in_dorm);
+      $('#has-sibling-in-dorm').trigger('change');
       setTimeout(function() {
         if (data.has_sibling_in_dorm === 'yes') {
-          if (data.name) $('#siblingName').val(data.name);
-          if (data.faculty_id) $('#siblingFaculty').val(data.faculty_id);
-          if (data.faculty_name) $('#siblingFacultyName').val(data.faculty_name);
+          if (data.sibling_name_ar) $('#sibling-name-ar').val(data.sibling_name_ar);
+          if (data.sibling_name_en) $('#sibling-name-en').val(data.sibling_name_en);
+          if (data.sibling_gender) $('#sibling-gender').val(data.sibling_gender);
+          if (data.sibling_national_id) $('#sibling-national-id').val(data.sibling_national_id);
+          if (data.sibling_faculty) $('#sibling-faculty').val(data.sibling_faculty);
         }
       }, 300);
     }
@@ -514,10 +517,9 @@ var ProfileManager = {
    * @param {object} data
    */
   populateEmergencyContact: function(data) {
-    if (data.emergency_name) $('#emergencyName').val(data.emergency_name);
-    if (data.emergency_relation) $('#emergencyRelation').val(data.emergency_relation);
-    if (data.emergency_mobile) $('#emergencyPhone').val(data.emergency_mobile);
-    if (data.emergency_address) $('#emergencyAddress').val(data.emergency_address);
+    if (data.emergency_contact_name) $('#emergency-contact-name').val(data.emergency_contact_name);
+    if (data.emergency_contact_relationship) $('#emergency-contact-relationship').val(data.emergency_contact_relationship);
+    if (data.emergency_contact_phone) $('#emergency-contact-phone').val(data.emergency_contact_phone);
   },
 
   /**
@@ -526,7 +528,7 @@ var ProfileManager = {
    */
   populateTerms: function(data) {
     if (data.terms_accepted) {
-      $('#termsCheckbox').prop('checked', data.terms_accepted === true || data.terms_accepted === '1');
+      $('#terms-Checkbox').prop('checked', data.terms_accepted === true || data.terms_accepted === '1');
     }
   },
 
@@ -536,9 +538,9 @@ var ProfileManager = {
   triggerFieldChanges: function() {
     // Trigger changes for fields that affect conditional field visibility
     setTimeout(function() {
-      $('#isParentAbroad').trigger('change');
-      $('#livingWithParent').trigger('change');
-      $('#hasSiblingInDorm').trigger('change');
+      $('#is-parent-abroad').trigger('change');
+      $('#living-with-parent').trigger('change');
+      $('#has-sibling-in-dorm').trigger('change');
     }, 1000);
   },
 
@@ -637,7 +639,7 @@ var ProfileManager = {
   populateParentGovernorates: function() {
     return new Promise(function(resolve, reject) {
       // Check if parent governorates are already populated
-      if ($('#parentGovernorate option').length > 1) {
+      if ($('#parent-governorate option').length > 1) {
         resolve();
         return;
       }
@@ -646,7 +648,7 @@ var ProfileManager = {
       ApiService.fetchGovernorate()
         .done(function(response) {
           if (response.success && response.data) {
-            Utils.populateSelect($('#parentGovernorate'), response.data, {
+            Utils.populateSelect($('#parent-governorate'), response.data, {
               placeholder: 'Select Parent Governorate',
               valueField: 'id',
               textField: 'name'
@@ -684,7 +686,7 @@ var ProfileManager = {
               valueField: 'id',
               textField: 'name'
             });
-            Utils.populateSelect($('#siblingFaculty'), response.data, {
+            Utils.populateSelect($('#sibling-faculty'), response.data, {
                 placeholder: 'Select Sibling Faculty',
                 valueField: 'id',
                 textField: 'name'
@@ -708,7 +710,7 @@ var ProfileManager = {
     var self = this;
     return new Promise(function(resolve, reject) {
       // Check if countries are already populated
-      if ($('#abroadCountry option').length > 1) {
+      if ($('#abroad-country option').length > 1) {
         resolve();
         return;
       }
@@ -717,7 +719,7 @@ var ProfileManager = {
       ApiService.fetchCountries()
         .done(function(response) {
           if (response.success && response.data) {
-            Utils.populateSelect($('#abroadCountry'), response.data, {
+            Utils.populateSelect($('#abroad-country'), response.data, {
               placeholder: 'Select Country',
               valueField: 'id',
               textField: 'name'
@@ -822,7 +824,7 @@ var ValidationService = {
     /**
     * Unified phone validation method that checks if the parent is abroad.
     * If isAbroad is 'yes', uses international regex, else uses Egyptian regex.
-    * Usage: add to rules as: phone: { required: true, parentPhoneConditional: '#isParentAbroad' }
+    * Usage: add to rules as: phone: { required: true, parentPhoneConditional: '#is-parent-abroad' }
     */
    $.validator.addMethod('parentPhoneConditional', function(value, element, param) {
       var isAbroad = $(param).val();
@@ -1002,21 +1004,21 @@ var ValidationService = {
   getValidationRules: function() {
     return {
       // Step 1: Personal Information
-      fullNameArabic: {
+      name_ar: {
         required: true,
         arabicName: true,
         minlength: 2
       },
-      fullNameEnglish: {
+      name_en: {
         required: true,
         englishName: true,
         minlength: 2
       },
-      nationalId: {
+      national_id: {
         required: true,
         egyptianNationalId: true
       },
-      birthDate: {
+      birth_date: {
         required: true,
         date: true,
         minimumAge: 17
@@ -1051,131 +1053,147 @@ var ValidationService = {
       program: {
         required: true
       },
-      academicYear: {
+      academic_year: {
         required: true
       },
       gpa: {
         required: true,
         gpaRange: [0.0, 4.0]
       },
-      academicId: {
+      academic_id: {
         required: true,
         academicId: true
       },
-      academicEmail: {
+      academic_email: {
         required: true,
         email: true,
         emailDomain: ['nmu.edu.eg']
       },
 
       // Step 4: Parent Information - Basic
-      parentRelationship: {
+      parent_relationship: {
         required: true
       },
-      parentName: {
+      parent_name_ar: {
         required: true,
         arabicName: true
       },
-      parentPhone: {
+      parent_name_en: {
         required: true,
-        parentPhoneConditional: '#isParentAbroad'
+        englishName: true
       },
-      parentEmail: {
+      parent_phone: {
+        required: true,
+        parentPhoneConditional: '#is-parent-abroad'
+      },
+      parent_national_id: {
+        required: true,
+        egyptianNationalId: true
+      },
+      parent_email: {
         required: false,
         email: true
       },
-      isParentAbroad: {
+      is_parent_abroad: {
         required: true
       },
 
       // Step 4: Parent abroad conditional fields
-      abroadCountry: {
+      abroad_country: {
         dependsOn: {
-          field: '#isParentAbroad',
+          field: '#is-parent-abroad',
           value: 'yes',
           operator: 'equals'
         }
       },
-      livingWithParent: {
+      living_with_parent: {
         dependsOn: {
-          field: '#isParentAbroad',
+          field: '#is-parent-abroad',
           value: 'no',
           operator: 'equals'
         }
       },
-      parentGovernorate: {
+      parent_governorate: {
         dependsOn: {
-          field: '#livingWithParent',
+          field: '#living-with-parent',
           value: 'no',
           operator: 'equals'
         }
       },
-      parentCity: {
+      parent_city: {
         dependsOn: {
-          field: '#livingWithParent',
+          field: '#living-with-parent',
           value: 'no',
           operator: 'equals'
         }
       },
 
       // Step 5: Sibling Information
-      hasSiblingInDorm: {
+      has_sibling_in_dorm: {
         required: true
       },
-      siblingGender: {
+      sibling_gender: {
         dependsOn: {
-          field: '#hasSiblingInDorm',
+          field: '#has-sibling-in-dorm',
           value: 'yes',
           operator: 'equals'
         }
       },
-      siblingName: {
+      sibling_name_ar: {
         dependsOn: {
-          field: '#hasSiblingInDorm',
+          field: '#has-sibling-in-dorm',
           value: 'yes',
           operator: 'equals'
         },
         arabicName: true
       },
-      siblingNationalId: {
+      sibling_name_en: {
         dependsOn: {
-          field: '#hasSiblingInDorm',
+          field: '#has-sibling-in-dorm',
+          value: 'yes',
+          operator: 'equals'
+        },
+        englishName: true
+      },
+      sibling_national_id: {
+        dependsOn: {
+          field: '#has-sibling-in-dorm',
           value: 'yes',
           operator: 'equals'
         },
         egyptianNationalId: true,
         compareField: {
-          field: '#nationalId',
+          field: '#national-id',
           operator: 'not_equals'
         }
       },
-      siblingFaculty: {
+      sibling_faculty: {
         dependsOn: {
-          field: '#hasSiblingInDorm',
+          field: '#has-sibling-in-dorm',
           value: 'yes',
           operator: 'equals'
         }
       },
 
       // Step 6: Emergency Contact (only when parents are abroad)
-      emergencyContactName: {
+      emergency_contact_name: {
         dependsOn: {
-          field: '#isParentAbroad',
+          field: '#is-parent-abroad',
           value: 'yes',
           operator: 'equals'
         },
         arabicName: true
       },
-      emergencyContactRelationship: {
+      emergency_contact_relationship: {
         dependsOn: {
-          field: '#isParentAbroad',
+          field: '#is-parent-abroad',
           value: 'yes',
           operator: 'equals'
         }
       },
-      emergencyContactPhone: {
+      emergency_contact_phone: {
         dependsOn: {
-          field: '#isParentAbroad',
+          field: '#is-parent-abroad',
           value: 'yes',
           operator: 'equals'
         },
@@ -1187,7 +1205,7 @@ var ValidationService = {
       },
 
       // Step 7: Terms validation
-      termsCheckbox: {
+      terms_checkbox: {
         checkedRequired: true
       }
     };
@@ -1200,21 +1218,21 @@ var ValidationService = {
   getValidationMessages: function() {
     return {
       // Step 1: Personal Information
-      nationalId: {
+      national_id: {
         required: 'National ID is required.',
         egyptianNationalId: 'Please enter a valid 14-digit Egyptian National ID.'
       },
-      fullNameArabic: {
+      name_ar: {
         required: 'Arabic name is required.',
         arabicName: 'Please enter name in Arabic characters only.',
         minlength: 'Name must be at least 2 characters long.'
       },
-      fullNameEnglish: {
+      name_en: {
         required: 'English name is required.',
         englishName: 'Please enter name in English characters only.',
         minlength: 'Name must be at least 2 characters long.'
       },
-      birthDate: {
+      birth_date: {
         required: 'Birth date is required.',
         date: 'Please enter a valid date.',
         minimumAge: 'You must be at least 17 years old.'
@@ -1237,70 +1255,83 @@ var ValidationService = {
       // Step 3: Academic Information
       faculty: 'Please select your faculty.',
       program: 'Please select your program.',
-      academicYear: 'Please select your academic year.',
+      academic_year: 'Please select your academic year.',
       gpa: {
         required: 'GPA is required.',
         gpaRange: 'GPA must be between 0.0 and 4.0.'
       },
-      academicId: {
+      academic_id: {
         required: 'Student ID is required.',
         academicId: 'Please enter a valid student ID (8-12 digits).'
       },
-      universityEmail: {
+      academic_email: {
         required: 'University email is required.',
         email: 'Please enter a valid university email address.',
         emailDomain: 'Please use your university email address.'
       },
 
       // Step 4: Parent Information
-      parentRelationship: 'Please select your relationship to the parent.',
+      parent_relationship: 'Please select your relationship to the parent.',
 
-      parentName: {
+      parent_name_ar: {
         required: 'Parent\'s name is required.',
         arabicName: 'Please enter parent\'s name in Arabic.'
       },
-      parentPhone: {
+      parent_name_en: {
+        required: 'Parent\'s name is required.',
+        englishName: 'Please enter parent\'s name in English.'
+      },
+      parent_phone: {
           required: 'Parent\'s phone number is required.',
           egyptianPhone: 'Please enter a valid Egyptian mobile number (e.g., 01012345678).',
           internationalPhone: 'Please enter a valid international phone number (e.g., +966501234567 or +12025550123).'
       },
-      parentEmail: {
+      parent_email: {
         email: 'Please enter a valid email address.'
       },
-      isParentAbroad: 'Please specify if parent lives abroad.',
-      abroadCountry: 'Please select the country where your parent lives.',
-      livingWithParent: 'Please specify if you live with your parent.',
-      parentGovernorate: 'Please select parent\'s governorate.',
-      parentCity: 'Please select parent\'s city.',
+      parent_national_id: {
+        required: 'Parent\'s national ID is required.',
+        egyptianNationalId: 'Please enter a valid 14-digit Egyptian National ID.'
+      },
+      is_parent_abroad: 'Please specify if parent lives abroad.',
+      abroad_country: 'Please select the country where your parent lives.',
+      living_with_parent: 'Please specify if you live with your parent.',
+      parent_governorate: 'Please select parent\'s governorate.',
+      parent_city: 'Please select parent\'s city.',
+      parent_country: 'Please select parent\'s country.',
 
       // Step 5: Sibling Information
-      hasSiblingInDorm: 'Please specify if you have a sibling in the dorm.',
-      siblingGender: 'Please select sibling\'s gender.',
-      siblingName: {
+      has_sibling_in_dorm: 'Please specify if you have a sibling in the dorm.',
+      sibling_gender: 'Please select sibling\'s gender.',
+      sibling_name_ar: {
         dependsOn: 'Please enter sibling\'s name.',
         arabicName: 'Please enter sibling\'s name in Arabic.'
       },
-      siblingNationalId: {
+      sibling_name_en: {
+        dependsOn: 'Please enter sibling\'s name.',
+        englishName: 'Please enter sibling\'s name in English.'
+      },
+      sibling_national_id: {
         dependsOn: 'Please enter sibling\'s national ID.',
         egyptianNationalId: 'Please enter a valid 14-digit national ID.',
         compareField: 'Sibling\'s national ID must be different from yours.'
       },
-      siblingFaculty: 'Please select sibling\'s faculty.',
+      sibling_faculty: 'Please select sibling\'s faculty.',
 
       // Step 6: Emergency Contact
-      emergencyContactName: {
+      emergency_contact_name: {
         required: 'Emergency contact name is required.',
         arabicName: 'Please enter name in Arabic.'
       },
-      emergencyContactRelationship: 'Please specify your relation to emergency contact.',
-      emergencyContactPhone: {
+      emergency_contact_relationship: 'Please specify your relation to emergency contact.',
+      emergency_contact_phone: {
         required: 'Emergency contact phone is required.',
         egyptianPhone: 'Please enter a valid Egyptian mobile number. (Starts with 01, 11 digits, e.g., 010xxxxxxxx)',
         compareField: 'Emergency contact number must be different from your mobile.'
       },
 
       // Step 7: Terms
-      termsCheckbox: 'You must accept the terms and conditions to proceed.',
+      terms_checkbox: 'You must accept the terms and conditions to proceed.',
 
       // Fallback for missing messages
       default: 'This field is required.'
@@ -1329,7 +1360,7 @@ var ValidationService = {
     // Validate all enabled and visible (or .validate-hidden) fields in the step
     $step.find('input, select, textarea').each(function() {
       var $field = $(this);
-      var fieldValid = ValidationService.validator.element(this);
+        var fieldValid = ValidationService.validator.element(this);
         console.log('Validating field:', this.name || this.id || this, 'Result:', fieldValid);
         if (!fieldValid) {
           isValid = false;
@@ -1399,17 +1430,29 @@ var ValidationService = {
 
     // Re-validate conditional fields when their dependencies change
     var conditionalFields = [
-      '#abroadCountry',
-      '#parentGovernorate',
-      '#parentCity',
-      '#siblingGender',
-      '#siblingName',
-      '#siblingNationalId',
-      '#siblingFaculty'
+      '#abroad-country',
+      '#parent-governorate',
+      '#parent-city',
+      '#sibling-gender',
+      '#sibling-name-ar',
+      '#sibling-name-en',
+      '#sibling-national-id',
+      '#sibling-faculty',
+      '#emergency-contact-name',
+      '#emergency-contact-relationship',
+      '#emergency-contact-phone'
     ];
-
+    
     conditionalFields.forEach(function(field) {
-      ValidationService.validator.element(field);
+      var $field = $(field);
+      // Only validate if the field exists in the DOM
+      if ($field.length > 0) {
+        try {
+          ValidationService.validator.element(field);
+        } catch (error) {
+          console.warn('Could not validate field:', field, error);
+        }
+      }
     });
   }
 };
@@ -1418,12 +1461,10 @@ var ValidationService = {
 // NAVIGATION MANAGER
 // ===========================
 var NavigationManager = {
-  // Configuration for steps to skip
+    // Configuration for steps to skip
   SkippedSteps: [
-    { step: 6, selector: "isParentAbroad", condition: '=', value: 'no' },
-  ],
-
-  /**
+    { step: 6, selector: "is-parent-abroad", condition: '=', value: 'no' },
+  ],  /**
    * Initialize navigation manager
    */
   init: function() {
@@ -1812,7 +1853,7 @@ var ConditionalFieldsManager = {
    * Handle parent governorate change (parent address)
    */
   handleParentGovernorateChange: function() {
-    $('#parentGovernorate').change(function() {
+    $('#parent-governorate').change(function() {
       var governorateId = $(this).val();
 
       if (governorateId) {
@@ -1820,21 +1861,21 @@ var ConditionalFieldsManager = {
         ApiService.fetchCity(governorateId)
           .done(function(response) {
             if (response.success && response.data) {
-              Utils.populateSelect($('#parentCity'), response.data, {
+              Utils.populateSelect($('#parent-city'), response.data, {
                 placeholder: 'Select City',
                 valueField: 'id',
                 textField: 'name'
               });
             } else {
-              $('#parentCity').html('<option value="">No cities available</option>');
+              $('#parent-city').html('<option value="">No cities available</option>');
             }
           })
           .fail(function(xhr) {
             console.error('Failed to load parent cities:', xhr);
-            $('#parentCity').html('<option value="">Error loading cities</option>');
+            $('#parent-city').html('<option value="">Error loading cities</option>');
           });
       } else {
-        $('#parentCity').html('<option value="">Select City</option>');
+        $('#parent-city').html('<option value="">Select City</option>');
       }
     });
   },
@@ -1872,7 +1913,7 @@ var ConditionalFieldsManager = {
    * Handle parent abroad change
    */
   handleParentAbroadChange: function() {
-    $('#isParentAbroad').change(function() {
+    $('#is-parent-abroad').change(function() {
       var value = $(this).val();
 
       if (value === 'yes') {
@@ -1891,7 +1932,7 @@ var ConditionalFieldsManager = {
    * Handle living with parent change
    */
   handleLivingWithParentChange: function() {
-    $('#livingWithParent').change(function() {
+    $('#living-with-parent').change(function() {
       var value = $(this).val();
 
       if (value === 'no') {
@@ -1908,7 +1949,7 @@ var ConditionalFieldsManager = {
    * Handle sibling in dorm change
    */
   handleSiblingInDormChange: function() {
-    $('#hasSiblingInDorm').change(function() {
+    $('#has-sibling-in-dorm').change(function() {
       var value = $(this).val();
 
       if (value === 'yes') {
@@ -1925,17 +1966,17 @@ var ConditionalFieldsManager = {
    * Show abroad country fields
    */
   showAbroadFields: function() {
-    $('#abroadCountryDiv').removeClass('d-none');
-    $('#livingWithParentDiv, #parentAddressDiv').addClass('d-none');
+    $('#abroad-country-div').removeClass('d-none');
+    $('#living-with-parent-div, #parent-address-div').addClass('d-none');
   },
   /**
    * Show domestic parent fields
    */
   showDomesticFields: function() {
-    $('#abroadCountryDiv').addClass('d-none');
-    $('#livingWithParentDiv').removeClass('d-none');
+    $('#abroad-country-div').addClass('d-none');
+    $('#living-with-parent-div').removeClass('d-none');
 
-    if ($('#livingWithParent').val() === 'no') {
+    if ($('#living-with-parent').val() === 'no') {
       this.showParentAddressFields();
     } else {
       this.hideParentAddressFields();
@@ -1945,19 +1986,19 @@ var ConditionalFieldsManager = {
    * Hide all parent fields
    */
   hideAllParentFields: function() {
-    $('#abroadCountryDiv, #livingWithParentDiv, #parentAddressDiv').addClass('d-none');
+    $('#abroad-country-div, #living-with-parent-div, #parent-address-div').addClass('d-none');
   },
   /**
    * Show parent address fields
    */
   showParentAddressFields: function() {
-    $('#parentAddressDiv').removeClass('d-none');
+    $('#parent-address-div').removeClass('d-none');
   },
   /**
    * Hide parent address fields
    */
   hideParentAddressFields: function() {
-    $('#parentAddressDiv').addClass('d-none');
+    $('#parent-address-div').addClass('d-none');
   },
   /**
    * Show sibling details
@@ -1975,10 +2016,10 @@ var ConditionalFieldsManager = {
    * Trigger initial changes for all conditional fields
    */
   triggerInitialChanges: function() {
-    $('#isParentAbroad').trigger('change');
-    $('#livingWithParent').trigger('change');
-    $('#hasSiblingInDorm').trigger('change');
-    $('#parentGovernorate').trigger('change');
+    $('#is-parent-abroad').trigger('change');
+    $('#living-with-parent').trigger('change');
+    $('#has-sibling-in-dorm').trigger('change');
+    $('#parent-governorate').trigger('change');
   }
 };
 

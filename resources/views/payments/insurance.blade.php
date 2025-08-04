@@ -6,37 +6,99 @@
 <div class="container-xxl flex-grow-1 container-p-y">
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
-        <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 color="primary" icon="bx bx-shield" label="Total Insurances" id="insurances" />
+        <div class="col-12 col-sm-6 col-lg-3">
+          <x-ui.card.stat2 
+              color="secondary"
+              icon="bx bx-door-open"
+              label="Total Insurances"
+              id="insurances"
+              :subStats="[
+                  'male' => [
+                      'label' => 'Male Insurances',
+                      'icon' => 'bx bx-male-sign',
+                      'color' => 'info'
+                  ],
+                  'female' => [
+                      'label' => 'Female Insurances', 
+                      'icon' => 'bx bx-female-sign',
+                      'color' => 'danger'
+                  ]
+              ]"
+          />
         </div>
-        <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 color="success" icon="bx bx-check-circle" label="Active" id="insurances-active" />
+        <div class="col-12 col-sm-6 col-lg-3">
+          <x-ui.card.stat2 
+              color="info"
+              icon="bx bx-check-circle"
+              label="Active Insurances"
+              id="insurances-active"
+              :subStats="[
+                  'male' => [
+                      'label' => 'Active Male Insurances',
+                      'icon' => 'bx bx-male-sign',
+                      'color' => 'info'
+                  ],
+                  'female' => [
+                      'label' => 'Active Female Insurances', 
+                      'icon' => 'bx bx-female-sign',
+                      'color' => 'danger'
+                  ]
+              ]"
+          />
         </div>
-        <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 color="danger" icon="bx bx-undo" label="Refunded" id="insurances-refunded" />
+        <div class="col-12 col-sm-6 col-lg-3">
+          <x-ui.card.stat2 
+              color="danger"
+              icon="bx bx-check-circle"
+              label="Refunded Insurances"
+              id="insurances-refunded"
+              :subStats="[
+                  'male' => [
+                      'label' => 'Refunded Male Insurances',
+                      'icon' => 'bx bx-male-sign',
+                      'color' => 'info'
+                  ],
+                  'female' => [
+                      'label' => 'Refunded Female Insurances', 
+                      'icon' => 'bx bx-female-sign',
+                      'color' => 'danger'
+                  ]
+              ]"
+          />
         </div>
-        <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 color="info" icon="bx bx-transfer" label="Carried Over" id="insurances-carried-over" />
+        <div class="col-12 col-sm-6 col-lg-3">
+          <x-ui.card.stat2 
+              color="warning"
+              icon="bx bx-check-circle"
+              label="Carried Over Insurances"
+              id="insurances-carried-over"
+              :subStats="[
+                  'male' => [
+                      'label' => 'Carried Over Male Insurances',
+                      'icon' => 'bx bx-male-sign',
+                      'color' => 'info'
+                  ],
+                  'female' => [
+                      'label' => 'Carried Over Female Insurances', 
+                      'icon' => 'bx bx-female-sign',
+                      'color' => 'danger'
+                  ]
+              ]"
+          />
         </div>
     </div>
-    <div class="row g-4 mb-4">
-        <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 color="warning" icon="bx bx-block" label="Cancelled" id="insurances-cancelled" />
-        </div>
-    </div>
-
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header 
         title="Insurances"
         description="Manage insurances and their details."
         icon="bx bx-shield"
     >
-        <button class="btn btn-primary mx-2" id="addInsuranceBtn">
-            <i class="bx bx-plus me-1"></i> Add Insurance
-        </button>
-        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#insuranceSearchCollapse" aria-expanded="false" aria-controls="insuranceSearchCollapse">
-            <i class="bx bx-search"></i>
-        </button>
+        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
+
+            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#insuranceSearchCollapse" aria-expanded="false" aria-controls="insuranceSearchCollapse">
+                <i class="bx bx-filter-alt me-1"></i> Search
+            </button>
+        </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
@@ -87,10 +149,10 @@
     />
 
     {{-- ===== MODALS SECTION ===== --}}
-    {{-- Add/Edit Insurance Modal --}}
+    {{-- Edit Insurance Modal --}}
     <x-ui.modal 
         id="insuranceModal"
-        title="Add/Edit Insurance"
+        title="Edit Insurance"
         :scrollable="true"
         class="insurance-modal"
     >
@@ -166,20 +228,6 @@
         </x-slot>
     </x-ui.modal>
 
-    {{-- Details Modal --}}
-    <x-ui.modal 
-        id="insuranceDetailsModal"
-        title="Insurance Details"
-        :scrollable="true"
-        class="view-insurance-details-modal"
-    >
-        <x-slot name="slot">
-            <pre id="insurance-details-json" class="mb-0"></pre>
-        </x-slot>
-        <x-slot name="footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-        </x-slot>
-    </x-ui.modal>
 </div>
 @endsection
 
@@ -189,13 +237,13 @@
  * Insurance Management Page JS
  *
  * Structure:
- * - Utils: Common utility functions
  * - ApiService: Handles all AJAX requests
  * - StatsManager: Handles statistics cards
  * - InsuranceManager: Handles CRUD and actions for insurances
+ * - SearchManager: Handles search functionality
  * - InsuranceApp: Initializes all managers
- * NOTE: Uses global Utils from public/js/utils.js
-
+ *
+ * Uses global @utils.js functions for common utilities.
  */
 
 // ===========================
@@ -211,7 +259,6 @@ var ROUTES = {
     all: '{{ route('insurances.all') }}',
     cancel: '{{ route('insurances.cancel', ':id') }}',
     refund: '{{ route('insurances.refund', ':id') }}',
-    details: '{{ route('insurances.details', ':id') }}',
   }
 };
 
@@ -234,7 +281,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   fetchStats: function() {
-    return this.request({ url: ROUTES.insurances.stats, method: 'GET' });
+    return ApiService.request({ url: ROUTES.insurances.stats, method: 'GET' });
   },
   /**
    * Fetch a single insurance by ID
@@ -242,7 +289,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   fetchInsurance: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.insurances.show, id), method: 'GET' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.insurances.show, id), method: 'GET' });
   },
   /**
    * Save (update) an insurance
@@ -251,7 +298,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   saveInsurance: function(data, id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.insurances.update, id), method: 'PUT', data: data });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.insurances.update, id), method: 'PUT', data: data });
   },
   /**
    * Create a new insurance
@@ -259,7 +306,7 @@ var ApiService = {
    * @returns {jqXHR}
    */
   createInsurance: function(data) {
-    return this.request({ url: ROUTES.insurances.store, method: 'POST', data: data });
+    return ApiService.request({ url: ROUTES.insurances.store, method: 'POST', data: data });
   },
   /**
    * Delete an insurance by ID
@@ -267,94 +314,35 @@ var ApiService = {
    * @returns {jqXHR}
    */
   deleteInsurance: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.insurances.destroy, id), method: 'DELETE' });
-  },
-  fetchInsuranceDetails: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.insurances.details, id), method: 'GET' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.insurances.destroy, id), method: 'DELETE' });
   },
   cancelInsurance: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.insurances.cancel, id), method: 'POST' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.insurances.cancel, id), method: 'POST' });
   },
   refundInsurance: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.insurances.refund, id), method: 'POST' });
+    return ApiService.request({ url: Utils.replaceRouteId(ROUTES.insurances.refund, id), method: 'POST' });
   }
 };
 
 // ===========================
 // STATISTICS MANAGER
 // ===========================
-var StatsManager = {
-  /**
-   * Initialize statistics cards
-   */
-  init: function() {
-    this.load();
+var StatsManager = Utils.createStatsManager({
+  apiMethod: ApiService.fetchStats,
+  statsKeys: [
+    'insurances',
+    'insurances-active',
+    'insurances-refunded',
+    'insurances-carried-over',
+  ],
+  subStatsConfig: {
+    'insurances': ['male', 'female'],
+    'insurances-active': ['male', 'female'],
+    'insurances-refunded': ['male', 'female'],
+    'insurances-carried-over': ['male', 'female'],
   },
-  /**
-   * Load statistics data
-   */
-  load: function() {
-    this.toggleAllLoadingStates(true);
-    ApiService.fetchStats()
-      .done(this.handleSuccess.bind(this))
-      .fail(this.handleError.bind(this))
-      .always(this.toggleAllLoadingStates.bind(this, false));
-  },
-  /**
-   * Handle successful stats fetch
-   * @param {object} response
-   */
-  handleSuccess: function(response) {
-    if (response.success) {
-      let stats = response.data;
-      this.updateStatElement('insurances', stats.total.count, stats.total.lastUpdateTime);
-      this.updateStatElement('insurances-active', stats.active.count, stats.active.lastUpdateTime);
-      this.updateStatElement('insurances-refunded', stats.refunded.count, stats.refunded.lastUpdateTime);
-      this.updateStatElement('insurances-carried-over', stats.carried_over.count, stats.carried_over.lastUpdateTime);
-      this.updateStatElement('insurances-cancelled', stats.cancelled.count, stats.cancelled.lastUpdateTime);
-    } else {
-      this.setAllStatsToNA();
-    }
-  },
-  /**
-   * Handle error in stats fetch
-   */
-  handleError: function() {
-    this.setAllStatsToNA();
-    Utils.showError('Failed to load insurance statistics');
-  },
-  /**
-   * Update a single stat card
-   * @param {string} elementId
-   * @param {string|number} value
-   * @param {string} lastUpdateTime
-   */
-  updateStatElement: function(elementId, value, lastUpdateTime) {
-    // Hide loader, show value and last updated
-    $('#' + elementId + '-value').text(value ?? '0').removeClass('d-none');
-    $('#' + elementId + '-loader').addClass('d-none');
-    $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--').removeClass('d-none');
-    $('#' + elementId + '-last-updated-loader').addClass('d-none');
-  },
-  setAllStatsToNA: function() {
-    ['insurances', 'insurances-active', 'insurances-refunded', 'insurances-carried-over', 'insurances-cancelled'].forEach(function(elementId) {
-      $('#' + elementId + '-value').text('N/A').removeClass('d-none');
-      $('#' + elementId + '-loader').addClass('d-none');
-      $('#' + elementId + '-last-updated').text('N/A').removeClass('d-none');
-      $('#' + elementId + '-last-updated-loader').addClass('d-none');
-    });
-  },
-  /**
-   * Toggle loading state for all stat cards
-   * @param {boolean} isLoading
-   */
-  toggleAllLoadingStates: function(isLoading) {
-    ['insurances', 'insurances-active', 'insurances-refunded', 'insurances-carried-over', 'insurances-cancelled'].forEach(function(elementId) {
-      Utils.toggleLoadingState(elementId, isLoading);
-    });
-  }
-};
-
+});
+  
 // ===========================
 // INSURANCE MANAGER
 // ===========================
@@ -370,23 +358,12 @@ var InsuranceManager = {
    * Bind all insurance-related events
    */
   bindEvents: function() {
-    this.handleAddInsurance();
     this.handleEditInsurance();
     this.handleViewInsurance();
     this.handleDeleteInsurance();
     this.handleFormSubmit();
-    this.handleViewInsuranceDetails();
     this.handleCancelInsurance();
     this.handleRefundInsurance();
-  },
-  /**
-   * Handle add insurance button click
-   */
-  handleAddInsurance: function() {
-    var self = this;
-    $(document).on('click', '#addInsuranceBtn', function() {
-      self.openModal('add');
-    });
   },
   /**
    * Handle edit insurance button click
@@ -395,7 +372,17 @@ var InsuranceManager = {
     var self = this;
     $(document).on('click', '.editInsuranceBtn', function(e) {
       var insuranceId = $(e.currentTarget).data('id');
-      self.openModal('edit', insuranceId);
+      ApiService.fetchInsurance(insuranceId)
+        .done(function(response) {
+          if (response.success) {
+            InsuranceManager.populateEditForm(response.data);
+            $('#insuranceModal').modal('show');
+          }
+        })
+        .fail(function() {
+          $('#insuranceModal').modal('hide');
+          Utils.showError('Failed to load insurance data');
+        });
     });
   },
   /**
@@ -424,16 +411,6 @@ var InsuranceManager = {
     $('#insuranceForm').on('submit', function(e) {
       e.preventDefault();
       self.saveInsurance();
-    });
-  },
-  /**
-   * Handle view details button click
-   */
-  handleViewInsuranceDetails: function() {
-    var self = this;
-    $(document).on('click', '.viewDetailsBtn', function(e) {
-      var insuranceId = $(e.currentTarget).data('id');
-      self.viewDetails(insuranceId);
     });
   },
   /**
@@ -485,32 +462,6 @@ var InsuranceManager = {
         }
       });
     });
-  },
-  /**
-   * Open add/edit modal
-   */
-  openModal: function(mode, insuranceId) {
-    this.currentInsuranceId = insuranceId;
-    // Use global Utils.clearValidation and reset form
-    Utils.clearValidation && Utils.clearValidation($('#insuranceForm'));
-    $('#insuranceForm')[0].reset();
-    if (mode === 'add') {
-      $('#insuranceModal .modal-title').text('Add Insurance');
-      $('#insuranceModal').modal('show');
-    } else if (mode === 'edit') {
-      $('#insuranceModal .modal-title').text('Edit Insurance');
-      ApiService.fetchInsurance(insuranceId)
-        .done(function(response) {
-          if (response.success) {
-            InsuranceManager.populateEditForm(response.data);
-            $('#insuranceModal').modal('show');
-          }
-        })
-        .fail(function() {
-          $('#insuranceModal').modal('hide');
-          Utils.showError('Failed to load insurance data');
-        });
-    }
   },
   /**
    * Populate edit form
@@ -611,40 +562,6 @@ var InsuranceManager = {
       .fail(function(xhr) {
         Utils.handleAjaxError ? Utils.handleAjaxError(xhr, 'Failed to delete insurance.') : Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to delete insurance.');
       });
-  },
-  /**
-   * View insurance details (details modal)
-   */
-  viewDetails: function(insuranceId) {
-    $('#insurance-details-json').html('<div class="text-center py-4"><span class="spinner-border text-info" role="status"></span></div>');
-    $('#insuranceDetailsModal').modal('show');
-    ApiService.fetchInsuranceDetails(insuranceId)
-      .done(function(response) {
-        if (response.success) {
-          var details = response.data;
-          var html = '';
-          if (Array.isArray(details) && details.length > 0) {
-            html = '<ul class="list-group">';
-            details.forEach(function(item) {
-              html += '<li class="list-group-item d-flex align-items-center">'
-                + '<i class="bx bx-info-circle text-primary me-2"></i>'
-                + '<span class="fw-bold me-2">' + (item.type ? item.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : '') + '</span>'
-                + (typeof item.amount !== 'undefined' ? '<span class="badge bg-success me-2">' + item.amount + '</span>' : '')
-                + (item.description ? '<span class="text-muted">' + item.description + '</span>' : '')
-                + '</li>';
-            });
-            html += '</ul>';
-          } else {
-            html = '<span>--</span>';
-          }
-          $('#insurance-details-json').html(html);
-        } else {
-          $('#insurance-details-json').html('<span class="text-danger">Failed to load details.</span>');
-        }
-      })
-      .fail(function() {
-        $('#insurance-details-json').html('<span class="text-danger">Failed to load details.</span>');
-      });
   }
 };
 
@@ -680,6 +597,53 @@ var SearchManager = {
     $('#clearInsuranceFiltersBtn').on('click', function() {
       $('#search_status, #search_reservation_number, #search_national_id').val('');
       $('#insurances-table').DataTable().ajax.reload();
+    });
+  }
+};
+
+// ===========================
+// SEARCH FUNCTIONALITY
+// ===========================
+var SearchManager = {
+  /**
+   * Initialize search functionality
+   */
+  init: function() {
+    this.bindEvents();
+  },
+  /**
+   * Bind search events
+   */
+  bindEvents: function() {
+    this.initializeAdvancedSearch();
+    this.handleClearFilters();
+  },
+  /**
+   * Initialize advanced search event listeners
+   */
+  initializeAdvancedSearch: function() {
+    // Initialize select2 for status dropdown
+    Utils.initSelect2('#search_status', {
+      placeholder: 'Select Status',
+      allowClear: true
+    });
+
+    // Handle search input changes
+    $('#search_status, #search_reservation_number, #search_national_id').on('keyup change', function() {
+      Utils.reloadDataTable('#insurances-table');
+    });
+  },
+  /**
+   * Handle clear filters button click
+   */
+  handleClearFilters: function() {
+    $('#clearInsuranceFiltersBtn').on('click', function() {
+      Utils.clearValidation('#advancedInsuranceSearch');
+      $('#search_status').val('').trigger('change');
+      $('#search_reservation_number').val('');
+      $('#search_national_id').val('');
+      Utils.reloadDataTable('#insurances-table');
+      Utils.showSuccess('Filters cleared', true, 'top-end');
     });
   }
 };

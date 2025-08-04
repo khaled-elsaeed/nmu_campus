@@ -179,4 +179,16 @@ class StudentArchive extends Model
     {
         $query->where('synced_at', '>=', now()->subHours($hours));
     }
+
+    /**
+     * Check if a national ID belongs to a university student.
+     *
+     * @param string $nationalId
+     * @return bool
+     */
+    public static function isUniversityStudent(string $nationalId): bool
+    {
+        return self::where('national_id', $nationalId)
+            ->exists();
+    }
 }

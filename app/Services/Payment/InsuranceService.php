@@ -58,36 +58,6 @@ class InsuranceService
         return $insurance->fresh();
     }
 
-    /**
-     * Get a single insurance record.
-     *
-     * @param int $id
-     * @return array
-     */
-    public function getInsurance(int $id): array
-    {
-        $insurance = Insurance::select([
-            'id',
-            'student_id',
-            'academic_term_id',
-            'amount',
-            'is_paid',
-            'paid_at'
-        ])->find($id);
-
-        if (!$insurance) {
-            throw new BusinessValidationException('Insurance not found.');
-        }
-
-        return [
-            'id' => $insurance->id,
-            'student_id' => $insurance->student_id,
-            'academic_term_id' => $insurance->academic_term_id,
-            'amount' => $insurance->amount,
-            'is_paid' => $insurance->is_paid,
-            'paid_at' => $insurance->paid_at,
-        ];
-    }
 
     /**
      * Delete an insurance record.
@@ -107,40 +77,70 @@ class InsuranceService
      *
      * @return array
      */
-    public function getStats(): array
+    public function getStats(): array 
     {
-        $total = Insurance::count();
-        $active = Insurance::where('status', 'active')->count();
-        $refunded = Insurance::where('status', 'refunded')->count();
-        $carriedOver = Insurance::where('status', 'carried_over')->count();
-        $cancelled = Insurance::where('status', 'cancelled')->count();
-
-        $lastUpdate = Insurance::max('updated_at');
-        $activeLastUpdate = Insurance::where('status', 'active')->max('updated_at');
-        $refundedLastUpdate = Insurance::where('status', 'refunded')->max('updated_at');
-        $carriedOverLastUpdate = Insurance::where('status', 'carried_over')->max('updated_at');
-        $cancelledLastUpdate = Insurance::where('status', 'cancelled')->max('updated_at');
+        $stats = Insurance::leftJoin('reservations as r', 'insurances.reservation_id', '=', 'r.id')
+            ->leftJoin('users as u', 'r.user_id', '=', 'u.id')
+            ->selectRaw("
+                COUNT(*) as total_count,
+                COUNT(CASE WHEN insurances.status = 'active' THEN 1 END) as active_count,
+                COUNT(CASE WHEN insurances.status = 'refunded' THEN 1 END) as refunded_count,
+                COUNT(CASE WHEN insurances.status = 'carried_over' THEN 1 END) as carried_over_count,
+                COUNT(CASE WHEN insurances.status = 'cancelled' THEN 1 END) as cancelled_count,
+                
+                COUNT(CASE WHEN u.gender = 'male' THEN 1 END) as total_male,
+                COUNT(CASE WHEN u.gender = 'female' THEN 1 END) as total_female,
+                
+                COUNT(CASE WHEN insurances.status = 'active' AND u.gender = 'male' THEN 1 END) as active_male,
+                COUNT(CASE WHEN insurances.status = 'active' AND u.gender = 'female' THEN 1 END) as active_female,
+                
+                COUNT(CASE WHEN insurances.status = 'refunded' AND u.gender = 'male' THEN 1 END) as refunded_male,
+                COUNT(CASE WHEN insurances.status = 'refunded' AND u.gender = 'female' THEN 1 END) as refunded_female,
+                
+                COUNT(CASE WHEN insurances.status = 'carried_over' AND u.gender = 'male' THEN 1 END) as carried_over_male,
+                COUNT(CASE WHEN insurances.status = 'carried_over' AND u.gender = 'female' THEN 1 END) as carried_over_female,
+                
+                COUNT(CASE WHEN insurances.status = 'cancelled' AND u.gender = 'male' THEN 1 END) as cancelled_male,
+                COUNT(CASE WHEN insurances.status = 'cancelled' AND u.gender = 'female' THEN 1 END) as cancelled_female,
+                
+                MAX(insurances.updated_at) as last_update,
+                MAX(CASE WHEN insurances.status = 'active' THEN insurances.updated_at END) as active_last_update,
+                MAX(CASE WHEN insurances.status = 'refunded' THEN insurances.updated_at END) as refunded_last_update,
+                MAX(CASE WHEN insurances.status = 'carried_over' THEN insurances.updated_at END) as carried_over_last_update,
+                MAX(CASE WHEN insurances.status = 'cancelled' THEN insurances.updated_at END) as cancelled_last_update
+            ")
+            ->first();
 
         return [
-            'total' => [
-                'count' => formatNumber($total),
-                'lastUpdateTime' => formatDate($lastUpdate),
+            'insurances' => [
+                'count' => formatNumber($stats->total_count),
+                'male' => formatNumber($stats->total_male),
+                'female' => formatNumber($stats->total_female),
+                'lastUpdateTime' => formatDate($stats->last_update),
             ],
-            'active' => [
-                'count' => formatNumber($active),
-                'lastUpdateTime' => formatDate($activeLastUpdate),
+            'insurances-active' => [
+                'count' => formatNumber($stats->active_count),
+                'male' => formatNumber($stats->active_male),
+                'female' => formatNumber($stats->active_female),
+                'lastUpdateTime' => formatDate($stats->active_last_update),
             ],
-            'refunded' => [
-                'count' => formatNumber($refunded),
-                'lastUpdateTime' => formatDate($refundedLastUpdate),
+            'insurances-refunded' => [
+                'count' => formatNumber($stats->refunded_count),
+                'male' => formatNumber($stats->refunded_male),
+                'female' => formatNumber($stats->refunded_female),
+                'lastUpdateTime' => formatDate($stats->refunded_last_update),
             ],
-            'carried_over' => [
-                'count' => formatNumber($carriedOver),
-                'lastUpdateTime' => formatDate($carriedOverLastUpdate),
+            'insurances-carried-over' => [
+                'count' => formatNumber($stats->carried_over_count),
+                'male' => formatNumber($stats->carried_over_male),
+                'female' => formatNumber($stats->carried_over_female),
+                'lastUpdateTime' => formatDate($stats->carried_over_last_update),
             ],
-            'cancelled' => [
-                'count' => formatNumber($cancelled),
-                'lastUpdateTime' => formatDate($cancelledLastUpdate),
+            'insurances-cancelled' => [
+                'count' => formatNumber($stats->cancelled_count),
+                'male' => formatNumber($stats->cancelled_male),
+                'female' => formatNumber($stats->cancelled_female),
+                'lastUpdateTime' => formatDate($stats->cancelled_last_update),
             ],
         ];
     }
@@ -215,7 +215,7 @@ class InsuranceService
      */
     public function renderActionButtons(Insurance $insurance): string
     {
-        $actions = ['view', 'delete'];
+        $actions = ['delete'];
         $singleActions = [];
         if ($insurance->status === 'active') {
             $singleActions[] = [
@@ -270,17 +270,5 @@ class InsuranceService
         }
         $insurance->status = 'refunded';
         $insurance->save();
-    }
-
-    /**
-     * Get all insurance records.
-     *
-     * @return array
-     */
-    public function getAll(): array
-    {
-        return Insurance::select(['id', 'student_id', 'academic_term_id', 'amount', 'is_paid'])
-            ->get()
-            ->toArray();
     }
 }

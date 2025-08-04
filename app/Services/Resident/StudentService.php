@@ -137,7 +137,7 @@ class StudentService
                 'city_id',
                 'phone',
                 'academic_email',
-                'address',
+                'street',
                 'date_of_birth',
             ])
             ->with([
@@ -170,7 +170,7 @@ class StudentService
             'city' => $student->city->name ?? null,
             'phone' => $student->phone,
             'academic_email' => $student->academic_email,
-            'address' => $student->address,
+            'street' => $student->street,
             'date_of_birth' => $student->date_of_birth,
             'level' => $student->level,
             'name_en' => $student->name_en,

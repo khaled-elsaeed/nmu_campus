@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('password');
             $table->boolean('force_change_password')->default(false);
             $table->timestamp('last_login')->nullable();
+            $table->timestamp('last_password_changed_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

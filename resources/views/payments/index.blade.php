@@ -5,25 +5,95 @@
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
     {{-- ===== STATISTICS CARDS ===== --}}
-    <div class="row g-4 mb-4">
-        <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 color="primary" icon="bx bx-money" label="Total Payments" id="payments" />
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 color="info" icon="bx bx-time-five" label="Pending" id="payments-pending" />
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 color="success" icon="bx bx-check-circle" label="Completed" id="payments-completed" />
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 color="danger" icon="bx bx-undo" label="Refunded" id="payments-refunded" />
-        </div>
-    </div>
-    <div class="row g-4 mb-4">
-        <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 color="warning" icon="bx bx-block" label="Cancelled" id="payments-cancelled" />
-        </div>
-    </div>
+    <div class="row mb-4 g-2">
+      <!-- Total Payments -->
+      <div class="col-12 col-sm-6 col-lg-3">
+          <x-ui.card.stat2 
+              color="secondary"
+              icon="bx bx-door-open"
+              label="Total Payments"
+              id="payments"
+              :subStats="[
+                  'male' => [
+                      'label' => 'Male Payments',
+                      'icon' => 'bx bx-male-sign',
+                      'color' => 'info'
+                  ],
+                  'female' => [
+                      'label' => 'Female Payments', 
+                      'icon' => 'bx bx-female-sign',
+                      'color' => 'danger'
+                  ]
+              ]"
+          />
+      </div>
+
+      <!-- Pending Payments -->
+      <div class="col-12 col-sm-6 col-lg-3">
+          <x-ui.card.stat2 
+              color="warning"
+              icon="bx bx-time-five"
+              label="Pending Payments"
+              id="payments-pending"
+              :subStats="[
+                  'male' => [
+                      'label' => 'Male Pending',
+                      'icon' => 'bx bx-male-sign',
+                      'color' => 'info'
+                  ],
+                  'female' => [
+                      'label' => 'Female Pending', 
+                      'icon' => 'bx bx-female-sign',
+                      'color' => 'danger'
+                  ]
+              ]"
+          />
+      </div>
+
+      <!-- Completed Payments -->
+      <div class="col-12 col-sm-6 col-lg-3">
+          <x-ui.card.stat2 
+              color="success"
+              icon="bx bx-check-circle"
+              label="Completed Payments"
+              id="payments-completed"
+              :subStats="[
+                  'male' => [
+                      'label' => 'Male Completed',
+                      'icon' => 'bx bx-male-sign',
+                      'color' => 'info'
+                  ],
+                  'female' => [
+                      'label' => 'Female Completed', 
+                      'icon' => 'bx bx-female-sign',
+                      'color' => 'danger'
+                  ]
+              ]"
+          />
+      </div>
+
+      <!-- Cancelled Payments -->
+      <div class="col-12 col-sm-6 col-lg-3">
+          <x-ui.card.stat2 
+              color="dark"
+              icon="bx bx-x-circle"
+              label="Cancelled Payments"
+              id="payments-cancelled"
+              :subStats="[
+                  'male' => [
+                      'label' => 'Male Cancelled',
+                      'icon' => 'bx bx-male-sign',
+                      'color' => 'info'
+                  ],
+                  'female' => [
+                      'label' => 'Female Cancelled', 
+                      'icon' => 'bx bx-female-sign',
+                      'color' => 'danger'
+                  ]
+              ]"
+          />
+      </div>
+  </div>
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header 
@@ -31,12 +101,14 @@
         description="Manage payments and their details."
         icon="bx bx-money"
     >
-        <button class="btn btn-primary mx-2" id="addPaymentBtn">
+    <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
+                            <button class="btn btn-primary mx-2" id="addPaymentBtn">
             <i class="bx bx-plus me-1"></i> Add Payment
         </button>
-        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#paymentSearchCollapse" aria-expanded="false" aria-controls="paymentSearchCollapse">
-            <i class="bx bx-search"></i>
-        </button>
+            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#paymentSearchCollapse" aria-expanded="false" aria-controls="paymentSearchCollapse">
+                <i class="bx bx-filter-alt me-1"></i> Search
+            </button>
+        </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
@@ -96,29 +168,53 @@
             <form id="paymentForm">
                 <div class="row">
                     <div class="col-md-12 mb-3">
-                        <label for="payment_reservation_id" class="form-label">Reservation ID</label>
-                        <input type="number" id="payment_reservation_id" name="reservation_id" class="form-control" required readonly>
-                    </div>
-                    <div class="col-md-12 mb-3">
-                        <label for="payment_amount" class="form-label">Amount</label>
-                        <input type="number" step="0.01" id="payment_amount" name="amount" class="form-control" required>
-                    </div>
-                    <div class="col-md-12 mb-3">
-                        <label for="payment_status" class="form-label">Status</label>
-                        <select id="payment_status" name="status" class="form-control" required>
-                            <option value="pending">Pending</option>
-                            <option value="completed">Completed</option>
-                            <option value="refunded">Refunded</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
+                        <label for="payment_reservation_id" class="form-label">Reservation Number</label>
+                        <input type="text" id="payment_reservation_id" name="reservation_number" class="form-control" required>
                     </div>
                     <div class="col-md-12 mb-3">
                         <label for="payment_notes" class="form-label">Notes</label>
                         <textarea id="payment_notes" name="notes" class="form-control"></textarea>
                     </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Total Amount</label>
+                        <input type="number" step="0.01" id="payment_amount" name="amount" class="form-control bg-light" readonly>
+                    </div>
                     <div class="col-md-12 mb-3">
-                        <label for="payment_details" class="form-label">Details (JSON)</label>
-                        <textarea id="payment_details" name="details" class="form-control"></textarea>
+                        <label class="form-label">Payment Details</label>
+                        <div id="payment_details_container">
+                            <!-- Template for payment detail item -->
+                            <div class="payment-detail-item card mb-3">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4 mb-2">
+                                            <label class="form-label">Payment Type</label>
+                                            <select name="details[0][type]" class="form-control payment-type" required>
+                                                <option value="">Select Type</option>
+                                                <option value="damages">damages</option>
+                                                <option value="service_fee">Service Fee</option>
+                                                <option value="other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                            <label class="form-label">Amount</label>
+                                            <input type="number" name="details[0][amount]" class="form-control payment-amount" step="0.01" required>
+                                        </div>
+                                        <div class="col-md-12 mb-2">
+                                            <label class="form-label">Description</label>
+                                            <textarea name="details[0][description]" class="form-control payment-description" rows="2"></textarea>
+                                        </div>
+                                        <div class="col-12 text-end">
+                                            <button type="button" class="btn btn-danger btn-sm remove-detail" style="display: none;">
+                                                <i class="bx bx-trash"></i> Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-secondary mt-2" id="add_payment_detail">
+                            <i class="bx bx-plus"></i> Add
+                        </button>
                     </div>
                 </div>
             </form>
@@ -280,73 +376,23 @@ var ApiService = {
 // ===========================
 // STATISTICS MANAGER
 // ===========================
-var StatsManager = {
-  /**
-   * Initialize statistics cards
-   */
-  init: function() {
-    this.load();
+var StatsManager = Utils.createStatsManager({
+  apiMethod: ApiService.fetchStats.bind(ApiService),
+  statsKeys: [
+    'payments',
+    'payments-pending',
+    'payments-completed',
+    'payments-cancelled'
+  ],
+  subStatsConfig: {
+    'payments': ['male', 'female'],
+    'payments-pending': ['male', 'female'],
+    'payments-completed': ['male', 'female'],
+    'payments-cancelled': ['male', 'female']
   },
-  /**
-   * Load statistics data
-   */
-  load: function() {
-    this.toggleAllLoadingStates(true);
-    ApiService.fetchStats()
-      .done(this.handleSuccess.bind(this))
-      .fail(this.handleError.bind(this))
-      .always(this.toggleAllLoadingStates.bind(this, false));
-  },
-  /**
-   * Handle successful stats fetch
-   * @param {object} response
-   */
-  handleSuccess: function(response) {
-    if (response.success) {
-      let stats = response.data;
-      this.updateStatElement('payments', stats.total.count, stats.total.lastUpdateTime);
-      this.updateStatElement('payments-pending', stats.pending.count, stats.pending.lastUpdateTime);
-      this.updateStatElement('payments-completed', stats.completed.count, stats.completed.lastUpdateTime);
-      this.updateStatElement('payments-refunded', stats.refunded.count, stats.refunded.lastUpdateTime);
-      this.updateStatElement('payments-cancelled', stats.cancelled.count, stats.cancelled.lastUpdateTime);
-    } else {
-      this.setAllStatsToNA();
-    }
-  },
-  /**
-   * Handle error in stats fetch
-   */
-  handleError: function() {
-    this.setAllStatsToNA();
-    Utils.showError('Failed to load payment statistics');
-  },
-  updateStatElement: function(elementId, value, lastUpdateTime) {
-    // Hide loader, show value and last updated
-    $('#' + elementId + '-value').text(value ?? '0').removeClass('d-none');
-    $('#' + elementId + '-loader').addClass('d-none');
-    $('#' + elementId + '-last-updated').text(lastUpdateTime ?? '--').removeClass('d-none');
-    $('#' + elementId + '-last-updated-loader').addClass('d-none');
-  },
-  setAllStatsToNA: function() {
-    ['payments', 'payments-pending', 'payments-completed', 'payments-refunded', 'payments-cancelled'].forEach(function(elementId) {
-      $('#' + elementId + '-value').text('N/A').removeClass('d-none');
-      $('#' + elementId + '-loader').addClass('d-none');
-      $('#' + elementId + '-last-updated').text('N/A').removeClass('d-none');
-      $('#' + elementId + '-last-updated-loader').addClass('d-none');
-    });
-  },
-   /**
-   * Update a single stat card
-   * @param {string} elementId
-   * @param {string|number} value
-   * @param {string} lastUpdateTime
-   */
-  toggleAllLoadingStates: function(isLoading) {
-    ['payments', 'payments-pending', 'payments-completed', 'payments-refunded', 'payments-cancelled'].forEach(function(elementId) {
-      Utils.toggleLoadingState(elementId, isLoading);
-    });
-  }
-};
+  onError: 'Failed to load payment statistics'
+});
+  
 
 // ===========================
 // PAYMENT MANAGER
@@ -358,6 +404,7 @@ var PaymentManager = {
    */
   init: function() {
     this.bindEvents();
+    this.initializePaymentDetails();
   },
   /**
    * Bind all payment-related events
@@ -376,7 +423,9 @@ var PaymentManager = {
   handleAddPayment: function() {
     var self = this;
     $(document).on('click', '#addPaymentBtn', function() {
-      self.openModal('add');
+      Utils.resetForm('paymentForm');
+      $('#paymentModalTitle').text('Add Payment');
+      $('#paymentModal').modal('show');
     });
   },
   /**
@@ -386,7 +435,19 @@ var PaymentManager = {
     var self = this;
     $(document).on('click', '.editPaymentBtn', function(e) {
       var paymentId = $(e.currentTarget).data('id');
-      self.openModal('edit', paymentId);
+      Utils.resetForm('paymentForm');
+        $('#paymentModalTitle').text('Edit Payment');
+    ApiService.fetchPayment(paymentId)
+      .done(function(response) {
+        if (response.success) {
+          PaymentManager.populateEditForm(response.data);
+          $('#paymentModal').modal('show');
+        }
+      })
+      .fail(function(xhr) {
+        $('#paymentModal').modal('hide');
+          Utils.handleAjaxError(xhr,'Failed to load payment data');
+      });
     });
   },
   /**
@@ -414,6 +475,7 @@ var PaymentManager = {
     var self = this;
     $('#paymentForm').on('submit', function(e) {
       e.preventDefault();
+      Utils.clearValidation('#paymentForm');
       self.savePayment();
     });
   },
@@ -425,66 +487,123 @@ var PaymentManager = {
       self.viewDetails(paymentId);
     });
   },
+
   /**
-   * Open add/edit modal
+   * Populate edit form
    */
-  openModal: function(mode, paymentId) {
-    this.currentPaymentId = paymentId;
-    this.resetModalState();
-    if (mode === 'add') {
-      this.setupAddModal();
-    } else if (mode === 'edit') {
-      this.setupEditModal(paymentId);
-    }
+  /**
+   * Initialize payment details handlers
+   */
+  initializePaymentDetails: function() {
+    var self = this;
+    
+    // Handle add new payment detail
+    $(document).on('click', '#add_payment_detail', function() {
+      var detailsContainer = $('#payment_details_container');
+      var newItem = detailsContainer.find('.payment-detail-item').first().clone();
+      var itemIndex = detailsContainer.find('.payment-detail-item').length;
+      
+      // Update name attributes with new index
+      newItem.find('select.payment-type').attr('name', 'details[' + itemIndex + '][type]').val('');
+      newItem.find('input.payment-amount').attr('name', 'details[' + itemIndex + '][amount]').val('');
+      newItem.find('textarea.payment-description').attr('name', 'details[' + itemIndex + '][description]').val('');
+      
+      // Show remove button
+      newItem.find('.remove-detail').show();
+      
+      detailsContainer.append(newItem);
+      self.updateRemoveButtons();
+      self.updateTotalAmount();
+    });
+
+    // Handle amount changes
+    $(document).on('input', '.payment-amount', function() {
+      self.updateTotalAmount();
+    });
+    
+    // Handle remove payment detail
+    $(document).on('click', '.remove-detail', function() {
+      $(this).closest('.payment-detail-item').remove();
+      self.updateRemoveButtons();
+      self.reindexPaymentDetails();
+      self.updateTotalAmount();
+    });
   },
+
   /**
-   * Reset modal state
+   * Calculate and update the total amount
    */
-  resetModalState: function() {
-    if (Utils && typeof Utils.resetForm === 'function') {
-      Utils.resetForm('paymentForm');
+  updateTotalAmount: function() {
+    var total = 0;
+    $('.payment-amount').each(function() {
+      var amount = parseFloat($(this).val()) || 0;
+      total += amount;
+    });
+    $('#payment_amount').val(total.toFixed(2));
+  },
+  
+  /**
+   * Update remove buttons visibility
+   */
+  updateRemoveButtons: function() {
+    var items = $('.payment-detail-item');
+    if (items.length === 1) {
+      items.find('.remove-detail').hide();
     } else {
-      // fallback
-      $('#paymentForm')[0].reset();
+      items.find('.remove-detail').show();
     }
   },
+  
   /**
-   * Setup add modal
+   * Reindex payment details form fields
    */
-  setupAddModal: function() {
-    $('#paymentModalTitle').text('Add Payment');
-    $('#paymentModal').modal('show');
+  reindexPaymentDetails: function() {
+    $('#payment_details_container .payment-detail-item').each(function(index) {
+      $(this).find('select.payment-type').attr('name', 'details[' + index + '][type]');
+      $(this).find('input.payment-amount').attr('name', 'details[' + index + '][amount]');
+      $(this).find('textarea.payment-description').attr('name', 'details[' + index + '][description]');
+    });
   },
-  /**
-   * Setup edit modal
-   */
-  setupEditModal: function(paymentId) {
-    $('#paymentModalTitle').text('Edit Payment');
-    ApiService.fetchPayment(paymentId)
-      .done(function(response) {
-        if (response.success) {
-          PaymentManager.populateEditForm(response.data);
-          $('#paymentModal').modal('show');
-        }
-      })
-      .fail(function() {
-        $('#paymentModal').modal('hide');
-        if (Utils && typeof Utils.showError === 'function') {
-          Utils.showError('Failed to load payment data');
-        } else {
-          alert('Failed to load payment data');
-        }
-      });
-  },
+
   /**
    * Populate edit form
    */
   populateEditForm: function(payment) {
-    $('#payment_reservation_id').val(payment.reservation_id).prop('readonly', true);
+    $('#payment_reservation_id').val(payment.reservation_number);
     $('#payment_amount').val(payment.amount);
-    $('#payment_status').val(payment.status);
     $('#payment_notes').val(payment.notes);
-    $('#payment_details').val(payment.details ? JSON.stringify(payment.details, null, 2) : '');
+    
+    // Clear existing payment details except the first one
+    var detailsContainer = $('#payment_details_container');
+    detailsContainer.find('.payment-detail-item:not(:first)').remove();
+    
+    // Reset the first item
+    var firstItem = detailsContainer.find('.payment-detail-item').first();
+    firstItem.find('select.payment-type').val('');
+    firstItem.find('input.payment-amount').val('');
+    firstItem.find('textarea.payment-description').val('');
+    
+    // Add payment details if they exist
+    if (payment.details && Array.isArray(payment.details)) {
+      payment.details.forEach((detail, index) => {
+        if (index === 0) {
+          // Update first item
+          firstItem.find('select.payment-type').val(detail.type || '');
+          firstItem.find('input.payment-amount').val(detail.amount || '');
+          firstItem.find('textarea.payment-description').val(detail.description || '');
+        } else {
+          // Add new items for remaining details
+          $('#add_payment_detail').click();
+          var newItem = detailsContainer.find('.payment-detail-item').last();
+          newItem.find('select.payment-type').val(detail.type || '');
+          newItem.find('input.payment-amount').val(detail.amount || '');
+          newItem.find('textarea.payment-description').val(detail.description || '');
+        }
+      });
+    }
+    
+    this.updateRemoveButtons();
+    this.updateTotalAmount();
   },
   /**
    * View payment details
@@ -539,19 +658,33 @@ var PaymentManager = {
    * Save payment
    */
   savePayment: function() {
+    Utils.setLoadingState('#paymentForm button[type="submit"]', true, {
+      loadingText: 'Saving...',
+      loadingIcon: 'bx bx-loader-alt bx-spin',
+      normalText: 'Save',
+      normalIcon: 'bx bx-save'
+    });
+
     var formData = $('#paymentForm').serialize();
-    var apiCall;
-    if (this.currentPaymentId) {
-      apiCall = ApiService.savePayment(formData, this.currentPaymentId);
-    } else {
-      apiCall = ApiService.createPayment(formData);
-    }
+    var apiCall = this.currentPaymentId ? 
+      ApiService.savePayment(formData, this.currentPaymentId) :
+      ApiService.createPayment(formData);
+
     apiCall
-      .done(function() {
-        PaymentManager.handleSaveSuccess();
+      .done(() => {
+        Utils.showSuccess('Payment saved successfully', true);
+        $('#paymentModal').modal('hide');
+        Utils.reloadDataTable('#payments-table');
+        StatsManager.load();
       })
-      .fail(function(xhr) {
-        PaymentManager.handleSaveError(xhr);
+      .fail((xhr) => {
+        Utils.handleAjaxError(xhr, 'Failed to save payment');
+      })
+      .always(() => {
+        Utils.setLoadingState('#paymentForm button[type="submit"]', false, {
+          normalText: 'Save',
+          normalIcon: 'bx bx-save'
+        });
       });
   },
   /**
@@ -559,10 +692,8 @@ var PaymentManager = {
    */
   handleSaveSuccess: function() {
     $('#paymentModal').modal('hide');
-    $('#payments-table').DataTable().ajax.reload(null, false);
-    if (Utils && typeof Utils.showSuccess === 'function') {
-      Utils.showSuccess('Payment has been saved successfully.');
-    }
+    Utils.reloadDataTable('#payments-table');
+    Utils.showSuccess('Payment has been saved successfully.');
     StatsManager.load();
   },
   /**
@@ -571,11 +702,7 @@ var PaymentManager = {
   handleSaveError: function(xhr) {
     $('#paymentModal').modal('hide');
     var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred. Please check your input.';
-    if (Utils && typeof Utils.showError === 'function') {
-      Utils.showError(message);
-    } else {
-      alert(message);
-    }
+    Utils.showError(message);
   },
   /**
    * Delete payment
@@ -603,30 +730,32 @@ var PaymentManager = {
   performDelete: function(paymentId) {
     ApiService.deletePayment(paymentId)
       .done(function() {
-        $('#payments-table').DataTable().ajax.reload(null, false);
-        if (Utils && typeof Utils.showSuccess === 'function') {
-          Utils.showSuccess('Payment has been deleted.');
-        }
-        StatsManager.load();
+    Utils.reloadDataTable('#payments-table');
+    Utils.showSuccess('Payment has been deleted.');
+    StatsManager.load();
       })
       .fail(function(xhr) {
-        var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to delete payment.';
-        if (Utils && typeof Utils.showError === 'function') {
-          Utils.showError(message);
-        } else {
-          alert(message);
-        }
+    var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to delete payment.';
+    Utils.showError(message);
       });
   },
   viewDetails: function(paymentId) {
-    $('#payment-details-json').html('<div class="text-center py-4"><span class="spinner-border text-info" role="status"></span></div>');
+    Utils.setLoadingState('.viewDetailsBtn[data-id="' + paymentId + '"]', true, {
+      loadingText: 'Loading...',
+      loadingIcon: 'bx bx-loader-alt bx-spin',
+      normalText: 'View Details',
+      normalIcon: 'bx bx-info-circle'
+    });
+
     $('#paymentDetailsModal').modal('show');
+    $('#payment-details-json').html('<div class="text-center py-4"><span class="spinner-border text-info" role="status"></span></div>');
+
     ApiService.fetchPaymentDetails(paymentId)
-      .done(function(response) {
+      .done((response) => {
         if (response.success) {
           var details = response.data;
           var html = '';
-          if (Array.isArray(details) && details.length > 0) {
+          if (!Utils.isEmpty(details)) {
             html = '<ul class="list-group">';
             details.forEach(function(item) {
               html += '<li class="list-group-item d-flex align-items-center">'
@@ -638,15 +767,21 @@ var PaymentManager = {
             });
             html += '</ul>';
           } else {
-            html = '<span>--</span>';
+            html = '<span class="text-muted">No details available</span>';
           }
           $('#payment-details-json').html(html);
         } else {
-          $('#payment-details-json').html('<span class="text-danger">Failed to load details.</span>');
+          Utils.showError('Failed to load payment details', true);
         }
       })
-      .fail(function() {
-        $('#payment-details-json').html('<span class="text-danger">Failed to load details.</span>');
+      .fail((xhr) => {
+        Utils.handleAjaxError(xhr, 'Failed to load payment details');
+      })
+      .always(() => {
+        Utils.setLoadingState('.viewDetailsBtn[data-id="' + paymentId + '"]', false, {
+          normalText: 'View Details',
+          normalIcon: 'bx bx-info-circle'
+        });
       });
   }
 };
@@ -672,8 +807,15 @@ var SearchManager = {
    * Initialize advanced search event listeners
    */
   initializeAdvancedSearch: function() {
+    // Initialize select2 for status dropdown
+    Utils.initSelect2('#search_status', {
+      placeholder: 'Select Status',
+      allowClear: true
+    });
+
+    // Handle search input changes
     $('#search_status, #search_reservation_id').on('keyup change', function() {
-      $('#payments-table').DataTable().ajax.reload();
+      Utils.reloadDataTable('#payments-table');
     });
   },
   /**
@@ -681,8 +823,11 @@ var SearchManager = {
    */
   handleClearFilters: function() {
     $('#clearPaymentFiltersBtn').on('click', function() {
-      $('#search_status, #search_reservation_id').val('');
-      $('#payments-table').DataTable().ajax.reload();
+    Utils.clearValidation('#advancedPaymentSearch');
+    $('#search_status').val('').trigger('change');
+    $('#search_reservation_id').val('');
+    Utils.reloadDataTable('#payments-table');
+    Utils.showSuccess('Filters cleared', true, 'top-end');
     });
   }
 };

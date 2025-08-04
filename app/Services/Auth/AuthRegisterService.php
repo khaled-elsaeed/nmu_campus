@@ -3,132 +3,230 @@
 namespace App\Services\Auth;
 
 use App\Models\User;
+use App\Models\UserBan;
 use App\Models\StudentArchive;
-use Illuminate\Support\Facades\Hash;
-use App\Exceptions\BusinessValidationException;
 use App\Events\UserRegistered;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class AuthRegisterService
 {
     /**
-     * Register a new user using the provided validated data.
+     * Register a new user with validation checks.
      *
-     * @param array $validated
-     * @return User
-     * @throws BusinessValidationException
+     * @param array $userData
+     * @return array
      */
-    public function register(array $validated): User
+    public function register(array $userData): array
     {
-        return DB::transaction(function () use ($validated) {
-            $studentArchive = $this->getStudentArchive($validated['national_id']);
+        $validationResult = $this->validateRegistrationEligibility($userData['national_id'] ?? null);
 
-            $this->validateStudentArchive($studentArchive);
+        if (!$validationResult['success']) {
+            return $validationResult;
+        }
 
-            $user = $this->createUserFromArchive($studentArchive);
-
-            $studentArchive = $this->attachUserToArchive($studentArchive, $user);
-
-            event(new UserRegistered($user));
-
+        $user = DB::transaction(function () use ($userData) {
+            $user = $this->createUser($userData);
+            UserRegistered::dispatch($user);
             return $user;
         });
+
+        return $this->buildResponse(
+            true,
+            null,
+            'Registration successful. Please check your email for verification.',
+            $user
+        );
+    }
+
+
+    /**
+     * Comprehensive validation for registration eligibility.
+     * Combines ban check and existing account check.
+     *
+     * @param string|null $nationalId
+     * @return array
+     */
+    private function validateRegistrationEligibility(?string $nationalId): array
+    {
+        if (empty($nationalId)) {
+            return $this->buildResponse(
+                false,
+                'national_id_required',
+                'National ID is required.'
+            );
+        }
+
+        // Check if national ID is associated with a university student
+        if (!StudentArchive::isUniversityStudent($nationalId)) {
+            return $this->buildResponse(
+                false,
+                'no_student_record',
+                'No university student record was found associated with the provided national ID.'
+            );
+        }
+
+        // Check if national ID is banned
+        if (UserBan::isBannedByNationalId($nationalId)) {
+            return $this->buildResponse(
+                false,
+                'national_id_banned',
+                'This national ID is banned from registration.'
+            );
+        }
+
+        // Check if already has account
+        if ($this->nationalIdExists($nationalId)) {
+            return $this->buildResponse(
+                false,
+                'account_exists',
+                'An account with this national ID already exists.'
+            );
+        }
+
+        return $this->buildResponse(
+            true,
+            null,
+            'National ID can register.'
+        );
     }
 
     /**
-     * Get student archive by national ID
+     * Check if national ID already exists.
      *
      * @param string $nationalId
-     * @return StudentArchive|null
+     * @return bool
      */
-    private function getStudentArchive(string $nationalId): ?StudentArchive
+    private function nationalIdExists(string $nationalId): bool
     {
-        return StudentArchive::where('national_id', $nationalId)->first();
+        return StudentArchive::where('national_id', $nationalId)
+            ->whereHas('user')
+            ->exists();
     }
 
     /**
-     * Validate student archive data
+     * Create a new user.
      *
-     * @param StudentArchive|null $studentArchive
-     * @throws BusinessValidationException
-     */
-    private function validateStudentArchive(?StudentArchive $studentArchive): void
-    {
-        if (!$studentArchive) {
-            throw new BusinessValidationException('Student not found in archives.');
-        }
-
-        if ($studentArchive->user) {
-            throw new BusinessValidationException('User already registered for this student.');
-        }
-    }
-
-    /**
-     * Create user from student archive data
-     *
-     * @param StudentArchive $studentArchive
+     * @param array $userData
      * @return User
      */
-    private function createUserFromArchive(StudentArchive $studentArchive): User
+    private function createUser(array $userData): User
     {
-        $user = new User();
+        // Get student data from the archive
+        $studentArchive = StudentArchive::where('national_id', $userData['national_id'])->first();
 
-        // Basic information
-        $user->gender = $studentArchive->gender;
-        $user->email = $studentArchive->email;
-        
-        // Process names (concatenate first and last parts)
-        $user->name_en = $this->buildFullName($studentArchive->name_en);
-        $user->name_ar = $this->buildFullName($studentArchive->name_ar);
+        $archiveIncompleteData = $this->checkForRequiredData($studentArchive);
 
-        // Set default password as national ID
-        $user->password = Hash::make($studentArchive->national_id);
-        $user->force_change_password = true;
+        if ($archiveIncompleteData) {
+            return $this->buildResponse(
+                false,
+                'archive_incomplete_data',
+                'Student archive is missing required information.'
+            );
+        }
 
-        $user->save();
+        // Extract and format first and last names
+        $formattedNameEn = $this->extractFirstLastName($studentArchive->name_en);
+        $formattedNameAr = $this->extractFirstLastName($studentArchive->name_ar);
 
-        // Assign spatie role 'resident'
+        // Create user with data from student archive
+        $user = User::create([
+            'name_en' => $formattedNameEn,
+            'name_ar' => $formattedNameAr,
+            'email' => $studentArchive->academic_email ?? $studentArchive->email,
+            'password' => Hash::make('password'),
+            'gender' => $studentArchive->gender,
+            'force_change_password' => true,
+        ]);
+
+        // Assign Spatie role 'resident'
         $user->assignRole('resident');
+
+        // Link the student archive to this user
+        $studentArchive->update(['user_id' => $user->id]);
 
         return $user;
     }
 
-    private function attachUserToArchive(StudentArchive $studentArchive, User $user)
+    /**
+     * Check if the student archive has all required data.
+     *
+     * @param StudentArchive $studentArchive
+     * @return bool
+     */
+    private function checkForRequiredData(StudentArchive $studentArchive): array
     {
-        $studentArchive->user_id = $user->id;
-        $studentArchive->save();
+        $incompleteData = [];
+
+        if (empty($studentArchive->name_en)) {
+            $incompleteData['name_en'] = 'English name is required.';
+        }
+
+        if (empty($studentArchive->name_ar)) {
+            $incompleteData['name_ar'] = 'Arabic name is required.';
+        }
+
+        if (empty($studentArchive->email)) {
+            $incompleteData['email'] = 'Email is required.';
+        }
+
+        return $incompleteData;
     }
 
     /**
-     * Build full name by concatenating first and last parts
-     * Takes first part and last part from archive name and concatenates them
+     * Extract first and last name from full name and capitalize properly.
      *
-     * @param string|null $fullName
-     * @return string|null
+     * @param string $fullName
+     * @return string
      */
-    private function buildFullName(?string $fullName): ?string
+    private function extractFirstLastName(string $fullName): string
     {
-        if (!$fullName) {
-            return null;
+        if (empty($fullName)) {
+            return '';
         }
 
-        // Split the full name into parts
+        // Split the name into parts and remove empty elements
         $nameParts = array_filter(explode(' ', trim($fullName)));
-
+        
         if (empty($nameParts)) {
-            return null;
+            return '';
         }
 
-        // If only one part, return it (capitalize first letter, rest lowercase)
+        // If only one name part, return it capitalized
         if (count($nameParts) === 1) {
-            return ucfirst(mb_strtolower($nameParts[0]));
+            return ucfirst(strtolower($nameParts[0]));
         }
 
-        // Get first and last parts, capitalize first letter of each, rest lowercase
-        $firstName = ucfirst(mb_strtolower($nameParts[0]));
-        $lastName = ucfirst(mb_strtolower(end($nameParts)));
+        // Get first and last name
+        $firstName = ucfirst(strtolower($nameParts[0]));
+        $lastName = ucfirst(strtolower(end($nameParts)));
 
-        // Concatenate first and last name with space
         return $firstName . ' ' . $lastName;
+    }
+
+    /**
+     * Build a standardized response array.
+     *
+     * @param bool $success
+     * @param string|null $error
+     * @param string $message
+     * @param User|null $user
+     * @param array $additional
+     * @return array
+     */
+    private function buildResponse(
+        bool $success, 
+        ?string $error, 
+        string $message, 
+        ?User $user = null, 
+        array $additional = []
+    ): array {
+        return array_merge([
+            'success' => $success,
+            'error' => $error,
+            'message' => $message,
+            'user' => $user,
+        ], $additional);
     }
 }

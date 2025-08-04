@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\profile\resident\student\CompleteRequest;
 use App\Services\ProfileService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -16,6 +17,16 @@ class ProfileController extends Controller
     public function __construct(ProfileService $profileService)
     {
         $this->profileService = $profileService;
+    }
+
+    /**
+     * Display the profile completion page
+     *
+     * @return \Illuminate\View\View
+     */
+    public function index(): \Illuminate\View\View
+    {
+        return view('profile.resident.student.complete');
     }
 
     /**
@@ -38,138 +49,14 @@ class ProfileController extends Controller
     /**
      * Submit/update the user's profile data
      *
-     * @param Request $request
+     * @param CompleteRequest $request
      * @return JsonResponse
      */
-    public function submit(Request $request): JsonResponse
+    public function submit(CompleteRequest $request): JsonResponse
     {
         try {
-            $validatedData = $request->validate([
-                // Personal Information
-                'nationality' => [
-                    'required',
-                    'exists:nationalities,id'
-                ],
-
-                // Contact Information
-                'phone' => [
-                    'required',
-                    'string',
-                    'regex:/^(010|011|012|015)[0-9]{8}$/'
-                ],
-                'governorate' => [
-                    'required',
-                    'exists:governorates,id'
-                ],
-                'city' => [
-                    'required',
-                    'exists:cities,id'
-                ],
-                'street' => [
-                    'required',
-                    'string',
-                    'min:3'
-                ],
-
-                // Academic Information
-                'program' => [
-                    'required',
-                    'exists:programs,id'
-                ],
-                'academicYear' => [
-                    'required',
-                    'in:1,2,3,4,5'
-                ],
-
-                // Parent Information
-                'parentRelationship' => [
-                    'required',
-                    'in:father,mother'
-                ],
-                'parentName' => [
-                    'required',
-                    'string',
-                    'min:2'
-                ],
-                'parentPhone' => [
-                    'required',
-                    'string'
-                ],
-                'parentEmail' => [
-                    'nullable',
-                    'email'
-                ],
-                'isParentAbroad' => [
-                    'required',
-                    'in:yes,no'
-                ],
-
-                // Conditional Parent Fields
-                'abroadCountry' => [
-                    'nullable',
-                    'exists:countries,id'
-                ],
-                'livingWithParent' => [
-                    'nullable',
-                    'in:yes,no'
-                ],
-                'parentGovernorate' => [
-                    'nullable',
-                    'exists:governorates,id'
-                ],
-                'parentCity' => [
-                    'nullable',
-                    'exists:cities,id'
-                ],
-
-                // Sibling Information
-                'hasSiblingInDorm' => [
-                    'required',
-                    'in:yes,no'
-                ],
-
-                // Conditional Sibling Fields
-                'siblingGender' => [
-                    'nullable',
-                    'in:male,female'
-                ],
-                'siblingName' => [
-                    'nullable',
-                    'string',
-                    'min:2'
-                ],
-                'siblingNationalId' => [
-                    'nullable',
-                    'string',
-                    'size:14'
-                ],
-                'siblingFaculty' => [
-                    'nullable',
-                    'exists:faculties,id'
-                ],
-
-                // Emergency Contact
-                'emergencyContactName' => [
-                    'nullable',
-                    'string',
-                    'min:2'
-                ],
-                'emergencyContactRelationship' => [
-                    'nullable',
-                    'string'
-                ],
-                'emergencyContactPhone' => [
-                    'nullable',
-                    'string',
-                    'regex:/^(010|011|012|015)[0-9]{8}$/'
-                ],
-
-                // Terms
-                'termsCheckbox' => [
-                    'required',
-                    'accepted'
-                ],
-            ]);
+            // Get validated data from the form request
+            $validatedData = $request->validated();
 
             $result = $this->profileService->saveProfileData($validatedData);
 

@@ -34,7 +34,9 @@ class User extends Authenticatable
         'email_verified_at',
         'password',
         'force_change_password',
+        'is_banned',
         'last_login',
+        'last_password_changed_at',
         'remember_token',
     ];
 
@@ -44,6 +46,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $appends = ['name'];
+    
 
     /**
      * The attributes that should be hidden for serialization.
@@ -56,6 +59,15 @@ class User extends Authenticatable
     ];
 
     /**
+     * The model's default values for attributes.
+     *
+     * @var array
+     */
+    protected $attributes = [
+        'force_change_password' => true,
+    ];
+
+    /**
      * The attributes that should be cast.
      *
      * @return array<string, string>
@@ -63,11 +75,12 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at'      => 'datetime',
-            'profile_complete'       => 'boolean',
-            'force_change_password'  => 'boolean',
-            'last_login'             => 'datetime',
-            'password'               => 'hashed',
+            'email_verified_at'         => 'datetime',
+            'profile_complete'          => 'boolean',
+            'force_change_password'     => 'boolean',
+            'last_login'                => 'datetime',
+            'last_password_changed_at'  => 'datetime',
+            'password'                  => 'hashed',
         ];
     }
 
@@ -99,6 +112,34 @@ class User extends Authenticatable
                 isset($attributes['last_login']) && $attributes['last_login']
                     ? formatDate($attributes['last_login'])
                     : null
+        );
+    }
+
+    /**
+     * Get the user's last password change formatted as a readable string.
+     *
+     * @return Attribute
+     */
+    protected function lastPasswordChanged(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value, $attributes) =>
+                isset($attributes['last_password_changed_at']) && $attributes['last_password_changed_at']
+                    ? formatDate($attributes['last_password_changed_at'])
+                    : null
+        );
+    }
+
+    /**
+     * Get the user's profile type (student - staff) formatted as a readable string.
+     *
+     * @return Attribute
+     */
+    protected function profileType(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value, $attributes) =>
+                $this->profile() ? class_basename($this->profile()->getModel()) : null
         );
     }
 
@@ -173,6 +214,70 @@ class User extends Authenticatable
     }
 
     /**
+     * Get all bans associated with the user.
+     *
+     * @return HasMany
+     */
+    public function bans(): HasMany
+    {
+        return $this->hasMany(UserBan::class);
+    }
+
+    /**
+     * OPTION 1: Keep as relationship but with proper constraints
+     * Get the current active ban for the user.
+     *
+     * @return HasOne
+     */
+    public function currentBan(): HasOne
+    {
+        return $this->hasOne(UserBan::class)
+            ->where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('expires_at') // Permanent bans
+                      ->orWhere('expires_at', '>', now()); // Non-expired temporary bans
+            })
+            ->latest('banned_at');
+    }
+
+    /**
+     * OPTION 2: Use a method instead (RECOMMENDED)
+     * Get the current active ban for the user.
+     *
+     * @return UserBan|null
+     */
+    public function getCurrentBan(): ?UserBan
+    {
+        return $this->bans()
+            ->where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('expires_at') // Permanent bans
+                      ->orWhere('expires_at', '>', now()); // Non-expired temporary bans
+            })
+            ->latest('banned_at')
+            ->first();
+    }
+
+    /**
+     * OPTION 3: Alternative method using the UserBan model's isActive() logic
+     * Get the current active ban for the user.
+     *
+     * @return UserBan|null
+     */
+    public function getActiveBan(): ?UserBan
+    {
+        $activeBans = $this->bans()
+            ->where('is_active', true)
+            ->latest('banned_at')
+            ->get();
+
+        // Filter using the model's isActive() method to handle expiry logic
+        return $activeBans->first(function ($ban) {
+            return $ban->isActive();
+        });
+    }
+
+    /**
      * Get the user's profile relation, returning either staff or student relation depending on which exists.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasOne|null
@@ -186,6 +291,22 @@ class User extends Authenticatable
             return $this->student();
         }
         return null;
+    }
+
+    /**
+     * Check if the user's profile is complete.
+     * Only applies to student profiles.
+     *
+     * @return bool
+     */
+    public function isProfileComplete(): bool
+    {
+        // Only students have profile completion requirements
+        if ($this->student()->exists()) {
+            return $this->student->isProfileComplete();
+        }
+        
+        return true;
     }
 
     /**
@@ -208,5 +329,75 @@ class User extends Authenticatable
         return $this->forceFill([
             'email_verified_at' => $this->freshTimestamp(),
         ])->save();
+    }
+
+    /**
+     * Determine if the user needs to change their password.
+     *
+     * @return bool
+     */
+    public function shouldForcePasswordChange(): bool
+    {
+        return (bool) $this->force_change_password;
+    }
+
+    /**
+     * Mark the user as needing to change their password.
+     *
+     * @return bool
+     */
+    public function markForPasswordChange(): bool
+    {
+        return $this->forceFill([
+            'force_change_password' => true,
+        ])->save();
+    }
+
+    /**
+     * Mark the user as no longer needing to change their password.
+     *
+     * @return bool
+     */
+    public function clearForcePasswordChange(): bool
+    {
+        return $this->forceFill([
+            'force_change_password' => false,
+        ])->save();
+    }
+
+    /**
+     * Mark when the user's password was changed.
+     *
+     * @return bool
+     */
+    public function markPasswordChanged(): bool
+    {
+        return $this->forceFill([
+            'last_password_changed_at' => $this->freshTimestamp(),
+            'force_change_password' => false,
+        ])->save();
+    }
+
+    /**
+     * Check if the user is currently banned.
+     * Updated to use the new method approach.
+     *
+     * @return bool
+     */
+    public function isBanned(): bool
+    {
+        $ban = $this->getCurrentBan(); // Using the method instead
+        return $ban !== null;
+    }
+
+    /**
+     * Legacy method - kept for backward compatibility
+     * But now uses the new getCurrentBan() method
+     *
+     * @return UserBan|null
+     */
+    public function getActiveBanLegacy(): ?UserBan
+    {
+        return $this->getCurrentBan();
     }
 }
