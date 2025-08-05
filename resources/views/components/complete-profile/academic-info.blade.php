@@ -11,42 +11,44 @@
         </div>
     </div>
 </div>
+<input type="hidden" name="is_new_comer" id="is-new-comer" value="" >
 <div class="row">
     <div class="col-md-6 mb-3">
         <label for="faculty" class="form-label">Faculty</label>
         <select class="form-select" id="faculty" name="faculty">
-        {{-- Optionally populate faculties dynamically via JS --}}
+            {{-- Optionally populate faculties dynamically via JS --}}
         </select>
     </div>
     <div class="col-md-6 mb-3">
         <label for="program" class="form-label">Program</label>
         <select class="form-select" id="program" name="program">
-        {{-- Optionally populate programs dynamically via JS --}}
-
+            {{-- Optionally populate programs dynamically via JS --}}
         </select>
     </div>
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <label for="academic-year" class="form-label">Level</label>
-            <select class="form-select" id="academic-year" name="academic_year">
-                <option value="">Select Level</option>
-                <option value="1">First Year</option>
-                <option value="2">Second Year</option>
-                <option value="3">Third Year</option>
-                <option value="4">Fourth Year</option>
-                <option value="5">Fifth Year</option> 
-            </select>
-        </div>
-        <input type="hidden" id="gpa-available" name="gpa_available">
-        <div class="col-md-6 mb-3">
-            <label for="gpa" class="form-label">Cumulative GPA</label>
-            <input type="number" step="0.01" min="0" max="4" class="form-control" id="gpa" name="gpa" readonly>
-        </div>
-        <div class="col-md-6 mb-3">
-            <label for="score" class="form-label">Score</label>
-            <input type="number" step="0.01" min="0" max="100" class="form-control" id="score" name="score" readonly>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label for="academic-year" class="form-label">Level</label>
+        <select class="form-select" id="academic-year" name="academic_year">
+            <option value="">Select Level</option>
+            <option value="1">First Year</option>
+            <option value="2">Second Year</option>
+            <option value="3">Third Year</option>
+            <option value="4">Fourth Year</option>
+            <option value="5">Fifth Year</option>
+        </select>
+    </div>
+    <div class="col-md-6 mb-3" id="gpa-div">
+        <label for="gpa" class="form-label">Cumulative GPA</label>
+        <input type="number" step="0.01" min="0" max="4" class="form-control" id="gpa" name="gpa" value="0.00" readonly>
+    </div>
+    <div class="col-md-6 mb-3 d-none" id="score-div">
+        <label for="score" class="form-label">Score</label>
+        <input type="number" step="0.01" min="0" max="100" class="form-control" id="score" name="score" value="0.00" readonly>
     </div>
 </div>
+
 <div class="row">
     <div class="col-md-6 mb-3">
         <label for="academic-id" class="form-label">University ID</label>
@@ -57,6 +59,7 @@
         <input type="email" class="form-control" id="academic-email" name="academic_email" readonly>
     </div>
 </div>
+
 <div class="d-flex justify-content-between">
     <button type="button" class="btn btn-outline-secondary prev-Btn">
         <i class='bx bx-chevron-left'></i> Previous
@@ -64,4 +67,4 @@
     <button type="button" class="btn btn-primary next-Btn">
         Next <i class='bx bx-chevron-right'></i>
     </button>
-</div> 
+</div>

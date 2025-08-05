@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Profile;
 
 use App\Services\Profile\ProfileDataService;
 use App\Services\Profile\ProfileUpdateService;

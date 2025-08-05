@@ -100,16 +100,12 @@ class CompleteRequest extends FormRequest
                 'between:1,5'
             ],
             'gpa' => [
-                'required_if:gpa_available,true',
+                'required_if:is_new_comer,false',
                 'numeric',
                 'between:0,4'
             ],
-            'gpa_available' => [
-                'required',
-                'boolean'
-            ],
             'score' => [
-                'required_if:gpa_available,false',
+                'required_if:is_new_comer,true',
                 'numeric',
                 'between:0,100'
             ],
@@ -174,12 +170,12 @@ class CompleteRequest extends FormRequest
                 'in:yes,no'
             ],
             'parent_governorate' => [
-                'required_if:living_with_parent,no',
+                'required_if:is_parent_abroad,no,living_with_parent,no',
                 'nullable',
                 'exists:governorates,id'
             ],
             'parent_city' => [
-                'required_if:living_with_parent,no',
+                'required_if:is_parent_abroad,no,living_with_parent,no',
                 'nullable',
                 'exists:cities,id'
             ],

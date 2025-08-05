@@ -12,6 +12,7 @@ class ProfileDataService
      * The country code for Egypt, used to determine if parent is local or abroad.
      */
     protected const EGYPT_COUNTRY_CODE = 'EG';
+    protected const NEW_COMER_CERTIFICATE_YEAR = '2024 - 2025 (العام الحالي)';
 
     /**
      * @var LookupService
@@ -296,7 +297,7 @@ class ProfileDataService
             'academic_year' => null,
             'gpa' => $studentArchive?->cum_gpa ?? 0.0,
             'score' => $studentArchive?->actual_score ?? 0.0,
-            'gpa_available' => $studentArchive?->cum_gpa ?? false,
+            'is_new_comer' => $studentArchive?->cert_year_name === self::NEW_COMER_CERTIFICATE_YEAR,
             'academic_email' => $studentArchive?->academic_email,
             'actual_score' => $studentArchive?->actual_score,
             'actual_percent' => $studentArchive?->actual_percent,

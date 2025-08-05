@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\profile\resident\student\CompleteRequest;
-use App\Services\ProfileService;
+use App\Services\Profile\ProfileService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Exceptions\BusinessValidationException;
-use Exception; // Added missing import
+use Exception;
 
 class ProfileController extends Controller
 {

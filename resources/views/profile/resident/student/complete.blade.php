@@ -16,6 +16,19 @@
     .invalid-feedback { display: block; }
     .nav-pills .nav-link { border-radius: 0.375rem; margin: 0 2px; }
     .d-none { display: none !important; }
+    
+    /* Disabled field styles */
+    .field-disabled {
+        background-color: #f8f9fa !important;
+        border-color: #dee2e6 !important;
+        color: #6c757d !important;
+        cursor: not-allowed !important;
+    }
+    .field-disabled:hover {
+        background-color: #f8f9fa !important;
+        border-color: #dee2e6 !important;
+    }
+    
     .nav-link.is-valid {
         background-color: var(--bs-success) !important;
         color: #fff !important;
@@ -326,7 +339,6 @@ var ProfileManager = {
     try {
       await Promise.all([
         this.populateGovernorates(),
-        this.populateParentGovernorates(),
         this.populateFaculties(),
         this.populateCountries(),
         this.populateNationalities()
@@ -409,7 +421,6 @@ var ProfileManager = {
    * @param {object} data
    */
   populatePersonalInfo: function(data) {
-    // Updated to match backend keys from ProfileService
     if (data.national_id) $('#national-id').val(data.national_id);
     if (data.name_ar) $('#name-ar').val(data.name_ar);
     if (data.name_en) $('#name-en').val(data.name_en);
@@ -423,7 +434,6 @@ var ProfileManager = {
    * @param {object} data
    */
   populateContactInfo: function(data) {
-    // Updated to match backend keys from ProfileService
     if (data.phone) $('#phone').val(data.phone);
 
     if (data.governorate_id) {
@@ -443,7 +453,7 @@ var ProfileManager = {
    * @param {object} data
    */
   populateAcademicInfo: function(data) {
-    // Updated to match backend keys from ProfileService
+    
     if (data.academic_id) $('#academic-id').val(data.academic_id);
     if (data.academic_email) $('#academic-email').val(data.academic_email);
 
@@ -459,12 +469,11 @@ var ProfileManager = {
         }
       }, 1000);
     }
-    if (data.score) $('#actual-score').val(data.score);
-    if (data.gpa_available) $('#gpa-available').val(data.gpa_available);
-    if (data.actual_percent) $('#actual-percent').val(data.actual_percent);
-    if (data.certificate_type) $('#certificate-type').val(data.certificate_type);
-    if (data.certificate_country_id) $('#certificate-country').val(data.certificate_country_id);
-    if (data.certificate_year) $('#certificate-year').val(data.certificate_year);
+    if (data.score) $('#score').val(data.score);
+    
+    if (data.is_new_comer !== undefined && data.is_new_comer !== null) {
+      $('#is-new-comer').val(data.is_new_comer.toString());
+    }
   },
 
   /**
@@ -472,7 +481,7 @@ var ProfileManager = {
    * @param {object} data
    */
   populateParentInfo: function(data) {
-    // Updated to match backend keys from ProfileService
+    
     if (data.name_ar) $('#parent-name-ar').val(data.name_ar);
     if (data.name_en) $('#parent-name-en').val(data.name_en);
     if (data.phone) $('#parent-phone').val(data.phone);
@@ -505,7 +514,7 @@ var ProfileManager = {
    * @param {object} data
    */
   populateSiblingInfo: function(data) {
-    // Updated to match backend keys from ProfileService
+    
     if (data.has_sibling_in_dorm) {
       $('#has-sibling-in-dorm').val(data.has_sibling_in_dorm);
       $('#has-sibling-in-dorm').trigger('change');
@@ -562,6 +571,7 @@ var ProfileManager = {
       $('#is-parent-abroad').trigger('change');
       $('#living-with-parent').trigger('change');
       $('#has-sibling-in-dorm').trigger('change');
+      $('#is-new-comer').trigger('change');
     }, 1000);
   },
 
@@ -627,21 +637,31 @@ var ProfileManager = {
   populateGovernorates: function() {
     var self = this;
     return new Promise(function(resolve, reject) {
-      // Check if governorates are already populated
-      if ($('#governorate option').length > 1) {
-        resolve();
-        return;
-      }
-      
       // Fetch governorates from API
       ApiService.fetchGovernorate()
         .done(function(response) {
           if (response.success && response.data) {
-            Utils.populateSelect($('#governorate'), response.data, {
-              placeholder: 'Select Governorate',
-              valueField: 'id',
-              textField: 'name'
-            });
+            if($('#governorate option').length <= 1) {
+              Utils.populateSelect($('#governorate'), response.data, {
+                placeholder: 'Select Governorate',
+                valueField: 'id',
+                textField: 'name'
+              }); 
+            }
+            if($('#parent-governorate option').length <= 1) {
+              Utils.populateSelect($('#parent-governorate'), response.data, {
+                placeholder: 'Select Parent Governorate',
+                valueField: 'id',
+                textField: 'name'
+              });
+            }
+            if($('#emergency-contact-governorate option').length <= 1) {
+              Utils.populateSelect($('#emergency-contact-governorate'), response.data, {
+                placeholder: 'Select Emergency Contact Governorate',
+                valueField: 'id',
+                textField: 'name'
+              });
+            }
             resolve();
           } else {
             reject('Failed to load governorates');
@@ -691,27 +711,25 @@ var ProfileManager = {
    */
   populateFaculties: function() {
     var self = this;
-    return new Promise(function(resolve, reject) {
-      // Check if faculties are already populated
-      if ($('#faculty option').length > 1) {
-        resolve();
-        return;
-      }
-      
+    return new Promise(function(resolve, reject) {      
       // Fetch faculties from API
       ApiService.fetchFaculty()
         .done(function(response) {
           if (response.success && response.data) {
-            Utils.populateSelect($('#faculty'), response.data, {
-              placeholder: 'Select Faculty',
-              valueField: 'id',
-              textField: 'name'
-            });
+            if($('#faculty option').length <= 1) {
+                Utils.populateSelect($('#faculty'), response.data, {
+                placeholder: 'Select Faculty',
+                valueField: 'id',
+                textField: 'name'
+              });
+            }
+            if($('#sibling-faculty option').length <= 1) {
             Utils.populateSelect($('#sibling-faculty'), response.data, {
                 placeholder: 'Select Sibling Faculty',
                 valueField: 'id',
                 textField: 'name'
               });
+            }
             resolve();
           } else {
             reject('Failed to load faculties');
@@ -1077,9 +1095,6 @@ var ValidationService = {
       academic_year: {
         required: true
       },
-      gpa_available: {
-        required: true
-      },
       gpa: {
         dependsOn: {
           field: '#gpa-available',
@@ -1321,7 +1336,6 @@ var ValidationService = {
       faculty: 'Please select your faculty.',
       program: 'Please select your program.',
       academic_year: 'Please select your academic year.',
-      gpa_available: 'Please specify if you have a GPA.',
       gpa: {
         dependsOn: 'GPA is required when available.',
         gpaRange: 'GPA must be between 0.0 and 4.0.'
@@ -1507,6 +1521,8 @@ var ValidationService = {
 
     // Re-validate conditional fields when their dependencies change
     var conditionalFields = [
+      '#gpa',
+      '#score',
       '#abroad-country',
       '#parent-governorate',
       '#parent-city',
@@ -1526,7 +1542,6 @@ var ValidationService = {
     
     conditionalFields.forEach(function(field) {
       var $field = $(field);
-      // Only validate if the field exists in the DOM
       if ($field.length > 0) {
         try {
           ValidationService.validator.element(field);
@@ -1886,16 +1901,61 @@ var ConditionalFieldsManager = {
    * Initialize conditional fields
    */
   init: function() {
+    this.initializeFieldStates();
     this.bindEvents();
     this.triggerInitialChanges();
   },
+
+  /**
+   * Initialize field states (disable dependent fields)
+   */
+  initializeFieldStates: function() {
+    // Disable dependent fields initially
+    this.disableField('#city', 'Please select governorate first');
+    this.disableField('#parent-city', 'Please select parent governorate first');
+    this.disableField('#emergency-contact-city', 'Please select emergency contact governorate first');
+    this.disableField('#program', 'Please select faculty first');
+  },
+
+  /**
+   * Disable a field with placeholder text
+   * @param {string} selector - Field selector
+   * @param {string} placeholder - Placeholder text
+   */
+  disableField: function(selector, placeholder) {
+    var $field = $(selector);
+    if ($field.length) {
+      $field.prop('disabled', true);
+      if ($field.is('select')) {
+        $field.html('<option value="">' + placeholder + '</option>');
+      } else {
+        $field.attr('placeholder', placeholder);
+      }
+      $field.addClass('field-disabled');
+    }
+  },
+
+  /**
+   * Enable a field
+   * @param {string} selector - Field selector
+   */
+  enableField: function(selector) {
+    var $field = $(selector);
+    if ($field.length) {
+      $field.prop('disabled', false);
+      $field.removeClass('field-disabled');
+    }
+  },
+
   /**
    * Bind conditional field events
    */
   bindEvents: function() {
     this.handleGovernorateChange();
     this.handleParentGovernorateChange();
+    this.handleEmergencyContactGovernorateChange();
     this.handleFacultyChange();
+    this.handleGpaAndScoreChange();
     this.handleParentAbroadChange();
     this.handleLivingWithParentChange();
     this.handleSiblingInDormChange();
@@ -1908,6 +1968,9 @@ var ConditionalFieldsManager = {
       var governorateId = $(this).val();
       
       if (governorateId) {
+        // Enable city field
+        ConditionalFieldsManager.enableField('#city');
+        
         // Fetch cities for selected governorate
         ApiService.fetchCity(governorateId)
           .done(function(response) {
@@ -1926,7 +1989,8 @@ var ConditionalFieldsManager = {
             $('#city').html('<option value="">Error loading cities</option>');
           });
       } else {
-        $('#city').html('<option value="">Select City</option>');
+        // Disable city field
+        ConditionalFieldsManager.disableField('#city', 'Please select governorate first');
       }
     });
   },
@@ -1938,6 +2002,9 @@ var ConditionalFieldsManager = {
       var governorateId = $(this).val();
 
       if (governorateId) {
+        // Enable parent city field
+        ConditionalFieldsManager.enableField('#parent-city');
+        
         // Fetch cities for selected parent governorate
         ApiService.fetchCity(governorateId)
           .done(function(response) {
@@ -1956,7 +2023,42 @@ var ConditionalFieldsManager = {
             $('#parent-city').html('<option value="">Error loading cities</option>');
           });
       } else {
-        $('#parent-city').html('<option value="">Select City</option>');
+        // Disable parent city field
+        ConditionalFieldsManager.disableField('#parent-city', 'Please select parent governorate first');
+      }
+    });
+  },
+  /**
+   * Handle emergency contact governorate change
+   */
+  handleEmergencyContactGovernorateChange: function() {
+    $('#emergency-contact-governorate').change(function() {
+      var governorateId = $(this).val();
+
+      if (governorateId) {
+        // Enable emergency contact city field
+        ConditionalFieldsManager.enableField('#emergency-contact-city');
+        
+        // Fetch cities for selected emergency contact governorate
+        ApiService.fetchCity(governorateId)
+          .done(function(response) {
+            if (response.success && response.data) {
+              Utils.populateSelect($('#emergency-contact-city'), response.data, {
+                placeholder: 'Select City',
+                valueField: 'id',
+                textField: 'name'
+              });
+            } else {
+              $('#emergency-contact-city').html('<option value="">No cities available</option>');
+            }
+          })
+          .fail(function(xhr) {
+            console.error('Failed to load emergency contact cities:', xhr);
+            $('#emergency-contact-city').html('<option value="">Error loading cities</option>');
+          });
+      } else {
+        // Disable emergency contact city field
+        ConditionalFieldsManager.disableField('#emergency-contact-city', 'Please select emergency contact governorate first');
       }
     });
   },
@@ -1968,6 +2070,9 @@ var ConditionalFieldsManager = {
       var facultyId = $(this).val();
 
       if (facultyId) {
+        // Enable program field
+        ConditionalFieldsManager.enableField('#program');
+        
         // Fetch programs for selected faculty
         ApiService.fetchProgram(facultyId)
           .done(function(response) {
@@ -1986,7 +2091,30 @@ var ConditionalFieldsManager = {
             $('#program').html('<option value="">Error loading programs</option>');
           });
       } else {
-        $('#program').html('<option value="">Select Program</option>');
+        // Disable program field
+        ConditionalFieldsManager.disableField('#program', 'Please select faculty first');
+      }
+    });
+  },
+  /**
+   * Handle GPA and score change
+   */
+  handleGpaAndScoreChange: function() {
+    $('#is-new-comer').change(function() {
+      var value = $(this).val();
+      console.log('New comer status changed:', value);
+      
+      // Convert to boolean for comparison
+      var isNewComer = (value === 'true' || value === true);
+      
+      if (!isNewComer) {
+        console.log('Showing GPA field, hiding score field');
+        $('#gpa-div').removeClass('d-none');
+        $('#score-div').addClass('d-none');
+      } else {
+        console.log('Showing score field, hiding GPA field');
+        $('#gpa-div').addClass('d-none');
+        $('#score-div').removeClass('d-none');
       }
     });
   },
@@ -2004,9 +2132,6 @@ var ConditionalFieldsManager = {
       } else {
         ConditionalFieldsManager.hideAllParentFields();
       }
-
-      // Update validation after field visibility changes
-      ValidationService.updateConditionalValidation();
     });
   },
   /**
@@ -2021,9 +2146,6 @@ var ConditionalFieldsManager = {
       } else {
         ConditionalFieldsManager.hideParentAddressFields();
       }
-
-      // Update validation after field visibility changes
-      ValidationService.updateConditionalValidation();
     });
   },
   /**
@@ -2038,9 +2160,6 @@ var ConditionalFieldsManager = {
       } else {
         ConditionalFieldsManager.hideSiblingDetails();
       }
-
-      // Update validation after field visibility changes
-      ValidationService.updateConditionalValidation();
     });
   },
   /**
@@ -2093,6 +2212,28 @@ var ConditionalFieldsManager = {
   hideSiblingDetails: function() {
     $('#siblingDetails').addClass('d-none');
   },
+
+  /**
+   * Check and enable fields based on their dependencies when data is loaded
+   */
+  checkAndEnableFields: function() {
+    // Check governorate -> city dependencies
+    if ($('#governorate').val()) {
+      this.enableField('#city');
+    }
+    if ($('#parent-governorate').val()) {
+      this.enableField('#parent-city');
+    }
+    if ($('#emergency-contact-governorate').val()) {
+      this.enableField('#emergency-contact-city');
+    }
+    
+    // Check faculty -> program dependency
+    if ($('#faculty').val()) {
+      this.enableField('#program');
+    }
+  },
+
   /**
    * Trigger initial changes for all conditional fields
    */
@@ -2101,6 +2242,10 @@ var ConditionalFieldsManager = {
     $('#living-with-parent').trigger('change');
     $('#has-sibling-in-dorm').trigger('change');
     $('#parent-governorate').trigger('change');
+    $('#is-new-comer').trigger('change');
+    
+    // Check and enable fields after triggers
+    this.checkAndEnableFields();
   }
 };
 
@@ -2115,6 +2260,28 @@ var FormManager = {
   init: async function() {
     await this.showInitialSwalAlert();
     this.bindEvents();
+    this.handleEnterKeyPress();
+  },
+  
+  /**
+   * Handle Enter key press to act as Next button instead of form submission
+   */
+  handleEnterKeyPress: function() {
+    $(document).on('keypress', '#profileForm input, #profileForm select', function(e) {
+      // Check if Enter key was pressed
+      if (e.which === 13) {
+        e.preventDefault(); // Prevent default form submission
+        
+        // Find the active tab pane
+        var $activeTabPane = $('.tab-pane.active');
+        if ($activeTabPane.length) {
+          // Find and click the next button in the active tab
+          $activeTabPane.find('.next-Btn').click();
+        }
+        
+        return false;
+      }
+    });
   },
 
   /**
