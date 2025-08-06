@@ -1,6 +1,6 @@
 @extends('layouts.home')
 
-@section('title', 'Payment Management | Housing')
+@section('title', __('payments.page_title'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -11,16 +11,16 @@
           <x-ui.card.stat2 
               color="secondary"
               icon="bx bx-door-open"
-              label="Total Payments"
+              :label="__('payments.stats.total_payments')"
               id="payments"
               :subStats="[
                   'male' => [
-                      'label' => 'Male Payments',
+                      'label' => __('payments.stats.male_payments'),
                       'icon' => 'bx bx-male-sign',
                       'color' => 'info'
                   ],
                   'female' => [
-                      'label' => 'Female Payments', 
+                      'label' => __('payments.stats.female_payments'), 
                       'icon' => 'bx bx-female-sign',
                       'color' => 'danger'
                   ]

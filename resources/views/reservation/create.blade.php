@@ -1,16 +1,16 @@
 @extends('layouts.home')
 
-@section('title', 'Add Reservation | Housing')
+@section('title', __('reservations.create.page_title'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
     <x-ui.page-header 
-        title="Add Reservation"
-        description="Create a new reservation."
+        :title="__('reservations.create.page_header')"
+        :description="__('reservations.create.page_description')"
         icon="bx bx-calendar"
     >
         <a href="{{ route('reservations.index') }}" class="btn btn-outline-secondary">
-            <i class="bx bx-arrow-back"></i> Back to List
+            <i class="bx bx-arrow-back"></i> {{ __('reservations.create.back_to_list') }}
         </a>
     </x-ui.page-header>
     
@@ -18,16 +18,16 @@
         <!-- Step 1: National ID Search -->
         <div class="card mb-4 shadow-sm border-0">
             <div class="card-header bg-white border-bottom-0 pb-0">
-                <h5 class="mb-0"><i class="bx bx-id-card me-2"></i>Enter National ID</h5>
+                <h5 class="mb-0"><i class="bx bx-id-card me-2"></i>{{ __('reservations.create.enter_national_id') }}</h5>
             </div>
             <div class="card-body pt-3">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-8">
-                        <input type="text" class="form-control" id="search_national_id" placeholder="Enter National ID...">
+                        <input type="text" class="form-control" id="search_national_id" placeholder="{{ __('reservations.create.national_id_placeholder') }}">
                     </div>
                     <div class="col-md-4">
                         <button type="button" class="btn btn-primary w-100" id="btnSearchNationalId">
-                            <i class="bx bx-search"></i> Search
+                            <i class="bx bx-search"></i> {{ __('reservations.create.search') }}
                         </button>
                     </div>
                 </div>
@@ -37,7 +37,7 @@
         <!-- Step 2: User Info (hidden until found) -->
         <div id="user-info-section" class="card mb-4 shadow-sm border-0 d-none">
             <div class="card-header bg-white border-bottom-0 pb-0">
-                <h5 class="mb-0"><i class="bx bx-user me-2"></i>User Info</h5>
+                <h5 class="mb-0"><i class="bx bx-user me-2"></i>{{ __('reservations.create.user_info') }}</h5>
             </div>
             <div class="card-body pt-3">
                 <div id="user-info-content">
@@ -54,45 +54,45 @@
             <!-- Accommodation Details -->
             <div class="card mb-4 shadow-sm border-0">
                 <div class="card-header bg-white border-bottom-0 pb-0">
-                    <h5 class="mb-0"><i class="bx bx-home me-2"></i>Accommodation Details</h5>
+                    <h5 class="mb-0"><i class="bx bx-home me-2"></i>{{ __('reservations.create.accommodation_details') }}</h5>
                 </div>
                 <div class="card-body pt-3">
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label for="add_accommodation_type" class="form-label">Accommodation Type <span class="text-danger">*</span></label>
+                            <label for="add_accommodation_type" class="form-label">{{ __('reservations.create.accommodation_type') }} <span class="text-danger">*</span></label>
                             <select class="form-control" id="add_accommodation_type" name="accommodation_type" required>
-                                <option value="">Select Type</option>
-                                <option value="room">Room</option>
-                                <option value="apartment">Apartment</option>
+                                <option value="">{{ __('reservations.create.select_type') }}</option>
+                                <option value="room">{{ __('reservations.create.room') }}</option>
+                                <option value="apartment">{{ __('reservations.create.apartment') }}</option>
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="add_building_id" class="form-label">Building <span class="text-danger">*</span></label>
+                            <label for="add_building_id" class="form-label">{{ __('reservations.create.building') }} <span class="text-danger">*</span></label>
                             <select class="form-control" id="add_building_id" name="building_id" required>
-                                <option value="">Select Building</option>
+                                <option value="">{{ __('reservations.create.select_building') }}</option>
                             </select>
                         </div>
                         <div class="col-md-4" id="apartment-select-group" style="display:none;">
-                            <label for="add_apartment_id" class="form-label">Apartment <span class="text-danger">*</span></label>
+                            <label for="add_apartment_id" class="form-label">{{ __('reservations.create.apartment') }} <span class="text-danger">*</span></label>
                             <select class="form-control" id="add_apartment_id" name="apartment_id">
-                                <option value="">Select Apartment</option>
+                                <option value="">{{ __('reservations.create.select_apartment') }}</option>
                             </select>
                         </div>
                         <div class="col-md-4" id="room-select-group" style="display:none;">
-                            <label for="add_room_id" class="form-label">Room <span class="text-danger">*</span></label>
+                            <label for="add_room_id" class="form-label">{{ __('reservations.create.room') }} <span class="text-danger">*</span></label>
                             <select class="form-control" id="add_room_id" name="room_id">
-                                <option value="">Select Room</option>
+                                <option value="">{{ __('reservations.create.select_room') }}</option>
                             </select>
                             <div id="double-room-bed-options" class="mt-2" style="display:none;">
-                                <label class="form-label">Double Room Option</label>
+                                <label class="form-label">{{ __('reservations.create.double_room_option') }}</label>
                                 <div>
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="double_room_bed_option" id="double_room_one_bed" value="one">
-                                        <label class="form-check-label" for="double_room_one_bed">Take one bed</label>
+                                        <label class="form-check-label" for="double_room_one_bed">{{ __('reservations.create.take_one_bed') }}</label>
                                     </div>
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="double_room_bed_option" id="double_room_both_beds" value="both">
-                                        <label class="form-check-label" for="double_room_both_beds">Take both beds</label>
+                                        <label class="form-check-label" for="double_room_both_beds">{{ __('reservations.create.take_both_beds') }}</label>
                                     </div>
                                 </div>
                             </div>
@@ -101,41 +101,41 @@
                     <div class="row g-3 mt-2">
                         <!-- Period Selector -->
                         <div class="col-md-4">
-                            <label for="add_period" class="form-label">Period <span class="text-danger">*</span></label>
+                            <label for="add_period" class="form-label">{{ __('reservations.create.period') }} <span class="text-danger">*</span></label>
                             <select class="form-control" id="add_period" name="period_type" required>
-                                <option value="">Select Period</option>
-                                <option value="academic">Academic</option>
-                                <option value="calendar">Calendar</option>
+                                <option value="">{{ __('reservations.create.select_period') }}</option>
+                                <option value="academic">{{ __('reservations.create.academic') }}</option>
+                                <option value="calendar">{{ __('reservations.create.calendar') }}</option>
                             </select>
                         </div>
                         <!-- Academic Term (Academic Period) -->
                         <div class="col-md-4" id="academic-term-group" style="display:none;">
-                            <label for="add_academic_term_id" class="form-label">Academic Term</label>
+                            <label for="add_academic_term_id" class="form-label">{{ __('reservations.create.academic_term') }}</label>
                             <select class="form-control" id="add_academic_term_id" name="academic_term_id">
-                                <option value="">Select Academic Term</option>
+                                <option value="">{{ __('reservations.create.select_academic_term') }}</option>
                             </select>
                         </div>
                         <!-- Check-in/Check-out (Calendar Period) -->
                         <div class="col-md-8" id="checkinout-group" style="display:none;">
                             <div class="row g-2">
                                 <div class="col-md-6">
-                                    <label for="add_check_in_date" class="form-label">Check-in Date</label>
+                                    <label for="add_check_in_date" class="form-label">{{ __('reservations.create.check_in_date') }}</label>
                                     <input type="date" class="form-control" id="add_check_in_date" name="check_in_date">
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="add_check_out_date" class="form-label">Check-out Date</label>
+                                    <label for="add_check_out_date" class="form-label">{{ __('reservations.create.check_out_date') }}</label>
                                     <input type="date" class="form-control" id="add_check_out_date" name="check_out_date">
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <label for="add_status" class="form-label">Status</label>
+                            <label for="add_status" class="form-label">{{ __('reservations.create.status') }}</label>
                             <select class="form-control" id="add_status" name="status">
-                                <option value="pending">Pending</option>
-                                <option value="confirmed">Confirmed</option>
-                                <option value="checked_in">Checked In</option>
-                                <option value="checked_out">Checked Out</option>
-                                <option value="cancelled">Cancelled</option>
+                                <option value="pending">{{ __('reservations.status.pending') }}</option>
+                                <option value="confirmed">{{ __('reservations.status.confirmed') }}</option>
+                                <option value="checked_in">{{ __('reservations.status.checked_in') }}</option>
+                                <option value="checked_out">{{ __('reservations.status.checked_out') }}</option>
+                                <option value="cancelled">{{ __('reservations.status.cancelled') }}</option>
                             </select>
                         </div>
                     </div>
@@ -145,7 +145,7 @@
             <!-- Equipment -->
             <div class="card mb-4 shadow-sm border-0">
                 <div class="card-header bg-white border-bottom-0 pb-0">
-                    <h5 class="mb-0"><i class="bx bx-cube me-2"></i>Equipment</h5>
+                    <h5 class="mb-0"><i class="bx bx-cube me-2"></i>{{ __('reservations.create.equipment') }}</h5>
                 </div>
                 <div class="card-body pt-3">
                     <div id="equipment-list" class="row g-3"></div>
@@ -155,13 +155,13 @@
             <!-- Additional Info -->
             <div class="card mb-4 shadow-sm border-0">
                 <div class="card-header bg-white border-bottom-0 pb-0">
-                    <h5 class="mb-0"><i class="bx bx-info-circle me-2"></i>Additional Info</h5>
+                    <h5 class="mb-0"><i class="bx bx-info-circle me-2"></i>{{ __('reservations.create.additional_info') }}</h5>
                 </div>
                 <div class="card-body pt-3">
                     <div class="row g-3">
                         <div class="col-12">
-                            <label for="add_notes" class="form-label">Notes</label>
-                            <textarea class="form-control" id="add_notes" name="notes" rows="3" placeholder="Enter any additional notes..."></textarea>
+                            <label for="add_notes" class="form-label">{{ __('reservations.create.notes') }}</label>
+                            <textarea class="form-control" id="add_notes" name="notes" rows="3" placeholder="{{ __('reservations.create.notes_placeholder') }}"></textarea>
                         </div>
                     </div>
                 </div>
@@ -169,7 +169,7 @@
 
             <div class="d-flex justify-content-end mt-4">
                 <button type="submit" class="btn btn-lg btn-primary px-4 shadow">
-                    <i class="bx bx-save"></i> Save Reservation
+                    <i class="bx bx-save"></i> {{ __('reservations.create.save_reservation') }}
                 </button>
             </div>
         </form>

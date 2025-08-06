@@ -1,6 +1,6 @@
 @extends('layouts.home')
 
-@section('title', 'Student Management | Housing')
+@section('title', __('residents.students.page_title'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -8,26 +8,26 @@
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="secondary" icon="bx bx-user" label="Total Students" id="students" />
+            <x-ui.card.stat2 color="secondary" icon="bx bx-user" :label="__('residents.students.total_students')" id="students" />
         </div>
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="info" icon="bx bx-male" label="Male Students" id="students-male" />
+            <x-ui.card.stat2 color="info" icon="bx bx-male" :label="__('residents.students.male_students')" id="students-male" />
         </div>
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="pink" icon="bx bx-female" label="Female Students" id="students-female" />
+            <x-ui.card.stat2 color="pink" icon="bx bx-female" :label="__('residents.students.female_students')" id="students-female" />
         </div>
     </div>
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header 
-        title="Students"
-        description="Manage students and their information."
+        :title="__('residents.students.page_header')"
+        :description="__('residents.students.page_description')"
         icon="bx bx-user"
     >
     <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
 
 <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#studentSearchCollapse" aria-expanded="false" aria-controls="studentSearchCollapse">
-    <i class="bx bx-filter-alt me-1"></i> Search
+    <i class="bx bx-filter-alt me-1"></i> {{ __('residents.students.search') }}
 </button>
 </div>
 

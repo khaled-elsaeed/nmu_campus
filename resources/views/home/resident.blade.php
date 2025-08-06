@@ -1,6 +1,6 @@
 @extends('layouts.home')
 
-@section('title', 'Resident Home | Housing')
+@section('title', __('home.resident.page_title'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -11,15 +11,15 @@
         <div class="card-body p-3 d-flex flex-wrap flex-md-nowrap align-items-center justify-content-between gap-2">
           <div class="text-center text-md-start flex-fill">
             <h5 class="fw-bold text-primary mb-1">
-              Welcome Back, {{ Auth::user()->name ?? 'Resident' }}!
+              {{ __('home.resident.welcome_back', ['name' => Auth::user()->name ?? __('home.resident.default_name')]) }}
             </h5>
             <div class="text-muted small mb-1 mt-2">
               <i class="bx bx-info-circle me-1 text-secondary"></i>
-              Manage your housing, view assignments, and access resources.
+              {{ __('home.resident.welcome_description') }}
             </div>
             <div class="text-muted small mt-2">
               <i class="bx bx-time me-1 text-secondary"></i>
-              Last sign-in: {{ Auth::user()->last_login }}
+              {{ __('home.resident.last_signin', ['time' => Auth::user()->last_login]) }}
             </div>
           </div>
           <div class="text-center flex-shrink-0">

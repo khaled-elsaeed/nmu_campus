@@ -1,31 +1,31 @@
 @extends('layouts.home')
 
-@section('title', 'Staff Management | Housing')
+@section('title', __('residents.staff.page_title'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="secondary" icon="bx bx-group" label="Total Staff" id="staff" />
+            <x-ui.card.stat2 color="secondary" icon="bx bx-group" :label="__('residents.staff.total_staff')" id="staff" />
         </div>
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="info" icon="bx bx-male" label="Male Staff" id="staff-male" />
+            <x-ui.card.stat2 color="info" icon="bx bx-male" :label="__('residents.staff.male_staff')" id="staff-male" />
         </div>
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="pink" icon="bx bx-female" label="Female Staff" id="staff-female" />
+            <x-ui.card.stat2 color="pink" icon="bx bx-female" :label="__('residents.staff.female_staff')" id="staff-female" />
         </div>
     </div>
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header 
-        title="Staff"
-        description="Manage staff and their information."
+        :title="__('residents.staff.page_header')"
+        :description="__('residents.staff.page_description')"
         icon="bx bx-group"
     >
     <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
         <button class="btn btn-primary mx-2" id="addStaffBtn">
-            <i class="bx bx-plus me-1"></i> Add Staff
+            <i class="bx bx-plus me-1"></i> {{ __('residents.staff.add_staff') }}
         </button>
         <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#staffSearchCollapse" aria-expanded="false" aria-controls="staffSearchCollapse">
             <i class="bx bx-filter-alt me-1"></i> Search

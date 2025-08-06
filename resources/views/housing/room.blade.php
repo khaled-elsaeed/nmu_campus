@@ -1,6 +1,6 @@
 @extends('layouts.home')
 
-@section('title', 'Room Management | Housing')
+@section('title', __('housing.rooms.page_title'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -10,16 +10,16 @@
           <x-ui.card.stat2 
               color="secondary"
               icon="bx bx-door-open"
-              label="Total Rooms"
+              :label="__('housing.rooms.total_rooms')"
               id="rooms"
               :subStats="[
                   'male' => [
-                      'label' => 'Male Rooms',
+                      'label' => __('housing.rooms.male_rooms'),
                       'icon' => 'bx bx-male-sign',
                       'color' => 'info'
                   ],
                   'female' => [
-                      'label' => 'Female Rooms', 
+                      'label' => __('housing.rooms.female_rooms'), 
                       'icon' => 'bx bx-female-sign',
                       'color' => 'danger'
                   ]

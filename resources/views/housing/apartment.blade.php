@@ -1,31 +1,31 @@
 @extends('layouts.home')
 
-@section('title', 'Apartment Management | Housing')
+@section('title', __('housing.apartments.page_title'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="secondary" icon="bx bx-building" label="Total Apartments" id="apartments" />
+            <x-ui.card.stat2 color="secondary" icon="bx bx-building" :label="__('housing.apartments.total_apartments')" id="apartments" />
         </div>
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="info" icon="bx bx-male" label="Male Apartments" id="apartments-male" />
+            <x-ui.card.stat2 color="info" icon="bx bx-male" :label="__('housing.apartments.male_apartments')" id="apartments-male" />
         </div>
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="danger" icon="bx bx-female" label="Female Apartments" id="apartments-female" />
+            <x-ui.card.stat2 color="danger" icon="bx bx-female" :label="__('housing.apartments.female_apartments')" id="apartments-female" />
         </div>
     </div>
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header 
-        title="Apartments"
-        description="Manage apartments and their associated rooms."
+        :title="__('housing.apartments.page_header')"
+        :description="__('housing.apartments.page_description')"
         icon="bx bx-building"
     >
         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
             <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#apartmentSearchCollapse" aria-expanded="false" aria-controls="apartmentSearchCollapse">
-                <i class="bx bx-filter-alt me-1"></i> Search
+                <i class="bx bx-filter-alt me-1"></i> {{ __('housing.common.search') }}
             </button>
         </div>
     </x-ui.page-header>

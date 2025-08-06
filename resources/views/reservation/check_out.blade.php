@@ -1,16 +1,16 @@
 @extends('layouts.home')
 
-@section('title', 'Check-out | Housing')
+@section('title', __('reservations.check_out.page_title'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
     <x-ui.page-header 
-        title="Guest Check-out"
-        description="Process guest check-out with equipment return and damage assessment."
+        :title="__('reservations.check_out.page_header')"
+        :description="__('reservations.check_out.page_description')"
         icon="bx bx-log-out-circle"
     >
         <a href="{{ route('reservations.index') }}" class="btn btn-outline-secondary">
-            <i class="bx bx-arrow-back"></i> Back to List
+            <i class="bx bx-arrow-back"></i> {{ __('reservations.check_out.back_to_list') }}
         </a>
     </x-ui.page-header>
 
@@ -18,16 +18,16 @@
         <!-- Step 1: Reservation Number Search -->
         <div class="card mb-4 shadow-sm border-0">
             <div class="card-header bg-white border-bottom-0 pb-0">
-                <h5 class="mb-0"><i class="bx bx-id-card me-2"></i>Search Reservation</h5>
+                <h5 class="mb-0"><i class="bx bx-id-card me-2"></i>{{ __('reservations.check_out.search_reservation') }}</h5>
             </div>
             <div class="card-body pt-3">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-8">
-                        <input type="text" class="form-control" id="search_reservation_number" placeholder="Enter Reservation Number...">
+                        <input type="text" class="form-control" id="search_reservation_number" placeholder="{{ __('reservations.check_out.reservation_number_placeholder') }}">
                     </div>
                     <div class="col-md-4">
                         <button type="button" class="btn btn-primary w-100" id="btnSearchReservation">
-                            <i class="bx bx-search"></i> Search Reservation
+                            <i class="bx bx-search"></i> {{ __('reservations.check_out.search_reservation_btn') }}
                         </button>
                     </div>
                 </div>

@@ -1,20 +1,20 @@
 @extends('layouts.home')
 
-@section('title', 'My Reservations')
+@section('title', __('reservations.my_reservations.page_title'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header 
-        title="My Reservations"
-        description="View and manage your current housing reservation details below."
+        :title="__('reservations.my_reservations.page_header')"
+        :description="__('reservations.my_reservations.page_description')"
         icon="bx bx-calendar"
     >
         <button class="btn btn-outline-secondary me-2" type="button" data-bs-toggle="collapse" data-bs-target="#reservationSearchCollapse" aria-expanded="false" aria-controls="reservationSearchCollapse" title="{{ __('reservations.search.button_tooltip') }}">
             <i class="bx bx-search"></i>
         </button>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newReservationModal">
-            <i class="bx bx-plus me-1"></i>New Reservation
+            <i class="bx bx-plus me-1"></i>{{ __('reservations.my_reservations.new_reservation') }}
         </button>
     </x-ui.page-header>
 
@@ -25,8 +25,8 @@
                 <form id="reservationSearchForm">
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label class="form-label">Property</label>
-                            <input type="text" class="form-control" name="property" id="search_property" placeholder="Search by property name">
+                            <label class="form-label">{{ __('reservations.my_reservations.property') }}</label>
+                            <input type="text" class="form-control" name="property" id="search_property" placeholder="{{ __('reservations.my_reservations.property_placeholder') }}">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Status</label>

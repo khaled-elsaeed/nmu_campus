@@ -1,6 +1,6 @@
 @extends('layouts.home')
 
-@section('title', 'Building Management | Housing')
+@section('title', __('housing.buildings.page_title'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -8,25 +8,25 @@
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="secondary" icon="bx bx-buildings" label="Total Buildings" id="buildings" />
+            <x-ui.card.stat2 color="secondary" icon="bx bx-buildings" :label="__('housing.buildings.total_buildings')" id="buildings" />
         </div>
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="info" icon="bx bx-male" label="Male Buildings" id="buildings-male" />
+            <x-ui.card.stat2 color="info" icon="bx bx-male" :label="__('housing.buildings.male_buildings')" id="buildings-male" />
         </div>
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="danger" icon="bx bx-female" label="Female Buildings" id="buildings-female" />
+            <x-ui.card.stat2 color="danger" icon="bx bx-female" :label="__('housing.buildings.female_buildings')" id="buildings-female" />
         </div>
     </div>
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header 
-        title="Buildings"
-        description="Manage buildings and their associated apartments."
+        :title="__('housing.buildings.page_header')"
+        :description="__('housing.buildings.page_description')"
         icon="bx bx-buildings"
     >
         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
             <button class="btn btn-primary mx-2" id="addBuildingBtn" type="button" data-bs-toggle="modal" data-bs-target="#buildingModal">
-                <i class="bx bx-plus me-1"></i> Add Building
+                <i class="bx bx-plus me-1"></i> {{ __('housing.buildings.add_building') }}
             </button>
             <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#buildingSearchCollapse" aria-expanded="false" aria-controls="buildingSearchCollapse">
                 <i class="bx bx-filter-alt me-1"></i> Search

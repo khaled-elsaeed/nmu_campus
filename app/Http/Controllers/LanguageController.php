@@ -16,29 +16,24 @@ class LanguageController extends Controller
      */
     public function switchLanguage($locale)
     {
-        $supportedLocales = ['en', 'ar'];
+        $supportedLocales = config('app.available_locales', ['en', 'ar']);
 
         if (!in_array($locale, $supportedLocales)) {
+            \Log::info("Attempted to switch to unsupported locale: {$locale}");
             abort(400, 'Unsupported locale');
         }
 
         App::setLocale($locale);
+
+        // Store the user's explicit language choice
         Session::put('locale', $locale);
+        Session::put('user_selected_locale', true);
 
-        // Remove old locale from the current path if present
-        $currentPath = parse_url(url()->previous(), PHP_URL_PATH);
-        $segments = array_filter(explode('/', trim($currentPath, '/')));
+        \Log::info("Language switched to: {$locale}", [
+            'session_locale' => Session::get('locale'),
+            'user_selected_locale' => Session::get('user_selected_locale'),
+        ]);
 
-        // Check if first segment is a supported locale and replace/prepend accordingly
-        if (!empty($segments) && in_array($segments[0], $supportedLocales)) {
-            $segments[0] = $locale;
-        } else {
-            array_unshift($segments, $locale);
-        }
-
-        $newPath = '/' . implode('/', $segments);
-        $localizedPath = url($newPath);
-
-        return redirect($localizedPath);
+        return redirect()->back();
     }
 }
