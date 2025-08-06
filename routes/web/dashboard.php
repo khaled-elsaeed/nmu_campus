@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Dashboard\AdminDashboardController;
 use Illuminate\Support\Facades\Route;
 
 // ====================
@@ -8,18 +8,16 @@ use Illuminate\Support\Facades\Route;
 // ====================
 
 // ===== Admin Dashboard Routes =====
-Route::middleware(['auth'])
-    ->prefix('admin')
-    ->name('admin.')
+Route::prefix('dashboard')
+    ->name('dashboard.')
     ->group(function () {
-        // Specific Routes First
-        Route::get('dashboard/stats', [DashboardController::class, 'adminStats'])
-            ->name('dashboard.stats')
-            ->middleware('can:dashboard.admin');
 
-        // Main Routes
-        Route::get('dashboard', [DashboardController::class, 'adminDashboard'])
-            ->name('dashboard')
-            ->middleware('can:dashboard.admin');
+        Route::controller(AdminDashboardController::class)
+            ->group(function () {
+                Route::get('admin', 'index')
+                    ->name('admin.index');
+
+                Route::get('admin/stats', 'stats')
+                    ->name('admin.stats');
+            });
     });
-

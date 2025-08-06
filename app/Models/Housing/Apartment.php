@@ -5,8 +5,9 @@ namespace App\Models\Housing;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
-use App\Models\Reservation\ِAccommodation;
+use App\Models\Reservation\Accommodation;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+ 
 
 class Apartment extends Model
 {
@@ -21,6 +22,16 @@ class Apartment extends Model
         'total_rooms',
         'active',
     ];
+
+    /**
+     * The current occupancy of the apartment.
+     */
+    public function currentOccupancy(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->rooms()->sum('current_occupancy')
+        );
+    }
 
     /**
      * The attributes that should be cast.
@@ -57,10 +68,24 @@ class Apartment extends Model
     /**
      * Get the accommodations (reservations) that include this apartment.
      *
-     * @return MorphMany
+     * @return HasMany
      */
-    public function accommodations(): MorphMany
+    public function accommodations(): HasMany
     {
-        return $this->morphMany(Accommodation::class, 'accommodatable');
+        return $this->hasMany(Accommodation::class);
+    }
+
+
+    /**
+     * Get the location information for the apartment.
+     *
+     * @return array<string, string|null>
+     */
+    public function location(): array
+    {
+        return [
+            'number' => $this->number,
+            'building_number' => $this->building->number ?? null,
+        ];
     }
 }

@@ -2,7 +2,7 @@
 
 return [
     // Page meta
-    'page_title' => 'Reservation Management | NMU Campus',
+    'page_title' => 'Reservation Management | Housing',
     'page_header' => 'Reservations',
     'page_description' => 'Manage reservations and their details.',
     

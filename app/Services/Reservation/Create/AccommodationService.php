@@ -48,8 +48,7 @@ class AccommodationService
         $accommodation = Accommodation::create([
             'type' => 'room',
             'description' => $description ?? "Accommodation for Room {$room->number}, Apartment {$room->apartment->number}, Building {$room->apartment->building}",
-            'accommodatable_type' => Room::class,
-            'accommodatable_id' => $roomId,
+            'room_id' => $roomId,
             'double_room_bed_option' => $doubleRoomBedOption,
             'reservation_id' => $reservationId,
         ]);
@@ -92,8 +91,7 @@ class AccommodationService
         }
 
         // Check if accommodation already exists for this apartment
-        $existingAccommodation = Accommodation::where('accommodatable_type', Apartment::class)
-            ->where('accommodatable_id', $apartmentId)
+        $existingAccommodation = Accommodation::where('apartment_id', $apartmentId)
             ->first();
             
         if ($existingAccommodation) {
@@ -103,8 +101,7 @@ class AccommodationService
         $accommodation = Accommodation::create([
             'type' => 'apartment',
             'description' => $description ?? "Accommodation for Apartment {$apartment->number}",
-            'accommodatable_type' => Apartment::class,
-            'accommodatable_id' => $apartmentId,
+            'apartment_id' => $apartmentId,
             'reservation_id' => $reservationId,
         ]);
 

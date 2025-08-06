@@ -4,8 +4,9 @@ namespace App\Models\Housing;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
-use App\Models\Housing\Accommodation;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Reservation\Accommodation;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Room extends Model
 {
@@ -27,6 +28,13 @@ class Room extends Model
         'active',
     ];
 
+     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = ['gender'];
+
     /**
      * The attributes that should be cast.
      *
@@ -37,6 +45,18 @@ class Room extends Model
         return [
             'active' => 'boolean',
         ];
+    }
+
+    /**
+     * Get the gender restriction for the room.
+     *
+     * @return Attribute
+     */
+    protected function gender(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $this->apartment?->building?->gender_restriction,
+        );
     }
 
     /**
@@ -52,10 +72,24 @@ class Room extends Model
     /**
      * Get the accommodations (reservations) that include this room.
      *
-     * @return MorphMany
+     * @return HasMany
      */
-    public function accommodations(): MorphMany
+    public function accommodations(): HasMany
     {
-        return $this->morphMany(Accommodation::class, 'accommodatable');
+        return $this->hasMany(Accommodation::class);
+    }
+
+    /**
+     * Get the location information for the room.
+     *
+     * @return array<string, string|null>
+     */
+    public function location(): array
+    {
+        return [
+            'number' => $this->number,
+            'apartment_number' => $this->apartment->number ?? null,
+            'building_number' => $this->apartment->building->number ?? null,
+        ];
     }
 }

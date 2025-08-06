@@ -42,14 +42,12 @@
     <div class="col-md-6 mb-3">
         <label for="emergency-contact-governorate" class="form-label">Governorate</label>
         <select class="form-select" id="emergency-contact-governorate" name="emergency_contact_governorate">
-            <option value="">Select Governorate</option>
             <!-- Add governorate options here -->
         </select>
     </div>
     <div class="col-md-6 mb-3">
         <label for="emergency-contact-city" class="form-label">City</label>
         <select class="form-select" id="emergency-contact-city" name="emergency_contact_city">
-            <option value="">Select City</option>
             <!-- Add city options here -->
         </select>
     </div>

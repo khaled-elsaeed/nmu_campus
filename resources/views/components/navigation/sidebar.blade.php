@@ -10,7 +10,7 @@
 >
     <div class="app-brand demo">
         <a href="{{ route('home') }}" class="app-brand-link">
-            <span class="app-brand-text demo menu-text fw-bolder text-primary ms-2">NMU Campus</span>
+            <span class="app-brand-text demo menu-text fw-bolder text-primary ms-2">Housing</span>
         </a>
 
         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">

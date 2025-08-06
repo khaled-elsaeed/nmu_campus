@@ -95,9 +95,6 @@
         icon="bx bx-calendar"
     >
     <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
-        <button class="btn btn-primary mx-2" id="addStaffBtn">
-            <i class="bx bx-plus me-1"></i> Add Staff
-        </button>
         <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#reservationSearchCollapse" aria-expanded="false" aria-controls="reservationSearchCollapse">
             <i class="bx bx-filter-alt me-1"></i> Search
         </button>
@@ -169,27 +166,19 @@
         :headers="[
             __('reservations.table.headers.reservation_number'),
             __('reservations.table.headers.user'),
-            __('reservations.table.headers.accommodation'),
-            __('reservations.table.headers.academic_term'),
-            __('reservations.table.headers.check_in'),
-            __('reservations.table.headers.check_out'),
+            __('reservations.table.headers.location'),
+            __('reservations.table.headers.period'),
             __('reservations.table.headers.status'),
-            __('reservations.table.headers.active'),
-            __('reservations.table.headers.period_type'),
             __('reservations.table.headers.created'),
             __('reservations.table.headers.actions')
         ]"
         :columns="[
-            ['data' => 'reservation_number', 'name' => 'reservation_number', 'orderable' => false],
-            ['data' => 'name', 'name' => 'name', 'orderable' => false],
-            ['data' => 'accommodation_info', 'name' => 'accommodation_info', 'orderable' => false],
-            ['data' => 'academic_term', 'name' => 'academic_term', 'orderable' => false],
-            ['data' => 'check_in_date', 'name' => 'check_in_date', 'orderable' => false],
-            ['data' => 'check_out_date', 'name' => 'check_out_date', 'orderable' => false],
-            ['data' => 'status', 'name' => 'status', 'orderable' => false],
-            ['data' => 'active', 'name' => 'active', 'orderable' => false],
-            ['data' => 'period_type', 'name' => 'period_type', 'orderable' => false],
-            ['data' => 'created_at', 'name' => 'created_at', 'orderable' => false],
+            ['data' => 'reservation_number', 'name' => 'reservation_number'],
+            ['data' => 'name', 'name' => 'name'],
+            ['data' => 'location', 'name' => 'location'],
+            ['data' => 'period', 'name' => 'period'],
+            ['data' => 'status', 'name' => 'status'],
+            ['data' => 'created_at', 'name' => 'created_at'],
             ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false]
         ]"
         :ajax-url="route('reservations.datatable')"

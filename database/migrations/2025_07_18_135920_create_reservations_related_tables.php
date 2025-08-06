@@ -15,7 +15,8 @@ return new class extends Migration
         Schema::create('accommodations', function (Blueprint $table) {
             $table->id();
             $table->enum('type', ['room', 'apartment']);
-            $table->morphs('accommodatable');
+            $table->foreignId('apartment_id')->nullable()->constrained()->restrictOnDelete();
+            $table->foreignId('room_id')->nullable()->constrained()->restrictOnDelete();
             $table->text('description')->nullable();
             $table->string('double_room_bed_option')->nullable();
             $table->foreignId('reservation_id')->nullable()->constrained()->cascadeOnDelete();

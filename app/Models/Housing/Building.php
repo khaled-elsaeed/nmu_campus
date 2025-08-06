@@ -5,6 +5,8 @@ namespace App\Models\Housing;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+
 
 class Building extends Model
 {
@@ -32,6 +34,17 @@ class Building extends Model
         return [
             'has_double_rooms' => 'boolean',
         ];
+    }
+
+
+    /**
+     * The current occupancy of the building.
+     */
+    public function currentOccupancy(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->rooms()->sum('current_occupancy')
+        );
     }
 
     /**

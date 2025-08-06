@@ -32,18 +32,18 @@
             </select>
         </div>
         <div class="col-md-6 mb-3">
-            <label for="sibling-name-ar" class="form-label">Name (Arabic)</label>
-            <input type="text" class="form-control" id="sibling-name-ar" name="sibling_name_ar">
+            <label for="sibling-national-id" class="form-label">National ID</label>
+            <input type="text" class="form-control" id="sibling-national-id" name="sibling_national_id">
         </div>
     </div>
     <div class="row">
         <div class="col-md-6 mb-3">
-            <label for="sibling-name-en" class="form-label">Name (English)</label>
-            <input type="text" class="form-control" id="sibling-name-en" name="sibling_name_en">
+            <label for="sibling-name-ar" class="form-label">Name (Arabic)</label>
+            <input type="text" class="form-control" id="sibling-name-ar" name="sibling_name_ar">
         </div>
         <div class="col-md-6 mb-3">
-            <label for="sibling-national-id" class="form-label">National ID</label>
-            <input type="text" class="form-control" id="sibling-national-id" name="sibling_national_id">
+            <label for="sibling-name-en" class="form-label">Name (English)</label>
+            <input type="text" class="form-control" id="sibling-name-en" name="sibling_name_en">
         </div>
     </div>
     <div class="row">

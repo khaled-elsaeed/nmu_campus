@@ -86,7 +86,6 @@ class ProfileUpdateService
         $student->national_id = $studentArchive?->national_id;
 
         $student->date_of_birth = $studentArchive?->birthdate;
-        $student->gender = $studentArchive?->gender;
         $student->academic_email = $studentArchive?->email;
         $student->academic_id = $studentArchive?->academic_id;
         $student->cum_gpa = $studentArchive?->cum_gpa ?? 0.0;
@@ -110,16 +109,16 @@ class ProfileUpdateService
             $parent->user_id = $student?->user_id;
         }
 
-        $parent->relation = $data['parent_relationship'] ?? null;
+        $parent->relationship = $data['parent_relationship'] ?? null;
         $parent->name_en = $data['parent_name_en'] ?? null;
         $parent->name_ar = $data['parent_name_ar'] ?? null;
         $parent->phone = $data['parent_phone'] ?? null;
         $parent->email = $data['parent_email'] ?? null;
         $parent->national_id = $data['parent_national_id'] ?? null;
-        $parent->is_abroad = ($data['is_abroad'] ?? false) === true || ($data['is_abroad'] ?? 'no') === 'yes';
+        $parent->is_abroad = ($data['is_parent_abroad'] ?? false) === true || ($data['is_parent_abroad'] ?? 'no') === 'yes';
 
         if ($parent->is_abroad) {
-            $parent->country_id = $data['parent_country_id'] ?? null;
+            $parent->country_id = $data['parent_abroad_country'] ?? null;
             $parent->living_with_parent = false;
             $parent->governorate_id = null;
             $parent->city_id = null;
@@ -128,8 +127,8 @@ class ProfileUpdateService
             $parent->living_with_parent = ($data['living_with_parent'] ?? 'no') === 'yes';
 
             if (($data['living_with_parent'] ?? 'no') === 'no') {
-                $parent->governorate_id = $data['parent_governorate_id'] ?? null;
-                $parent->city_id = $data['parent_city_id'] ?? null;
+                $parent->governorate_id = $data['parent_governorate'] ?? null;
+                $parent->city_id = $data['parent_city'] ?? null;
             } else {
                 $parent->governorate_id = null;
                 $parent->city_id = null;
@@ -164,12 +163,11 @@ class ProfileUpdateService
             }
 
             $sibling->gender = $data['sibling_gender'] ?? null;
-            $sibling->relation = isset($data['sibling_gender']) && $data['sibling_gender'] === 'male' ? 'brother' : 'sister';
+            $sibling->relationship = isset($data['sibling_gender']) && $data['sibling_gender'] === 'male' ? 'brother' : 'sister';
             $sibling->name_en = $data['sibling_name_en'] ?? null;
             $sibling->name_ar = $data['sibling_name_ar'] ?? null;
             $sibling->national_id = $data['sibling_national_id'] ?? null;
-            $sibling->faculty_id = $data['sibling_faculty_id'] ?? null;
-
+            $sibling->faculty_id = $data['sibling_faculty'] ?? null;
             $sibling->save();
         }
     }
@@ -198,13 +196,14 @@ class ProfileUpdateService
                 $emergencyContact->user_id = $student?->user_id;
             }
 
-            $emergencyContact->relation = $data['emergency_contact_relationship'] ?? null;
+            $emergencyContact->relationship = $data['emergency_contact_relationship'] ?? null;
             $emergencyContact->name_ar = $data['emergency_contact_name_ar'] ?? null;
             $emergencyContact->name_en = $data['emergency_contact_name_en'] ?? null;
             $emergencyContact->phone = $data['emergency_contact_phone'] ?? null;
-            $emergencyContact->governorate_id = $this->lookupService->getGovernorateId($data['emergency_contact_governorate'] ?? null);
-            $emergencyContact->city_id = $this->lookupService->getCityId($data['emergency_contact_city'] ?? null);
+            $emergencyContact->governorate_id = $data['emergency_contact_governorate'] ?? null;
+            $emergencyContact->city_id = $data['emergency_contact_city'] ?? null;
             $emergencyContact->street = $data['emergency_contact_street'] ?? null;
+            $emergencyContact->notes = $data['emergency_contact_notes'] ?? null;
 
             $emergencyContact->save();
         }

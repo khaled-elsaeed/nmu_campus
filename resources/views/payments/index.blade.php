@@ -1,6 +1,6 @@
 @extends('layouts.home')
 
-@section('title', 'Payment Management | NMU Campus')
+@section('title', 'Payment Management | Housing')
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">

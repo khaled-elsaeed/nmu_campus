@@ -155,7 +155,7 @@ class ProfileDataService
         
         if (!$parent) {
             return [
-                'relation' => null,
+                'relationship' => null,
                 'name_en' => null,
                 'name_ar' => null,
                 'national_id' => null,
@@ -165,11 +165,12 @@ class ProfileDataService
                 'governorate_id' => null,
                 'city_id' => null,
                 'country_id' => null,
+                'living_with_parent' => true,
             ];
         }
 
         return [
-            'relation' => $parent?->relation,
+            'relationship' => $parent?->relationship,
             'name_en' => $parent?->name_en,
             'name_ar' => $parent?->name_ar,
             'national_id' => $parent?->national_id,
@@ -179,6 +180,7 @@ class ProfileDataService
             'governorate_id' => $parent?->governorate_id,
             'city_id' => $parent?->city_id,
             'country_id' => $parent?->country_id,
+            'living_with_parent' => $parent?->living_with_parent ?? true,
         ];
     }
 
@@ -199,7 +201,6 @@ class ProfileDataService
                 'name_ar' => null,
                 'national_id' => null,
                 'gender' => null,
-                'date_of_birth' => null,
                 'relationship' => null,
                 'academic_level' => null,
                 'notes' => null,
@@ -213,7 +214,6 @@ class ProfileDataService
             'name_ar' => $sibling?->name_ar,
             'national_id' => $sibling?->national_id,
             'gender' => $sibling?->gender,
-            'date_of_birth' => $sibling?->date_of_birth,
             'relationship' => $sibling?->relationship,
             'academic_level' => $sibling?->academic_level,
             'notes' => $sibling?->notes,

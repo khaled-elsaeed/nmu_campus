@@ -126,21 +126,18 @@ class RoomService
     /**
      * Get all rooms, optionally filtered by apartment ID.
      *
-     * @param int|null $apartmentId
+     * @param int $apartmentId
      * @return array
      */
-    public function getAll(int $apartmentId = null): array
+    public function getAll(int $apartmentId): array
     {
-        return Room::when($apartmentId, function ($query, $apartmentId) {
-                return $query->where('apartment_id', $apartmentId);
-            })
+        return Room::where('apartment_id', $apartmentId)
             ->select(['id', 'number','type'])
             ->get()
             ->map(fn ($room) => [
                 'id' => $room->id,
                 'number' => $room->number,
                 'type' => $room->type,
-
             ])
             ->toArray();
     }

@@ -69,6 +69,7 @@ class ReservationService
      * Cancel a reservation.
      *
      * @param int $reservationId
+     * @param CancelReservationService $cancelReservationService
      * @return Reservation
      * @throws BusinessValidationException
      */
@@ -178,18 +179,15 @@ class ReservationService
     public function getDatatable(): JsonResponse
     {
         $query = Reservation::with(['user', 'accommodation', 'academicTerm']);
+
         $query = $this->applySearchFilters($query);
         
         return DataTables::of($query)
             ->addIndexColumn()
-            ->addColumn('reservation_number', fn($reservation) => $reservation->reservation_number)
             ->addColumn('name', fn($reservation) => $reservation->user?->name ?? 'N/A')
-            ->addColumn('accommodation_info', fn($reservation) => $this->getAccommodationInfo($reservation))
-            ->addColumn('academic_term', fn($reservation) => $reservation->academicTerm?->name ?? 'N/A')
-            ->addColumn('check_in_date', fn($reservation) => $reservation->check_in_date ? formatDate($reservation->check_in_date) : 'N/A')
-            ->addColumn('check_out_date', fn($reservation) => $reservation->check_out_date ? formatDate($reservation->check_out_date) : 'N/A')
+            ->addColumn('location', fn($reservation) => $this->getLocation($reservation))
+            ->addColumn('period', fn($reservation) => $this->getPeriod($reservation))
             ->addColumn('status', fn($reservation) => ucfirst($reservation->status))
-            ->addColumn('active', fn($reservation) => $reservation->active ? 'Active' : 'Inactive')
             ->addColumn('created_at', fn($reservation) => formatDate($reservation->created_at))
             ->addColumn('action', fn($reservation) => $this->renderActionButtons($reservation))                       
             ->rawColumns(['action'])
@@ -202,7 +200,6 @@ class ReservationService
      * @param Builder $query
      * @return Builder
      */
-
     protected function applySearchFilters($query): Builder
     {
         if (request()->filled('search_national_id') && !empty(request('search_national_id'))) {
@@ -229,9 +226,6 @@ class ReservationService
             $query->where('status', request('search_status'));
         }
         
-        if (request()->filled('search_active')) {
-            $query->where('active', request('search_active'));
-        }
         
         if (request()->filled('search_academic_term_id')) {
             $query->where('academic_term_id', request('search_academic_term_id'));
@@ -241,25 +235,32 @@ class ReservationService
         // Search by building
         if (request()->filled('search_building_id')) {
             $buildingId = request('search_building_id');
-            $query->whereHas('accommodation.accommodatable.apartment.building', function ($q) use ($buildingId) {
-                $q->where('id', $buildingId);
+            $query->where(function ($q) use ($buildingId) {
+                $q->whereHas('accommodation.room.apartment.building', function ($subQ) use ($buildingId) {
+                    $subQ->where('id', $buildingId);
+                })->orWhereHas('accommodation.apartment.building', function ($subQ) use ($buildingId) {
+                    $subQ->where('id', $buildingId);
+                });
             });
         }
 
         // Search by apartment number
         if (request()->filled('search_apartment_number')) {
             $apartmentNumber = request('search_apartment_number');
-            $query->whereHas('accommodation.accommodatable.apartment', function ($q) use ($apartmentNumber) {
-                $q->where('number', $apartmentNumber);
+            $query->where(function ($q) use ($apartmentNumber) {
+                $q->whereHas('accommodation.room.apartment', function ($subQ) use ($apartmentNumber) {
+                    $subQ->where('number', $apartmentNumber);
+                })->orWhereHas('accommodation.apartment', function ($subQ) use ($apartmentNumber) {
+                    $subQ->where('number', $apartmentNumber);
+                });
             });
         }
 
         // Search by room number
         if (request()->filled('search_room_number')) {
             $roomNumber = request('search_room_number');
-            $query->whereHas('accommodation.accommodatable', function ($q) use ($roomNumber) {
-                $q->where('accommodatable_type', 'App\\Models\\Housing\\Room')
-                  ->where('number', $roomNumber);
+            $query->whereHas('accommodation.room', function ($q) use ($roomNumber) {
+                $q->where('number', $roomNumber);
             });
         }
         
@@ -296,12 +297,57 @@ class ReservationService
      * @param Reservation $reservation
      * @return string
      */
-    private function getAccommodationInfo(Reservation $reservation): string
+    private function getLocation(Reservation $reservation): string
     {
+        $location = 'N/A';
+
         if (!$reservation->accommodation) {
             return 'N/A';
         }
-        return $reservation->accommodation->detail ?? 'N/A';
+
+        switch($reservation->accommodation->type) {
+            case 'room':
+                $locationDetails = $reservation->accommodation->room->location() ?? 'N/A';
+                if (is_array($locationDetails)) {
+                    $location = 'B' . $locationDetails['building_number']. 'A' . $locationDetails['apartment_number'] . 'R' . $locationDetails['number'];
+                }
+                break;
+            case 'apartment':
+                $locationDetails = $reservation->accommodation->apartment->location() ?? 'N/A';
+                if (is_array($locationDetails)) {
+                    $location = 'B' . $locationDetails['building_number']. 'A' . $locationDetails['number'];
+                }
+                break;
+            default:
+                return 'N/A';
+        }
+
+        return $location;
     }
 
-} 
+    /**
+     * Get period information for display.
+     *
+     * @param Reservation $reservation
+     * @return string
+     */
+    private function getPeriod(Reservation $reservation): string
+    {
+        $period = 'N/A';
+
+        switch($reservation->period_type) {
+            case 'academic':
+                $period = $reservation->academicTerm->name ?? 'N/A';
+                break;
+            case 'calendar':
+                if ($reservation->check_in_date && $reservation->check_out_date) {
+                    $checkInDate = formatDate($reservation->check_in_date);
+                    $checkOutDate = formatDate($reservation->check_out_date);
+                    $period = $checkInDate . ' - ' . $checkOutDate;
+                }
+                break;
+        }
+
+        return $period;
+    }
+}

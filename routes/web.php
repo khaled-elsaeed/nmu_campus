@@ -34,8 +34,13 @@ Route::middleware(['auth'])->group(function () {
     
     // Dashboard & Main Pages
     Route::get('/home', [HomeController::class, 'index'])->name('home');
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+
+    //=====================
+    // Dashboard Management
+    //=====================
+    require __DIR__.'/web/dashboard.php';
+
 
     // ====================
     // Housing Management

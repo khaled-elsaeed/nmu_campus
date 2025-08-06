@@ -1,6 +1,6 @@
 @extends('layouts.home')
 
-@section('title', 'Resident Home | NMU Campus')
+@section('title', 'Resident Home | Housing')
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">

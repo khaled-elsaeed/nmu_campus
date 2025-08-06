@@ -1,6 +1,6 @@
 @extends('layouts.home')
 
-@section('title', 'Building Management | NMU Campus')
+@section('title', 'Building Management | Housing')
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -66,7 +66,7 @@
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable 
-        :headers="['Number', 'Total Apartments', 'Total Rooms', 'Has Double Room', 'Gender', 'Active', 'Created At', 'Actions']"
+        :headers="['Number', 'Total Apartments', 'Total Rooms', 'Has Double Room', 'Gender', 'Active', 'Current Occupancy', 'Actions']"
         :columns="[
             ['data' => 'number', 'name' => 'number'],
             ['data' => 'total_apartments', 'name' => 'total_apartments'],
@@ -74,7 +74,7 @@
             ['data' => 'has_double_rooms', 'name' => 'has_double_rooms'],
             ['data' => 'gender_restriction', 'name' => 'gender_restriction'],
             ['data' => 'active', 'name' => 'active'],
-            ['data' => 'created_at', 'name' => 'created_at'],
+            ['data' => 'current_occupancy', 'name' => 'current_occupancy'],
             ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false]
         ]"
         :ajax-url="route('housing.buildings.datatable')"

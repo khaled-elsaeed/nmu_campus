@@ -15,7 +15,7 @@
 <div class="mb-3">
     <div class="form-check">
         <input class="form-check-input" type="checkbox" id="terms-checkbox" name="terms_checkbox" >
-        <label class="form-check-label" for="terms_checkbox">
+        <label class="form-check-label" for="terms-checkbox">
             I agree to the <a href="#" target="_blank">terms and conditions</a>.
         </label>
     </div>

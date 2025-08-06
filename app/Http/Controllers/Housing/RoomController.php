@@ -126,16 +126,14 @@ class RoomController extends Controller
 
     /**
      * Get all rooms (for dropdown and forms).
-     * Optionally filter by apartment_id.
      *
-     * @param Request $request
+     * @param int $id
      * @return JsonResponse
      */
-    public function all(Request $request): JsonResponse
+    public function all(int $id): JsonResponse
     {
         try {
-            $apartmentId = $request->query('apartment_id');
-            $rooms = $this->roomService->getAll($apartmentId);
+            $rooms = $this->roomService->getAll($id);
             return successResponse('Rooms fetched successfully.', $rooms);
         } catch (Exception $e) {
             logError('RoomController@all', $e);

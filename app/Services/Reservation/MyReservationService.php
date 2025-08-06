@@ -20,8 +20,8 @@ class MyReservationService
     public function getUserReservations(int $userId, array $filters = []): array
     {
         $query = Reservation::with([
-            'accommodation.accommodatable.apartment.building',
-            'accommodation.accommodatable',
+            'accommodation.room.apartment.building',
+            'accommodation.apartment.building',
             'academicTerm',
         ])
         ->where('user_id', $userId);
@@ -29,10 +29,16 @@ class MyReservationService
         // Filter by property (apartment or building name)
         if (!empty($filters['property'])) {
             $property = $filters['property'];
-            $query->whereHas('accommodation.accommodatable.apartment', function ($q) use ($property) {
-                $q->where('name', 'like', '%' . $property . '%');
-            })->orWhereHas('accommodation.accommodatable.apartment.building', function ($q) use ($property) {
-                $q->where('name', 'like', '%' . $property . '%');
+            $query->where(function ($q) use ($property) {
+                $q->whereHas('accommodation.room.apartment', function ($subQ) use ($property) {
+                    $subQ->where('name', 'like', '%' . $property . '%');
+                })->orWhereHas('accommodation.room.apartment.building', function ($subQ) use ($property) {
+                    $subQ->where('name', 'like', '%' . $property . '%');
+                })->orWhereHas('accommodation.apartment', function ($subQ) use ($property) {
+                    $subQ->where('name', 'like', '%' . $property . '%');
+                })->orWhereHas('accommodation.apartment.building', function ($subQ) use ($property) {
+                    $subQ->where('name', 'like', '%' . $property . '%');
+                });
             });
         }
 
@@ -70,8 +76,8 @@ class MyReservationService
                 'price' => $reservation->price ?? null,
                 'price_label' => $reservation->price ? '$' . number_format($reservation->price) : null,
                 'created_at' => $reservation->created_at ? formatDate($reservation->created_at) : null,
-                'apartment_number' => $reservation->accommodation?->accommodatable?->apartment?->number ?? null,
-                'room_number' => $reservation->accommodation?->accommodatable?->number ?? null,
+                'apartment_number' => $reservation->accommodation?->apartment?->number ?? $reservation->accommodation?->room?->apartment?->number ?? null,
+                'room_number' => $reservation->accommodation?->room?->number ?? null,
                 'academic_term' => $reservation->academicTerm?->name ?? null,
             ];
         })->toArray();
@@ -114,8 +120,10 @@ class MyReservationService
     protected function getPropertyName(Reservation $reservation): ?string
     {
         // Try apartment name, then building name, then fallback
-        return $reservation->accommodation?->accommodatable?->apartment?->name
-            ?? $reservation->accommodation?->accommodatable?->apartment?->building?->name
+        return $reservation->accommodation?->apartment?->name
+            ?? $reservation->accommodation?->apartment?->building?->name
+            ?? $reservation->accommodation?->room?->apartment?->name
+            ?? $reservation->accommodation?->room?->apartment?->building?->name
             ?? null;
     }
 
@@ -128,8 +136,10 @@ class MyReservationService
     protected function getPropertyAddress(Reservation $reservation): ?string
     {
         // Try apartment address, then building address, then fallback
-        return $reservation->accommodation?->accommodatable?->apartment?->address
-            ?? $reservation->accommodation?->accommodatable?->apartment?->building?->address
+        return $reservation->accommodation?->apartment?->address
+            ?? $reservation->accommodation?->apartment?->building?->address
+            ?? $reservation->accommodation?->room?->apartment?->address
+            ?? $reservation->accommodation?->room?->apartment?->building?->address
             ?? null;
     }
 

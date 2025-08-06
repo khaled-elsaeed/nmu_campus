@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('parents', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->enum('relation', ['father', 'mother']);
+            $table->enum('relationship', ['father', 'mother']);
             $table->string('name_en');
             $table->string('name_ar');
             $table->string('national_id', 14)->unique();
@@ -38,7 +38,6 @@ return new class extends Migration
             $table->string('name_ar');
             $table->string('national_id', 14)->unique();
             $table->enum('gender', ['male', 'female']);
-            $table->date('date_of_birth');
             $table->enum('relationship', ['brother', 'sister']);
             $table->enum('academic_level', ['1', '2', '3', '4', '5']);
             $table->text('notes')->nullable();

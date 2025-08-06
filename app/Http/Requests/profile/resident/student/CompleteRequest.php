@@ -159,7 +159,7 @@ class CompleteRequest extends FormRequest
             ],
 
             // Conditional Parent Fields
-            'abroad_country' => [
+            'parent_abroad_country' => [
                 'required_if:is_parent_abroad,yes',
                 'nullable',
                 'exists:countries,id'
@@ -266,6 +266,11 @@ class CompleteRequest extends FormRequest
                 'min:5',
                 'max:255'
             ],
+            'emergency_contact_notes' => [
+                'nullable',
+                'string',
+                'max:1000'
+            ],
 
             // ============================================
             // Step 7: Terms and Conditions
@@ -341,7 +346,7 @@ class CompleteRequest extends FormRequest
             'parent_phone.required' => 'Parent\'s phone number is required.',
             'parent_phone.regex' => 'Please enter a valid phone number format.',
             'is_parent_abroad.required' => 'Please specify if parent lives abroad.',
-            'abroad_country.required_if' => 'Please select the country where your parent lives.',
+            'parent_abroad_country.required_if' => 'Please select the country where your parent lives.',
             'living_with_parent.required_if' => 'Please specify if you live with your parent.',
             'parent_governorate.required_if' => 'Please select parent\'s governorate.',
             'parent_city.required_if' => 'Please select parent\'s city.',
@@ -379,6 +384,7 @@ class CompleteRequest extends FormRequest
             'emergency_contact_street.required_if' => 'Emergency contact street address is required.',
             'emergency_contact_street.min' => 'Emergency contact street address must be at least 5 characters.',
             'emergency_contact_street.max' => 'Emergency contact street address must not exceed 255 characters.',
+            'emergency_contact_notes.max' => 'Emergency contact notes must not exceed 1000 characters.',
             // ============================================
             // Terms Messages
             // ============================================
@@ -407,7 +413,7 @@ class CompleteRequest extends FormRequest
             'parent_email' => 'Parent email',
             'parent_national_id' => 'Parent National ID',
             'is_parent_abroad' => 'Is parent abroad',
-            'abroad_country' => 'Country where parent lives',
+            'parent_abroad_country' => 'Country where parent lives',
             'living_with_parent' => 'Living with parent',
             'parent_governorate' => 'Parent governorate',
             'parent_city' => 'Parent city',
@@ -423,6 +429,7 @@ class CompleteRequest extends FormRequest
             'emergency_contact_governorate' => 'Emergency contact governorate',
             'emergency_contact_city' => 'Emergency contact city',
             'emergency_contact_street' => 'Emergency contact street address',
+            'emergency_contact_notes' => 'Emergency contact notes',
             'terms_checkbox' => 'Terms and conditions',
             'terms_Checkbox' => 'Terms and conditions',
         ];
@@ -437,6 +444,7 @@ class CompleteRequest extends FormRequest
             $this->validateParentPhoneFormat($validator);
             $this->validateCityGovernorateRelationship($validator);
             $this->validateParentCityGovernorateRelationship($validator);
+            $this->validateEmergencyContactCityGovernorateRelationship($validator);
             $this->validateProgramFacultyRelationship($validator);
         });
     }
@@ -476,6 +484,19 @@ class CompleteRequest extends FormRequest
             $city = City::find($this->input('parent_city'));
             if ($city && $city->governorate_id != $this->input('parent_governorate')) {
                 $validator->errors()->add('parent_city', 'Selected parent city does not belong to the selected parent governorate.');
+            }
+        }
+    }
+
+    /**
+     * Validate that emergency contact city belongs to selected emergency contact governorate.
+     */
+    private function validateEmergencyContactCityGovernorateRelationship($validator): void
+    {
+        if ($this->input('emergency_contact_governorate') && $this->input('emergency_contact_city')) {
+            $city = City::find($this->input('emergency_contact_city'));
+            if ($city && $city->governorate_id != $this->input('emergency_contact_governorate')) {
+                $validator->errors()->add('emergency_contact_city', 'Selected emergency contact city does not belong to the selected emergency contact governorate.');
             }
         }
     }

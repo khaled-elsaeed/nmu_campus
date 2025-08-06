@@ -1,6 +1,6 @@
 @extends('layouts.home')
 
-@section('title', 'Add Reservation | NMU Campus')
+@section('title', 'Add Reservation | Housing')
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -180,117 +180,112 @@
 @push('scripts')
 <script>
 /**
- * ========================================
- * ADD RESERVATION SYSTEM
- * ========================================
+ * Add Reservation Management Page JS
+ *
+ * Structure:
+ * - ApiService: Handles all AJAX requests
+ * - UserSearchManager: Handles user search functionality
+ * - AccommodationManager: Handles building/apartment/room selection
+ * - PeriodManager: Handles academic/calendar period management
+ * - EquipmentManager: Handles equipment selection
+ * - ReservationProcessor: Handles form submission and validation
+ * - ReservationApp: Initializes all managers
  * 
- * Organized modular system for creating new reservations
- * Features:
- * - User search by National ID
- * - Dynamic accommodation selection
- * - Equipment assignment
- * - Period management (Academic/Calendar)
- * - Form validation and submission
+ * NOTE: Uses global Utils from public/js/utils.js
  */
 
 // ===========================
-// CONFIGURATION & CONSTANTS
+// ROUTES CONSTANTS
 // ===========================
-const CONFIG = {
-    routes: {
-        reservations: {
-            store: '{{ route("reservations.store") }}'
-        },
-        buildings: {
-            all: '{{ route("housing.buildings.all") }}'
-        },
-        apartments: {
-            all: '{{ route("housing.apartments.all", ":id") }}',
-        },
-        rooms: {
-            all: '{{ route("housing.rooms.all", ":id") }}',
-        },
-        users: {
-            findByNationalId: '{{ route("users.findByNationalId") }}'
-        },
-        academicTerms: {
-            all: '{{ route("academic.academic_terms.all") }}'
-        },
-        equipment: {
-            all: '{{ route("equipment.all") }}'
-        }
+var ROUTES = {
+    reservations: {
+        store: '{{ route("reservations.store") }}'
     },
-    
-    messages: {
-        success: {
-            reservationCreated: 'Reservation has been created successfully.'
-        },
-        error: {
-            enterNationalId: 'Please enter a National ID.',
-            userNotFound: 'User not found.',
-            fetchUserFailed: 'Failed to fetch user.',
-            selectUser: 'Please select a user.',
-            selectAccommodationType: 'Please select accommodation type.',
-            selectAccommodation: 'Please select a room/apartment.',
-            invalidCheckOutDate: 'Check-out date must be after check-in date.',
-            reservationCreateFailed: 'Failed to create reservation.',
-            buildingsLoadFailed: 'Failed to load buildings.',
-            apartmentsLoadFailed: 'Failed to load apartments.',
-            roomsLoadFailed: 'Failed to load rooms.',
-            apartmentRoomsLoadFailed: 'Failed to load rooms for this apartment.',
-            academicTermsLoadFailed: 'Failed to load academic terms.',
-            equipmentLoadFailed: 'Failed to load equipment.'
-        },
-        validation: {
-            required: 'This field is required.',
-            selectPeriod: 'Please select a period.',
-            selectAcademicTerm: 'Please select an academic term.',
-            selectDates: 'Please select check-in and check-out dates.'
-        }
+    buildings: {
+        all: '{{ route("housing.buildings.all") }}'
     },
+    apartments: {
+        show: '{{ route("housing.apartments.all", ":id") }}'
+    },
+    rooms: {
+        show: '{{ route("housing.rooms.all", ":id") }}'
+    },
+    users: {
+        findByNationalId: '{{ route("users.findByNationalId") }}'
+    },
+    academicTerms: {
+        all: '{{ route("academic.academic_terms.all") }}'
+    },
+    equipment: {
+        all: '{{ route("equipment.all") }}'
+    }
+};
 
-    ui: {
-        statusBadges: {
-            'pending': 'bg-warning',
-            'confirmed': 'bg-info',
-            'checked_in': 'bg-success',
-            'checked_out': 'bg-secondary',
-            'cancelled': 'bg-danger'
-        }
+// ===========================
+// MESSAGES CONSTANTS
+// ===========================
+var MESSAGES = {
+    success: {
+        reservationCreated: 'Reservation has been created successfully.'
+    },
+    error: {
+        enterNationalId: 'Please enter a National ID.',
+        userNotFound: 'User not found.',
+        fetchUserFailed: 'Failed to fetch user.',
+        selectUser: 'Please select a user.',
+        selectAccommodationType: 'Please select accommodation type.',
+        selectAccommodation: 'Please select a room/apartment.',
+        invalidCheckOutDate: 'Check-out date must be after check-in date.',
+        reservationCreateFailed: 'Failed to create reservation.',
+        buildingsLoadFailed: 'Failed to load buildings.',
+        apartmentsLoadFailed: 'Failed to load apartments.',
+        roomsLoadFailed: 'Failed to load rooms.',
+        apartmentRoomsLoadFailed: 'Failed to load rooms for this apartment.',
+        academicTermsLoadFailed: 'Failed to load academic terms.',
+        equipmentLoadFailed: 'Failed to load equipment.'
+    },
+    validation: {
+        required: 'This field is required.',
+        selectPeriod: 'Please select a period.',
+        selectAcademicTerm: 'Please select an academic term.',
+        selectDates: 'Please select check-in and check-out dates.'
     }
 };
 
 // ===========================
 // API SERVICE
 // ===========================
-const ApiService = {
+var ApiService = {
     /**
      * Generic AJAX request wrapper
+     * @param {object} options
+     * @returns {jqXHR}
      */
-    async request(options) {
-        try {
-            const response = await $.ajax({
-                ...options,
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                    ...options.headers
-                }
-            });
-            return response;
-        } catch (error) {
-            if (error && error.xhr) {
-                Utils.handleAjaxError(error.xhr, 'API Request failed.');
+    request: function(options) {
+        var requestOptions = {
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
-            throw error;
+        };
+        
+        // Merge options
+        for (var key in options) {
+            if (options.hasOwnProperty(key)) {
+                requestOptions[key] = options[key];
+            }
         }
+        
+        return $.ajax(requestOptions);
     },
 
     /**
      * Find user by national ID
+     * @param {string} nationalId
+     * @returns {jqXHR}
      */
-    findUserByNationalId(nationalId) {
+    findUserByNationalId: function(nationalId) {
         return this.request({ 
-            url: CONFIG.routes.users.findByNationalId, 
+            url: ROUTES.users.findByNationalId, 
             method: 'GET', 
             data: { national_id: nationalId } 
         });
@@ -298,66 +293,67 @@ const ApiService = {
 
     /**
      * Fetch all buildings
+     * @returns {jqXHR}
      */
-    fetchBuildings() {
+    fetchBuildings: function() {
         return this.request({ 
-            url: CONFIG.routes.buildings.all, 
+            url: ROUTES.buildings.all, 
             method: 'GET' 
         });
     },
 
     /**
      * Fetch apartments by building
+     * @param {string|number} buildingId
+     * @returns {jqXHR}
      */
-    fetchApartments(buildingId) {
-        return this.request({ 
-            url: CONFIG.routes.apartments.all, 
-            method: 'GET', 
-            data: { building_id: buildingId }
-        });
+    fetchApartments: function(buildingId) {
+        var url = Utils.replaceRouteId(ROUTES.apartments.show, buildingId);
+        return this.request({ url: url, method: 'GET' });
     },
 
     /**
      * Fetch rooms by apartment
+     * @param {string|number} apartmentId
+     * @returns {jqXHR}
      */
-    fetchRooms(apartmentId = null) {
-        const data = {};
-        if (apartmentId) data.apartment_id = apartmentId;
-        return this.request({ 
-            url: CONFIG.routes.rooms.all, 
-            method: 'GET', 
-            data 
-        });
+    fetchRooms: function(apartmentId) {
+        var url = Utils.replaceRouteId(ROUTES.rooms.show, apartmentId);
+        return this.request({ url: url, method: 'GET' });
     },
 
     /**
      * Fetch academic terms
+     * @returns {jqXHR}
      */
-    fetchAcademicTerms() {
+    fetchAcademicTerms: function() {
         return this.request({ 
-            url: CONFIG.routes.academicTerms.all, 
+            url: ROUTES.academicTerms.all, 
             method: 'GET' 
         });
     },
 
     /**
      * Fetch equipment
+     * @returns {jqXHR}
      */
-    fetchEquipment() {
+    fetchEquipment: function() {
         return this.request({ 
-            url: CONFIG.routes.equipment.all, 
+            url: ROUTES.equipment.all, 
             method: 'GET' 
         });
     },
 
     /**
      * Create reservation
+     * @param {object} data
+     * @returns {jqXHR}
      */
-    createReservation(data) {
+    createReservation: function(data) {
         return this.request({ 
-            url: CONFIG.routes.reservations.store, 
+            url: ROUTES.reservations.store, 
             method: 'POST', 
-            data,
+            data: data,
             contentType: 'application/json',
             processData: false
         });
@@ -367,22 +363,25 @@ const ApiService = {
 // ===========================
 // USER SEARCH MANAGER
 // ===========================
-const UserSearchManager = {
+var UserSearchManager = {
     /**
      * Initialize user search manager
      */
-    init() {
+    init: function() {
         this.bindEvents();
     },
 
     /**
      * Bind user search events
      */
-    bindEvents() {
-        $('#btnSearchNationalId').on('click', this.handleSearch.bind(this));
-        $('#search_national_id').on('keypress', (e) => {
+    bindEvents: function() {
+        var self = this;
+        $('#btnSearchNationalId').on('click', function() {
+            self.handleSearch();
+        });
+        $('#search_national_id').on('keypress', function(e) {
             if (e.which === 13) { // Enter key
-                this.handleSearch();
+                self.handleSearch();
             }
         });
     },
@@ -390,71 +389,71 @@ const UserSearchManager = {
     /**
      * Handle user search
      */
-    async handleSearch() {
-        const nationalId = $('#search_national_id').val().trim();
+    handleSearch: function() {
+        var self = this;
+        var nationalId = $('#search_national_id').val().trim();
         
         if (!nationalId) {
-            Utils.showError(CONFIG.messages.error.enterNationalId);
+            Utils.showError(MESSAGES.error.enterNationalId);
             return;
         }
 
-        const $btn = $('#btnSearchNationalId');
+        var $btn = $('#btnSearchNationalId');
         Utils.setLoadingState($btn, true, { loadingText: 'Searching...' });
 
-        try {
-            const response = await ApiService.findUserByNationalId(nationalId);
-            
-            if (response.success && response.data) {
-                this.handleUserFound(response.data);
-            } else {
-                this.handleUserNotFound(response.message);
-            }
-        } catch (error) {
-            this.handleUserNotFound();
-        } finally {
-            Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-search"></i> Search' });
-        }
+        ApiService.findUserByNationalId(nationalId)
+            .done(function(response) {
+                if (response.success && response.data) {
+                    self.handleUserFound(response.data);
+                } else {
+                    self.handleUserNotFound(response.message);
+                }
+            })
+            .fail(function() {
+                self.handleUserNotFound();
+            })
+            .always(function() {
+                Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-search"></i> Search' });
+            });
     },
 
     /**
      * Handle successful user found
      */
-    handleUserFound(user) {
+    handleUserFound: function(user) {
         this.displayUserInfo(user);
         $('#add_user_id').val(user.id);
-        Utils.showElement($('#user-info-section'));
-        Utils.showElement($('#addReservationForm'));
+        $('#user-info-section').removeClass('d-none').show();
+        $('#addReservationForm').removeClass('d-none').show();
     },
 
     /**
      * Handle user not found
      */
-    handleUserNotFound(message = null) {
+    handleUserNotFound: function(message) {
         $('#user-info-section').hide();
         $('#addReservationForm').hide();
-        Utils.showError(message || CONFIG.messages.error.userNotFound);
+        Utils.showError(message || MESSAGES.error.userNotFound);
     },
 
     /**
      * Display user information
      */
-    displayUserInfo(user) {
-        const html = `
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <strong>Name:</strong> ${user.name_en || user.name_ar || '-'}
-                </div>
-                <div class="col-md-6">
-                    <strong>Email:</strong> ${user.email || '-'}
-                </div>
-                <div class="col-md-6">
-                    <strong>User Type:</strong> ${user.user_type || '-'}
-                </div>
-                <div class="col-md-6">
-                    <strong>National ID:</strong> ${user.national_id || '-'}
-                </div>
-            </div>
-        `;
+    displayUserInfo: function(user) {
+        var html = '<div class="row g-3">' +
+            '<div class="col-md-6">' +
+                '<strong>Name:</strong> ' + (user.name_en || user.name_ar || '-') +
+            '</div>' +
+            '<div class="col-md-6">' +
+                '<strong>Email:</strong> ' + (user.email || '-') +
+            '</div>' +
+            '<div class="col-md-6">' +
+                '<strong>User Type:</strong> ' + (user.user_type || '-') +
+            '</div>' +
+            '<div class="col-md-6">' +
+                '<strong>National ID:</strong> ' + (user.national_id || '-') +
+            '</div>' +
+        '</div>';
         $('#user-info-content').html(html);
     }
 };
@@ -462,11 +461,11 @@ const UserSearchManager = {
 // ===========================
 // ACCOMMODATION MANAGER
 // ===========================
-const AccommodationManager = {
+var AccommodationManager = {
     /**
      * Initialize accommodation manager
      */
-    init() {
+    init: function() {
         this.bindEvents();
         this.loadInitialData();
     },
@@ -474,25 +473,34 @@ const AccommodationManager = {
     /**
      * Bind accommodation events
      */
-    bindEvents() {
-        $('#add_accommodation_type').on('change', this.handleAccommodationTypeChange.bind(this));
-        $('#add_building_id').on('change', this.handleBuildingChange.bind(this));
-        $('#add_apartment_id').on('change', this.handleApartmentChange.bind(this));
-        $('#add_room_id').on('change', this.handleRoomChange.bind(this));
+    bindEvents: function() {
+        var self = this;
+        $('#add_accommodation_type').on('change', function() {
+            self.handleAccommodationTypeChange();
+        });
+        $('#add_building_id').on('change', function() {
+            self.handleBuildingChange();
+        });
+        $('#add_apartment_id').on('change', function() {
+            self.handleApartmentChange();
+        });
+        $('#add_room_id').on('change', function() {
+            self.handleRoomChange();
+        });
     },
 
     /**
      * Load initial data
      */
-    loadInitialData() {
+    loadInitialData: function() {
         this.loadBuildings();
     },
 
     /**
      * Handle accommodation type change
      */
-    handleAccommodationTypeChange() {
-        const type = $('#add_accommodation_type').val();
+    handleAccommodationTypeChange: function() {
+        var type = $('#add_accommodation_type').val();
         
         if (type) {
             this.showAccommodationFields(type);
@@ -506,12 +514,13 @@ const AccommodationManager = {
     /**
      * Handle building change
      */
-    async handleBuildingChange() {
-        const buildingId = $('#add_building_id').val();
-        const accommodationType = $('#add_accommodation_type').val();
+    handleBuildingChange: function() {
+        var self = this;
+        var buildingId = $('#add_building_id').val();
+        var accommodationType = $('#add_accommodation_type').val();
         
         if (buildingId && accommodationType) {
-            await this.loadApartments(buildingId);
+            self.loadApartments(buildingId);
         } else {
             this.clearAccommodationSelects();
         }
@@ -520,29 +529,30 @@ const AccommodationManager = {
     /**
      * Handle apartment change
      */
-    async handleApartmentChange() {
-        const apartmentId = $('#add_apartment_id').val();
-        const accommodationType = $('#add_accommodation_type').val();
+    handleApartmentChange: function() {
+        var self = this;
+        var apartmentId = $('#add_apartment_id').val();
+        var accommodationType = $('#add_accommodation_type').val();
         
         if (accommodationType === 'room' && apartmentId) {
-            await this.loadRooms(apartmentId);
+            self.loadRooms(apartmentId);
         }
     },
 
     /**
      * Handle room change
      */
-    handleRoomChange() {
-        const $roomSelect = $('#add_room_id');
-        const roomId = $roomSelect.val();
+    handleRoomChange: function() {
+        var $roomSelect = $('#add_room_id');
+        var roomId = $roomSelect.val();
         
         if (!roomId) {
             $('#double-room-bed-options').hide();
             return;
         }
         
-        const selectedOption = $roomSelect.find('option:selected');
-        const roomType = selectedOption.data('type');
+        var selectedOption = $roomSelect.find('option:selected');
+        var roomType = selectedOption.data('type');
         
         if (roomType === 'double') {
             $('#double-room-bed-options').show();
@@ -554,7 +564,7 @@ const AccommodationManager = {
     /**
      * Show accommodation fields based on type
      */
-    showAccommodationFields(type) {
+    showAccommodationFields: function(type) {
         if (type === 'room') {
             $('#apartment-select-group').show();
             $('#room-select-group').show();
@@ -571,7 +581,7 @@ const AccommodationManager = {
     /**
      * Hide accommodation fields
      */
-    hideAccommodationFields() {
+    hideAccommodationFields: function() {
         $('#apartment-select-group').hide();
         $('#room-select-group').hide();
         $('#add_apartment_id').prop('required', false);
@@ -582,65 +592,73 @@ const AccommodationManager = {
     /**
      * Load buildings
      */
-    async loadBuildings() {
-        try {
-            const response = await ApiService.fetchBuildings();
-            if (response.success && response.data) {
-                this.populateSelect($('#add_building_id'), response.data, 'number', 'Select Building');
-            }
-        } catch (error) {
-            Utils.showError(CONFIG.messages.error.buildingsLoadFailed);
-        }
+    loadBuildings: function() {
+        var self = this;
+        ApiService.fetchBuildings()
+            .done(function(response) {
+                if (response.success && response.data) {
+                    self.populateSelect($('#add_building_id'), response.data, 'number', 'Select Building');
+                }
+            })
+            .fail(function() {
+                Utils.showError(MESSAGES.error.buildingsLoadFailed);
+            });
     },
 
     /**
      * Load apartments
      */
-    async loadApartments(buildingId) {
-        try {
-            const response = await ApiService.fetchApartments(buildingId);
-            if (response.success && response.data) {
-                this.populateSelect($('#add_apartment_id'), response.data, 'number', 'Select Apartment');
-            }
-        } catch (error) {
-            Utils.showError(CONFIG.messages.error.apartmentsLoadFailed);
-        }
+    loadApartments: function(buildingId) {
+        var self = this;
+        ApiService.fetchApartments(buildingId)
+            .done(function(response) {
+                if (response.success && response.data) {
+                    self.populateSelect($('#add_apartment_id'), response.data, 'number', 'Select Apartment');
+                }
+            })
+            .fail(function(error) {
+                console.log(error);
+                Utils.showError(MESSAGES.error.apartmentsLoadFailed);
+            });
     },
 
     /**
      * Load rooms
      */
-    async loadRooms(apartmentId) {
-        try {
-            const response = await ApiService.fetchRooms(apartmentId);
-            if (response.success && response.data) {
-                this.populateSelect($('#add_room_id'), response.data, 'number', 'Select Room', true);
-                $('#add_room_id').trigger('change');
-            }
-        } catch (error) {
-            Utils.showError(CONFIG.messages.error.apartmentRoomsLoadFailed);
-        }
+    loadRooms: function(apartmentId) {
+        var self = this;
+        ApiService.fetchRooms(apartmentId)
+            .done(function(response) {
+                if (response.success && response.data) {
+                    self.populateSelect($('#add_room_id'), response.data, 'number', 'Select Room', true);
+                    $('#add_room_id').trigger('change');
+                }
+            })
+            .fail(function() {
+                Utils.showError(MESSAGES.error.apartmentRoomsLoadFailed);
+            });
     },
 
     /**
      * Populate select dropdown
      */
-    populateSelect($select, data, textField, placeholder, includeType = false) {
-        $select.empty().append(`<option value="">${placeholder}</option>`);
+    populateSelect: function($select, data, textField, placeholder, includeType) {
+        $select.empty().append('<option value="">' + placeholder + '</option>');
         
-        data.forEach(item => {
+        for (var i = 0; i < data.length; i++) {
+            var item = data[i];
             if (includeType && item.type) {
-                $select.append(`<option value="${item.id}" data-type="${item.type}">${item[textField]}</option>`);
+                $select.append('<option value="' + item.id + '" data-type="' + item.type + '">' + item[textField] + '</option>');
             } else {
-                $select.append(`<option value="${item.id}">${item[textField]}</option>`);
+                $select.append('<option value="' + item.id + '">' + item[textField] + '</option>');
             }
-        });
+        }
     },
 
     /**
      * Clear accommodation selects
      */
-    clearAccommodationSelects() {
+    clearAccommodationSelects: function() {
         $('#add_apartment_id').empty().append('<option value="">Select Apartment</option>');
         $('#add_room_id').empty().append('<option value="">Select Room</option>');
         $('#double-room-bed-options').hide();
@@ -649,7 +667,7 @@ const AccommodationManager = {
     /**
      * Reset accommodation form
      */
-    resetForm() {
+    resetForm: function() {
         $('#add_building_id').empty().append('<option value="">Select Building</option>');
         this.clearAccommodationSelects();
         this.hideAccommodationFields();
@@ -659,11 +677,11 @@ const AccommodationManager = {
 // ===========================
 // PERIOD MANAGER
 // ===========================
-const PeriodManager = {
+var PeriodManager = {
     /**
      * Initialize period manager
      */
-    init() {
+    init: function() {
         this.bindEvents();
         this.loadAcademicTerms();
         this.handlePeriodChange(); // Set initial state
@@ -672,15 +690,18 @@ const PeriodManager = {
     /**
      * Bind period events
      */
-    bindEvents() {
-        $('#add_period').on('change', this.handlePeriodChange.bind(this));
+    bindEvents: function() {
+        var self = this;
+        $('#add_period').on('change', function() {
+            self.handlePeriodChange();
+        });
     },
 
     /**
      * Handle period type change
      */
-    handlePeriodChange() {
-        const period = $('#add_period').val();
+    handlePeriodChange: function() {
+        var period = $('#add_period').val();
         
         if (period === 'academic') {
             $('#academic-term-group').show();
@@ -706,48 +727,51 @@ const PeriodManager = {
     /**
      * Load academic terms
      */
-    async loadAcademicTerms() {
-        try {
-            const response = await ApiService.fetchAcademicTerms();
-            if (response.success && response.data) {
-                AccommodationManager.populateSelect($('#add_academic_term_id'), response.data, 'name', 'Select Academic Term');
-            }
-        } catch (error) {
-            Utils.showError(CONFIG.messages.error.academicTermsLoadFailed);
-        }
+    loadAcademicTerms: function() {
+        ApiService.fetchAcademicTerms()
+            .done(function(response) {
+                if (response.success && response.data) {
+                    AccommodationManager.populateSelect($('#add_academic_term_id'), response.data, 'name', 'Select Academic Term');
+                }
+            })
+            .fail(function() {
+                Utils.showError(MESSAGES.error.academicTermsLoadFailed);
+            });
     }
 };
 
 // ===========================
 // EQUIPMENT MANAGER
 // ===========================
-const EquipmentManager = {
+var EquipmentManager = {
     /**
      * Initialize equipment manager
      */
-    init() {
+    init: function() {
         this.loadEquipment();
     },
 
     /**
      * Load equipment
      */
-    async loadEquipment() {
-        try {
-            const response = await ApiService.fetchEquipment();
-            if (response.success && response.data) {
-                this.renderEquipmentList(response.data);
-            }
-        } catch (error) {
-            Utils.showError(CONFIG.messages.error.equipmentLoadFailed);
-        }
+    loadEquipment: function() {
+        var self = this;
+        ApiService.fetchEquipment()
+            .done(function(response) {
+                if (response.success && response.data) {
+                    self.renderEquipmentList(response.data);
+                }
+            })
+            .fail(function() {
+                Utils.showError(MESSAGES.error.equipmentLoadFailed);
+            });
     },
 
     /**
      * Render equipment list
      */
-    renderEquipmentList(equipmentData) {
-        const $list = $('#equipment-list');
+    renderEquipmentList: function(equipmentData) {
+        var $list = $('#equipment-list');
         $list.empty();
         
         if (!equipmentData.length) {
@@ -755,31 +779,30 @@ const EquipmentManager = {
             return;
         }
         
-        equipmentData.forEach(item => {
-            const html = `
-                <div class="col-md-6 mb-2">
-                    <div class="form-check d-flex align-items-center">
-                        <input class="form-check-input equipment-checkbox" 
-                               type="checkbox" 
-                               value="${item.id}" 
-                               id="equipment_${item.id}" 
-                               data-name="${item.name_en}">
-                        <label class="form-check-label ms-2" for="equipment_${item.id}">
-                            ${item.name_en}
-                        </label>
-                        <input type="number" 
-                               min="1" 
-                               class="form-control ms-3 equipment-qty" 
-                               id="equipment_qty_${item.id}" 
-                               name="equipment_qty_${item.id}" 
-                               value="1" 
-                               style="width:80px;" 
-                               disabled>
-                    </div>
-                </div>
-            `;
+        for (var i = 0; i < equipmentData.length; i++) {
+            var item = equipmentData[i];
+            var html = '<div class="col-md-6 mb-2">' +
+                '<div class="form-check d-flex align-items-center">' +
+                    '<input class="form-check-input equipment-checkbox" ' +
+                           'type="checkbox" ' +
+                           'value="' + item.id + '" ' +
+                           'id="equipment_' + item.id + '" ' +
+                           'data-name="' + item.name_en + '">' +
+                    '<label class="form-check-label ms-2" for="equipment_' + item.id + '">' +
+                        item.name_en +
+                    '</label>' +
+                    '<input type="number" ' +
+                           'min="1" ' +
+                           'class="form-control ms-3 equipment-qty" ' +
+                           'id="equipment_qty_' + item.id + '" ' +
+                           'name="equipment_qty_' + item.id + '" ' +
+                           'value="1" ' +
+                           'style="width:80px;" ' +
+                           'disabled>' +
+                '</div>' +
+            '</div>';
             $list.append(html);
-        });
+        }
         
         this.bindEquipmentEvents($list);
     },
@@ -787,10 +810,10 @@ const EquipmentManager = {
     /**
      * Bind equipment events
      */
-    bindEquipmentEvents($list) {
+    bindEquipmentEvents: function($list) {
         $list.find('.equipment-checkbox').on('change', function() {
-            const id = $(this).val();
-            $(`#equipment_qty_${id}`).prop('disabled', !this.checked);
+            var id = $(this).val();
+            $('#equipment_qty_' + id).prop('disabled', !this.checked);
         });
     }
 };
@@ -798,68 +821,74 @@ const EquipmentManager = {
 // ===========================
 // RESERVATION PROCESSOR
 // ===========================
-const ReservationProcessor = {
+var ReservationProcessor = {
     /**
      * Initialize reservation processor
      */
-    init() {
+    init: function() {
         this.bindEvents();
     },
 
     /**
      * Bind reservation events
      */
-    bindEvents() {
-        $('#addReservationForm').on('submit', this.handleSubmit.bind(this));
+    bindEvents: function() {
+        var self = this;
+        $('#addReservationForm').on('submit', function(e) {
+            e.preventDefault();
+            self.handleSubmit();
+        });
     },
 
     /**
      * Handle form submission
      */
-    async handleSubmit(e) {
-        e.preventDefault();
-        
-        const formData = this.getFormData();
+    handleSubmit: function() {
+        var self = this;
+        var formData = this.getFormData();
         
         if (!this.validateForm(formData)) {
             return;
         }
         
-        const $btn = $('#addReservationForm button[type="submit"]');
+        var $btn = $('#addReservationForm button[type="submit"]');
         Utils.setLoadingState($btn, true, { loadingText: 'Saving...' });
         
-        try {
-            const response = await ApiService.createReservation(JSON.stringify(formData));
-            
-            if (response.success) {
-                this.handleSuccess(response);
-            } else {
-                Utils.showError(response.message || CONFIG.messages.error.reservationCreateFailed);
-            }
-        } catch (error) {
-            if (error && error.xhr) {
-                Utils.handleAjaxError(error.xhr, CONFIG.messages.error.reservationCreateFailed);
-            }
-        } finally {
-            Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-save"></i> Save Reservation' });
-        }
+        ApiService.createReservation(JSON.stringify(formData))
+            .done(function(response) {
+                if (response.success) {
+                    self.handleSuccess(response);
+                } else {
+                    Utils.showError(response.message || MESSAGES.error.reservationCreateFailed);
+                }
+            })
+            .fail(function(xhr) {
+                if (xhr && xhr.responseJSON) {
+                    Utils.handleAjaxError(xhr, MESSAGES.error.reservationCreateFailed);
+                }
+            })
+            .always(function() {
+                Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-save"></i> Save Reservation' });
+            });
     },
 
     /**
      * Get form data for submission
      */
-    getFormData() {
-        const formData = {};
+    getFormData: function() {
+        var formData = {};
         
         // Serialize form fields
-        $('#addReservationForm').serializeArray().forEach(item => {
+        var formArray = $('#addReservationForm').serializeArray();
+        for (var i = 0; i < formArray.length; i++) {
+            var item = formArray[i];
             if (item.value) {
                 formData[item.name] = item.value;
             }
-        });
+        }
         
         // Handle accommodation_id based on type
-        const accommodationType = $('#add_accommodation_type').val();
+        var accommodationType = $('#add_accommodation_type').val();
         if (accommodationType === 'room') {
             formData.accommodation_id = $('#add_room_id').val();
         } else if (accommodationType === 'apartment') {
@@ -867,10 +896,10 @@ const ReservationProcessor = {
         }
         
         // Collect equipment
-        const equipment = [];
+        var equipment = [];
         $('#equipment-list').find('.equipment-checkbox:checked').each(function() {
-            const id = $(this).val();
-            const qty = $(`#equipment_qty_${id}`).val();
+            var id = $(this).val();
+            var qty = $('#equipment_qty_' + id).val();
             equipment.push({ 
                 equipment_id: id, 
                 quantity: parseInt(qty) || 1 
@@ -882,7 +911,7 @@ const ReservationProcessor = {
         }
         
         // Add double_room_bed_option if present
-        const bedOption = $('input[name="double_room_bed_option"]:checked').val();
+        var bedOption = $('input[name="double_room_bed_option"]:checked').val();
         if (bedOption) {
             formData.double_room_bed_option = bedOption;
         }
@@ -893,29 +922,29 @@ const ReservationProcessor = {
     /**
      * Validate form data
      */
-    validateForm(formData) {
+    validateForm: function(formData) {
         if (!formData.user_id) {
-            Utils.showError(CONFIG.messages.error.selectUser);
+            Utils.showError(MESSAGES.error.selectUser);
             return false;
         }
         
         if (!formData.period_type) {
-            Utils.showError(CONFIG.messages.validation.selectPeriod);
+            Utils.showError(MESSAGES.validation.selectPeriod);
             return false;
         }
         
         if (formData.period_type === 'academic' && !formData.academic_term_id) {
-            Utils.showError(CONFIG.messages.validation.selectAcademicTerm);
+            Utils.showError(MESSAGES.validation.selectAcademicTerm);
             return false;
         }
         
         if (formData.period_type === 'calendar') {
             if (!formData.check_in_date || !formData.check_out_date) {
-                Utils.showError(CONFIG.messages.validation.selectDates);
+                Utils.showError(MESSAGES.validation.selectDates);
                 return false;
             }
             if (new Date(formData.check_out_date) <= new Date(formData.check_in_date)) {
-                Utils.showError(CONFIG.messages.error.invalidCheckOutDate);
+                Utils.showError(MESSAGES.error.invalidCheckOutDate);
                 return false;
             }
         }
@@ -926,21 +955,21 @@ const ReservationProcessor = {
     /**
      * Handle successful reservation creation
      */
-    handleSuccess(response) {
-        Utils.showSuccess(CONFIG.messages.success.reservationCreated);
+    handleSuccess: function(response) {
+        Utils.showSuccess(MESSAGES.success.reservationCreated);
         this.resetForm();
     },
 
     /**
      * Reset form after successful submission
      */
-    resetForm() {
+    resetForm: function() {
         $('#addReservationForm')[0].reset();
         $('#add_user_id').val('');
         
         // Hide form sections
-        $('#user-info-section').hide();
-        $('#addReservationForm').hide();
+        $('#user-info-section').addClass('d-none').hide();
+        $('#addReservationForm').addClass('d-none').hide();
         
         // Reset form state
         AccommodationManager.resetForm();
@@ -952,13 +981,13 @@ const ReservationProcessor = {
 };
 
 // ===========================
-// APPLICATION INITIALIZER
+// MAIN APPLICATION
 // ===========================
-const AddReservationApp = {
+var ReservationApp = {
     /**
      * Initialize the entire application
      */
-    init() {
+    init: function() {
         // Use global Utils for logging if desired
         if (window.console) console.log('Initializing Add Reservation System...');
         
@@ -978,7 +1007,7 @@ const AddReservationApp = {
     /**
      * Setup global error handling
      */
-    setupErrorHandling() {
+    setupErrorHandling: function() {
         $(document).ajaxError(function(event, xhr, settings, thrownError) {
             if (xhr.status === 419) {
                 Utils.showError('Session expired. Please refresh the page and try again.');
@@ -990,8 +1019,8 @@ const AddReservationApp = {
 // ===========================
 // DOCUMENT READY
 // ===========================
-$(document).ready(() => {
-    AddReservationApp.init();
+$(document).ready(function() {
+    ReservationApp.init();
 });
 </script>
 @endpush

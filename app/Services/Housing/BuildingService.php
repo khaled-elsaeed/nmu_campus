@@ -144,13 +144,14 @@ class BuildingService
         $query = Building::query();
 
         $query = $this->applySearchFilters($query);
+
         return DataTables::of($query)
             ->addIndexColumn()
             ->editColumn('number', fn($building) => 'Building ' . $building->number)
             ->editColumn('gender_restriction', fn($building) => ucfirst($building->gender_restriction))
             ->editColumn('active', fn($building) => $building->active ? 'Active' : 'Inactive')
             ->editColumn('has_double_rooms', fn($building) => $building->has_double_rooms ? 'Yes' : 'No')
-            ->editColumn('created_at', fn($building) => formatDate($building->created_at))
+            ->addColumn('current_occupancy', fn($building) => $building->current_occupancy)
             ->addColumn('action', fn($building) => $this->renderActionButtons($building))
             ->orderColumn('number', 'number $1')
             ->orderColumn('active', 'active $1')

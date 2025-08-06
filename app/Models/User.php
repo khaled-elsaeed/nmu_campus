@@ -278,7 +278,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the user's profile relation, returning either staff or student relation depending on which exists.
+     * Get the user's profile relationship, returning either staff or student relationship depending on which exists.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasOne|null
      */

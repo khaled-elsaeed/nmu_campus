@@ -23,23 +23,59 @@
             <option value="mother">Mother</option>
         </select>
     </div>
-    <div class="col-md-6 mb-3">
-        <label for="parent-name-ar" class="form-label">Name (Arabic)</label>
+     <div class="col-md-6 mb-3">
+        <label for="parent-national-id" class="form-label">National ID</label>
         <input 
             type="text" 
             class="form-control" 
-            id="parent-name-ar" 
-            name="parent_name_ar"
+            id="parent-national-id" 
+            name="parent_national_id"
         >
     </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="parent-name-ar" class="form-label">Name (Arabic)</label>
+            <input 
+                type="text" 
+                class="form-control" 
+                id="parent-name-ar" 
+                name="parent_name_ar"
+            >
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="parent-name-en" class="form-label">Name (English)</label>
+            <input 
+                type="text" 
+                class="form-control" 
+                id="parent-name-en" 
+                name="parent_name_en"
+            >
+        </div>
+    </div>
+</div>
+
+<div class="row">
     <div class="col-md-6 mb-3">
-        <label for="parent-name-en" class="form-label">Name (English)</label>
-        <input 
-            type="text" 
-            class="form-control" 
-            id="parent-name-en" 
-            name="parent_name_en"
-        >
+        <label for="is-parent-abroad" class="form-label">Is the parent abroad?</label>
+        <select class="form-select" id="is-parent-abroad" name="is_parent_abroad">
+            <option value="">Select</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+        </select>
+    </div>
+    <div class="col-md-6 mb-3 d-none" id="parent-abroad-country-div">
+        <label for="parent-abroad-country" class="form-label">Country</label>
+        <select class="form-select" id="parent-abroad-country" name="parent_abroad_country">
+            {{-- Optionally populate countries dynamically via JS --}}
+        </select>
+    </div>
+    <div class="col-md-6 mb-3 d-none" id="living-with-parent-div">
+        <label for="living-with-parent" class="form-label">Do you live with them?</label>
+        <select class="form-select" id="living-with-parent" name="living_with_parent">
+            <option value="">Select</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+        </select>
     </div>
 </div>
 
@@ -54,15 +90,6 @@
         >
     </div>
     <div class="col-md-6 mb-3">
-        <label for="parent-national-id" class="form-label">National ID</label>
-        <input 
-            type="text" 
-            class="form-control" 
-            id="parent-national-id" 
-            name="parent_national_id"
-        >
-    </div>
-    <div class="col-md-6 mb-3">
         <label for="parent-email" class="form-label">Email (optional)</label>
         <input 
             type="email" 
@@ -73,30 +100,6 @@
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-6 mb-3">
-        <label for="is-parent-abroad" class="form-label">Is the parent abroad?</label>
-        <select class="form-select" id="is-parent-abroad" name="is_parent_abroad">
-            <option value="">Select</option>
-            <option value="yes">Yes</option>
-            <option value="no">No</option>
-        </select>
-    </div>
-    <div class="col-md-6 mb-3 d-none" id="abroad-country-div">
-        <label for="abroad-country" class="form-label">Country</label>
-        <select class="form-select" id="abroad-country" name="abroad_country">
-            {{-- Optionally populate countries dynamically via JS --}}
-        </select>
-    </div>
-    <div class="col-md-6 mb-3 d-none" id="living-with-parent-div">
-        <label for="living-with-parent" class="form-label">Do you live with them?</label>
-        <select class="form-select" id="living-with-parent" name="living_with_parent">
-            <option value="">Select</option>
-            <option value="yes">Yes</option>
-            <option value="no">No</option>
-        </select>
-    </div>
-</div>
 
 <div class="row d-none" id="parent-address-div">
     <div class="col-md-6 mb-3">

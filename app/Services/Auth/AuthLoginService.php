@@ -315,7 +315,7 @@ class AuthLoginService
         }
         
         if ($user->hasRole('admin')) {
-            return route('admin.dashboard');
+            return route('dashboard.admin.index');
         }
 
         // Default fallback

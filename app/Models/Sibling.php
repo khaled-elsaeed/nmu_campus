@@ -19,7 +19,6 @@ class Sibling extends Model
         'name_ar',
         'national_id',
         'gender',
-        'date_of_birth',
         'relationship',
         'faculty_id',
         'academic_level',
