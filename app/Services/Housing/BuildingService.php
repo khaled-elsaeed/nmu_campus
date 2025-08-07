@@ -3,7 +3,6 @@
 namespace App\Services\Housing;
 
 use App\Models\Housing\Building;
-use App\Models\Housing\Apartment;
 use App\Exceptions\BusinessValidationException;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
@@ -37,12 +36,13 @@ class BuildingService
     /**
      * Update an existing building.
      *
-     * @param Building $building
+     * @param int $id
      * @param array $data
      * @return Building
      */
-    public function updateBuilding(Building $building, array $data): Building
+    public function updateBuilding(int $id, array $data): Building
     {
+        $building = Building::findOrFail($id);
         $updateData = $this->prepareUpdateData($building, $data);
         $building->update($updateData);
         return $building->fresh('apartments.rooms');
@@ -56,10 +56,9 @@ class BuildingService
      */
     public function getBuilding(int $id): array
     {
-        $building = Building::select(['id', 'number', 'gender_restriction'])->find($id);
-
+        $building = Building::find($id);
         if (!$building) {
-            throw new BusinessValidationException('Building not found.');
+            throw new BusinessValidationException(__('buildings.messages.not_found'));
         }
 
         return [
@@ -79,13 +78,12 @@ class BuildingService
     public function deleteBuilding($id): void
     {
         $building = Building::findOrFail($id);
-        foreach ($building->apartments as $apartment) {
-            $room = $apartment->rooms()->where('current_occupancy', '>', 1)->first();
-            if ($room) {
-                throw new BusinessValidationException(
-                    "Cannot delete building: Apartment #{$apartment->number} has room #{$room->number} with active reservation."
-                );
-            }
+        
+        if ($building->apartments()->count() > 0) {
+            throw new BusinessValidationException(__('buildings.messages.cannot_delete_has_apartments'));
+        }
+        if ($building->residents()->count() > 0) {
+            throw new BusinessValidationException(__('buildings.messages.cannot_delete_has_residents'));
         }
         $building->delete();
     }
@@ -147,10 +145,9 @@ class BuildingService
 
         return DataTables::of($query)
             ->addIndexColumn()
-            ->editColumn('number', fn($building) => 'Building ' . $building->number)
-            ->editColumn('gender_restriction', fn($building) => ucfirst($building->gender_restriction))
-            ->editColumn('active', fn($building) => $building->active ? 'Active' : 'Inactive')
-            ->editColumn('has_double_rooms', fn($building) => $building->has_double_rooms ? 'Yes' : 'No')
+            ->editColumn('name', fn($building) => $building->name)
+            ->editColumn('active', fn($building) => $building->active ? __('general.active') : __('general.inactive'))
+            ->editColumn('has_double_rooms', fn($building) => $building->has_double_rooms ? __('general.yes') : __('general.no'))
             ->addColumn('current_occupancy', fn($building) => $building->current_occupancy)
             ->addColumn('action', fn($building) => $this->renderActionButtons($building))
             ->orderColumn('number', 'number $1')
@@ -174,7 +171,8 @@ class BuildingService
         }
 
         $searchActive = request('search_active');
-        if (!empty($searchActive)) {
+        if (isset($searchActive)) {
+            \Log::info('Filtering buildings by active status', ['search_active' => $searchActive]);
             $query->where('active', $searchActive);
         }
 
@@ -189,24 +187,12 @@ class BuildingService
      */
     public function renderActionButtons(Building $building): string
     {
-        $actions = ['edit', 'delete'];
-
-        $singleActions = [];
-
-        $singleActions[] = [
-            'action' => $building->active ? 'deactivate' : 'activate',
-            'icon' => $building->active ? 'bx bx-toggle-left' : 'bx bx-toggle-right',
-            'class' => $building->active ? 'btn-warning' : 'btn-success',
-            'label' => $building->active ? 'Deactivate' : 'Activate'
-        ];
-        
-
-        return view('components.ui.datatable.data-table-actions', [
-            'mode' => 'both',
-            'actions' => $actions,
+        return view('components.ui.datatable.table-actions', [
+            'mode' => 'dropdown',
+            'actions' => ['view', 'edit', 'delete'],
             'id' => $building->id,
-            'type' => 'Building',
-            'singleActions' => $singleActions
+            'type' =>'Building',
+            'singleActions' => []
         ])->render();
     }
 

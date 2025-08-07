@@ -10,10 +10,11 @@ const Utils = {
    * @param {string|null} position - Toast position (e.g., 'top-end'), or null for default
    */
   showSuccess(message, toast = null, position = null) {
+    const isRtl = document.documentElement.getAttribute('lang') === 'ar';
     if (toast === true) {
       Swal.fire({
         toast: true,
-        position: position || 'top-end',
+        position: position || (isRtl ? 'top-start' : 'top-end'),
         icon: 'success',
         title: message,
         showConfirmButton: false,
@@ -23,7 +24,7 @@ const Utils = {
     } else {
       Swal.fire({
         icon: 'success',
-        title: 'Success',
+        title: isRtl ? 'نجاح' : 'Success',
         text: message,
         showConfirmButton: true
       });
@@ -37,10 +38,11 @@ const Utils = {
    * @param {string|null} position - Toast position (e.g., 'top-end'), or null for default
    */
   showError(message, toast = null, position = null) {
+    const isRtl = document.documentElement.getAttribute('lang') === 'ar';
     if (toast === true) {
       Swal.fire({
         toast: true,
-        position: position || 'top-end',
+        position: position || (isRtl ? 'top-start' : 'top-end'),
         icon: 'error',
         title: message,
         showConfirmButton: false,
@@ -50,7 +52,7 @@ const Utils = {
     } else {
       Swal.fire({
         icon: 'error',
-        title: 'Error',
+        title: isRtl ? 'خطأ' : 'Error',
         text: message
       });
     }
@@ -76,9 +78,10 @@ const Utils = {
    * @param {Object} options - Configuration options
    */
   setLoadingState(btn, isLoading, options = {}) {
+    const isRtl = document.documentElement.getAttribute('lang') === 'ar';
     const $btn = $(btn);
     const defaults = {
-      loadingText: 'Loading...',
+      loadingText: isRtl ? 'جاري التحميل...' : 'Loading...',
       loadingIcon: 'bx bx-loader-alt bx-spin me-1',
       normalText: '',
       normalIcon: ''
@@ -181,7 +184,11 @@ const Utils = {
    * @param {Object} xhr - XMLHttpRequest object
    * @param {string} defaultMessage - Default error message
    */
-  handleAjaxError(xhr, defaultMessage = 'An error occurred. Please try again.') {
+  handleAjaxError(xhr, defaultMessage = null) {
+    const isRtl = document.documentElement.getAttribute('lang') === 'ar';
+    if (!defaultMessage) {
+      defaultMessage = isRtl ? 'حدث خطأ. يرجى المحاولة مرة أخرى.' : 'An error occurred. Please try again.';
+    }
     let msg = xhr.responseJSON?.message || defaultMessage;
     let errors = xhr.responseJSON?.errors || {};
     
@@ -190,7 +197,9 @@ const Utils = {
       html += this.formatValidationErrors(errors);
     }
     
-    this.showErrorHtml('Error', html);
+    let errorTitle = isRtl ? 'خطأ' : 'Error';
+
+    this.showErrorHtml(errorTitle, html);
   },
 
   /**
@@ -199,15 +208,16 @@ const Utils = {
    * @returns {Promise} - Promise that resolves with user's choice
    */
   showConfirmDialog(options = {}) {
+    const isRtl = document.documentElement.getAttribute('lang') === 'ar';
     const defaults = {
-      title: 'Are you sure?',
-      text: 'This action cannot be undone.',
+      title: isRtl ? 'هل أنت متأكد؟' : 'Are you sure?',
+      text: isRtl ? 'لا يمكن التراجع عن هذا الإجراء.' : 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, proceed!',
-      cancelButtonText: 'Cancel'
+      confirmButtonText: isRtl ? 'نعم، تابع!' : 'Yes, proceed!',
+      cancelButtonText: isRtl ? 'إلغاء' : 'Cancel'
     };
     
     const config = { ...defaults, ...options };
@@ -288,11 +298,12 @@ const Utils = {
    * @returns {Object} - Stats manager instance
    */
   createStatsManager(config) {
+    const isRtl = document.documentElement.getAttribute('lang') === 'ar';
     const defaults = {
       apiMethod: null,           // Required: API method to call (e.g., ApiService.fetchTermStats)
       statsKeys: [],             // Required: Array of stat keys (e.g., ['terms', 'active', 'inactive'])
       subStatsConfig: {},        // Optional: Object mapping stat keys to their sub-stats config
-      onError: 'Failed to load statistics', // Error message
+      onError: isRtl ? 'فشل تحميل الإحصائيات' : 'Failed to load statistics', // Error message
       dataPath: 'data',          // Path to data in response (default: response.data)
       successCheck: (response) => response.success !== false // Function to check if response is successful
     };

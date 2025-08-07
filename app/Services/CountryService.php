@@ -195,7 +195,7 @@ class CountryService
      */
     public function renderActionButtons(Country $country): string
     {
-        return view('components.ui.datatable.data-table-actions', [
+        return view('components.ui.datatable.table-actions', [
             'mode' => 'dropdown',
             'actions' => ['edit', 'delete'],
             'id' => $country->id,

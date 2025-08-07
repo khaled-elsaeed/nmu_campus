@@ -3,14 +3,12 @@
 namespace App\Services\Academic;
 
 use App\Models\Academic\Program;
-use App\Models\Academic\Faculty;
+use App\Exceptions\BusinessValidationException;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
-use App\Exceptions\BusinessValidationException;
 
 class ProgramService
 {
-   
     /**
      * Create a new program.
      *
@@ -51,18 +49,11 @@ class ProgramService
      * @param int $id
      * @return array
      */
-    public function getProgram($id)
+    public function getProgram(int $id): array
     {
-        $program = Program::select([
-            'id', 
-            'name_en', 
-            'name_ar', 
-            'duration_years', 
-            'faculty_id'
-        ])->find($id);
-
+        $program = Program::with('faculty')->select(['id', 'name_en', 'name_ar', 'faculty_id', 'duration_years'])->find($id);
         if (!$program) {
-            throw new BusinessValidationException('Program not found.');
+            throw new BusinessValidationException(__('programs.messages.not_found'));
         }
 
         return [
@@ -82,10 +73,12 @@ class ProgramService
      * @return void
      * @throws BusinessValidationException
      */
-    public function deleteProgram(Program $program): void
+    public function deleteProgram($id): void
     {
+        $program = Program::findOrFail($id);
+        
         if ($program->students()->count() > 0) {
-            throw new BusinessValidationException('Cannot delete program that has students enrolled.');
+            throw new BusinessValidationException(__('programs.messages.cannot_delete_has_students'));
         }
         $program->delete();
     }
@@ -151,14 +144,14 @@ class ProgramService
 
         return DataTables::of($query)
             ->addIndexColumn()
-            ->addColumn('faculty', fn($program) => $program->faculty->name_en)
+            ->addColumn('faculty', fn($program) => $program->faculty->name)
             ->addColumn('students', fn($program) => $program->students_count)
             ->addColumn('action', fn($program) => $this->renderActionButtons($program))
             ->orderColumn('name', 'name_en $1')
             ->orderColumn('students', 'students_count $1')
             ->orderColumn('faculty', function ($query, $order) {
                 $query->join('faculties', 'programs.faculty_id', '=', 'faculties.id')
-                      ->orderBy('faculties.name_en', $order);
+                      ->orderBy('faculties.name_' . app()->getLocale(), $order);
             })
             ->rawColumns(['action'])
             ->make(true);
@@ -195,14 +188,14 @@ class ProgramService
      * @param Program $program
      * @return string
      */
-    protected function renderActionButtons($program): string
+    public function renderActionButtons(Program $program): string
     {
-        return view('components.ui.datatable.data-table-actions', [
+        return view('components.ui.datatable.table-actions', [
             'mode' => 'dropdown',
             'actions' => ['edit', 'delete'],
             'id' => $program->id,
-            'type' => 'Program',
+            'type' => "Program",
             'singleActions' => []
         ])->render();
     }
-} 
+}

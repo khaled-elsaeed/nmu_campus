@@ -323,7 +323,7 @@ class StudentService
             ]
         ];
 
-        return view('components.ui.datatable.data-table-actions', [
+        return view('components.ui.datatable.table-actions', [
             'mode' => 'single',
             'actions' => [],
             'id' => $student->id,

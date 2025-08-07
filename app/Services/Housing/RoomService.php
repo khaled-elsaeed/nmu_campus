@@ -289,7 +289,7 @@ class RoomService
             'class' => $room->active ? 'btn-warning' : 'btn-success',
             'label' => $room->active ? 'Deactivate' : 'Activate'
         ];
-        return view('components.ui.datatable.data-table-actions', [
+        return view('components.ui.datatable.table-actions', [
             'mode' => 'both',
             'actions' => $actions,
             'id' => $room->id,

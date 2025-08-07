@@ -5,10 +5,22 @@
 <!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
 <!-- Icons -->
 <link rel="stylesheet" href="{{ asset('vendor/fonts/boxicons.css') }}?v={{ config('app.version') }}" />
+
+
+<link rel="stylesheet" href="{{ asset('vendor/libs/sweetalert2/sweetalert2.min.css') }}?v={{ config('app.version') }}">
+
+<!-- Styles -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+@if(app()->getLocale() === 'ar')
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.rtl.min.css" />
+@else
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+@endif
 
 <!-- Core CSS -->
 @if (app()->getLocale() === 'ar')
@@ -27,8 +39,3 @@
 
 <!-- Config (Mandatory theme config file: global vars & default theme options) -->
 <script src="{{ asset('js/config.js') }}?v={{ config('app.version') }}"></script>
-
-<link rel="stylesheet" href="{{ asset('vendor/libs/sweetalert2/sweetalert2.min.css') }}?v={{ config('app.version') }}">
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />

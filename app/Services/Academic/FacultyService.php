@@ -27,12 +27,13 @@ class FacultyService
     /**
      * Update an existing faculty.
      *
-     * @param Faculty $faculty
+     * @param int $id
      * @param array $data
      * @return Faculty
      */
-    public function updateFaculty(Faculty $faculty, array $data): Faculty
+    public function updateFaculty(int $id, array $data): Faculty
     {
+        $faculty = Faculty::findOrFail($id);
         $faculty->update([
             'name_en' => $data['name_en'],
             'name_ar' => $data['name_ar'],
@@ -50,7 +51,7 @@ class FacultyService
     {
         $faculty = Faculty::select(['id', 'name_en', 'name_ar'])->find($id);
         if (!$faculty) {
-            throw new BusinessValidationException('Faculty not found.');
+            throw new BusinessValidationException(__('faculties.messages.not_found'));
         }
         return [
             'id' => $faculty->id,
@@ -71,11 +72,11 @@ class FacultyService
         $faculty = Faculty::findOrFail($id);
         
         if ($faculty->students()->count() > 0 || $faculty->staff()->count() > 0) {
-            throw new BusinessValidationException('Cannot delete faculty that has students assigned or stuff.');
+            throw new BusinessValidationException(__('faculties.messages.cannot_delete_has_students_or_staff'));
         }
         foreach ($faculty->programs as $program) {
             if ($program->students()->count() > 0) {
-                throw new BusinessValidationException('Cannot delete faculty that has programs with students assigned.');
+                throw new BusinessValidationException(__('faculties.messages.cannot_delete_programs_have_students'));
             }
         }
         $faculty->delete();
@@ -193,7 +194,7 @@ class FacultyService
      */
     public function renderActionButtons(Faculty $faculty): string
     {
-        return view('components.ui.datatable.data-table-actions', [
+        return view('components.ui.datatable.table-actions', [
             'mode' => 'dropdown',
             'actions' => ['edit', 'delete'],
             'id' => $faculty->id,
@@ -201,4 +202,4 @@ class FacultyService
             'singleActions' => []
         ])->render();
     }
-} 
+}

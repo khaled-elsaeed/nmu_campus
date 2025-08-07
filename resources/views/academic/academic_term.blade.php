@@ -1,6 +1,6 @@
 @extends('layouts.home')
 
-@section('title', 'Academic Term Management | AcadOps')
+@section('title', __('academic_terms.page_title'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -10,15 +10,15 @@
         <div class="col-sm-6 col-xl-3">
             <x-ui.card.stat2
                 id="terms"
-                label="Total Terms"
-                color="white"
+                :label="__('academic_terms.stats.total_terms')"
+                color="secondary"
                 icon="bx bx-calendar"
             />
         </div>
         <div class="col-sm-6 col-xl-3">
             <x-ui.card.stat2
                 id="active"
-                label="Active Terms"
+                :label="__('academic_terms.stats.active_terms')"
                 color="success"
                 icon="bx bx-check-circle"
             />
@@ -26,7 +26,7 @@
         <div class="col-sm-6 col-xl-3">
             <x-ui.card.stat2
                 id="inactive"
-                label="Inactive Terms"
+                :label="__('academic_terms.stats.inactive_terms')"
                 color="warning"
                 icon="bx bx-x-circle"
             />
@@ -34,7 +34,7 @@
         <div class="col-sm-6 col-xl-3">
             <x-ui.card.stat2
                 id="current"
-                label="Current Term"
+                :label="__('academic_terms.stats.current_term')"
                 color="info"
                 icon="bx bx-time"
             />
@@ -43,8 +43,8 @@
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header
-        title="Terms"
-        description="Manage academic terms and their details."
+        :title="__('academic_terms.header.title')"
+        :description="__('academic_terms.header.description')"
         icon="bx bx-calendar"
     >
         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
@@ -54,8 +54,8 @@
                     data-bs-toggle="modal"
                     data-bs-target="#termModal">
                 <i class="bx bx-plus me-1"></i> 
-                <span class="d-none d-sm-inline">Add Term</span>
-                <span class="d-inline d-sm-none">Add</span>
+                <span class="d-none d-sm-inline">{{ __('academic_terms.buttons.add_term') }}</span>
+                <span class="d-inline d-sm-none">{{ __('academic_terms.buttons.add') }}</span>
             </button>
             <button class="btn btn-secondary"
                     type="button"
@@ -64,51 +64,60 @@
                     aria-expanded="false"
                     aria-controls="termSearchCollapse">
                 <i class="bx bx-filter-alt me-1"></i> 
-                <span class="d-none d-sm-inline">Search</span>
-                <span class="d-inline d-sm-none">Filter</span>
+                <span class="d-none d-sm-inline">{{ __('academic_terms.buttons.search') }}</span>
+                <span class="d-inline d-sm-none">{{ __('academic_terms.buttons.filter') }}</span>
             </button>
         </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
     <x-ui.advanced-search
-        title="Advanced Search"
+        :title="__('academic_terms.search.title')"
         formId="advancedTermSearch"
         collapseId="termSearchCollapse"
         :collapsed="false"
         :show-clear-button="true"
-        clear-button-text="Clear Filters"
+        :clear-button-text="__('academic_terms.buttons.clear_filters')"
         clear-button-id="clearTermFiltersBtn"
     >
         <div class="col-md-3">
-            <label for="search_season" class="form-label">Season:</label>
-            <select class="form-control" id="search_season">
-                <option value="">All Seasons</option>
-                <option value="Fall">Fall</option>
-                <option value="Spring">Spring</option>
-                <option value="Summer">Summer</option>
+            <label for="search_season" class="form-label">{{ __('academic_terms.search.labels.season') }}</label>
+            <select class="form-select" id="search_season">
+                <option value="">{{ __('academic_terms.search.placeholders.all_seasons') }}</option>
+                <option value="fall">{{ __('academic_terms.search.options.fall') }}</option>
+                <option value="spring">{{ __('academic_terms.search.options.spring') }}</option>
+                <option value="summer">{{ __('academic_terms.search.options.summer') }}</option>
             </select>
         </div>
         <div class="col-md-3">
-            <label for="search_year" class="form-label">Academic Year:</label>
-            <select class="form-control" id="search_year">
-                <option value="">All Years</option>
+            <label for="search_year" class="form-label">{{ __('academic_terms.search.labels.academic_year') }}</label>
+            <select class="form-select" id="search_year">
+                <option value="">{{ __('academic_terms.search.placeholders.all_years') }}</option>
                 <!-- Options will be populated by JavaScript -->
             </select>
         </div>
         <div class="col-md-3">
-            <label for="search_active" class="form-label">Status:</label>
-            <select class="form-control" id="search_active">
-                <option value="">All Status</option>
-                <option value="1">Active</option>
-                <option value="0">Inactive</option>
+            <label for="search_active" class="form-label">{{ __('academic_terms.search.labels.status') }}</label>
+            <select class="form-select" id="search_active">
+                <option value="">{{ __('academic_terms.search.placeholders.all_status') }}</option>
+                <option value="1">{{ __('general.active') }}</option>
+                <option value="0">{{ __('general.inactive') }}</option>
             </select>
         </div>
     </x-ui.advanced-search>
 
     {{-- ===== DATA TABLE ===== --}}
-    <x-ui.datatable
-        :headers="['Season', 'Year', 'Code', 'Start Date', 'End Date', 'Reservations', 'Status', 'Action']"
+    <x-ui.datatable.table
+        :headers="[
+            __('academic_terms.table.headers.season'),
+            __('academic_terms.table.headers.year'),
+            __('academic_terms.table.headers.code'),
+            __('academic_terms.table.headers.start_date'),
+            __('academic_terms.table.headers.end_date'),
+            __('academic_terms.table.headers.reservations'),
+            __('academic_terms.table.headers.status'),
+            __('academic_terms.table.headers.action')
+        ]"
         :columns="[
             ['data' => 'season', 'name' => 'season'],
             ['data' => 'year', 'name' => 'year'],
@@ -128,7 +137,7 @@
     {{-- Add/Edit Term Modal --}}
     <x-ui.modal
         id="termModal"
-        title="Add/Edit Term"
+        :title="__('academic_terms.modal.add_term_title')"
         size="lg"
         :scrollable="false"
         class="term-modal"
@@ -138,22 +147,22 @@
                 <input type="hidden" id="term_id" name="term_id">
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label for="season" class="form-label">Season <span class="text-danger">*</span></label>
+                        <label for="season" class="form-label">{{ __('academic_terms.form.labels.season') }} <span class="text-danger">*</span></label>
                         <select class="form-select" id="season" name="season" required>
-                            <option value="">Select Season</option>
-                            <option value="fall">Fall</option>
-                            <option value="spring">Spring</option>
-                            <option value="summer">Summer</option>
+                            <option value="">{{ __('academic_terms.search.placeholders.select_season') }}</option>
+                            <option value="fall">{{ __('academic_terms.search.options.fall') }}</option>
+                            <option value="spring">{{ __('academic_terms.search.options.spring') }}</option>
+                            <option value="summer">{{ __('academic_terms.search.options.summer') }}</option>
                         </select>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="year" class="form-label">Year <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="year" name="year" required placeholder="e.g., 2024-2025">
+                        <label for="year" class="form-label">{{ __('academic_terms.form.labels.year') }} <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="year" name="year" required placeholder="{{ __('academic_terms.form.placeholders.year') }}">
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="semester_number" class="form-label">Semester Number <span class="text-danger">*</span></label>
+                        <label for="semester_number" class="form-label">{{ __('academic_terms.form.labels.semester_number') }} <span class="text-danger">*</span></label>
                         <select class="form-select" id="semester_number" name="semester_number" required>
-                            <option value="">Select Semester</option>
+                            <option value="">{{ __('academic_terms.search.placeholders.select_semester') }}</option>
                             <option value="1">1</option>
                             <option value="2">2</option>
                             <option value="3">3</option>
@@ -162,11 +171,11 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="start_date" class="form-label">Start Date <span class="text-danger">*</span></label>
+                        <label for="start_date" class="form-label">{{ __('academic_terms.form.labels.start_date') }} <span class="text-danger">*</span></label>
                         <input type="date" class="form-control" id="start_date" name="start_date" required>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="end_date" class="form-label">End Date</label>
+                        <label for="end_date" class="form-label">{{ __('academic_terms.form.labels.end_date') }}</label>
                         <input type="date" class="form-control" id="end_date" name="end_date">
                     </div>
                 </div>
@@ -174,16 +183,16 @@
         </x-slot>
         <x-slot name="footer">
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                Close
+                {{ __('academic_terms.buttons.close') }}
             </button>
-            <button type="submit" class="btn btn-primary" id="saveTermBtn" form="termForm">Save</button>
+            <button type="submit" class="btn btn-primary" id="saveTermBtn" form="termForm">{{ __('academic_terms.modal.save_button') }}</button>
         </x-slot>
     </x-ui.modal>
 
     {{-- View Academic Term Modal --}}
     <x-ui.modal
         id="viewTermModal"
-        title="Academic Term Details"
+        :title="__('academic_terms.modal.view_term_title')"
         size="md"
         :scrollable="true"
         class="view-term-modal"
@@ -191,61 +200,61 @@
         <x-slot name="slot">
             <div class="row">
                 <div class="col-6 mb-3">
-                    <label class="form-label fw-bold">Season:</label>
+                    <label class="form-label fw-bold">{{ __('academic_terms.form.labels.season') }}:</label>
                     <p id="view-term-season" class="mb-0"></p>
                 </div>
                 <div class="col-6 mb-3">
-                    <label class="form-label fw-bold">Year:</label>
+                    <label class="form-label fw-bold">{{ __('academic_terms.form.labels.year') }}:</label>
                     <p id="view-term-year" class="mb-0"></p>
                 </div>
                 <div class="col-6 mb-3">
-                    <label class="form-label fw-bold">Code:</label>
+                    <label class="form-label fw-bold">{{ __('academic_terms.form.labels.code') }}:</label>
                     <p id="view-term-code" class="mb-0"></p>
                 </div>
                 <div class="col-6 mb-3">
-                    <label class="form-label fw-bold">Semester Number:</label>
+                    <label class="form-label fw-bold">{{ __('academic_terms.form.labels.semester_number') }}:</label>
                     <p id="view-term-semester-number" class="mb-0"></p>
                 </div>
                 <div class="col-6 mb-3">
-                    <label class="form-label fw-bold">Start Date:</label>
+                    <label class="form-label fw-bold">{{ __('academic_terms.form.labels.start_date') }}:</label>
                     <p id="view-term-start-date" class="mb-0"></p>
                 </div>
                 <div class="col-6 mb-3">
-                    <label class="form-label fw-bold">End Date:</label>
+                    <label class="form-label fw-bold">{{ __('academic_terms.form.labels.end_date') }}:</label>
                     <p id="view-term-end-date" class="mb-0"></p>
                 </div>
                 <div class="col-6 mb-3">
-                    <label class="form-label fw-bold">Active:</label>
+                    <label class="form-label fw-bold">{{ __('general.active') }}:</label>
                     <p id="view-term-active" class="mb-0"></p>
                 </div>
                 <div class="col-6 mb-3">
-                    <label class="form-label fw-bold">Current:</label>
+                    <label class="form-label fw-bold">{{ __('academic_terms.form.labels.current') }}:</label>
                     <p id="view-term-current" class="mb-0"></p>
                 </div>
                 <div class="col-6 mb-3">
-                    <label class="form-label fw-bold">Activated At:</label>
+                    <label class="form-label fw-bold">{{ __('academic_terms.form.labels.activated_at') }}:</label>
                     <p id="view-term-activated-at" class="mb-0"></p>
                 </div>
                 <div class="col-6 mb-3">
-                    <label class="form-label fw-bold">Started At:</label>
+                    <label class="form-label fw-bold">{{ __('academic_terms.form.labels.started_at') }}:</label>
                     <p id="view-term-started-at" class="mb-0"></p>
                 </div>
                 <div class="col-6 mb-3">
-                    <label class="form-label fw-bold">Ended At:</label>
+                    <label class="form-label fw-bold">{{ __('academic_terms.form.labels.ended_at') }}:</label>
                     <p id="view-term-ended-at" class="mb-0"></p>
                 </div>
                 <div class="col-6 mb-3">
-                    <label class="form-label fw-bold">Created At:</label>
+                    <label class="form-label fw-bold">{{ __('academic_terms.form.labels.created_at') }}:</label>
                     <p id="view-term-created-at" class="mb-0"></p>
                 </div>
                 <div class="col-6 mb-3">
-                    <label class="form-label fw-bold">Updated At:</label>
+                    <label class="form-label fw-bold">{{ __('academic_terms.form.labels.updated_at') }}:</label>
                     <p id="view-term-updated-at" class="mb-0"></p>
                 </div>
             </div>
         </x-slot>
         <x-slot name="footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('academic_terms.buttons.close') }}</button>
         </x-slot>
     </x-ui.modal>
 </div>
@@ -284,6 +293,85 @@ var ROUTES = {
 };
 
 // ===========================
+// TRANSLATION CONSTANTS
+// ===========================
+var TRANSLATION = {
+    success: {
+        termCreated: @json(__('academic_terms.messages.success.created')),
+        termUpdated: @json(__('academic_terms.messages.success.updated')),
+        termDeleted: @json(__('academic_terms.messages.success.deleted')),
+        termActivated: @json(__('academic_terms.messages.success.activated')),
+        termDeactivated: @json(__('academic_terms.messages.success.deactivated')),
+        termStarted: @json(__('academic_terms.messages.success.started')), 
+        termEnded: @json(__('academic_terms.messages.success.ended')) 
+    },
+    error: {
+        statsLoadFailed: @json(__('academic_terms.messages.error.stats_load_failed')),
+        loadFailed: @json(__('academic_terms.messages.error.load_failed')),
+        saveFailed: @json(__('academic_terms.messages.error.save_failed')),
+        deleteFailed: @json(__('academic_terms.messages.error.delete_failed')),
+        termMissing: @json(__('academic_terms.messages.error.term_missing')), 
+        startFailed: @json(__('academic_terms.messages.error.start_failed')), 
+        endFailed: @json(__('academic_terms.messages.error.end_failed')), 
+        activateFailed: @json(__('academic_terms.messages.error.activate_failed')), 
+        deactivateFailed: @json(__('academic_terms.messages.error.deactivate_failed')),
+        seasonRequired: @json(__('academic_terms.messages.error.season_required')),
+        yearRequired: @json(__('academic_terms.messages.error.year_required')),
+        semesterRequired: @json(__('academic_terms.messages.error.semester_required')),
+        startDateRequired: @json(__('academic_terms.messages.error.start_date_required')),
+        invalidYearFormat: @json(__('academic_terms.messages.error.invalid_year_format')),
+        invalidDateRange: @json(__('academic_terms.messages.error.invalid_date_range')),
+        validationError: @json(__('general.validation_error'))
+    },
+    confirm: {
+        deleteTerm: {
+            title: @json(__('academic_terms.confirm.delete.title')),
+            text: @json(__('academic_terms.confirm.delete.text')),
+            confirmButtonText: @json(__('academic_terms.confirm.delete.button')),
+        },
+        startTerm: {
+            title: @json(__('academic_terms.confirm.start.title')),
+            text: @json(__('academic_terms.confirm.start.text')),
+            confirmButtonText: @json(__('academic_terms.confirm.start.button'))
+        },
+        endTerm: {
+            title: @json(__('academic_terms.confirm.end.title')),
+            text: @json(__('academic_terms.confirm.end.text')),
+            confirmButtonText: @json(__('academic_terms.confirm.end.button'))
+        },
+        activateTerm: {
+            title: @json(__('academic_terms.confirm.activate.title')), 
+            text: @json(__('academic_terms.confirm.activate.text')), 
+            confirmButtonText: @json(__('academic_terms.confirm.activate.button')) 
+        },
+        deactivateTerm: {
+            title: @json(__('academic_terms.confirm.deactivate.title')), 
+            text: @json(__('academic_terms.confirm.deactivate.text')), 
+            confirmButtonText: @json(__('academic_terms.confirm.deactivate.button')) 
+        },
+    },
+    placeholders: {
+        allSeasons: @json(__('academic_terms.search.placeholders.all_seasons')),
+        allYears: @json(__('academic_terms.search.placeholders.all_years')),
+        allStatus: @json(__('academic_terms.search.placeholders.all_status')),
+        selectSeason: @json(__('academic_terms.search.placeholders.select_season')), 
+        selectYear: @json(__('academic_terms.search.placeholders.select_year')), 
+        selectStatus: @json(__('academic_terms.search.placeholders.select_status')), 
+        selectSemester: @json(__('academic_terms.search.placeholders.select_semester')) 
+    },
+    modal: {
+        addTermTitle: @json(__('academic_terms.modal.add_term_title')), 
+        editTermTitle: @json(__('academic_terms.modal.edit_term_title')), 
+        saveButton: @json(__('academic_terms.modal.save_button')), 
+        updateButton: @json(__('academic_terms.modal.update_button')),
+        saving: @json(__('general.saving')),
+        updating: @json(__('general.updating')),
+        yes: @json(__('general.yes')),
+        no: @json(__('general.no'))
+    }
+};
+
+// ===========================
 // API SERVICE
 // ===========================
 var ApiService = {
@@ -309,7 +397,7 @@ var ApiService = {
     },
 
     saveTerm: function(formData, id) {
-        var url = id ? Utils.replaceRouteId(ROUTES.terms.show,academicTermId, id) : ROUTES.terms.store;
+        var url = id ? Utils.replaceRouteId(ROUTES.terms.show, id) : ROUTES.terms.store;
         if (id) {
             formData.append('_method', 'PUT');
         }
@@ -343,15 +431,84 @@ var ApiService = {
     }
 };
 
-
 // ===========================
 // STATISTICS MANAGER (Using Utils)
 // ===========================
 const StatsManager = Utils.createStatsManager({
     apiMethod: ApiService.fetchTermStats,
     statsKeys: ['terms', 'active', 'inactive', 'current'],
-    onError: 'Failed to load term statistics'
+    onError: TRANSLATION.error.statsLoadFailed
 });
+
+// ===========================
+// SELECT2 MANAGER
+// ===========================
+var Select2Manager = {
+    /**
+     * Configuration for all Select2 elements
+     */
+    config: {
+        search: {
+            '#search_season': { placeholder: TRANSLATION.placeholders.selectSeason }, 
+            '#search_year': { placeholder: TRANSLATION.placeholders.selectYear }, 
+            '#search_active': { placeholder: TRANSLATION.placeholders.selectStatus } 
+        },
+        modal: {
+            '#season': { placeholder: TRANSLATION.placeholders.selectSeason, dropdownParent: $('#termModal') }, 
+            '#semester_number': { placeholder: TRANSLATION.placeholders.selectSemester, dropdownParent: $('#termModal') } 
+        }
+    },
+
+    /**
+     * Initialize all search Select2 elements
+     */
+    initSearchSelect2: function() {
+        Object.keys(this.config.search).forEach(function(selector) {
+            Utils.initSelect2(selector, Select2Manager.config.search[selector]);
+        });
+    },
+
+    /**
+     * Initialize all modal Select2 elements
+     */
+    initModalSelect2: function() {
+        Object.keys(this.config.modal).forEach(function(selector) {
+            Utils.initSelect2(selector, Select2Manager.config.modal[selector]);
+        });
+    },
+
+    /**
+     * Initialize all Select2 elements
+     */
+    initAll: function() {
+        this.initSearchSelect2();
+        this.initModalSelect2();
+    },
+
+    /**
+     * Clear specific Select2 elements
+     * @param {Array} selectors - Array of selectors to clear
+     */
+    clearSelect2: function(selectors) {
+        selectors.forEach(function(selector) {
+            $(selector).val('').trigger('change');
+        });
+    },
+
+    /**
+     * Reset modal Select2 elements
+     */
+    resetModalSelect2: function() {
+        this.clearSelect2(['#season', '#semester_number']);
+    },
+
+    /**
+     * Reset search Select2 elements
+     */
+    resetSearchSelect2: function() {
+        this.clearSelect2(['#search_season', '#search_year', '#search_active']);
+    }
+};
 
 // ===========================
 // SEARCH MANAGER
@@ -384,7 +541,7 @@ var SearchManager = {
             valueField: null,
             textField: null,
             includePlaceholder: true,
-            placeholder: 'Select Year',
+            placeholder: TRANSLATION.placeholders.allYears 
         });
     },
 
@@ -399,7 +556,7 @@ var SearchManager = {
 
         // Clear filters
         $('#clearTermFiltersBtn').on('click', function() {
-            $('#search_season, #search_year, #search_active').val('');
+            Select2Manager.resetSearchSelect2();
             Utils.reloadDataTable('#terms-table');
         });
     },
@@ -409,6 +566,7 @@ var SearchManager = {
      */
     init: function() {
         SearchManager.populateSearchDropdowns();
+        Select2Manager.initSearchSelect2();
         SearchManager.bindEvents();
     }
 };
@@ -424,9 +582,9 @@ var TermManager = {
         $('#addTermBtn').on('click', function() {
             $('#termForm')[0].reset();
             $('#term_id').val('');
-            $('#termModal .modal-title').text('Add Term');
-            $('#saveTermBtn').text('Save');
-            
+            Select2Manager.resetModalSelect2();
+            $('#termModal .modal-title').text(TRANSLATION.modal.addTermTitle); 
+            $('#saveTermBtn').text(TRANSLATION.modal.saveButton); 
             $('#termModal').modal('show');
         });
     },
@@ -439,19 +597,19 @@ var TermManager = {
     validateForm: function(formData) {
         var errors = [];
 
-        if (Utils.isEmpty(formData.season)) errors.push('Season is required');
+        if (Utils.isEmpty(formData.season)) errors.push(TRANSLATION.error.seasonRequired); 
         if (Utils.isEmpty(formData.year)) {
-            errors.push('Year is required');
+            errors.push(TRANSLATION.error.yearRequired); 
         } else if (!/^\d{4}-\d{4}$/.test(formData.year)) {
-            errors.push('Year must be in format YYYY-YYYY (e.g., 2024-2025)');
+            errors.push(TRANSLATION.error.invalidYearFormat); 
         }
-        if (Utils.isEmpty(formData.semester_number)) errors.push('Semester number is required');
-        if (Utils.isEmpty(formData.start_date)) errors.push('Start date is required');
+        if (Utils.isEmpty(formData.semester_number)) errors.push(TRANSLATION.error.semesterRequired); 
+        if (Utils.isEmpty(formData.start_date)) errors.push(TRANSLATION.error.startDateRequired); 
 
         if (!Utils.isEmpty(formData.start_date) && !Utils.isEmpty(formData.end_date)) {
             var startDate = new Date(formData.start_date);
             var endDate = new Date(formData.end_date);
-            if (endDate <= startDate) errors.push('End date must be after start date');
+            if (endDate <= startDate) errors.push(TRANSLATION.error.invalidDateRange); 
         }
 
         return { isValid: errors.length === 0, errors: errors };
@@ -467,19 +625,18 @@ var TermManager = {
             var termId = $('#term_id').val();
             var formData = new FormData(e.target);
 
-            // Convert FormData to object for validation
             var formObject = {};
             formData.forEach(function(value, key) { formObject[key] = value; });
 
             var validation = TermManager.validateForm(formObject);
             if (!validation.isValid) {
-                Utils.showErrorHtml('Validation Error', Utils.formatValidationErrors({errors: validation.errors}));
+                Utils.showErrorHtml(TRANSLATION.error.validationError, Utils.formatValidationErrors({errors: validation.errors})); 
                 return;
             }
 
             var $submitBtn = $('#saveTermBtn');
             Utils.setLoadingState($submitBtn, true, {
-                loadingText: 'Saving...',
+                loadingText: TRANSLATION.modal.saving, 
                 normalText: $submitBtn.text()
             });
 
@@ -487,16 +644,16 @@ var TermManager = {
                 .done(function(response) {
                     $('#termModal').modal('hide');
                     Utils.reloadDataTable('#terms-table', null, true);
-                    Utils.showSuccess(response.message || 'Term saved successfully.');
+                    Utils.showSuccess(response.message || (termId ? TRANSLATION.success.termUpdated : TRANSLATION.success.termCreated)); 
                     StatsManager.refresh();
                     SearchManager.populateSearchDropdowns();
                 })
                 .fail(function(xhr) {
-                    Utils.handleAjaxError(xhr, 'Failed to save term. Please check your input.');
+                    Utils.handleAjaxError(xhr, TRANSLATION.error.saveFailed); 
                 })
                 .always(function() {
                     Utils.setLoadingState($submitBtn, false, {
-                        normalText: 'Save'
+                        normalText: termId ? TRANSLATION.modal.updateButton : TRANSLATION.modal.saveButton 
                     });
                 });
         });
@@ -509,10 +666,9 @@ var TermManager = {
         $(document).on('click', '.editTermBtn', function() {
             var termId = $(this).data('id');
             if (!termId) {
-                Utils.showError('Term is missing');
+                Utils.showError(TRANSLATION.error.termMissing); 
                 return;
             }
-
             ApiService.fetchTerm(termId)
                 .done(function(response) {
                     var term = response.data;
@@ -521,20 +677,19 @@ var TermManager = {
                     $('#termModal').modal('show');
                 })
                 .fail(function(xhr) {
-                    Utils.handleAjaxError(xhr, 'Failed to load term details.');
+                    Utils.handleAjaxError(xhr, TRANSLATION.error.loadFailed); 
                 });
         });
     },
-
 
     /**
      * Populates the term modal with data
      */
     populateModal: function(term) {
         $('#term_id').val(term.id);
-        $('#season').val(term.season);
+        $('#season').val(term.season_en).trigger('change');
         $('#year').val(term.year);
-        $('#semester_number').val(term.semester_number);
+        $('#semester_number').val(term.semester_number).trigger('change');
         $('#start_date').val(term.start_date ? term.start_date.substring(0, 10) : '');
         $('#end_date').val(term.end_date ? term.end_date.substring(0, 10) : '');
         $('#active').prop('checked', Boolean(term.active));
@@ -544,9 +699,8 @@ var TermManager = {
      * Prepares the term modal for editing
      */
     prepareModal: function() {
-        $('#termModal .modal-title').text('Edit Term');
-        $('#saveTermBtn').text('Update');
-        
+        $('#termModal .modal-title').text(TRANSLATION.modal.editTermTitle); 
+        $('#saveTermBtn').text(TRANSLATION.modal.updateButton); 
     },
 
     /**
@@ -556,25 +710,25 @@ var TermManager = {
         $(document).on('click', '.deleteTermBtn', function() {
             var termId = $(this).data('id');
             if (!termId) {
-                Utils.showError('Term ID is missing');
+                Utils.showError(TRANSLATION.error.termMissing); 
                 return;
             }
 
             Utils.showConfirmDialog({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this action!",
-                confirmButtonText: 'Yes, delete it!',
+                title: TRANSLATION.confirm.deleteTerm.title,
+                text: TRANSLATION.confirm.deleteTerm.text,
+                confirmButtonText: TRANSLATION.confirm.deleteTerm.confirmButtonText,
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.deleteTerm(termId)
                         .done(function(response) {
                             Utils.reloadDataTable('#terms-table', null, true);
-                            Utils.showSuccess(response.message || 'Term has been deleted.');
+                            Utils.showSuccess(response.message || TRANSLATION.success.termDeleted); 
                             StatsManager.refresh();
                             SearchManager.populateSearchDropdowns();
                         })
                         .fail(function(xhr) {
-                            Utils.handleAjaxError(xhr, 'Failed to delete term.');
+                            Utils.handleAjaxError(xhr, TRANSLATION.error.deleteFailed); 
                         });
                 }
             });
@@ -588,24 +742,25 @@ var TermManager = {
         $(document).on('click', '.startTermBtn', function() {
             var termId = $(this).data('id');
             if (!termId) {
-                Utils.showError('Term ID is missing');
+                Utils.showError(TRANSLATION.error.termMissing); 
                 return;
             }
             Utils.showConfirmDialog({
-                title: 'Start Academic Term?',
-                text: 'Are you sure you want to start this academic term? Once started, all confirmed reservations for this term will be activated.',
-                confirmButtonText: 'Yes, start term!',
+                title: TRANSLATION.confirm.startTerm.title,
+                text: TRANSLATION.confirm.startTerm.text,
+                confirmButtonText: TRANSLATION.confirm.startTerm.confirmButtonText,
+                
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.startTerm(termId)
                         .done(function(response) {
                             Utils.reloadDataTable('#terms-table', null, true);
-                            Utils.showSuccess(response.message || 'Term has been started successfully.');
+                            Utils.showSuccess(response.message || TRANSLATION.success.termStarted); 
                             StatsManager.refresh();
                             SearchManager.populateSearchDropdowns();
                         })
                         .fail(function(xhr) {
-                            Utils.handleAjaxError(xhr, 'Failed to start term.');
+                            Utils.handleAjaxError(xhr, TRANSLATION.error.startFailed); 
                         });
                 }
             });
@@ -619,25 +774,26 @@ var TermManager = {
         $(document).on('click', '.endTermBtn', function() {
             var termId = $(this).data('id');
             if (!termId) {
-                Utils.showError('Term ID is missing');
+                Utils.showError(TRANSLATION.error.termMissing); 
                 return;
             }
 
             Utils.showConfirmDialog({
-                title: 'End Academic Term?',
-                text: 'Are you sure you want to end this academic term?',
-                confirmButtonText: 'Yes, end term!',
+                title: TRANSLATION.confirm.endTerm.title,
+                text: TRANSLATION.confirm.endTerm.text,
+                confirmButtonText: TRANSLATION.confirm.endTerm.confirmButtonText,
+                
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.endTerm(termId)
                         .done(function(response) {
                             Utils.reloadDataTable('#terms-table', null, true);
-                            Utils.showSuccess(response.message || 'Term has been ended.');
+                            Utils.showSuccess(response.message || TRANSLATION.success.termEnded); 
                             StatsManager.refresh();
                             SearchManager.populateSearchDropdowns();
                         })
                         .fail(function(xhr) {
-                            Utils.handleAjaxError(xhr, 'Failed to end term.');
+                            Utils.handleAjaxError(xhr, TRANSLATION.error.endFailed); 
                         });
                 }
             });
@@ -651,26 +807,27 @@ var TermManager = {
         $(document).on('click', '.activateTermBtn', function() {
             var termId = $(this).data('id');
             if (!termId) {
-                Utils.showError('Term ID is missing');
+                Utils.showError(TRANSLATION.error.termMissing); 
                 return;
             }
 
             Utils.showConfirmDialog({
-                title: 'Activate Academic Term?',
-                text: 'Are you sure you want to activate this academic term? This will make the term available for reservations.',
+                title: TRANSLATION.confirm.activateTerm.title,
+                text: TRANSLATION.confirm.activateTerm.text,
+                confirmButtonText: TRANSLATION.confirm.activateTerm.confirmButtonText,
                 icon: 'question',
-                confirmButtonText: 'Yes, activate term!',
+                
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.activateTerm(termId)
                         .done(function(response) {
                             Utils.reloadDataTable('#terms-table', null, true);
-                            Utils.showSuccess(response.message || 'Term has been activated.');
+                            Utils.showSuccess(response.message || TRANSLATION.success.termActivated); 
                             StatsManager.refresh();
                             SearchManager.populateSearchDropdowns();
                         })
                         .fail(function(xhr) {
-                            Utils.handleAjaxError(xhr, 'Failed to activate term.');
+                            Utils.handleAjaxError(xhr, TRANSLATION.error.activateFailed); 
                         });
                 }
             });
@@ -684,25 +841,26 @@ var TermManager = {
         $(document).on('click', '.deactivateTermBtn', function() {
             var termId = $(this).data('id');
             if (!termId) {
-                Utils.showError('Term ID is missing');
+                Utils.showError(TRANSLATION.error.termMissing); 
                 return;
             }
 
             Utils.showConfirmDialog({
-                title: 'Deactivate Academic Term?',
-                text: 'Are you sure you want to deactivate this academic term? This will make the term unavailable for new reservations.',
-                confirmButtonText: 'Yes, deactivate term!',
+                title: TRANSLATION.confirm.deactivateTerm.title,
+                text: TRANSLATION.confirm.deactivateTerm.text,
+                confirmButtonText: TRANSLATION.confirm.deactivateTerm.confirmButtonText,
+                
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.deactivateTerm(termId)
                         .done(function(response) {
                             Utils.reloadDataTable('#terms-table', null, true);
-                            Utils.showSuccess(response.message || 'Term has been deactivated.');
+                            Utils.showSuccess(response.message || TRANSLATION.success.termDeactivated); 
                             StatsManager.refresh();
                             SearchManager.populateSearchDropdowns();
                         })
                         .fail(function(xhr) {
-                            Utils.handleAjaxError(xhr, 'Failed to deactivate term.');
+                            Utils.handleAjaxError(xhr, TRANSLATION.error.deactivateFailed); 
                         });
                 }
             });
@@ -716,32 +874,39 @@ var TermManager = {
         $(document).on('click', '.viewTermBtn', function() {
             var termId = $(this).data('id');
             if (!termId) {
-                Utils.showError('Term ID is missing');
+                Utils.showError(TRANSLATION.error.termMissing); 
                 return;
             }
 
             ApiService.fetchTerm(termId)
                 .done(function(response) {
                     var term = response.data;
-                    $('#view-term-season').text(term.season ?? '--');
-                    $('#view-term-year').text(term.year ?? '--');
-                    $('#view-term-code').text(term.code ?? '--');
-                    $('#view-term-semester-number').text(term.semester_number ?? '--');
-                    $('#view-term-start-date').text(term.start_date_formatted ?? '--');
-                    $('#view-term-end-date').text(term.end_date_formatted ?? '--');
-                    $('#view-term-active').text(term.active ? 'Yes' : 'No');
-                    $('#view-term-current').text(term.current ? 'Yes' : 'No');
-                    $('#view-term-activated-at').text(term.activated_at_formatted ?? '--');
-                    $('#view-term-started-at').text(term.started_at_formatted ?? '--');
-                    $('#view-term-ended-at').text(term.ended_at_formatted ?? '--');
-                    $('#view-term-created-at').text(term.created_at_formatted ?? '--');
-                    $('#view-term-updated-at').text(term.updated_at_formatted ?? '--');
+                    TermManager.populateViewModal(term);
                     $('#viewTermModal').modal('show');
                 })
                 .fail(function(xhr) {
-                    Utils.handleAjaxError(xhr, 'Failed to load term details.');
+                    Utils.handleAjaxError(xhr, TRANSLATION.error.loadFailed); 
                 });
         });
+    },
+
+    /**
+     * Populates the view modal with term details
+     */
+    populateViewModal: (term) => {
+        $('#view-term-season').text(term.season ?? '--');
+        $('#view-term-year').text(term.year ?? '--');
+        $('#view-term-code').text(term.code ?? '--');
+        $('#view-term-semester-number').text(term.semester_number ?? '--');
+        $('#view-term-start-date').text(term.start_date_formatted ?? '--');
+        $('#view-term-end-date').text(term.end_date_formatted ?? '--');
+        $('#view-term-active').text(term.active ? TRANSLATION.modal.yes : TRANSLATION.modal.no); 
+        $('#view-term-current').text(term.current ? TRANSLATION.modal.yes : TRANSLATION.modal.no); 
+        $('#view-term-activated-at').text(term.activated_at_formatted ?? '--');
+        $('#view-term-started-at').text(term.started_at_formatted ?? '--');
+        $('#view-term-ended-at').text(term.ended_at_formatted ?? '--');
+        $('#view-term-created-at').text(term.created_at_formatted ?? '--');
+        $('#view-term-updated-at').text(term.updated_at_formatted ?? '--');
     },
 
     /**
@@ -768,6 +933,7 @@ var AcademicTermApp = {
      * Initialize all managers
      */
     init: function() {
+        Select2Manager.initAll();
         StatsManager.init();
         TermManager.init();
         SearchManager.init();

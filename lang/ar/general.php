@@ -1,7 +1,6 @@
 <?php
 
 return [
-    // General UI Elements
     'welcome' => 'مرحباً',
     'home' => 'الصفحة الرئيسية',
     'dashboard' => 'لوحة التحكم',
@@ -81,6 +80,16 @@ return [
     'try_again' => 'حاول مرة أخرى',
     'view_all' => 'عرض الكل',
     'clear_filters' => 'مسح المرشحات',
+    'saving' => 'جاري الحفظ...',
+    'updating' => 'جاري التحديث...',
+    'validation_error' => 'يرجى تصحيح الأخطاء التالية:',
+    'deactivate' => 'إلغاء التفعيل',
+    'activate' => 'تفعيل',
+    'building' => 'مبنى',
+    'apartment' => 'شقة',
+    'room' => 'غرفة',
+    'male' => 'ذكر',
+    'female' => 'أنثى',
 
 
     // Form Elements
@@ -196,6 +205,11 @@ return [
             'no_data_available' => 'لا توجد بيانات متاحة للعرض.',
             'loading_data' => 'جاري تحميل البيانات، انتظر...',
             'processing_request' => 'جاري معالجة طلبك...',
+        ],
+
+        'select' => [
+            'status_placeholder' => 'اختر الحالة',
+            'gender_placeholder' => 'اختر الجنس'
         ],
     ],
 ];

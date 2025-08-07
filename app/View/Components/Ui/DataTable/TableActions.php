@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
-class DataTableActions extends Component
+class TableActions extends Component
 {
     public string $mode;
     public string $type;
@@ -101,6 +101,14 @@ class DataTableActions extends Component
      */
     public function render(): View|Closure|string
     {
-        return view('components.ui.datatable.data-table-actions');
+        return view('components.ui.datatable.table-actions', [
+            'mode' => $this->mode,
+            'type' => $this->type,
+            'icon' => $this->icon,
+            'id' => $this->id,
+            'actions' => $this->actions,
+            'action' => $this->action,
+            'singleActions' => $this->singleActions,
+        ]);
     }
 }

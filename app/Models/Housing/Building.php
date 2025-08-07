@@ -24,6 +24,15 @@ class Building extends Model
         'has_double_rooms',
     ];
 
+
+     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = ['gender'];
+
+
     /**
      * The attributes that should be cast.
      *
@@ -34,6 +43,20 @@ class Building extends Model
         return [
             'has_double_rooms' => 'boolean',
         ];
+    }
+
+    public function name(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => __('general.building') . ' ' . $this->number
+        );
+    }
+
+    public function gender(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => __('general.' . $this->gender_restriction)
+        );
     }
 
 

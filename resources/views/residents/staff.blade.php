@@ -80,7 +80,7 @@
 </x-ui.advanced-search>
 
     {{-- ===== DATA TABLE ===== --}}
-    <x-ui.datatable 
+    <x-ui.datatable.table 
         :headers="['Name', 'Gender', 'Category', 'Unit Type', 'Unit Name', 'Notes', 'Actions']"
         :columns="[
             ['data' => 'name', 'name' => 'name'],

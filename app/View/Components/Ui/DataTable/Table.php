@@ -1,12 +1,12 @@
 <?php
 
-namespace App\View\Components\Ui;
+namespace App\View\Components\Ui\DataTable;
 
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
-class Datatable extends Component
+class Table extends Component
 {
     public array $headers;
     public array $columns;
@@ -36,6 +36,12 @@ class Datatable extends Component
      */
     public function render(): View|Closure|string
     {
-        return view('components.ui.datatable');
+        return view('components.ui.datatable.table', [
+            'headers' => $this->headers,
+            'columns' => $this->columns,
+            'ajaxUrl' => $this->ajaxUrl,
+            'filterFields' => $this->filterFields,
+            'tableId' => $this->tableId,
+        ]);
     }
 }

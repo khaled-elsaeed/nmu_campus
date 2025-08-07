@@ -93,7 +93,7 @@ class DepartmentService
         return DataTables::eloquent($query)
             ->addIndexColumn()
             ->addColumn('actions', fn($dep) =>
-                view('components.ui.datatable.data-table-actions', [
+                view('components.ui.datatable.table-actions', [
                     'mode' => 'dropdown',
                     'id' => $dep->id,
                     'type' => 'Department',

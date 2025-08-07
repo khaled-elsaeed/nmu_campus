@@ -15,19 +15,19 @@
                     @if($actionItem === 'view')
                         <li>
                             <a class="dropdown-item view{{ $type }}Btn" href="javascript:void(0);" data-id="{{ $id }}">
-                                <i class="bx bx-show me-1"></i> View
+                                <i class="bx bx-show me-1"></i> {{ __('general.view') }}
                             </a>
                         </li>
                     @elseif($actionItem === 'edit')
                         <li>
                             <a class="dropdown-item edit{{ $type }}Btn" href="javascript:void(0);" data-id="{{ $id }}">
-                                <i class="bx bx-edit-alt me-1"></i> Edit
+                                <i class="bx bx-edit-alt me-1"></i> {{ __('general.edit') }}
                             </a>
                         </li>
                     @elseif($actionItem === 'delete')
                         <li>
                             <a class="dropdown-item text-danger delete{{ $type }}Btn" href="javascript:void(0);" data-id="{{ $id }}">
-                                <i class="bx bx-trash me-1"></i> Delete
+                                <i class="bx bx-trash me-1"></i> {{ __('general.delete') }}
                             </a>
                         </li>
                     @endif
@@ -44,7 +44,7 @@
                     type="button" 
                     class="btn rounded-pill btn-icon {{ $singleAction['class'] }} {{ $singleAction['action'] }}{{ $type }}Btn"
                     @if($id) data-id="{{ $id }}" @endif
-                    title="{{ $singleAction['label'] }}"
+                    title="{{ __('general.' . $singleAction['label']) }}"
                 >
                     <i class="{{ $singleAction['icon'] }}"></i>
                 </button>

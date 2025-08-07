@@ -103,7 +103,7 @@ class StaffCategoryService
         return DataTables::eloquent($query)
             ->addIndexColumn()
             ->addColumn('actions', fn($cat) =>
-                view('components.ui.datatable.data-table-actions', [
+                view('components.ui.datatable.table-actions', [
                     'mode' => 'dropdown',
                     'id' => $cat->id,
                     'type' => 'StaffCategory',

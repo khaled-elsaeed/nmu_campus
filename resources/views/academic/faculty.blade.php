@@ -1,6 +1,6 @@
 @extends('layouts.home')
 
-@section('title', 'Faculty Management | AcadOps')
+@section('title', __('faculties.page.title'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -10,7 +10,7 @@
       <div class="col-sm-6 col-xl-4">
           <x-ui.card.stat2 
               id="faculties"
-              label="Total Faculties"
+              label="{{ __('faculties.stats.total_faculties') }}"
               color="secondary"
               icon="bx bx-building"
           />
@@ -18,7 +18,7 @@
       <div class="col-sm-6 col-xl-4">
           <x-ui.card.stat2 
               id="with-programs"
-              label="Faculties with Programs"
+              label="{{ __('faculties.stats.with_programs') }}"
               color="success"
               icon="bx bx-check-circle"
           />
@@ -26,7 +26,7 @@
       <div class="col-sm-6 col-xl-4">
           <x-ui.card.stat2 
               id="without-programs"
-              label="Faculties without Programs"
+              label="{{ __('faculties.stats.without_programs') }}"
               color="warning"
               icon="bx bx-x-circle"
           />
@@ -35,41 +35,45 @@
 
   {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
   <x-ui.page-header 
-      title="Faculties"
-      description="Manage all faculty records and add new faculties using the options on the right."
+      title="{{ __('faculties.page.header.title') }}"
+      description="{{ __('faculties.page.header.description') }}"
       icon="bx bx-building"
   >
   <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
-        @can('faculty.create')
         <button class="btn btn-primary mx-2" id="addFacultyBtn" type="button" data-bs-toggle="modal" data-bs-target="#facultyModal">
-            <i class="bx bx-plus me-1"></i> Add Faculty
+            <i class="bx bx-plus me-1"></i> {{ __('faculties.buttons.add_faculty') }}
         </button>
-        @endcan
         <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#facultySearchCollapse" aria-expanded="false" aria-controls="facultySearchCollapse">
-            <i class="bx bx-filter-alt me-1"></i> Search
+            <i class="bx bx-filter-alt me-1"></i> {{ __('faculties.buttons.search') }}
         </button>
     </div>
   </x-ui.page-header>
 
   {{-- ===== ADVANCED SEARCH SECTION ===== --}}
   <x-ui.advanced-search 
-      title="Advanced Search" 
+      title="{{ __('faculties.search.title') }}" 
       formId="advancedFacultySearch" 
       collapseId="facultySearchCollapse"
       :collapsed="false"
   >
       <div class="col-md-4">
-          <label for="search_name" class="form-label">Faculty Name:</label>
-          <input type="text" class="form-control" id="search_name" name="search_name" placeholder="Faculty Name">
+          <label for="search_name" class="form-label">{{ __('faculties.search.labels.faculty_name') }}:</label>
+          <input type="text" class="form-control" id="search_name" name="search_name" placeholder="{{ __('faculties.search.placeholders.faculty_name') }}">
       </div>
       <button class="btn btn-outline-secondary" id="clearFiltersBtn" type="button">
-          <i class="bx bx-x"></i> Clear Filters
+          <i class="bx bx-x"></i> {{ __('faculties.buttons.clear_filters') }}
       </button>
   </x-ui.advanced-search>
 
   {{-- ===== DATA TABLE ===== --}}
-  <x-ui.datatable
-      :headers="['Name', 'Programs', 'Students', 'Staff', 'Action']"
+  <x-ui.datatable.table
+      :headers="[
+          __('faculties.table.headers.name'),
+          __('faculties.table.headers.programs'),
+          __('faculties.table.headers.students'),
+          __('faculties.table.headers.staff'),
+          __('faculties.table.headers.action')
+      ]"
       :columns="[
           ['data' => 'name', 'name' => 'name'],
           ['data' => 'programs', 'name' => 'programs'],
@@ -87,7 +91,7 @@
   {{-- Add/Edit Faculty Modal --}}
   <x-ui.modal 
       id="facultyModal"
-      title="Add/Edit Faculty"
+      title="{{ __('faculties.modal.title') }}"
       size="md"
       :scrollable="false"
       class="faculty-modal"
@@ -97,11 +101,11 @@
               <input type="hidden" id="faculty_id" name="faculty_id">
               <div class="row">
                   <div class="col-md-12 mb-3">
-                      <label for="name_en" class="form-label">Faculty Name (EN)</label>
+                      <label for="name_en" class="form-label">{{ __('faculties.form.labels.name_en') }}</label>
                       <input type="text" class="form-control" id="name_en" name="name_en" required>
                   </div>
                   <div class="col-md-12 mb-3">
-                      <label for="name_ar" class="form-label">Faculty Name (AR)</label>
+                      <label for="name_ar" class="form-label">{{ __('faculties.form.labels.name_ar') }}</label>
                       <input type="text" class="form-control" id="name_ar" name="name_ar" required>
                   </div>
               </div>
@@ -109,10 +113,10 @@
       </x-slot>
       <x-slot name="footer">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-              Close
+              {{ __('faculties.buttons.close') }}
           </button>
           <button type="submit" class="btn btn-primary" id="saveFacultyBtn" form="facultyForm">
-              Save
+              {{ __('faculties.buttons.save') }}
           </button>
       </x-slot>
   </x-ui.modal>
@@ -143,6 +147,37 @@ const ROUTES = {
     show: '{{ route('academic.faculties.show', ':id') }}',
     destroy: '{{ route('academic.faculties.destroy', ':id') }}',
     datatable: '{{ route('academic.faculties.datatable') }}'
+  }
+};
+
+// ===========================
+// TRANSLATION CONSTANTS
+// ===========================
+const TRANSLATION = {
+  stats: {
+    error: '{{ __('faculties.messages.stats_error') }}'
+  },
+  faculty: {
+    saveSuccess: '{{ __('faculties.messages.save_success') }}',
+    deleteSuccess: '{{ __('faculties.messages.delete_success') }}',
+    fetchError: '{{ __('faculties.messages.fetch_error') }}',
+    deleteError: '{{ __('faculties.messages.delete_error') }}',
+    inputError: '{{ __('faculties.messages.input_error') }}'
+  },
+  buttons: {
+    saving: '{{ __('faculties.buttons.saving') }}',
+    updating: '{{ __('faculties.buttons.updating') }}',
+    save: '{{ __('faculties.buttons.save') }}',
+    update: '{{ __('faculties.buttons.update') }}'
+  },
+  modal: {
+    addTitle: '{{ __('faculties.modal.add_title') }}',
+    editTitle: '{{ __('faculties.modal.edit_title') }}'
+  },
+  confirm: {
+    title: '{{ __('faculties.confirm.title') }}',
+    text: '{{ __('faculties.confirm.text') }}',
+    confirmButton: '{{ __('faculties.confirm.confirm_button') }}'
   }
 };
 
@@ -199,7 +234,7 @@ const ApiService = {
 const StatsManager = Utils.createStatsManager({
   apiMethod: ApiService.fetchFacultyStats,
   statsKeys: ['faculties', 'with-programs', 'without-programs'],
-  onError: 'Failed to load statistics'
+  onError: TRANSLATION.stats.error
 });
 
 // ===========================
@@ -215,11 +250,9 @@ const FacultyManager = {
       $('#faculty_id').val('');
       $('#name_en').val('');
       $('#name_ar').val('');
-      $('#facultyModal .modal-title').text('Add Faculty');
-      $('#saveFacultyBtn').text('Save');
+      $('#facultyModal .modal-title').text(TRANSLATION.modal.addTitle);
+      $('#saveFacultyBtn').text(TRANSLATION.buttons.save);
       $('#facultyModal').modal('show');
-      
-      
     });
   },
   /**
@@ -233,17 +266,19 @@ const FacultyManager = {
       const $submitBtn = $('#saveFacultyBtn');
       const originalText = $submitBtn.text();
 
-      Utils.setLoadingState($submitBtn, true, { loadingText: facultyId ? 'Updating...' : 'Saving...' });
+      Utils.setLoadingState($submitBtn, true, { 
+        loadingText: facultyId ? TRANSLATION.buttons.updating : TRANSLATION.buttons.saving
+      });
 
       ApiService.saveFaculty(formData, facultyId || null)
         .done(function() {
           $('#facultyModal').modal('hide');
           Utils.reloadDataTable('#faculties-table', null, true);
-          Utils.showSuccess('Faculty has been saved successfully.', true);
+          Utils.showSuccess(TRANSLATION.faculty.saveSuccess, true);
           StatsManager.refresh();
         })
         .fail(function(xhr) {
-          Utils.handleAjaxError(xhr, 'An error occurred. Please check your input.');
+          Utils.handleAjaxError(xhr, TRANSLATION.faculty.inputError);
         })
         .always(function() {
           Utils.setLoadingState($submitBtn, false, { normalText: originalText });
@@ -262,12 +297,12 @@ const FacultyManager = {
           $('#faculty_id').val(fac.id);
           $('#name_en').val(fac.name_en);
           $('#name_ar').val(fac.name_ar);
-          $('#facultyModal .modal-title').text('Edit Faculty');
-          $('#saveFacultyBtn').text('Update');
+          $('#facultyModal .modal-title').text(TRANSLATION.modal.editTitle);
+          $('#saveFacultyBtn').text(TRANSLATION.buttons.update);
           $('#facultyModal').modal('show');
         })
         .fail(function(xhr) {
-            Utils.handleAjaxError(xhr, 'Failed to fetch faculty data.');
+            Utils.handleAjaxError(xhr, TRANSLATION.faculty.fetchError);
         });
     });
   },
@@ -278,20 +313,20 @@ const FacultyManager = {
     $(document).on('click', '.deleteFacultyBtn', function() {
       const facultyId = $(this).data('id');
       Utils.showConfirmDialog({
-          title: 'Are you sure?',
-          text: "You won't be able to revert this!",
+          title: TRANSLATION.confirm.title,
+          text: TRANSLATION.confirm.text,
           icon: 'warning',
-          confirmButtonText: 'Yes, delete it!',
+          confirmButtonText: TRANSLATION.confirm.confirmButton,
         }).then(function(result) {
           if (result.isConfirmed) {
             ApiService.deleteFaculty(facultyId)
               .done(function() {
                 Utils.reloadDataTable('#faculties-table', null, true);
-                Utils.showSuccess('Faculty has been deleted.', true);
+                Utils.showSuccess(TRANSLATION.faculty.deleteSuccess, true);
                 StatsManager.refresh();
               })
               .fail(function(xhr) {
-                Utils.handleAjaxError(xhr, 'Failed to delete faculty.');
+                Utils.handleAjaxError(xhr, TRANSLATION.faculty.deleteError);
               });
           }
         });
@@ -356,4 +391,4 @@ $(document).ready(function() {
   FacultyManagementApp.init();
 });
 </script>
-@endpush 
+@endpush

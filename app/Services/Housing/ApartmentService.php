@@ -3,7 +3,6 @@
 namespace App\Services\Housing;
 
 use App\Models\Housing\Apartment;
-use App\Models\Housing\Room;
 use App\Exceptions\BusinessValidationException;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
@@ -47,10 +46,9 @@ class ApartmentService
      */
     public function getApartment(int $id): array
     {
-        $apartment = Apartment::select(['id', 'number', 'building_id'])->find($id);
-
+        $apartment = Apartment::with('building')->find($id);
         if (!$apartment) {
-            throw new BusinessValidationException('Apartment not found.');
+            throw new BusinessValidationException(__('apartments.messages.not_found'));
         }
 
         return [
@@ -70,11 +68,9 @@ class ApartmentService
     public function deleteApartment($id): void
     {
         $apartment = Apartment::findOrFail($id);
-        $room = $apartment->rooms()->where('current_occupancy', '>', 0)->first();
-        if ($room) {
-            throw new BusinessValidationException(
-                "Cannot delete apartment: Room #{$room->number} has active reservation."
-            );
+        
+        if ($apartment->residents()->count() > 0) {
+            throw new BusinessValidationException(__('apartments.messages.cannot_delete_has_residents'));
         }
         $apartment->delete();
     }
@@ -208,25 +204,12 @@ class ApartmentService
      */
     public function renderActionButtons(Apartment $apartment): string
     {
-        $singleActions = [];
-        $singleActions[] = [
-            'action' => 'delete',
-            'icon' => 'bx bx-trash',
-            'class' => 'btn-danger',
-            'label' => 'Delete'
-        ];
-        $singleActions[] = [
-            'action' => $apartment->active ? 'deactivate' : 'activate',
-            'icon' => $apartment->active ? 'bx bx-toggle-left' : 'bx bx-toggle-right',
-            'class' => $apartment->active ? 'btn-warning' : 'btn-success',
-            'label' => $apartment->active ? 'Deactivate' : 'Activate'
-        ];
-        return view('components.ui.datatable.data-table-actions', [
-            'mode' => 'single',
-            'actions' => [],
+        return view('components.ui.datatable.table-actions', [
+            'mode' => 'dropdown',
+            'actions' => ['view', 'edit', 'delete'],
             'id' => $apartment->id,
-            'type' => 'Apartment',
-            'singleActions' => $singleActions
+            'type' => __('apartments.table.type'),
+            'singleActions' => []
         ])->render();
     }
 
@@ -303,4 +286,4 @@ class ApartmentService
             'active' => $data['active'] ?? $apartment->active,
         ];
     }
-} 
+}

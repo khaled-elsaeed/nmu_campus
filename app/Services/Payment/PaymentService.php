@@ -274,7 +274,7 @@ class PaymentService
                 'label' => 'Cancel'
             ];
         }
-        return view('components.ui.datatable.data-table-actions', [
+        return view('components.ui.datatable.table-actions', [
             'mode' => 'both',
             'actions' => $actions,
             'id' => $payment->id,

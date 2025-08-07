@@ -1,80 +1,88 @@
 @extends('layouts.home')
 
-@section('title', __('housing.apartments.page_title'))
+@section('title', __('apartments.page.title'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="secondary" icon="bx bx-building" :label="__('housing.apartments.total_apartments')" id="apartments" />
+            <x-ui.card.stat2 color="secondary" icon="bx bx-building" :label="__('apartments.stats.total_apartments')" id="apartments" />
         </div>
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="info" icon="bx bx-male" :label="__('housing.apartments.male_apartments')" id="apartments-male" />
+            <x-ui.card.stat2 color="info" icon="bx bx-male" :label="__('apartments.stats.male_apartments')" id="apartments-male" />
         </div>
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="danger" icon="bx bx-female" :label="__('housing.apartments.female_apartments')" id="apartments-female" />
+            <x-ui.card.stat2 color="danger" icon="bx bx-female" :label="__('apartments.stats.female_apartments')" id="apartments-female" />
         </div>
     </div>
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header 
-        :title="__('housing.apartments.page_header')"
-        :description="__('housing.apartments.page_description')"
+        :title="__('apartments.page.header.title')"
+        :description="__('apartments.page.header.description')"
         icon="bx bx-building"
     >
         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
             <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#apartmentSearchCollapse" aria-expanded="false" aria-controls="apartmentSearchCollapse">
-                <i class="bx bx-filter-alt me-1"></i> {{ __('housing.common.search') }}
+                <i class="bx bx-filter-alt me-1"></i> {{ __('apartments.buttons.search') }}
             </button>
         </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
     <x-ui.advanced-search 
-        title="Advanced Search" 
+        :title="__('apartments.search.title')" 
         formId="advancedApartmentSearch" 
         collapseId="apartmentSearchCollapse"
         :collapsed="false"
     >
         <div class="col-md-4">
-            <label for="search_building_id" class="form-label">Building Number:</label>
+            <label for="search_building_id" class="form-label">{{ __('apartments.search.labels.building_number') }}:</label>
             <select class="form-control" id="search_building_id">
-                <option value="">All</option>
+                <option value="">{{ __('apartments.search.placeholders.all') }}</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_apartment_id" class="form-label">Apartment Number:</label>
+            <label for="search_apartment_id" class="form-label">{{ __('apartments.search.labels.apartment_number') }}:</label>
             <select class="form-control" id="search_apartment_id" disabled>
-                <option value="">All</option>
+                <option value="">{{ __('apartments.search.placeholders.all') }}</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_gender_restriction" class="form-label">Gender Restriction:</label>
+            <label for="search_gender_restriction" class="form-label">{{ __('apartments.search.labels.gender_restriction') }}:</label>
             <select class="form-control" id="search_gender_restriction">
-                <option value="">All</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="mixed">Mixed</option>
+                <option value="">{{ __('apartments.search.placeholders.all') }}</option>
+                <option value="male">{{ __('apartments.search.options.male') }}</option>
+                <option value="female">{{ __('apartments.search.options.female') }}</option>
+                <option value="mixed">{{ __('apartments.search.options.mixed') }}</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_active" class="form-label">Active Status:</label>
+            <label for="search_active" class="form-label">{{ __('apartments.search.labels.active_status') }}:</label>
             <select class="form-control" id="search_active">
-                <option value="">All</option>
-                <option value="1">Active</option>
-                <option value="0">Inactive</option>
+                <option value="">{{ __('apartments.search.placeholders.all') }}</option>
+                <option value="1">{{ __('apartments.search.options.active') }}</option>
+                <option value="0">{{ __('apartments.search.options.inactive') }}</option>
             </select>
         </div>
         <div class="w-100"></div>
         <button class="btn btn-outline-secondary mt-2 ms-2" id="clearApartmentFiltersBtn" type="button">
-            <i class="bx bx-x"></i> Clear Filters
+            <i class="bx bx-x"></i> {{ __('apartments.buttons.clear_filters') }}
         </button>
     </x-ui.advanced-search>
 
     {{-- ===== DATA TABLE ===== --}}
-    <x-ui.datatable 
-        :headers="['Number', 'Building', 'Total Rooms', 'Gender', 'Active', 'Created At', 'Actions']"
+    <x-ui.datatable.table 
+        :headers="[
+            __('apartments.table.headers.number'),
+            __('apartments.table.headers.building'),
+            __('apartments.table.headers.total_rooms'),
+            __('apartments.table.headers.gender'),
+            __('apartments.table.headers.active'),
+            __('apartments.table.headers.created_at'),
+            __('apartments.table.headers.actions')
+        ]"
         :columns="[
             ['data' => 'number', 'name' => 'number'],
             ['data' => 'building_number', 'name' => 'building_number'],
@@ -93,7 +101,7 @@
     {{-- View Apartment Modal --}}
     <x-ui.modal 
         id="viewApartmentModal"
-        title="Apartment Details"
+        :title="__('apartments.modal.view_title')"
         size="md"
         :scrollable="false"
         class="view-apartment-modal"
@@ -101,33 +109,33 @@
         <x-slot name="slot">
             <div class="row">
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Number:</label>
+                    <label class="form-label fw-bold">{{ __('apartments.modal.labels.number') }}:</label>
                     <p id="view-apartment-number" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Building:</label>
+                    <label class="form-label fw-bold">{{ __('apartments.modal.labels.building') }}:</label>
                     <p id="view-apartment-building" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Total Rooms:</label>
+                    <label class="form-label fw-bold">{{ __('apartments.modal.labels.total_rooms') }}:</label>
                     <p id="view-apartment-total-rooms" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Gender Restriction:</label>
+                    <label class="form-label fw-bold">{{ __('apartments.modal.labels.gender_restriction') }}:</label>
                     <p id="view-apartment-gender-restriction" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Active:</label>
+                    <label class="form-label fw-bold">{{ __('apartments.modal.labels.active') }}:</label>
                     <p id="view-apartment-is-active" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Created At:</label>
+                    <label class="form-label fw-bold">{{ __('apartments.modal.labels.created_at') }}:</label>
                     <p id="view-apartment-created" class="mb-0"></p>
                 </div>
             </div>
         </x-slot>
         <x-slot name="footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('apartments.buttons.close') }}</button>
         </x-slot>
     </x-ui.modal>
 </div>
@@ -167,34 +175,47 @@ var ROUTES = {
   }
 };
 
-const MESSAGES = {
+// ===========================
+// TRANSLATION CONSTANTS
+// ===========================
+const TRANSLATION = {
   confirm: {
     activate: {
-      title: 'Activate Apartment?',
-      text: 'Are you sure you want to activate this apartment?',
-      button: 'Yes, activate it!'
+      title: '{{ __('apartments.confirm.activate.title') }}',
+      text: '{{ __('apartments.confirm.activate.text') }}',
+      button: '{{ __('apartments.confirm.activate.button') }}'
     },
     deactivate: {
-      title: 'Deactivate Apartment?',
-      text: 'Are you sure you want to deactivate this apartment?',
-      button: 'Yes, deactivate it!'
+      title: '{{ __('apartments.confirm.deactivate.title') }}',
+      text: '{{ __('apartments.confirm.deactivate.text') }}',
+      button: '{{ __('apartments.confirm.deactivate.button') }}'
     },
     delete: {
-      title: 'Are you sure?',
-      text: "You won't be able to revert this!",
-      button: 'Yes, delete it!'
+      title: '{{ __('apartments.confirm.delete.title') }}',
+      text: '{{ __('apartments.confirm.delete.text') }}',
+      button: '{{ __('apartments.confirm.delete.button') }}'
     }
   },
   success: {
-    activated: 'Apartment activated successfully',
-    deactivated: 'Apartment deactivated successfully',
-    deleted: 'Apartment has been deleted.'
+    activated: '{{ __('apartments.TRANSLATION.activated') }}',
+    deactivated: '{{ __('apartments.TRANSLATION.deactivated') }}',
+    deleted: '{{ __('apartments.TRANSLATION.deleted') }}'
   },
   error: {
-    loadStats: 'Failed to load apartment statistics',
-    loadApartment: 'Failed to load apartment data',
-    deleteApartment: 'Failed to delete apartment.',
-    operationFailed: 'Operation failed'
+    loadStats: '{{ __('apartments.TRANSLATION.load_stats_error') }}',
+    loadApartment: '{{ __('apartments.TRANSLATION.load_apartment_error') }}',
+    deleteApartment: '{{ __('apartments.TRANSLATION.delete_error') }}',
+    operationFailed: '{{ __('apartments.TRANSLATION.operation_failed') }}'
+  },
+  placeholders: {
+    selectBuilding: '{{ __('apartments.placeholders.select_building') }}',
+    selectApartment: '{{ __('apartments.placeholders.select_apartment') }}',
+    selectBuildingFirst: '{{ __('apartments.placeholders.select_building_first') }}',
+    noApartments: '{{ __('apartments.placeholders.no_apartments') }}'
+  },
+  status: {
+    active: '{{ __('apartments.status.active') }}',
+    inactive: '{{ __('apartments.status.inactive') }}'
   }
 };
 
@@ -280,7 +301,7 @@ var ApiService = {
 const StatsManager = Utils.createStatsManager({
   apiMethod: ApiService.fetchStats,
   statsKeys: ['apartments', 'apartments-male', 'apartments-female'],
-  onError: MESSAGES.error.loadStats
+  onError: TRANSLATION.error.loadStats
 });
 
 
@@ -318,7 +339,7 @@ var ApartmentManager = {
       })
       .fail(function() {
         $('#viewApartmentModal').modal('hide');
-        Utils.showError(MESSAGES.error.loadApartment);
+        Utils.showError(TRANSLATION.error.loadApartment);
       });
   },
   /**
@@ -328,9 +349,9 @@ var ApartmentManager = {
     var apartmentId = $(e.currentTarget).data('id');
     Utils.showConfirmDialog(
       {
-        title: MESSAGES.confirm.delete.title,
-        text: MESSAGES.confirm.delete.text,
-        confirmButtonText: MESSAGES.confirm.delete.button,
+        title: TRANSLATION.confirm.delete.title,
+        text: TRANSLATION.confirm.delete.text,
+        confirmButtonText: TRANSLATION.confirm.delete.button,
         cancelButtonText: 'Cancel',
         showCancelButton: true,
       }
@@ -363,9 +384,9 @@ var ApartmentManager = {
    * Toggle apartment status (activate/deactivate)
    */
   toggleApartmentStatus: function(id, isActivate, $btn) {
-    var confirmOptions = isActivate ? MESSAGES.confirm.activate : MESSAGES.confirm.deactivate;
+    var confirmOptions = isActivate ? TRANSLATION.confirm.activate : TRANSLATION.confirm.deactivate;
     var apiCall = isActivate ? ApiService.activateApartment : ApiService.deactivateApartment;
-    var successMessage = isActivate ? MESSAGES.success.activated : MESSAGES.success.deactivated;
+    var successMessage = isActivate ? TRANSLATION.success.activated : TRANSLATION.success.deactivated;
 
     Utils.showConfirmDialog({
       title: confirmOptions.title,
@@ -384,11 +405,11 @@ var ApartmentManager = {
             Utils.showSuccess(successMessage);
             Utils.reloadDataTable('#apartments-table');
           } else {
-            Utils.showError(response.message || MESSAGES.error.operationFailed);
+            Utils.showError(response.message || TRANSLATION.error.operationFailed);
           }
         })
         .fail(function(xhr) {
-          Utils.handleAjaxError(xhr, MESSAGES.error.operationFailed);
+          Utils.handleAjaxError(xhr, TRANSLATION.error.operationFailed);
         })
         .always(function() {
           Utils.setLoadingState($btn, false);
@@ -403,11 +424,11 @@ var ApartmentManager = {
     ApiService.deleteApartment(apartmentId)
       .done(function() {
         Utils.reloadDataTable('#apartments-table');
-        Utils.showSuccess(MESSAGES.success.deleted);
+        Utils.showSuccess(TRANSLATION.success.deleted);
         StatsManager.load();
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr, MESSAGES.error.deleteApartment);
+        Utils.handleAjaxError(xhr, TRANSLATION.error.deleteApartment);
       });
   },
   /**
@@ -418,9 +439,59 @@ var ApartmentManager = {
     Utils.setElementText('#view-apartment-building', apartment.building);
     Utils.setElementText('#view-apartment-total-rooms', apartment.total_rooms);
     Utils.setElementText('#view-apartment-gender-restriction', apartment.gender_restriction);
-    Utils.setElementText('#view-apartment-is-active', apartment.active ? 'Active' : 'Inactive');
+    Utils.setElementText('#view-apartment-is-active', apartment.active ? TRANSLATION.status.active : TRANSLATION.status.inactive);
     Utils.setElementText('#view-apartment-created', Utils.formatDate ? Utils.formatDate(apartment.created_at) : (new Date(apartment.created_at).toLocaleString()));
   }
+};
+
+// ===========================
+// SELECT2 MANAGER
+// ===========================
+var Select2Manager = {
+    /**
+     * Configuration for all Select2 elements
+     */
+    config: {
+        search: {
+            '#search_building_id': { placeholder: TRANSLATION.placeholders.selectBuilding },
+            '#search_apartment_id': { placeholder: TRANSLATION.placeholders.selectApartment },
+            '#search_gender_restriction': { placeholder: TRANSLATION.placeholders.selectBuilding },
+            '#search_active': { placeholder: TRANSLATION.placeholders.selectBuilding }
+        }
+    },
+
+    /**
+     * Initialize all search Select2 elements
+     */
+    initSearchSelect2: function() {
+        Object.keys(this.config.search).forEach(function(selector) {
+            Utils.initSelect2(selector, Select2Manager.config.search[selector]);
+        });
+    },
+
+    /**
+     * Initialize all Select2 elements
+     */
+    initAll: function() {
+        this.initSearchSelect2();
+    },
+
+    /**
+     * Clear specific Select2 elements
+     * @param {Array} selectors - Array of selectors to clear
+     */
+    clearSelect2: function(selectors) {
+        selectors.forEach(function(selector) {
+            $(selector).val('').trigger('change');
+        });
+    },
+
+    /**
+     * Reset search Select2 elements
+     */
+    resetSearchSelect2: function() {
+        this.clearSelect2(['#search_building_id', '#search_apartment_id', '#search_gender_restriction', '#search_active']);
+    }
 };
 
 // ===========================
@@ -452,11 +523,9 @@ var SearchManager = {
    * Clear all filters
    */
   clearFilters: function() {
-    ['#search_apartment_id', '#search_building_id', '#search_gender_restriction', '#search_active'].forEach(function(selector) {
-      $(selector).val('').trigger('change');
-    });
+    Select2Manager.resetSearchSelect2();
     // Reset apartment select to disabled
-    $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">Select Building First</option>');
+    $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">' + TRANSLATION.placeholders.selectBuildingFirst + '</option>');
     Utils.reloadDataTable('#apartments-table');
   }
 };
@@ -471,7 +540,7 @@ var SelectManager = {
   init: function() {
     this.populateBuildingSelect();
     this.bindBuildingChange();
-    $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">Select Building First</option>');
+    $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">' + TRANSLATION.placeholders.selectBuildingFirst + '</option>');
   },
   /**
    * Populate building select dropdown
@@ -483,9 +552,10 @@ var SelectManager = {
           Utils.populateSelect('#search_building_id', response.data,{
             valueField: 'id',
             textField: 'number',
-            placeholder: 'Select Building',
+            placeholder: TRANSLATION.placeholders.selectBuilding,
             includePlaceholder: true
           });
+          Select2Manager.initSearchSelect2();
         }
       })
       .fail(function() {
@@ -502,7 +572,7 @@ var SelectManager = {
       if (buildingId) {
         self.populateApartmentSelect(buildingId);
       } else {
-        $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">Select Building First</option>');
+        $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">' + TRANSLATION.placeholders.selectBuildingFirst + '</option>');
       }
     });
   },
@@ -517,18 +587,18 @@ var SelectManager = {
           Utils.populateSelect('#search_apartment_id', response.data, {
             valueField: 'id',
             textField: 'number',
-            placeholder: 'Select Apartment',
+            placeholder: TRANSLATION.placeholders.selectApartment,
             includePlaceholder: true
           });
-          $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">No Apartments</option>');
+          $('#search_apartment_id').prop('disabled', false);
+          Select2Manager.initSearchSelect2();
         } else {
-          Utils.disable('#search_apartment_id', true);
-          $('#search_apartment_id').empty().append('<option value="">No Apartments</option>');
+          $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">' + TRANSLATION.placeholders.noApartments + '</option>');
         }
       })
       .fail(function(xhr) {
-        Utils.disable('#search_apartment_id', true);
-        Utils.handleAjaxError(xhr,"An Error Occured");
+        $('#search_apartment_id').prop('disabled', true);
+        Utils.handleAjaxError(xhr, TRANSLATION.error.operationFailed);
       });
   }
 };
@@ -545,6 +615,7 @@ var ApartmentApp = {
     ApartmentManager.init();
     SearchManager.init();
     SelectManager.init();
+    Select2Manager.initAll();
   }
 };
 
@@ -555,4 +626,4 @@ $(document).ready(function() {
   ApartmentApp.init();
 });
 </script>
-@endpush 
+@endpush

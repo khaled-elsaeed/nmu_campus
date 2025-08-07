@@ -22,9 +22,15 @@ if (!function_exists('formatDate')) {
             return null;
         }
 
-        return Carbon::parse($date)
-            ->timezone($timezone)
-            ->format($format);
+        $carbon = Carbon::parse($date)->timezone($timezone);
+
+        // Check if locale is Arabic
+        if (app()->getLocale() === 'ar') {
+            $carbon->locale('ar');
+            return $carbon->translatedFormat($format);
+        }
+
+        return $carbon->format($format);
     }
 }
 
@@ -164,13 +170,24 @@ if (!function_exists('formatNumber')) {
         if ($number === null) {
             return 0;
         }
-        return number_format($number, $decimals, '.', ',');
+
+        $formatted = number_format($number, $decimals, '.', ',');
+
+        if (app()->getLocale() === 'ar') {
+            // Convert Western digits to Arabic-Indic digits
+            $arabicDigits = ['0'=>'٠','1'=>'١','2'=>'٢','3'=>'٣','4'=>'٤','5'=>'٥','6'=>'٦','7'=>'٧','8'=>'٨','9'=>'٩'];
+            $formatted = strtr($formatted, $arabicDigits);
+            // Replace separators with Arabic equivalents
+            $formatted = str_replace(['.', ','], ['٫', '٬'], $formatted);
+        }
+        
+        return $formatted;
     }
 }
 
 if (!function_exists('formatCurrency')) {
     /**
-     * Format a number as currency.
+     * Format a number as currency, with Arabic support.
      *
      * @param float $amount
      * @param string $currency
@@ -178,7 +195,15 @@ if (!function_exists('formatCurrency')) {
      */
     function formatCurrency($amount, $currency = 'EGP')
     {
-        return number_format($amount) . ' ' . $currency;
+        $formatted = number_format($amount);
+
+        if (app()->getLocale() === 'ar') {
+            $arabicDigits = ['0'=>'٠','1'=>'١','2'=>'٢','3'=>'٣','4'=>'٤','5'=>'٥','6'=>'٦','7'=>'٧','8'=>'٨','9'=>'٩'];
+            $formatted = strtr($formatted, $arabicDigits);
+            $currency = 'ج.م';
+        }
+
+        return $formatted . ' ' . $currency;
     }
 }
 

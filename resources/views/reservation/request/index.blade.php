@@ -145,7 +145,7 @@
     </x-ui.advanced-search>
 
     {{-- ===== DATA TABLE ===== --}}
-    <x-ui.datatable 
+    <x-ui.datatable.table 
         :headers="[
             __('reservation_requests.table.headers.request_number'),
             __('reservation_requests.table.headers.user'),

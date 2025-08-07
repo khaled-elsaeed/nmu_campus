@@ -139,7 +139,7 @@
     </x-ui.advanced-search>
 
     {{-- ===== DATA TABLE ===== --}}
-    <x-ui.datatable 
+    <x-ui.datatable.table 
         :headers="['Reservation Number', 'User', 'Amount', 'Status', 'Notes', 'Details', 'Created At', 'Actions']"
         :columns="[
             ['data' => 'reservation_number', 'name' => 'reservation_number'],

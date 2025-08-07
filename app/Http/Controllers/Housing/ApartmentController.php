@@ -9,8 +9,6 @@ use App\Models\Housing\Apartment;
 use App\Exceptions\BusinessValidationException;
 use Exception;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Housing\ApartmentStoreRequest;
-use App\Http\Requests\Housing\ApartmentUpdateRequest;
 
 class ApartmentController extends Controller
 {
@@ -41,10 +39,10 @@ class ApartmentController extends Controller
     {
         try {
             $stats = $this->apartmentService->getStats();
-            return successResponse('Stats fetched successfully.', $stats);
+            return successResponse(__('apartments.messages.stats_fetched_successfully'), $stats);
         } catch (Exception $e) {
             logError('ApartmentController@stats', $e);
-            return errorResponse('Internal server error.', [], 500);
+            return errorResponse(__('apartments.messages.internal_server_error'), [], 500);
         }
     }
 
@@ -59,7 +57,7 @@ class ApartmentController extends Controller
             return $this->apartmentService->getDatatable();
         } catch (Exception $e) {
             logError('ApartmentController@datatable', $e);
-            return errorResponse('Internal server error.', [], 500);
+            return errorResponse(__('apartments.messages.internal_server_error'), [], 500);
         }
     }
 
@@ -73,10 +71,10 @@ class ApartmentController extends Controller
     {
         try {
             $apartment = $this->apartmentService->getApartment($id);
-            return successResponse('Apartment details fetched successfully.', $apartment);
+            return successResponse(__('apartments.messages.details_fetched_successfully'), $apartment);
         } catch (Exception $e) {
             logError('ApartmentController@show', $e, ['apartment_id' => $id]);
-            return errorResponse('Internal server error.', [], 500);
+            return errorResponse(__('apartments.messages.internal_server_error'), [], 500);
         }
     }
 
@@ -91,28 +89,12 @@ class ApartmentController extends Controller
     {
         try {
             $this->apartmentService->deleteApartment($id);
-            return successResponse('Apartment deleted successfully.');
+            return successResponse(__('apartments.messages.deleted_successfully'));
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('ApartmentController@destroy', $e, ['apartment_id' => $id]);
-            return errorResponse('Internal server error.', [], 500);
-        }
-    }
-
-    /**
-     * Get all apartments for a specific building.
-     * @param int $id
-     * @return JsonResponse
-     */
-    public function all($id): JsonResponse
-    {
-        try {
-            $apartments = $this->apartmentService->getAll($id);
-            return successResponse('Apartments fetched successfully.', $apartments);
-        } catch (Exception $e) {
-            logError('ApartmentController@all', $e, ['building_id' => $id]);
-            return errorResponse('Internal server error.', [], 500);
+            return errorResponse(__('apartments.messages.internal_server_error'), [], 500);
         }
     }
 
@@ -124,11 +106,11 @@ class ApartmentController extends Controller
     public function activate($id): JsonResponse
     {
         try {
-            $apartment = $this->apartmentService->setActive($id, true);
-            return successResponse('Apartment activated successfully.', $apartment);
+            $this->apartmentService->activateApartment($id);
+            return successResponse(__('apartments.messages.activated_successfully'));
         } catch (Exception $e) {
             logError('ApartmentController@activate', $e, ['apartment_id' => $id]);
-            return errorResponse('Failed to activate apartment.', [], 500);
+            return errorResponse(__('apartments.messages.internal_server_error'), [], 500);
         }
     }
 
@@ -140,11 +122,27 @@ class ApartmentController extends Controller
     public function deactivate($id): JsonResponse
     {
         try {
-            $apartment = $this->apartmentService->setActive($id, false);
-            return successResponse('Apartment deactivated successfully.', $apartment);
+            $this->apartmentService->deactivateApartment($id);
+            return successResponse(__('apartments.messages.deactivated_successfully'));
         } catch (Exception $e) {
             logError('ApartmentController@deactivate', $e, ['apartment_id' => $id]);
-            return errorResponse('Failed to deactivate apartment.', [], 500);
+            return errorResponse(__('apartments.messages.internal_server_error'), [], 500);
+        }
+    }
+
+    /**
+     * Get all apartments for a specific building.
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function all($buildingId): JsonResponse
+    {
+        try {
+            $apartments = $this->apartmentService->getAll($buildingId);
+            return successResponse(__('apartments.messages.fetched_successfully'), $apartments);
+        } catch (Exception $e) {
+            logError('ApartmentController@all', $e);
+            return errorResponse(__('apartments.messages.internal_server_error'), [], 500);
         }
     }
 }

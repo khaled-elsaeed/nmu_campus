@@ -137,7 +137,7 @@
     </x-ui.advanced-search>
 
     {{-- ===== DATA TABLE ===== --}}
-    <x-ui.datatable 
+    <x-ui.datatable.table 
         :headers="['Number', 'Apartment', 'Building', 'Type', 'Building', 'Gender', 'Available Capacity', 'Active', 'Actions']"
         :columns="[
             ['data' => 'number', 'name' => 'number'],

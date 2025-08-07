@@ -1,18 +1,26 @@
-<div class="border rounded p-4 mb-4 bg-white bg-opacity-0" @if(app()->getLocale() === 'ar') dir="rtl" @else dir="ltr" @endif>
-  <div class="d-flex flex-wrap justify-content-between align-items-center">
-    <div class="mb-2 mb-md-0">
-      <div class="d-flex align-items-center mb-1">
-        @if(isset($icon))
-          <i class="{{ $icon }} fs-3 @if(app()->getLocale() === 'ar') ms-2 @else me-2 @endif text-primary"></i>
-        @endif
-        <h3 class="fw-bold mb-0">{{ $title }}</h3>
+<div class="card border-0 shadow-sm mb-4" @if(app()->getLocale() === 'ar') dir="rtl" @else dir="ltr" @endif>
+  <div class="card-body py-4">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <div class="d-flex align-items-center mb-2">
+          @if(isset($icon))
+            <div class="icon-wrapper me-3">
+              <i class="{{ $icon }} fs-2 text-primary"></i>
+            </div>
+          @endif
+          <div>
+            <h1 class="h3 fw-semibold mb-1 text-dark">{{ $title }}</h1>
+            @if(isset($description))
+              <p class="text-muted mb-0 fs-6">{{ $description }}</p>
+            @endif
+          </div>
+        </div>
       </div>
-      @if(isset($description))
-        <div class="text-muted small">{{ $description }}</div>
-      @endif
-    </div>
-    <div class="mt-3 mt-md-0">
-      {{ $slot }}
+      <div class="col-md-4 text-md-end">
+        <div class="d-flex justify-content-md-end gap-2">
+          {{ $slot }}
+        </div>
+      </div>
     </div>
   </div>
-</div> 
+</div>

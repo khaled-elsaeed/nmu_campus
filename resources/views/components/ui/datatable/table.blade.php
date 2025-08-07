@@ -137,9 +137,8 @@ function initializeDataTable() {
             }
         },
         columns: [
-            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-            ...@json($columns)
-        ],
+            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false }
+        ].concat(@json($columns)),
         language: {
             @if(app()->getLocale() === 'ar')
                 url: "{{ asset('vendor/libs/datatables/ar.json') }}",

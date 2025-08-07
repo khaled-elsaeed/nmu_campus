@@ -76,7 +76,7 @@
 </x-ui.advanced-search>
 
     {{-- ===== DATA TABLE ===== --}}
-    <x-ui.datatable 
+    <x-ui.datatable.table 
         :headers="['Academic ID', 'Name', 'Phone', 'Gender', 'Level', 'Faculty', 'Actions']"
         :columns="[
             ['data' => 'academic_id', 'name' => 'academic_id'],

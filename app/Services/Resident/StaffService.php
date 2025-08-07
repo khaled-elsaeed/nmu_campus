@@ -403,7 +403,7 @@ class StaffService
      */
     protected function renderActionButtons($staff): string
     {
-        return view('components.ui.datatable.data-table-actions', [
+        return view('components.ui.datatable.table-actions', [
             'mode' => 'dropdown',
             'actions' => ['view', 'edit', 'delete'],
             'id' => $staff->id,

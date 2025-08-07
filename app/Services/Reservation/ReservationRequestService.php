@@ -258,7 +258,7 @@ class ReservationRequestService
      */
     protected function renderActionButtons($request): string
     {
-        return view('components.ui.datatable.data-table-actions', [
+        return view('components.ui.datatable.table-actions', [
             'mode' => 'dropdown',
             'actions' => ['view', 'edit', 'delete'],
             'id' => $request->id,

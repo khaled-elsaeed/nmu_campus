@@ -12,17 +12,17 @@ return new class extends Migration
             $table->id();
 
             // User relationship
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete()->unique();
 
             $table->string('external_id')->nullable()->unique();
 
             // Basic student info
             $table->string('name_ar')->nullable();
             $table->string('name_en')->nullable();
-            $table->string('email')->nullable();
-            $table->string('academic_email')->nullable(); 
-            $table->string('academic_id')->nullable();
-            $table->string('national_id', 20)->nullable();
+            $table->string('email')->nullable()->unique();
+            $table->string('academic_email')->nullable()->unique();
+            $table->string('academic_id')->nullable()->unique();
+            $table->string('national_id', 20)->nullable()->unique();
             $table->string('phone', 20)->nullable();
             $table->string('whatsapp', 20)->nullable();
             $table->date('birthdate')->nullable();
