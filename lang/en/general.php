@@ -91,6 +91,15 @@ return [
     'room' => 'Room',
     'male' => 'Male',
     'female' => 'Female',
+    'building' => 'Building :number',
+    'apartment' => 'Apartment :number',
+    'room' => 'Room :number',
+    'housing' => 'Housing',
+    'staff_housing' => 'Staff Housing',
+    'office' => 'Office',
+    'storage' => 'Storage',
+    'single' => 'Single',
+    'double' => 'Double',
 
 
     // Form Elements

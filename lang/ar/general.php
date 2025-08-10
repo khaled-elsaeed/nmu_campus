@@ -90,8 +90,15 @@ return [
     'room' => 'غرفة',
     'male' => 'ذكر',
     'female' => 'أنثى',
-
-
+    'building' => 'المبنى :number',
+    'apartment' => 'الشقة :number',
+    'room' => 'الغرفة :number',
+    'housing' => 'سكن',
+    'staff_housing' => 'سكن الموظفين',
+    'office' => 'مكتب',
+    'storage' => 'مخزن',
+    'single' => 'فردي',
+    'double' => 'مزدوج',
     // Form Elements
     'forms' => [
         'name' => 'الاسم',

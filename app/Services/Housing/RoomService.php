@@ -205,29 +205,21 @@ class RoomService
      */
     public function getDatatable(): JsonResponse
     {
-        // Use joins to make related columns available for sorting
-        $query = Room::select([
-                'rooms.*',
-                'apartments.number as apartment_number',
-                'buildings.number as building_number',
-                'buildings.gender_restriction as building_gender_restriction'
-            ])
-            ->join('apartments', 'rooms.apartment_id', '=', 'apartments.id')
-            ->join('buildings', 'apartments.building_id', '=', 'buildings.id');
-        
+        $query = Room::query();
+
         // Apply search filters to the query builder
         $query = $this->applySearchFilters($query);
         
         return DataTables::of($query)
             ->addIndexColumn()
-            ->editColumn('number', fn($room) => 'Room ' . $room->number)
-            ->editColumn('apartment_number', fn($room) => 'Apartment ' . $room->apartment_number)
-            ->editColumn('building_number', fn($room) => 'Building ' . $room->building_number)
-            ->editColumn('type', fn($room) => $room->type)
-            ->editColumn('purpose', fn($room) => snakeToNormalCase($room->purpose))
-            ->editColumn('building_gender_restriction', fn($room) => ucfirst($room->building_gender_restriction))
-            ->editColumn('active', fn($room) => $room->active ? 'Active' : 'Inactive')
-            ->editColumn('occupancy_status', fn($room) => ucfirst($room->occupancy_status))
+            ->addColumn('name', fn($room) => $room->formatted_name)
+            ->addColumn('apartment', fn($room) => $room->apartment?->formatted_name)
+            ->addColumn('building', fn($room) => $room->apartment?->building?->formatted_name)
+            ->editColumn('type', fn($room) => __("general.{$room->type}"))
+            ->editColumn('purpose', fn($room) => __("general.{$room->purpose}"))
+            ->editColumn('gender', fn($room) => __("general.{$room->gender}"))
+            ->editColumn('active', fn($room) => $room->active ? __('general.active') : __('general.inactive'))
+            ->editColumn('occupancy_status', fn($room) => $room->occupancy_status ? ucfirst($room->occupancy_status) : null)
             ->addColumn('action', fn($room) => $this->renderActionButtons($room))
             ->orderColumn('number', 'rooms.number $1')
             ->orderColumn('apartment_number', 'apartments.number $1')
@@ -237,7 +229,6 @@ class RoomService
             ->orderColumn('building_gender_restriction', 'buildings.gender_restriction $1')
             ->orderColumn('active', 'rooms.active $1')
             ->orderColumn('occupancy_status', 'rooms.occupancy_status $1')
-            
             ->rawColumns(['action'])
             ->make(true);
     }
@@ -248,26 +239,31 @@ class RoomService
      * @param Builder $query
      * @return Builder
      */
-    protected function applySearchFilters($query): Builder
+    protected function applySearchFilters(Builder $query): Builder
     {
-        $searchApartment = request('search_apartment_id');
-        if (!empty($searchApartment)) {
-            $query->where('apartments.id', $searchApartment);
+        // Filter by apartment
+        if ($searchApartment = request('search_apartment_id')) {
+            $query->where('apartment_id', $searchApartment);
         }
 
-        $searchBuilding = request('search_building_id');
-        if (!empty($searchBuilding)) {
-            $query->where('apartments.building_id', $searchBuilding);
+        // Filter by building
+        if ($searchBuilding = request('search_building_id')) {
+            $query->whereHas('apartment.building', function (Builder $q) use ($searchBuilding) {
+                $q->where('id', $searchBuilding);
+            });
         }
 
-        $searchGender = request('search_gender_restriction');
-        if (!empty($searchGender)) {
-            $query->where('buildings.gender_restriction', $searchGender);
+        // Filter by gender restriction
+        if ($searchGender = request('search_gender_restriction')) {
+            $query->whereHas('apartment.building', function (Builder $q) use ($searchGender) {
+                $q->where('gender_restriction', $searchGender);
+            });
         }
 
-        $searchActive = request('search_active');
-        if (!empty($searchActive)) {
-            $query->where('rooms.active', $searchActive);
+        // Filter by active status
+        if ($searchActive = request('search_active')) {
+            $isActive = filter_var($searchActive, FILTER_VALIDATE_BOOLEAN);
+            $query->where('active', $isActive);
         }
 
         return $query;
@@ -287,7 +283,7 @@ class RoomService
             'action' => $room->active ? 'deactivate' : 'activate',
             'icon' => $room->active ? 'bx bx-toggle-left' : 'bx bx-toggle-right',
             'class' => $room->active ? 'btn-warning' : 'btn-success',
-            'label' => $room->active ? 'Deactivate' : 'Activate'
+            'label' => $room->active ? __('rooms.buttons.deactivate') : __('rooms.buttons.activate')
         ];
         return view('components.ui.datatable.table-actions', [
             'mode' => 'both',
@@ -314,4 +310,4 @@ class RoomService
         $room->save();
         return $room->fresh('apartment.building');
     }
-} 
+}

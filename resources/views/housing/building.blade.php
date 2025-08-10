@@ -730,9 +730,9 @@ var BuildingManager = {
    */
   performDelete: function(buildingId) {
     ApiService.deleteBuilding(buildingId)
-      .done(function() {
+      .done(function(response) {
         Utils.reloadDataTable('#buildings-table', null, true);
-        Utils.showSuccess(TRANSLATION.success.deleted);
+        Utils.showSuccess(response.message || TRANSLATION.success.deleted);
         StatsManager.refresh();
       })
       .fail(function(xhr) {

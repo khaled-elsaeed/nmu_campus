@@ -2,7 +2,7 @@
 
 return [
     'page' => [
-        'title' => 'Apartment Management | AcadOps',
+        'title' => 'Apartment Management',
         'header' => [
             'title' => 'Apartments',
             'description' => 'Manage all apartment records and view apartment details.',
@@ -31,6 +31,8 @@ return [
         ],
         'placeholders' => [
             'all' => 'All',
+            'select_gender' => 'Select Gender',
+            'select_status' => 'Select Status',
         ],
         'options' => [
             'male' => 'Male',
@@ -43,6 +45,7 @@ return [
 
     'table' => [
         'headers' => [
+            'name' => 'Name',
             'number' => 'Number',
             'building' => 'Building',
             'total_rooms' => 'Total Rooms',
@@ -62,7 +65,7 @@ return [
             'total_rooms' => 'Total Rooms',
             'gender_restriction' => 'Gender Restriction',
             'active' => 'Active',
-            'created_at' => 'Created At',
+            'current_occupancy' => 'Current Occupancy',
         ],
     ],
 
@@ -71,6 +74,8 @@ return [
         'select_apartment' => 'Select Apartment',
         'select_building_first' => 'Select Building First',
         'no_apartments' => 'No Apartments',
+        'select_gender' => 'Select Gender',
+        'select_status' => 'Select Status',
     ],
 
     'status' => [

@@ -2,7 +2,7 @@
 
 return [
     'page' => [
-        'title' => 'إدارة الشقق | AcadOps',
+        'title' => 'إدارة الشقق',
         'header' => [
             'title' => 'الشقق',
             'description' => 'إدارة جميع سجلات الشقق وعرض تفاصيل الشقق.',
@@ -31,6 +31,8 @@ return [
         ],
         'placeholders' => [
             'all' => 'الكل',
+            'select_gender' => 'اختر الجنس',
+            'select_status' => 'اختر الحالة',
         ],
         'options' => [
             'male' => 'ذكور',
@@ -43,6 +45,7 @@ return [
 
     'table' => [
         'headers' => [
+            'name' => 'الاسم',
             'number' => 'الرقم',
             'building' => 'المبنى',
             'total_rooms' => 'إجمالي الغرف',
@@ -62,7 +65,8 @@ return [
             'total_rooms' => 'إجمالي الغرف',
             'gender_restriction' => 'تقييد الجنس',
             'active' => 'نشط',
-            'created_at' => 'تاريخ الإنشاء',
+            'current_occupancy' => 'الإشغال الحالي',
+            
         ],
     ],
 
@@ -71,6 +75,8 @@ return [
         'select_apartment' => 'اختر الشقة',
         'select_building_first' => 'اختر المبنى أولاً',
         'no_apartments' => 'لا توجد شقق',
+        'select_gender' => 'اختر الجنس',
+        'select_status' => 'اختر الحالة',
     ],
 
     'status' => [

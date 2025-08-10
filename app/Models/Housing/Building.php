@@ -25,13 +25,6 @@ class Building extends Model
     ];
 
 
-     /**
-     * The accessors to append to the model's array form.
-     *
-     * @var list<string>
-     */
-    protected $appends = ['gender'];
-
 
     /**
      * The attributes that should be cast.
@@ -45,14 +38,14 @@ class Building extends Model
         ];
     }
 
-    public function name(): Attribute
+    public function formattedName(): Attribute
     {
         return Attribute::make(
-            get: fn() => __('general.building') . ' ' . $this->number
+            get: fn() => __('general.building', ['number' => $this->number])
         );
     }
 
-    public function gender(): Attribute
+    public function formattedGender(): Attribute
     {
         return Attribute::make(
             get: fn() => __('general.' . $this->gender_restriction)

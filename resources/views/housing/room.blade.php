@@ -1,6 +1,6 @@
 @extends('layouts.home')
 
-@section('title', __('housing.rooms.page_title'))
+@section('title', __('rooms.page_title'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -10,16 +10,16 @@
           <x-ui.card.stat2 
               color="secondary"
               icon="bx bx-door-open"
-              :label="__('housing.rooms.total_rooms')"
+              :label="__('rooms.stats.total_rooms')"
               id="rooms"
               :subStats="[
                   'male' => [
-                      'label' => __('housing.rooms.male_rooms'),
+                      'label' => __('rooms.stats.male_rooms'),
                       'icon' => 'bx bx-male-sign',
                       'color' => 'info'
                   ],
                   'female' => [
-                      'label' => __('housing.rooms.female_rooms'), 
+                      'label' => __('rooms.stats.female_rooms'), 
                       'icon' => 'bx bx-female-sign',
                       'color' => 'danger'
                   ]
@@ -30,16 +30,16 @@
           <x-ui.card.stat2 
               color="info"
               icon="bx bx-door-open"
-              label="Total Double Rooms"
+              :label="__('rooms.stats.total_double_rooms')"
               id="double-rooms"
               :subStats="[
                   'male' => [
-                      'label' => 'Male Double Rooms',
+                      'label' => __('rooms.stats.male_double_rooms'),
                       'icon' => 'bx bx-male-sign',
                       'color' => 'info'
                   ],
                   'female' => [
-                      'label' => 'Female Double Rooms', 
+                      'label' => __('rooms.stats.female_double_rooms'),
                       'icon' => 'bx bx-female-sign',
                       'color' => 'danger'
                   ]
@@ -50,16 +50,16 @@
           <x-ui.card.stat2 
               color="secondary"
               icon="bx bx-door-open"
-              label="Total Beds"
+              :label="__('rooms.stats.total_beds')"
               id="beds"
               :subStats="[
                   'male' => [
-                      'label' => 'Male Beds',
+                      'label' => __('rooms.stats.male_beds'),
                       'icon' => 'bx bx-male-sign',
                       'color' => 'info'
                   ],
                   'female' => [
-                      'label' => 'Female Beds', 
+                      'label' => __('rooms.stats.female_beds'),
                       'icon' => 'bx bx-female-sign',
                       'color' => 'danger'
                   ]
@@ -70,16 +70,16 @@
           <x-ui.card.stat2 
               color="secondary"
               icon="bx bx-door-open"
-              label="Total Available Beds"
+              :label="__('rooms.stats.total_available_beds')"
               id="available-beds"
               :subStats="[
                   'male' => [
-                      'label' => 'Available Male Beds',
+                      'label' => __('rooms.stats.available_male_beds'),
                       'icon' => 'bx bx-male-sign',
                       'color' => 'info'
                   ],
                   'female' => [
-                      'label' => 'Available Female Beds', 
+                      'label' => __('rooms.stats.available_female_beds'),
                       'icon' => 'bx bx-female-sign',
                       'color' => 'danger'
                   ]
@@ -90,62 +90,72 @@
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header 
-        title="Rooms"
-        description="Manage rooms and their details."
+        :title="__('rooms.page.header.title')"
+        :description="__('rooms.page.header.description')"
         icon="bx bx-door-open"
     >
         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
 
             <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#roomSearchCollapse" aria-expanded="false" aria-controls="buildingSearchCollapse">
-                <i class="bx bx-filter-alt me-1"></i> Search
+                <i class="bx bx-filter-alt me-1"></i> {{ __('rooms.buttons.search') }}
             </button>
         </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
     <x-ui.advanced-search 
-        title="Advanced Search" 
+        :title="__('rooms.search.title')" 
         formId="advancedRoomSearch" 
         collapseId="roomSearchCollapse"
         :collapsed="false"
     >
         <div class="col-md-4">
-            <label for="search_building_id" class="form-label">Building:</label>
+            <label for="search_building_id" class="form-label">{{ __('rooms.search.labels.building_number') }}:</label>
             <select class="form-control" id="search_building_id">
-                <!-- Building options will be loaded by JS -->
+                <option value="">{{ __('rooms.search.placeholders.all') }}</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_apartment_id" class="form-label">Apartment:</label>
+            <label for="search_apartment_id" class="form-label">{{ __('rooms.search.labels.apartment_number') }}:</label>
             <select class="form-control" id="search_apartment_id">
                 <!-- Apartment options will be loaded by JS -->
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_gender_restriction" class="form-label">Gender Restriction:</label>
+            <label for="search_gender_restriction" class="form-label">{{ __('rooms.search.labels.gender_restriction') }}:</label>
             <select class="form-control" id="search_gender_restriction">
-                <option value="">All</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="mixed">Mixed</option>
+                <option value="">{{ __('rooms.search.placeholders.all') }}</option>
+                <option value="male">{{ __('rooms.search.options.male') }}</option>
+                <option value="female">{{ __('rooms.search.options.female') }}</option>
+                <option value="mixed">{{ __('rooms.search.options.mixed') }}</option>
             </select>
         </div>
         <div class="w-100"></div>
         <button class="btn btn-outline-secondary mt-2 ms-2" id="clearRoomFiltersBtn" type="button">
-            <i class="bx bx-x"></i> Clear Filters
+            <i class="bx bx-x"></i> {{ __('rooms.buttons.clear_filters') }}
         </button>
     </x-ui.advanced-search>
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable.table 
-        :headers="['Number', 'Apartment', 'Building', 'Type', 'Building', 'Gender', 'Available Capacity', 'Active', 'Actions']"
+        :headers="[
+            __('rooms.table.headers.name'),
+            __('rooms.table.headers.apartment'),
+            __('rooms.table.headers.building'),
+            __('rooms.table.headers.type'),
+            __('rooms.table.headers.purpose'),
+            __('rooms.table.headers.gender'),
+            __('rooms.table.headers.available_capacity'),
+            __('rooms.table.headers.active'),
+            __('rooms.table.headers.actions')
+        ]"
         :columns="[
-            ['data' => 'number', 'name' => 'number'],
-            ['data' => 'apartment_number', 'name' => 'apartment_number'],
-            ['data' => 'building_number', 'name' => 'building_number'],
+            ['data' => 'name', 'name' => 'name'],
+            ['data' => 'apartment', 'name' => 'apartment'],
+            ['data' => 'building', 'name' => 'building'],
             ['data' => 'type', 'name' => 'type'],
             ['data' => 'purpose', 'name' => 'purpose'],
-            ['data' => 'building_gender_restriction', 'name' => 'building_gender_restriction'],
+            ['data' => 'gender', 'name' => 'gender'],
             ['data' => 'available_capacity', 'name' => 'available_capacity'],
             ['data' => 'active', 'name' => 'active'],
             ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false]
@@ -159,7 +169,7 @@
     {{-- Edit Room Modal (no create) --}}
     <x-ui.modal 
         id="roomModal"
-        title="Edit Room"
+        :title="__('rooms.modals.edit.title')"
         size="lg"
         :scrollable="true"
         class="room-modal"
@@ -168,40 +178,40 @@
             <form id="roomForm">
                 <div class="row">
                     <div class="col-md-12 mb-3">
-                        <label for="type" class="form-label">Type</label>
+                        <label for="type" class="form-label">{{ __('rooms.modals.edit.labels.type') }}</label>
                         <select id="type" name="type" class="form-control" required>
-                            <option value="">Select Type</option>
-                            <option value="single">Single</option>
-                            <option value="double">Double</option>
+                            <option value="">{{ __('rooms.modals.edit.placeholders.select_type') }}</option>
+                            <option value="single">{{ __('rooms.modals.edit.options.single') }}</option>
+                            <option value="double">{{ __('rooms.modals.edit.options.double') }}</option>
                         </select>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label for="purpose" class="form-label">Building Purpose</label>
+                        <label for="purpose" class="form-label">{{ __('rooms.modals.edit.labels.purpose') }}</label>
                         <select id="purpose" name="purpose" class="form-control" required>
-                            <option value="">Select Purpose</option>
-                            <option value="housing">Housing</option>
-                            <option value="staff_housing">Staff Housing</option>
-                            <option value="office">Office</option>
-                            <option value="storage">Storage</option>
+                            <option value="">{{ __('rooms.modals.edit.placeholders.select_purpose') }}</option>
+                            <option value="housing">{{ __('rooms.modals.edit.options.housing') }}</option>
+                            <option value="staff_housing">{{ __('rooms.modals.edit.options.staff_housing') }}</option>
+                            <option value="office">{{ __('rooms.modals.edit.options.office') }}</option>
+                            <option value="storage">{{ __('rooms.modals.edit.options.storage') }}</option>
                         </select>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label for="room_description" class="form-label">Description</label>
+                        <label for="room_description" class="form-label">{{ __('rooms.modals.edit.labels.description') }}</label>
                         <textarea id="room_description" name="description" class="form-control" rows="2"></textarea>
                     </div>
                 </div>
             </form>
         </x-slot>
         <x-slot name="footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="submit" class="btn btn-primary" form="roomForm">Save</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('rooms.buttons.close') }}</button>
+            <button type="submit" class="btn btn-primary" form="roomForm">{{ __('rooms.buttons.save') }}</button>
         </x-slot>
     </x-ui.modal>
 
     {{-- View Room Modal --}}
     <x-ui.modal 
         id="viewRoomModal"
-        title="Room Details"
+        :title="__('rooms.modals.view.title')"
         size="md"
         :scrollable="true"
         class="view-room-modal"
@@ -210,74 +220,74 @@
           <div class="row">
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-hash"></i> Number:
+                    <i class="bx bx-hash"></i> {{ __('rooms.modals.view.labels.number') }}:
                 </label>
                 <p id="view-room-number" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-building"></i> Building:
+                    <i class="bx bx-building"></i> {{ __('rooms.modals.view.labels.building') }}:
                 </label>
                 <p id="view-room-building" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-home"></i> Apartment:
+                    <i class="bx bx-home"></i> {{ __('rooms.modals.view.labels.apartment') }}:
                 </label>
                 <p id="view-room-apartment" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-user"></i> Type:
+                    <i class="bx bx-user"></i> {{ __('rooms.modals.view.labels.type') }}:
                 </label>
                 <p id="view-room-type" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-male-female"></i> Gender Restriction:
+                    <i class="bx bx-male-female"></i> {{ __('rooms.modals.view.labels.gender_restriction') }}:
                 </label>
                 <p id="view-room-gender-restriction" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-check-circle"></i> Active:
+                    <i class="bx bx-check-circle"></i> {{ __('rooms.modals.view.labels.active') }}:
                 </label>
                 <p id="view-room-is-active" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-group"></i> Capacity:
+                    <i class="bx bx-group"></i> {{ __('rooms.modals.view.labels.capacity') }}:
                 </label>
                 <p id="view-room-capacity" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-user-check"></i> Current Occupancy:
+                    <i class="bx bx-user-check"></i> {{ __('rooms.modals.view.labels.current_occupancy') }}:
                 </label>
                 <p id="view-room-current-occupancy" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-user-plus"></i> Available Capacity:
+                    <i class="bx bx-user-plus"></i> {{ __('rooms.modals.view.labels.available_capacity') }}:
                 </label>
                 <p id="view-room-available-capacity" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-calendar"></i> Created At:
+                    <i class="bx bx-calendar"></i> {{ __('rooms.modals.view.labels.created_at') }}:
                 </label>
                 <p id="view-room-created" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-calendar-edit"></i> Updated At:
+                    <i class="bx bx-calendar-edit"></i> {{ __('rooms.modals.view.labels.updated_at') }}:
                 </label>
                 <p id="view-room-updated" class="mb-0"></p>
             </div>
           </div>
         </x-slot>
         <x-slot name="footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('rooms.buttons.close') }}</button>
         </x-slot>
     </x-ui.modal>
 </div>
@@ -299,6 +309,54 @@
  */
 
 // ===========================
+// TRANSLATIONS
+// ===========================
+const TRANSLATION = {
+  confirm: {
+    activate: {
+      title: '{{ __('rooms.confirm.activate.title') }}',
+      text: '{{ __('rooms.confirm.activate.text') }}',
+      button: '{{ __('rooms.confirm.activate.button') }}'
+    },
+    deactivate: {
+      title: '{{ __('rooms.confirm.deactivate.title') }}',
+      text: '{{ __('rooms.confirm.deactivate.text') }}',
+      button: '{{ __('rooms.confirm.deactivate.button') }}'
+    },
+    delete: {
+      title: '{{ __('rooms.confirm.delete.title') }}',
+      text: '{{ __('rooms.confirm.delete.text') }}',
+      button: '{{ __('rooms.confirm.delete.button') }}'
+    }
+  },
+  success: {
+    activated: '{{ __('rooms.messages.activated') }}',
+    deactivated: '{{ __('rooms.messages.deactivated') }}',
+    deleted: '{{ __('rooms.messages.deleted') }}',
+    saved: '{{ __('rooms.messages.saved') }}'
+  },
+  error: {
+    loadStats: '{{ __('rooms.messages.load_stats_error') }}',
+    loadRoom: '{{ __('rooms.messages.load_room_error') }}',
+    deleteRoom: '{{ __('rooms.messages.delete_error') }}',
+    operationFailed: '{{ __('rooms.messages.operation_failed') }}'
+  },
+  placeholders: {
+    selectBuilding: '{{ __('rooms.placeholders.select_building') }}',
+    selectApartment: '{{ __('rooms.placeholders.select_apartment') }}',
+    selectBuildingFirst: '{{ __('rooms.placeholders.select_building_first') }}',
+    noApartments: '{{ __('rooms.placeholders.no_apartments') }}',
+    selectGender: '{{ __('rooms.placeholders.select_gender') }}',
+    selectType: '{{ __('rooms.placeholders.select_type') }}',
+    selectPurpose: '{{ __('rooms.placeholders.select_purpose') }}'
+  },
+  status: {
+    active: '{{ __('rooms.status.active') }}',
+    inactive: '{{ __('rooms.status.inactive') }}'
+  }
+};
+
+// ===========================
 // ROUTES CONSTANTS
 // ===========================
 var ROUTES = {
@@ -307,7 +365,6 @@ var ROUTES = {
     show: '{{ route('housing.rooms.show', ':id') }}',
     update: '{{ route('housing.rooms.update', ':id') }}',
     destroy: '{{ route('housing.rooms.destroy', ':id') }}',
-    datatable: '{{ route('housing.rooms.datatable') }}',
     activate: '{{ route('housing.rooms.activate', ':id') }}',
     deactivate: '{{ route('housing.rooms.deactivate', ':id') }}'
   },
@@ -407,7 +464,7 @@ var StatsManager = Utils.createStatsManager({
     'beds': ['male', 'female'],
     'available-beds':['male', 'female']
   },
-  onError: 'Failed to load room statistics'
+  onError: TRANSLATION.error.loadStats
 });
 
 // ===========================
@@ -448,7 +505,7 @@ var RoomManager = {
       })
       .fail(function(xhr) {
         $('#roomModal').modal('hide');
-        Utils.handleAjaxError(xhr,'An error occurred')
+        Utils.handleAjaxError(xhr, TRANSLATION.error.loadRoom)
       });
   },
   /**
@@ -465,7 +522,7 @@ var RoomManager = {
       })
       .fail(function(xhr) {
         $('#viewRoomModal').modal('hide');
-        Utils.handleAjaxError(xhr,'An error occurred')
+        Utils.handleAjaxError(xhr, TRANSLATION.error.loadRoom)
       });
   },
   /**
@@ -474,9 +531,9 @@ var RoomManager = {
   handleDeleteRoom: function(e) {
     var roomId = $(e.currentTarget).data('id');
     Utils.showConfirmDialog({
-      title: 'Delete Room?',
-      text: "You won't be able to revert this!",
-      confirmButtonText: 'Yes, delete it!'
+      title: TRANSLATION.confirm.delete.title,
+      text: TRANSLATION.confirm.delete.text,
+      confirmButtonText: TRANSLATION.confirm.delete.button
     }).then(function(result) {
       if (result.isConfirmed) {
         RoomManager.deleteRoom(roomId);
@@ -490,9 +547,9 @@ var RoomManager = {
     e.preventDefault();
     var roomId = $(e.currentTarget).data('id');
     Utils.showConfirmDialog({
-      title: 'Activate Room?',
-      text: 'Are you sure you want to activate this room?',
-      confirmButtonText: 'Yes, activate it!'
+      title: TRANSLATION.confirm.activate.title,
+      text: TRANSLATION.confirm.activate.text,
+      confirmButtonText: TRANSLATION.confirm.activate.button
     }).then(function(result) {
       if (result.isConfirmed) {
         RoomManager.toggleRoomStatus(roomId, true, $(e.currentTarget));
@@ -506,9 +563,9 @@ var RoomManager = {
     e.preventDefault();
     var roomId = $(e.currentTarget).data('id');
     Utils.showConfirmDialog({
-      title: 'Deactivate Room?',
-      text: 'Are you sure you want to deactivate this room?',
-      confirmButtonText: 'Yes, deactivate it!'
+      title: TRANSLATION.confirm.deactivate.title,
+      text: TRANSLATION.confirm.deactivate.text,
+      confirmButtonText: TRANSLATION.confirm.deactivate.button
     }).then(function(result) {
       if (result.isConfirmed) {
         RoomManager.toggleRoomStatus(roomId, false, $(e.currentTarget));
@@ -522,14 +579,14 @@ var RoomManager = {
     e.preventDefault();
     var formData = $(e.currentTarget).serialize();
     ApiService.saveRoom(formData, this.currentRoomId)
-      .done(function() {
+      .done(function(response) {
         $('#roomModal').modal('hide');
         Utils.reloadDataTable('#rooms-table');
-        Utils.showSuccess('Room has been saved successfully.');
+        Utils.showSuccess(response.message || TRANSLATION.success.saved);
         StatsManager.refresh();
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr,'An error occurred. Please check your input.')
+        Utils.handleAjaxError(xhr, TRANSLATION.error.operationFailed)
       });
   },
   /**
@@ -567,13 +624,13 @@ var RoomManager = {
    */
   deleteRoom: function(roomId) {
     ApiService.deleteRoom(roomId)
-      .done(function() {
+      .done(function(response) {
         Utils.reloadDataTable('#rooms-table');
-        Utils.showSuccess('Room has been deleted.');
+        Utils.showSuccess(response.message || TRANSLATION.success.deleted);
         StatsManager.load();
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr,'An error occurred')
+        Utils.handleAjaxError(xhr, TRANSLATION.error.deleteRoom)
       });
   },
   /**
@@ -581,22 +638,22 @@ var RoomManager = {
    */
   toggleRoomStatus: function(roomId, isActivate, $button) {
     var apiCall = isActivate ? ApiService.activateRoom : ApiService.deactivateRoom;
-    var successMessage = isActivate ? 'activated' : 'deactivated';
-    Utils.disableButton($button, true);
+    var successMessage = isActivate ? TRANSLATION.success.activated : TRANSLATION.success.deactivated;
+    Utils.setLoadingState($button, true);
     apiCall(roomId)
       .done(function(response) {
         if (response.success) {
-          Utils.showSuccess('Room ' + successMessage + ' successfully');
+          Utils.showSuccess(response.message || successMessage);
           Utils.reloadDataTable('#rooms-table');
         } else {
-          Utils.showError(response.message || 'Operation failed');
+          Utils.showError(response.message || TRANSLATION.error.operationFailed);
         }
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr,'An error occurred')
+        Utils.handleAjaxError(xhr, TRANSLATION.error.operationFailed)
       })
       .always(function() {
-        Utils.disableButton($button, false);
+        Utils.setLoadingState($button, false);
       });
   },
   /**
@@ -605,6 +662,57 @@ var RoomManager = {
   reloadTable: function() {
     $('#rooms-table').DataTable().ajax.reload(null, false);
   }
+};
+
+// ===========================
+// SELECT2 MANAGER
+// ===========================
+var Select2Manager = {
+    /**
+     * Configuration for all Select2 elements
+     */
+    config: {
+        search: {
+            '#search_building_id': { placeholder: TRANSLATION.placeholders.selectBuilding },
+            '#search_apartment_id': { placeholder: TRANSLATION.placeholders.selectApartment },
+            '#search_gender_restriction': { placeholder: TRANSLATION.placeholders.selectGender },
+            '#type': { placeholder: TRANSLATION.placeholders.selectType },
+            '#purpose': { placeholder: TRANSLATION.placeholders.selectPurpose }
+        }
+    },
+
+    /**
+     * Initialize all search Select2 elements
+     */
+    initSearchSelect2: function() {
+        Object.keys(this.config.search).forEach(function(selector) {
+            Utils.initSelect2(selector, Select2Manager.config.search[selector]);
+        });
+    },
+
+    /**
+     * Initialize all Select2 elements
+     */
+    initAll: function() {
+        this.initSearchSelect2();
+    },
+
+    /**
+     * Clear specific Select2 elements
+     * @param {Array} selectors - Array of selectors to clear
+     */
+    clearSelect2: function(selectors) {
+        selectors.forEach(function(selector) {
+            $(selector).val('').trigger('change');
+        });
+    },
+
+    /**
+     * Reset search Select2 elements
+     */
+    resetSearchSelect2: function() {
+        this.clearSelect2(['#search_building_id', '#search_apartment_id', '#search_gender_restriction']);
+    }
 };
 
 // ===========================
@@ -622,16 +730,22 @@ var SearchManager = {
    */
   bindEvents: function() {
     var self = this;
-    $('#search_building_id, #search_apartment_id, #search_gender_restriction').on('keyup change', function() { Utils.reloadDataTable('#rooms-table'); });
+    $('#search_building_id, #search_apartment_id, #search_gender_restriction').on('change', function() { self.handleFilterChange(); });
     $('#clearRoomFiltersBtn').on('click', function() { self.clearFilters(); });
+  },
+  /**
+   * Handle filter change
+   */
+  handleFilterChange: function() {
+    Utils.reloadDataTable('#rooms-table');
   },
   /**
    * Clear all filters
    */
   clearFilters: function() {
-    Utils.setElementText('#search_building_id', '');
-    Utils.setElementText('#search_apartment_id', '');
-    Utils.setElementText('#search_gender_restriction', '');
+    Select2Manager.resetSearchSelect2();
+    // Reset apartment select to disabled
+    $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">' + TRANSLATION.placeholders.selectBuildingFirst + '</option>');
     Utils.reloadDataTable('#rooms-table');
   }
 };
@@ -646,7 +760,7 @@ var SelectManager = {
   init: function() {
     this.populateBuildingSelect();
     this.bindBuildingChange();
-    $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">Select Building First</option>');
+    $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">' + TRANSLATION.placeholders.selectBuildingFirst + '</option>');
   },
   /**
    * Populate building select dropdown
@@ -658,9 +772,10 @@ var SelectManager = {
           Utils.populateSelect('#search_building_id', response.data,{
             valueField: 'id',
             textField: 'number',
-            placeholder: 'Select Building',
+            placeholder: TRANSLATION.placeholders.selectBuilding,
             includePlaceholder: true
           });
+          Select2Manager.initSearchSelect2();
         }
       })
       .fail(function() {
@@ -677,7 +792,8 @@ var SelectManager = {
       if (buildingId) {
         self.populateApartmentSelect(buildingId);
       } else {
-        $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">Select Building First</option>');
+        $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">' + TRANSLATION.placeholders.selectBuildingFirst + '</option>');
+        Select2Manager.initSearchSelect2();
       }
     });
   },
@@ -688,22 +804,22 @@ var SelectManager = {
     // Fetch all apartments and filter client-side by building_id
     ApiService.fetchApartments(buildingId)
       .done(function(response) {
-        if (response.success && response.data.length > 0) {
+        if (response.success && Array.isArray(response.data) && response.data.length > 0) {
           Utils.populateSelect('#search_apartment_id', response.data, {
             valueField: 'id',
             textField: 'number',
-            placeholder: 'Select Apartment',
+            placeholder: TRANSLATION.placeholders.selectApartment,
             includePlaceholder: true
           });
-          Utils.disable('#search_apartment_id', false);
+          $('#search_apartment_id').prop('disabled', false);
+          Select2Manager.initSearchSelect2();
         } else {
-          Utils.disable('#search_apartment_id', true);
-          $('#search_apartment_id').empty().append('<option value="">No Apartments</option>');
+          $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">' + TRANSLATION.placeholders.noApartments + '</option>');
         }
       })
       .fail(function(xhr) {
-        Utils.disable('#search_apartment_id', true);
-        Utils.handleAjaxError(xhr,"An Error Occured");
+        $('#search_apartment_id').prop('disabled', true);
+        Utils.handleAjaxError(xhr, TRANSLATION.error.operationFailed);
       });
   }
 };
@@ -720,6 +836,7 @@ var RoomApp = {
     RoomManager.init();
     SearchManager.init();
     SelectManager.init();
+    Select2Manager.initAll();
   }
 };
 

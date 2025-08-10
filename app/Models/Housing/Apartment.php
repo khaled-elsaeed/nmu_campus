@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Reservation\Accommodation;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+
  
 
 class Apartment extends Model
@@ -23,13 +24,41 @@ class Apartment extends Model
         'active',
     ];
 
+
+
+    protected function formattedName(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => __('general.apartment', ['number' => $this->number])
+        );
+    }
+
+    /**
+     * Get the gender restriction for the room.
+     *
+     * @return Attribute
+     */
+    protected function gender(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $this->building?->gender_restriction,
+        );
+    }
+
+    protected function formattedGender(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => __('general.' . $this->building?->gender_restriction)
+        );
+    }
+
     /**
      * The current occupancy of the apartment.
      */
     public function currentOccupancy(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->rooms()->sum('current_occupancy')
+            get: fn() => formatNumber($this->rooms()->sum('current_occupancy'))
         );
     }
 

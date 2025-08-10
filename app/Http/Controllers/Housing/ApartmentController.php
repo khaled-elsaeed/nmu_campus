@@ -106,8 +106,10 @@ class ApartmentController extends Controller
     public function activate($id): JsonResponse
     {
         try {
-            $this->apartmentService->activateApartment($id);
+            $this->apartmentService->setActive($id, true);
             return successResponse(__('apartments.messages.activated_successfully'));
+        } catch (BusinessValidationException $e) {
+            return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('ApartmentController@activate', $e, ['apartment_id' => $id]);
             return errorResponse(__('apartments.messages.internal_server_error'), [], 500);
@@ -122,8 +124,10 @@ class ApartmentController extends Controller
     public function deactivate($id): JsonResponse
     {
         try {
-            $this->apartmentService->deactivateApartment($id);
+            $this->apartmentService->setActive($id, false);
             return successResponse(__('apartments.messages.deactivated_successfully'));
+        } catch (BusinessValidationException $e) {
+            return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('ApartmentController@deactivate', $e, ['apartment_id' => $id]);
             return errorResponse(__('apartments.messages.internal_server_error'), [], 500);

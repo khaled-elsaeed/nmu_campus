@@ -53,8 +53,13 @@ class ApartmentService
 
         return [
             'id' => $apartment->id,
-            'number' => $apartment->number,
-            'building_id' => $apartment->building_id,
+            // Use formatted accessors from models
+            'name' => $apartment->formattedName,
+            'building' => $apartment->building?->formattedName,
+            'currentOccupancy' => $apartment->currentOccupancy,
+            'gender' => $apartment->formattedGender,
+            'roomsCount' => formatNumber($apartment->total_rooms),
+            'active' => __($apartment->active ? 'general.active' : 'general.inactive'),
         ];
     }
 
@@ -68,8 +73,8 @@ class ApartmentService
     public function deleteApartment($id): void
     {
         $apartment = Apartment::findOrFail($id);
-        
-        if ($apartment->residents()->count() > 0) {
+
+        if ($apartment->rooms()->sum('current_occupancy') > 0) {
             throw new BusinessValidationException(__('apartments.messages.cannot_delete_has_residents'));
         }
         $apartment->delete();
@@ -141,27 +146,34 @@ class ApartmentService
      */
     public function getDatatable(): JsonResponse
     {
-        $query = Apartment::select([
-            'apartments.*',
-            'buildings.number as building_number',
-            'buildings.gender_restriction as building_gender_restriction'
-        ])
-        ->join('buildings', 'apartments.building_id', '=', 'buildings.id');
+        // Join buildings to allow ordering/filtering by related fields
+        $query = Apartment::query()
+            ->leftJoin('buildings', 'buildings.id', '=', 'apartments.building_id')
+            ->select('apartments.*',
+                'buildings.number as building_number',
+                'buildings.gender_restriction as building_gender_restriction'
+            )
+            ->with('building');
 
         $query = $this->applySearchFilters($query);
 
         return DataTables::of($query)
             ->addIndexColumn()
-            ->editColumn('number', fn($apartment) => 'Apartment ' . $apartment->number)
-            ->addColumn('building', fn($apartment) => 'Building ' . $apartment->building_number)
-            ->addColumn('gender_restriction', fn($apartment) => $apartment->building_gender_restriction)
-            ->editColumn('active', fn($apartment) => $apartment->active ? 'Active' : 'Inactive')
+            // Computed/display columns
+            ->addColumn('name', fn($apartment) => $apartment->formattedName)
+            ->addColumn('building', fn($apartment) => $apartment->building?->formattedName)
+            ->addColumn('total_rooms', fn($apartment) => formatNumber($apartment->total_rooms))
+            ->addColumn('gender', fn($apartment) => $apartment->formattedGender)
+            ->editColumn('active', fn($apartment) => $apartment->active ? __('general.active') : __('general.inactive'))
             ->editColumn('created_at', fn($apartment) => formatDate($apartment->created_at))
             ->addColumn('action', fn($apartment) => $this->renderActionButtons($apartment))
-            ->orderColumn('number', 'apartments.number $1')
-            ->orderColumn('building_number', 'buildings.number $1')
-            ->orderColumn('building_gender_restriction', 'buildings.gender_restriction $1')
+            // Ordering mappings aligned with frontend column names
+            ->orderColumn('name', 'apartments.number $1')
+            ->orderColumn('building', 'buildings.number $1')
+            ->orderColumn('total_rooms', 'apartments.total_rooms $1')
+            ->orderColumn('gender', 'buildings.gender_restriction $1')
             ->orderColumn('active', 'apartments.active $1')
+            ->orderColumn('created_at', 'apartments.created_at $1')
             ->rawColumns(['action'])
             ->make(true);
     }
@@ -189,9 +201,8 @@ class ApartmentService
         }
         $searchGenderRestriction = request('search_gender_restriction');
         if (!empty($searchGenderRestriction)) {
-            $query->whereHas('building', function ($q) use ($searchGenderRestriction) {
-                $q->where('buildings.gender_restriction', $searchGenderRestriction);
-            });
+            // buildings table is joined in the main query
+            $query->where('buildings.gender_restriction', $searchGenderRestriction);
         }
         return $query;
     }
@@ -202,14 +213,26 @@ class ApartmentService
      * @param Apartment $apartment
      * @return string
      */
-    public function renderActionButtons(Apartment $apartment): string
+    protected function renderActionButtons($apartment): string
     {
+        $singleActions = [];
+        $singleActions[] = [
+            'action' => $apartment->active ? 'deactivate' : 'activate',
+            'icon' => $apartment->active ? 'bx bx-toggle-left' : 'bx bx-toggle-right',
+            'class' => $apartment->active ? 'btn-warning' : 'btn-success',
+            'label' => $apartment->active ? __('general.deactivate') : __('general.activate')
+        ];
+        $singleActions[] = [
+            'action' => 'delete',
+            'icon' => 'bx bx-trash',
+            'class' => 'btn-danger',
+            'label' => __('general.delete')
+        ];
         return view('components.ui.datatable.table-actions', [
-            'mode' => 'dropdown',
-            'actions' => ['view', 'edit', 'delete'],
+            'mode' => 'single',
+            'singleActions' => $singleActions,
             'id' => $apartment->id,
-            'type' => __('apartments.table.type'),
-            'singleActions' => []
+            'type' => 'Apartment'
         ])->render();
     }
 
@@ -236,6 +259,7 @@ class ApartmentService
      * @param \App\Models\Housing\Apartment $apartment
      * @param bool $active
      * @return void
+     * @throws BusinessValidationException
      */
     private function handleRoomsActivation($apartment, bool $active)
     {

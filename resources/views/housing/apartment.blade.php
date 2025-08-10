@@ -75,7 +75,7 @@
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable.table 
         :headers="[
-            __('apartments.table.headers.number'),
+            __('apartments.table.headers.name'),
             __('apartments.table.headers.building'),
             __('apartments.table.headers.total_rooms'),
             __('apartments.table.headers.gender'),
@@ -84,10 +84,10 @@
             __('apartments.table.headers.actions')
         ]"
         :columns="[
-            ['data' => 'number', 'name' => 'number'],
-            ['data' => 'building_number', 'name' => 'building_number'],
+            ['data' => 'name', 'name' => 'name'],
+            ['data' => 'building', 'name' => 'building'],
             ['data' => 'total_rooms', 'name' => 'total_rooms'],
-            ['data' => 'building_gender_restriction', 'name' => 'building_gender_restriction'],
+            ['data' => 'gender', 'name' => 'gender'],
             ['data' => 'active', 'name' => 'active'],
             ['data' => 'created_at', 'name' => 'created_at'],
             ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false]
@@ -125,12 +125,12 @@
                     <p id="view-apartment-gender-restriction" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">{{ __('apartments.modal.labels.active') }}:</label>
-                    <p id="view-apartment-is-active" class="mb-0"></p>
+                    <label class="form-label fw-bold">{{ __('apartments.modal.labels.current_occupancy') }}:</label>
+                    <p id="view-apartment-current-occupancy" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">{{ __('apartments.modal.labels.created_at') }}:</label>
-                    <p id="view-apartment-created" class="mb-0"></p>
+                    <label class="form-label fw-bold">{{ __('apartments.modal.labels.active') }}:</label>
+                    <p id="view-apartment-is-active" class="mb-0"></p>
                 </div>
             </div>
         </x-slot>
@@ -197,21 +197,23 @@ const TRANSLATION = {
     }
   },
   success: {
-    activated: '{{ __('apartments.TRANSLATION.activated') }}',
-    deactivated: '{{ __('apartments.TRANSLATION.deactivated') }}',
-    deleted: '{{ __('apartments.TRANSLATION.deleted') }}'
+    activated: '{{ __('apartments.messages.activated') }}',
+    deactivated: '{{ __('apartments.messages.deactivated') }}',
+    deleted: '{{ __('apartments.messages.deleted') }}'
   },
   error: {
-    loadStats: '{{ __('apartments.TRANSLATION.load_stats_error') }}',
-    loadApartment: '{{ __('apartments.TRANSLATION.load_apartment_error') }}',
-    deleteApartment: '{{ __('apartments.TRANSLATION.delete_error') }}',
-    operationFailed: '{{ __('apartments.TRANSLATION.operation_failed') }}'
+    loadStats: '{{ __('apartments.messages.load_stats_error') }}',
+    loadApartment: '{{ __('apartments.messages.load_apartment_error') }}',
+    deleteApartment: '{{ __('apartments.messages.delete_error') }}',
+    operationFailed: '{{ __('apartments.messages.operation_failed') }}'
   },
   placeholders: {
     selectBuilding: '{{ __('apartments.placeholders.select_building') }}',
     selectApartment: '{{ __('apartments.placeholders.select_apartment') }}',
     selectBuildingFirst: '{{ __('apartments.placeholders.select_building_first') }}',
-    noApartments: '{{ __('apartments.placeholders.no_apartments') }}'
+    noApartments: '{{ __('apartments.placeholders.no_apartments') }}',
+    selectGender: '{{ __('apartments.placeholders.select_gender') }}',
+    selectStatus: '{{ __('apartments.placeholders.select_status') }}'
   },
   status: {
     active: '{{ __('apartments.status.active') }}',
@@ -351,9 +353,7 @@ var ApartmentManager = {
       {
         title: TRANSLATION.confirm.delete.title,
         text: TRANSLATION.confirm.delete.text,
-        confirmButtonText: TRANSLATION.confirm.delete.button,
-        cancelButtonText: 'Cancel',
-        showCancelButton: true,
+        confirmButtonText: TRANSLATION.confirm.delete.button,        
       }
     )
       .then(function(result) {
@@ -392,8 +392,8 @@ var ApartmentManager = {
       title: confirmOptions.title,
       text: confirmOptions.text,
       confirmButtonText: confirmOptions.button,
-      cancelButtonText: 'Cancel',
-      showCancelButton: true,
+      
+      
     }).then(function(result) {
       if (!result.isConfirmed) return;
 
@@ -422,9 +422,9 @@ var ApartmentManager = {
    */
   deleteApartment: function(apartmentId) {
     ApiService.deleteApartment(apartmentId)
-      .done(function() {
+        .done(function(response) {
         Utils.reloadDataTable('#apartments-table');
-        Utils.showSuccess(TRANSLATION.success.deleted);
+        Utils.showSuccess(response.message || TRANSLATION.success.deleted);
         StatsManager.load();
       })
       .fail(function(xhr) {
@@ -435,12 +435,12 @@ var ApartmentManager = {
    * Populate the view modal with apartment data
    */
   populateViewModal: function(apartment) {
-    Utils.setElementText('#view-apartment-number', apartment.number);
+    Utils.setElementText('#view-apartment-number', apartment.name);
     Utils.setElementText('#view-apartment-building', apartment.building);
-    Utils.setElementText('#view-apartment-total-rooms', apartment.total_rooms);
-    Utils.setElementText('#view-apartment-gender-restriction', apartment.gender_restriction);
-    Utils.setElementText('#view-apartment-is-active', apartment.active ? TRANSLATION.status.active : TRANSLATION.status.inactive);
-    Utils.setElementText('#view-apartment-created', Utils.formatDate ? Utils.formatDate(apartment.created_at) : (new Date(apartment.created_at).toLocaleString()));
+    Utils.setElementText('#view-apartment-total-rooms', apartment.roomsCount);
+    Utils.setElementText('#view-apartment-gender-restriction', apartment.gender);
+    Utils.setElementText('#view-apartment-current-occupancy', apartment.currentOccupancy);
+    Utils.setElementText('#view-apartment-is-active', apartment.active);
   }
 };
 
@@ -455,8 +455,8 @@ var Select2Manager = {
         search: {
             '#search_building_id': { placeholder: TRANSLATION.placeholders.selectBuilding },
             '#search_apartment_id': { placeholder: TRANSLATION.placeholders.selectApartment },
-            '#search_gender_restriction': { placeholder: TRANSLATION.placeholders.selectBuilding },
-            '#search_active': { placeholder: TRANSLATION.placeholders.selectBuilding }
+            '#search_gender_restriction': { placeholder: TRANSLATION.placeholders.selectGender },
+            '#search_active': { placeholder: TRANSLATION.placeholders.selectStatus }
         }
     },
 

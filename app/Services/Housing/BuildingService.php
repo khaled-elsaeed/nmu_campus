@@ -145,12 +145,18 @@ class BuildingService
 
         return DataTables::of($query)
             ->addIndexColumn()
-            ->editColumn('name', fn($building) => $building->name)
+            // Display columns from model accessors
+            ->addColumn('name', fn($building) => $building->formattedName)
+            ->addColumn('gender', fn($building) => $building->formattedGender)
             ->editColumn('active', fn($building) => $building->active ? __('general.active') : __('general.inactive'))
             ->editColumn('has_double_rooms', fn($building) => $building->has_double_rooms ? __('general.yes') : __('general.no'))
-            ->addColumn('current_occupancy', fn($building) => $building->current_occupancy)
+            ->addColumn('current_occupancy', fn($building) => $building->currentOccupancy)
             ->addColumn('action', fn($building) => $this->renderActionButtons($building))
-            ->orderColumn('number', 'number $1')
+            // Ordering mappings to actual DB columns
+            ->orderColumn('name', 'number $1')
+            ->orderColumn('gender', 'gender_restriction $1')
+            ->orderColumn('total_apartments', 'total_apartments $1')
+            ->orderColumn('total_rooms', 'total_rooms $1')
             ->orderColumn('active', 'active $1')
             ->orderColumn('has_double_rooms', 'has_double_rooms $1')
             ->rawColumns(['action'])
