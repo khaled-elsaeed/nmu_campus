@@ -53,7 +53,7 @@ class ProgramService
     {
         $program = Program::with('faculty')->select(['id', 'name_en', 'name_ar', 'faculty_id', 'duration_years'])->find($id);
         if (!$program) {
-            throw new BusinessValidationException(__('programs.messages.not_found'));
+            throw new BusinessValidationException(__(':field not found.', ['field' => __('program')]));
         }
 
         return [
@@ -78,7 +78,7 @@ class ProgramService
         $program = Program::findOrFail($id);
         
         if ($program->students()->count() > 0) {
-            throw new BusinessValidationException(__('programs.messages.cannot_delete_has_students'));
+            throw new BusinessValidationException(__('This program cannot be deleted because it has associated students.'));
         }
         $program->delete();
     }

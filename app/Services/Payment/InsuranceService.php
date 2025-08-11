@@ -38,7 +38,7 @@ class InsuranceService
     {
         $reservation = Reservation::where('reservation_number', $reservationNumber)->first();
         if (!$reservation) {
-            throw new BusinessValidationException('Reservation not found.', 404);
+            throw new BusinessValidationException(__(':field not found.', ['field' => __('Reservation')]));
         }
         return $reservation;
     }
@@ -222,13 +222,13 @@ class InsuranceService
                 'action' => 'refund',
                 'icon' => 'bx bx-undo',
                 'class' => 'btn-warning',
-                'label' => 'Refund'
+                'label' => __('refund')
             ];
             $singleActions[] = [
                 'action' => 'cancel',
                 'icon' => 'bx bx-x',
                 'class' => 'btn-danger',
-                'label' => 'Cancel'
+                'label' => __('cancel')
             ];
         }
         return view('components.ui.datatable.table-actions', [
@@ -250,7 +250,7 @@ class InsuranceService
     {
         $insurance = Insurance::findOrFail($id);
         if ($insurance->status !== 'active') {
-            throw new BusinessValidationException('Only active insurances can be cancelled.', 400);
+            throw new BusinessValidationException(__(':field not found.', ['field' => __('insurance')]));
         }
         $insurance->status = 'cancelled';
         $insurance->save();
@@ -266,7 +266,7 @@ class InsuranceService
     {
         $insurance = Insurance::findOrFail($id);
         if ($insurance->status !== 'active') {
-            throw new BusinessValidationException('Only active insurances can be refunded.', 400);
+            throw new BusinessValidationException(__('Only active insurances can be refunded.'), 400);
         }
         $insurance->status = 'refunded';
         $insurance->save();

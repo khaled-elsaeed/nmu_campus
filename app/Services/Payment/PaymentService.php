@@ -25,7 +25,7 @@ class PaymentService
         $reservation = $this->getReservationByNumber($data);
 
         if(!$reservation){
-            throw new BusinessValidationException('Reservation not found.');
+            throw new BusinessValidationException(__(':field not found.', ['field' => __('Reservation')]));
         }
 
         $paymentData = [
@@ -90,7 +90,7 @@ class PaymentService
         ])->find($id);
 
         if (!$payment) {
-            throw new BusinessValidationException('Payment not found.');
+            throw new BusinessValidationException(__(':field not found.', ['field' => __('payment')]));
         }
 
         return [
@@ -247,7 +247,7 @@ class PaymentService
     {
         $actions = ['view', 'delete'];
         if ($payment->status === 'pending') {
-            array_splice($actions, 1, 0, 'edit'); // Insert 'edit' after 'view'
+            array_splice($actions, 1, 0, 'edit');
         }
         $singleActions = [];
         if ($payment->status === 'pending') {
@@ -255,7 +255,7 @@ class PaymentService
                 'action' => 'complete',
                 'icon' => 'bx bx-check',
                 'class' => 'btn-success',
-                'label' => 'Mark as Completed'
+                'label' => __('Mark as Completed')
             ];
         }
         if ($payment->status === 'completed') {
@@ -263,7 +263,7 @@ class PaymentService
                 'action' => 'refund',
                 'icon' => 'bx bx-undo',
                 'class' => 'btn-warning',
-                'label' => 'Refund'
+                'label' => __('Refund')
             ];
         }
         if ($payment->status !== 'cancelled') {
@@ -271,7 +271,7 @@ class PaymentService
                 'action' => 'cancel',
                 'icon' => 'bx bx-block',
                 'class' => 'btn-danger',
-                'label' => 'Cancel'
+                'label' => __('Cancel')
             ];
         }
         return view('components.ui.datatable.table-actions', [

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Auth;
+namespace App\Jobs;
 
 use App\Models\User;
 use App\Models\StudentArchive;

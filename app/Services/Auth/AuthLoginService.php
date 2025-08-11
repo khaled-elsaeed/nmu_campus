@@ -64,7 +64,7 @@ class AuthLoginService
             return $this->buildResponse(
                 false,
                 'not_authenticated',
-                'No user is currently logged in.'
+                __('No user is currently logged in.')
             );
         }
 
@@ -79,7 +79,7 @@ class AuthLoginService
         return $this->buildResponse(
             true,
             null,
-            'Logout successful.',
+            __('Logout successful.'),
             $user
         );
     }
@@ -115,7 +115,7 @@ class AuthLoginService
             return $this->buildResponse(
                 true,
                 null,
-                'Login successful.',
+                __('Login successful.'),
                 $user
             );
         }
@@ -123,7 +123,7 @@ class AuthLoginService
         return $this->buildResponse(
             false,
             'invalid_credentials',
-            'Invalid email or password.'
+            __('Invalid email or password.')
         );
     }
 
@@ -160,7 +160,7 @@ class AuthLoginService
             return $this->buildResponse(
                 false,
                 'invalid_credentials',
-                'Invalid email or password.'
+                __('Invalid email or password.')
             );
         }
 
@@ -184,7 +184,7 @@ class AuthLoginService
             );
         }
 
-        return $this->buildResponse(true, null, 'General validation passed.', $user);
+        return $this->buildResponse(true, null, __('General validation passed.'), $user);
     }
 
     /**
@@ -210,7 +210,7 @@ class AuthLoginService
         return $this->buildResponse(
             false,
             'invalid_role',
-            'Invalid user role for profile validation.',
+            __('Invalid user role for profile validation.'),
             $user
         );
     }
@@ -228,7 +228,7 @@ class AuthLoginService
             return $this->buildResponse(
                 false,
                 'incomplete_profile',
-                'Please complete your resident profile before proceeding.',
+                __('Please complete your resident profile before proceeding.'),
                 $user
             );
         }
@@ -238,12 +238,12 @@ class AuthLoginService
             return $this->buildResponse(
                 false,
                 'documents_pending',
-                'Your documents are pending verification.',
+                __('Your documents are pending verification.'),
                 $user
             );
         }
 
-        return $this->buildResponse(true, null, 'Resident profile validation passed.', $user);
+        return $this->buildResponse(true, null, __('Resident profile validation passed.'), $user);
     }
 
     /**
@@ -258,12 +258,12 @@ class AuthLoginService
             return $this->buildResponse(
                 false,
                 'incomplete_profile',
-                'Please complete your staff profile before proceeding.',
+                __('Please complete your staff profile before proceeding.'),
                 $user
             );
         }
 
-        return $this->buildResponse(true, null, 'Staff profile validation passed.', $user);
+        return $this->buildResponse(true, null, __('Staff profile validation passed.'), $user);
     }
 
     /**
@@ -275,7 +275,7 @@ class AuthLoginService
     private function validateAdminProfile(User $user): array
     {
         // Admins typically don't need additional profile validation
-        return $this->buildResponse(true, null, 'Admin profile validation passed.', $user);
+        return $this->buildResponse(true, null, __('Admin profile validation passed.'), $user);
     }
 
     // =============================================

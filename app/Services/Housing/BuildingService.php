@@ -58,7 +58,7 @@ class BuildingService
     {
         $building = Building::find($id);
         if (!$building) {
-            throw new BusinessValidationException(__('buildings.messages.not_found'));
+            throw new BusinessValidationException(__(':field not found.', ['field' => __('building')]));
         }
 
         return [
@@ -78,12 +78,9 @@ class BuildingService
     public function deleteBuilding($id): void
     {
         $building = Building::findOrFail($id);
-        
-        if ($building->apartments()->count() > 0) {
-            throw new BusinessValidationException(__('buildings.messages.cannot_delete_has_apartments'));
-        }
-        if ($building->residents()->count() > 0) {
-            throw new BusinessValidationException(__('buildings.messages.cannot_delete_has_residents'));
+
+        if ($building->apartments()->rooms()->sum('current_occupancy') > 0) {
+            throw new BusinessValidationException(__('This building cannot be deleted because it has occupied rooms.'));
         }
         $building->delete();
     }
@@ -110,27 +107,31 @@ class BuildingService
      */
     public function getStats(): array
     {
-        $total = Building::count();
-        $male = Building::where('gender_restriction', 'male')->count();
-        $female = Building::where('gender_restriction', 'female')->count();
-        $lastUpdate = Building::max('updated_at');
-        $maleLastUpdate = Building::where('gender_restriction', 'male')->max('updated_at');
-        $femaleLastUpdate = Building::where('gender_restriction', 'female')->max('updated_at');
+        $stats = Building::selectRaw('
+            COUNT(*) as total,
+            SUM(CASE WHEN gender_restriction = "male" THEN 1 ELSE 0 END) as male,
+            SUM(CASE WHEN gender_restriction = "female" THEN 1 ELSE 0 END) as female,
+            MAX(updated_at) as last_update,
+            MAX(CASE WHEN gender_restriction = "male" THEN updated_at END) as male_last_update,
+            MAX(CASE WHEN gender_restriction = "female" THEN updated_at END) as female_last_update
+        ')->first();
+
         return [
             'buildings' => [
-                'count' => formatNumber($total),
-                'lastUpdateTime' => formatDate($lastUpdate),
+                'count' => formatNumber($stats->total),
+                'lastUpdateTime' => formatDate($stats->last_update),
             ],
             'buildings-male' => [
-                'count' => formatNumber($male),
-                'lastUpdateTime' => formatDate($maleLastUpdate),
+                'count' => formatNumber($stats->male),
+                'lastUpdateTime' => formatDate($stats->male_last_update),
             ],
             'buildings-female' => [
-                'count' => formatNumber($female),
-                'lastUpdateTime' => formatDate($femaleLastUpdate),
+                'count' => formatNumber($stats->female),
+                'lastUpdateTime' => formatDate($stats->female_last_update),
             ],
         ];
     }
+
 
     /**
      * Get building data for DataTables.
@@ -148,8 +149,8 @@ class BuildingService
             // Display columns from model accessors
             ->addColumn('name', fn($building) => $building->formattedName)
             ->addColumn('gender', fn($building) => $building->formattedGender)
-            ->editColumn('active', fn($building) => $building->active ? __('general.active') : __('general.inactive'))
-            ->editColumn('has_double_rooms', fn($building) => $building->has_double_rooms ? __('general.yes') : __('general.no'))
+            ->editColumn('active', fn($building) => $building->active ? __('active') : __('inactive'))
+            ->editColumn('has_double_rooms', fn($building) => $building->has_double_rooms ? __('yes') : __('no'))
             ->addColumn('current_occupancy', fn($building) => $building->currentOccupancy)
             ->addColumn('action', fn($building) => $this->renderActionButtons($building))
             // Ordering mappings to actual DB columns
@@ -178,7 +179,6 @@ class BuildingService
 
         $searchActive = request('search_active');
         if (isset($searchActive)) {
-            \Log::info('Filtering buildings by active status', ['search_active' => $searchActive]);
             $query->where('active', $searchActive);
         }
 

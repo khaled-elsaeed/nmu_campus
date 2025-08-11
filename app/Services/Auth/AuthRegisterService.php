@@ -35,7 +35,7 @@ class AuthRegisterService
         return $this->buildResponse(
             true,
             null,
-            'Registration successful. Please check your email for verification.',
+            __('Registration successful. Please check your email for verification.'),
             $user
         );
     }
@@ -63,7 +63,7 @@ class AuthRegisterService
             return $this->buildResponse(
                 false,
                 'no_student_record',
-                'No university student record was found associated with the provided national ID.'
+                __('No university student record was found associated with the provided national ID.')
             );
         }
 
@@ -72,7 +72,7 @@ class AuthRegisterService
             return $this->buildResponse(
                 false,
                 'national_id_banned',
-                'This national ID is banned from registration.'
+                __('This national ID is banned from registration.')
             );
         }
 
@@ -81,14 +81,14 @@ class AuthRegisterService
             return $this->buildResponse(
                 false,
                 'account_exists',
-                'An account with this national ID already exists.'
+                __('An account with this national ID already exists.')
             );
         }
 
         return $this->buildResponse(
             true,
             null,
-            'National ID can register.'
+            __('National ID can register.')
         );
     }
 
@@ -122,7 +122,7 @@ class AuthRegisterService
             return $this->buildResponse(
                 false,
                 'archive_incomplete_data',
-                'Student archive is missing required information.'
+                __('Student archive is missing required information.')
             );
         }
 
@@ -160,15 +160,15 @@ class AuthRegisterService
         $incompleteData = [];
 
         if (empty($studentArchive->name_en)) {
-            $incompleteData['name_en'] = 'English name is required.';
+            $incompleteData['name_en'] = __('English name is required.');
         }
 
         if (empty($studentArchive->name_ar)) {
-            $incompleteData['name_ar'] = 'Arabic name is required.';
+            $incompleteData['name_ar'] = __('Arabic name is required.');
         }
 
         if (empty($studentArchive->email)) {
-            $incompleteData['email'] = 'Email is required.';
+            $incompleteData['email'] = __('Email is required.');
         }
 
         return $incompleteData;

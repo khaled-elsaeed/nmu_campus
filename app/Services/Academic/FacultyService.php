@@ -51,7 +51,7 @@ class FacultyService
     {
         $faculty = Faculty::select(['id', 'name_en', 'name_ar'])->find($id);
         if (!$faculty) {
-            throw new BusinessValidationException(__('faculties.messages.not_found'));
+            throw new BusinessValidationException(__(':field not found.', ['field' => __('faculty')]));
         }
         return [
             'id' => $faculty->id,
@@ -72,11 +72,11 @@ class FacultyService
         $faculty = Faculty::findOrFail($id);
         
         if ($faculty->students()->count() > 0 || $faculty->staff()->count() > 0) {
-            throw new BusinessValidationException(__('faculties.messages.cannot_delete_has_students_or_staff'));
+            throw new BusinessValidationException(__('This faculty cannot be deleted because it has associated students or staff members.'));
         }
         foreach ($faculty->programs as $program) {
             if ($program->students()->count() > 0) {
-                throw new BusinessValidationException(__('faculties.messages.cannot_delete_programs_have_students'));
+                throw new BusinessValidationException(__('This program cannot be deleted because it has associated students.'));
             }
         }
         $faculty->delete();
@@ -108,28 +108,33 @@ class FacultyService
      */
     public function getStats(): array
     {
-        $total = Faculty::count();
-        $withPrograms = Faculty::has('programs')->count();
-        $withoutPrograms = Faculty::doesntHave('programs')->count();
-        $totalLastUpdate = Faculty::max('updated_at');
-        $withProgramsLastUpdate = Faculty::has('programs')->max('updated_at');
-        $withoutProgramsLastUpdate = Faculty::doesntHave('programs')->max('updated_at');
+        $stats = Faculty::selectRaw('
+            COUNT(DISTINCT faculties.id) as total,
+            COUNT(DISTINCT CASE WHEN programs.id IS NOT NULL THEN faculties.id END) as with_programs,
+            COUNT(DISTINCT CASE WHEN programs.id IS NULL THEN faculties.id END) as without_programs,
+            MAX(faculties.updated_at) as faculties_last_update,
+            MAX(CASE WHEN programs.id IS NOT NULL THEN faculties.updated_at END) as with_programs_last_update,
+            MAX(CASE WHEN programs.id IS NULL THEN faculties.updated_at END) as without_programs_last_update
+        ')
+        ->leftJoin('programs', 'faculties.id', '=', 'programs.faculty_id')
+        ->first();
 
         return [
             'faculties' => [
-                'count' => formatNumber($total),
-                'lastUpdateTime' => formatDate($totalLastUpdate)
+                'count' => formatNumber($stats->total),
+                'lastUpdateTime' => formatDate($stats->faculties_last_update),
             ],
             'with-programs' => [
-                'count' => formatNumber($withPrograms),
-                'lastUpdateTime' => formatDate($withProgramsLastUpdate)
+                'count' => formatNumber($stats->with_programs),
+                'lastUpdateTime' => formatDate($stats->with_programs_last_update),
             ],
             'without-programs' => [
-                'count' => formatNumber($withoutPrograms),
-                'lastUpdateTime' => formatDate($withoutProgramsLastUpdate)
-            ]
+                'count' => formatNumber($stats->without_programs),
+                'lastUpdateTime' => formatDate($stats->without_programs_last_update),
+            ],
         ];
     }
+
 
     /**
      * Get faculty data for DataTables.

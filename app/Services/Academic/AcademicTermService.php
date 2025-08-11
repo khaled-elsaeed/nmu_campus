@@ -24,7 +24,7 @@ class AcademicTermService
     {
         $code = $this->generateCode($data['season'], $data['year']);
         if (AcademicTerm::where('code', $code)->exists()) {
-            throw new BusinessValidationException(__('app.academic.academic_terms.messages.error.duplicate_code'));
+            throw new BusinessValidationException(__(':field already exists.', ['field' => __('code')]));
         }
         return AcademicTerm::create([
             'season' => $data['season'],
@@ -50,7 +50,7 @@ class AcademicTermService
         $term = AcademicTerm::findOrFail($id);
         $code = $this->generateCode($data['season'], $data['year']);
         if (AcademicTerm::where('code', $code)->where('id', '!=', $term->id)->exists()) {
-            throw new BusinessValidationException(__('app.academic.academic_terms.messages.error.duplicate_code'));
+            throw new BusinessValidationException(__(':field already exists.', ['field' => __('code')]));
         }
         $updateData = [
             'season' => $data['season'],
@@ -75,7 +75,7 @@ class AcademicTermService
         $term = AcademicTerm::withCount('reservations')->find($id);
 
         if (!$term) {
-            throw new BusinessValidationException(__('app.academic.academic_terms.messages.error.not_found'));
+            throw new BusinessValidationException(__(':field not found.', ['field' => __('term')]));
         }
 
         // Add formatted date attributes
@@ -101,7 +101,7 @@ class AcademicTermService
     {
         $term = AcademicTerm::findOrFail($id);
         if ($term->reservations()->count() > 0) {
-            throw new BusinessValidationException(__('app.academic.academic_terms.messages.error.delete_has_reservations'));
+            throw new BusinessValidationException(__('This academic term cannot be deleted because it has active reservations.'));
         }
         $term->delete();
     }
@@ -117,7 +117,7 @@ class AcademicTermService
     {
         $term = AcademicTerm::findOrFail($id);
         if ($active && $this->isOldYear($term)) {
-            throw new BusinessValidationException(__('app.academic.academic_terms.messages.error.old_year'));
+            throw new BusinessValidationException(__('This academic term belongs to an old year and cannot be modified.'));
         }
         $term->active = $active;
         $term->activated_at = $active ? now() : null;
@@ -136,20 +136,20 @@ class AcademicTermService
     {
         $term = AcademicTerm::findOrFail($id);
         if (!$term->active) {
-            throw new BusinessValidationException(__('app.academic.academic_terms.messages.error.term_not_active'));
+            throw new BusinessValidationException(__('The selected academic term is not active.'));
         }
+
         if ($term->current) {
-            throw new BusinessValidationException(__('app.academic.academic_terms.messages.error.term_already_current'));
+            throw new BusinessValidationException(__('The selected academic term is already set as the current term.'));
         }
+
         if ($this->isOldYear($term)) {
-            throw new BusinessValidationException(__('app.academic.academic_terms.messages.error.old_year'));
+            throw new BusinessValidationException(__('The selected academic term belongs to a past year and cannot be modified.'));
         }
+
         $currentTerm = AcademicTerm::where('current', true)->first();
         if ($currentTerm && $currentTerm->id !== $term->id) {
-            throw new BusinessValidationException(__('app.academic.academic_terms.messages.error.term_cannot_start', [
-                'new_term' => $term->name,
-                'current_term' => $currentTerm->name
-            ]));
+            throw new BusinessValidationException(__("The academic term {$term->name} cannot be started because {$currentTerm->name} is currently active."));
         }
         $activatedCount = 0;
         DB::transaction(function () use ($term, &$activatedCount) {
@@ -211,10 +211,11 @@ class AcademicTermService
     {
         $term = AcademicTerm::findOrFail($id);
         if (!$term->current) {
-            throw new BusinessValidationException(__('app.academic.academic_terms.messages.error.term_not_current'));
+            throw new BusinessValidationException('The selected academic term is not set as the current term.');
         }
+
         if ($term->reservations->count() > 0) {
-            throw new BusinessValidationException(__('app.academic.academic_terms.messages.error.term_has_reservations'));
+            throw new BusinessValidationException('The selected academic term has existing reservations and cannot be modified.');
         }
         $term->current = false;
         $term->active = false;
@@ -276,35 +277,37 @@ class AcademicTermService
      */
     public function getStats(): array
     {
-        $totalTerms = AcademicTerm::count();
-        $activeTerms = AcademicTerm::where('active', true)->count();
-        $inactiveTerms = AcademicTerm::where('active', false)->count();
-        $currentTerm = AcademicTerm::where('current', true)->first();
+        $stats = AcademicTerm::selectRaw('
+            COUNT(*) as total,
+            SUM(CASE WHEN active = true THEN 1 ELSE 0 END) as active,
+            SUM(CASE WHEN active = false THEN 1 ELSE 0 END) as inactive,
+            MAX(CASE WHEN current = true THEN updated_at END) as current_last_update,
+            MAX(CASE WHEN active = true THEN updated_at END) as active_last_update,
+            MAX(CASE WHEN active = false THEN updated_at END) as inactive_last_update
+        ')->first();
 
-        $totalLastUpdate = AcademicTerm::max('updated_at');
-        $activeLastUpdate = AcademicTerm::where('active', true)->max('updated_at');
-        $inactiveLastUpdate = AcademicTerm::where('active', false)->max('updated_at');
-        $currentLastUpdate = $currentTerm ? $currentTerm->updated_at : $totalLastUpdate;
+        $currentTerm = AcademicTerm::where('current', true)->first();
 
         return [
             'terms' => [
-                'count' => formatNumber($totalTerms),
-                'lastUpdateTime' => formatDate($totalLastUpdate)
+                'count' => formatNumber($stats->total),
+                'lastUpdateTime' => formatDate($stats->current_last_update),
             ],
             'active' => [
-                'count' => formatNumber($activeTerms),
-                'lastUpdateTime' => formatDate($activeLastUpdate)
+                'count' => formatNumber($stats->active),
+                'lastUpdateTime' => formatDate($stats->active_last_update),
             ],
             'inactive' => [
-                'count' => formatNumber($inactiveTerms),
-                'lastUpdateTime' => formatDate($inactiveLastUpdate)
+                'count' => formatNumber($stats->inactive),
+                'lastUpdateTime' => formatDate($stats->inactive_last_update),
             ],
             'current' => [
-                'title' => $currentTerm ? $currentTerm->name : __('app.academic.academic_terms.stats.no_current_term'),
-                'lastUpdateTime' => formatDate($currentLastUpdate)
+                'title' => $currentTerm ? $currentTerm->name : __('No Set'),
+                'lastUpdateTime' => $currentTerm ? formatDate($currentTerm->updated_at) : null,
             ],
         ];
     }
+
 
     /**
      * Get term data for DataTables.
@@ -317,11 +320,11 @@ class AcademicTermService
         $terms = $this->applySearchFilters($terms);
         return DataTables::of($terms)
             ->addIndexColumn()
-            ->addColumn('season', fn($term) => __('app.general.season.' . $term->season))
+            ->addColumn('season', fn($term) => __($term->season))
             ->addColumn('year', fn($term) => $term->year)
             ->addColumn('code', fn($term) => $term->code)
             ->addColumn('start_date', fn($term) => formatDate($term->start_date))
-            ->addColumn('end_date', fn($term) => formatDate($term->end_date) ?: __('app.academic.academic_terms.messages.not_set'))
+            ->addColumn('end_date', fn($term) => formatDate($term->end_date) ?: __('Not Set'))
             ->addColumn('reservations', fn($term) => formatNumber($term->reservations_count))
             ->addColumn('status', fn($term) => $this->renderStatusBadge($term))
             ->addColumn('action', fn($term) => $this->renderActionButtons($term))
@@ -369,8 +372,8 @@ class AcademicTermService
     private function renderStatusBadge(AcademicTerm $term): string
     {
         return $term->active
-            ? '<span class="badge bg-label-success">' . __('app.general.status.active') . '</span>'
-            : '<span class="badge bg-label-secondary">' . __('app.general.status.inactive') . '</span>';
+            ? '<span class="badge bg-label-success">' . __('active') . '</span>'
+            : '<span class="badge bg-label-secondary">' . __('inactive') . '</span>';
     }
 
     /**
@@ -387,7 +390,7 @@ class AcademicTermService
                 'action' => $term->active ? 'deactivate' : 'activate',
                 'icon' => $term->active ? 'bx bx-toggle-left' : 'bx bx-toggle-right',
                 'class' => $term->active ? 'btn-warning' : 'btn-success',
-                'label' => $term->active ? __('app.general.status.action.deactivate') : __('app.general.status.action.activate')
+                'label' => $term->active ? __('deactivate') : __('activate')
             ];
         }
         if ($term->active && !$term->current) {
@@ -395,7 +398,7 @@ class AcademicTermService
                 'action' => 'start',
                 'icon' => 'bx bx-play-circle',
                 'class' => 'btn-success',
-                'label' => __('app.general.status.action.start')
+                'label' => __('start')
             ];
         }
         if ($term->current) {
@@ -403,7 +406,7 @@ class AcademicTermService
                 'action' => 'end',
                 'icon' => 'bx bx-stop-circle',
                 'class' => 'btn-secondary',
-                'label' => __('app.general.status.action.end')
+                'label' => __('end')
             ];
         }
         return view('components.ui.datatable.table-actions', [
@@ -425,12 +428,21 @@ class AcademicTermService
     private function generateCode($season, $academicYear): string
     {
         $season = strtolower(trim($season));
-        $seasonCode = match($season) {
-            'fall' => '1',
-            'spring' => '2',
-            'summer' => '3',
-            default => throw new BusinessValidationException(__('app.academic.academic_terms.messages.error.invalid_season'))
-        };
+        switch ($season) {
+            case 'fall':
+                $seasonCode = '1';
+                break;
+            case 'spring':
+                $seasonCode = '2';
+                break;
+            case 'summer':
+                $seasonCode = '3';
+                break;
+            default:
+                throw new BusinessValidationException(
+                    __('Invalid value provided for :field.', ['field' => 'season'])
+                );
+        }
         $years = explode('-', $academicYear);
         $startYear = trim($years[0]);
         $shortYear = substr($startYear, -2);

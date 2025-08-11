@@ -48,18 +48,17 @@ class ApartmentService
     {
         $apartment = Apartment::with('building')->find($id);
         if (!$apartment) {
-            throw new BusinessValidationException(__('apartments.messages.not_found'));
+            throw new BusinessValidationException(__(':field not found.', ['field' => __('building')]));
         }
 
         return [
             'id' => $apartment->id,
-            // Use formatted accessors from models
             'name' => $apartment->formattedName,
             'building' => $apartment->building?->formattedName,
             'currentOccupancy' => $apartment->currentOccupancy,
             'gender' => $apartment->formattedGender,
             'roomsCount' => formatNumber($apartment->total_rooms),
-            'active' => __($apartment->active ? 'general.active' : 'general.inactive'),
+            'active' => ($apartment->active ? __('active') : __('inactive')),
         ];
     }
 
@@ -75,7 +74,7 @@ class ApartmentService
         $apartment = Apartment::findOrFail($id);
 
         if ($apartment->rooms()->sum('current_occupancy') > 0) {
-            throw new BusinessValidationException(__('apartments.messages.cannot_delete_has_residents'));
+            throw new BusinessValidationException(__('This apartment cannot be deleted because it has residents.'));
         }
         $apartment->delete();
     }
@@ -107,37 +106,33 @@ class ApartmentService
      */
     public function getStats(): array
     {
-        $total = Apartment::count();
-        $male = Apartment::whereHas('building', function ($q) {
-            $q->where('gender_restriction', 'male');
-        })->count();
-        $female = Apartment::whereHas('building', function ($q) {
-            $q->where('gender_restriction', 'female');
-        })->count();
-
-        $lastUpdate = Apartment::max('updated_at');
-        $maleLastUpdate = Apartment::whereHas('building', function ($q) {
-            $q->where('gender_restriction', 'male');
-        })->max('updated_at');
-        $femaleLastUpdate = Apartment::whereHas('building', function ($q) {
-            $q->where('gender_restriction', 'female');
-        })->max('updated_at');
+        $stats = Apartment::selectRaw('
+            COUNT(*) as total,
+            SUM(CASE WHEN buildings.gender_restriction = "male" THEN 1 ELSE 0 END) as male,
+            SUM(CASE WHEN buildings.gender_restriction = "female" THEN 1 ELSE 0 END) as female,
+            MAX(apartments.updated_at) as last_update,
+            MAX(CASE WHEN buildings.gender_restriction = "male" THEN apartments.updated_at END) as male_last_update,
+            MAX(CASE WHEN buildings.gender_restriction = "female" THEN apartments.updated_at END) as female_last_update
+        ')
+        ->leftJoin('buildings', 'buildings.id', '=', 'apartments.building_id')
+        ->first();
 
         return [
             'apartments' => [
-                'count' => formatNumber($total),
-                'lastUpdateTime' => formatDate($lastUpdate),
+                'count' => formatNumber($stats->total),
+                'lastUpdateTime' => formatDate($stats->last_update),
             ],
             'apartments-male' => [
-                'count' => formatNumber($male),
-                'lastUpdateTime' => formatDate($maleLastUpdate),
+                'count' => formatNumber($stats->male),
+                'lastUpdateTime' => formatDate($stats->male_last_update),
             ],
             'apartments-female' => [
-                'count' => formatNumber($female),
-                'lastUpdateTime' => formatDate($femaleLastUpdate),
+                'count' => formatNumber($stats->female),
+                'lastUpdateTime' => formatDate($stats->female_last_update),
             ],
         ];
-    }
+}
+
 
     /**
      * Get apartment data for DataTables.
@@ -164,7 +159,7 @@ class ApartmentService
             ->addColumn('building', fn($apartment) => $apartment->building?->formattedName)
             ->addColumn('total_rooms', fn($apartment) => formatNumber($apartment->total_rooms))
             ->addColumn('gender', fn($apartment) => $apartment->formattedGender)
-            ->editColumn('active', fn($apartment) => $apartment->active ? __('general.active') : __('general.inactive'))
+            ->editColumn('active', fn($apartment) => $apartment->active ? __('active') : __('inactive'))
             ->editColumn('created_at', fn($apartment) => formatDate($apartment->created_at))
             ->addColumn('action', fn($apartment) => $this->renderActionButtons($apartment))
             // Ordering mappings aligned with frontend column names
@@ -220,13 +215,13 @@ class ApartmentService
             'action' => $apartment->active ? 'deactivate' : 'activate',
             'icon' => $apartment->active ? 'bx bx-toggle-left' : 'bx bx-toggle-right',
             'class' => $apartment->active ? 'btn-warning' : 'btn-success',
-            'label' => $apartment->active ? __('general.deactivate') : __('general.activate')
+            'label' => $apartment->active ? __('deactivate') : __('activate')
         ];
         $singleActions[] = [
             'action' => 'delete',
             'icon' => 'bx bx-trash',
             'class' => 'btn-danger',
-            'label' => __('general.delete')
+            'label' => __('delete')
         ];
         return view('components.ui.datatable.table-actions', [
             'mode' => 'single',
@@ -265,7 +260,7 @@ class ApartmentService
     {
         foreach ($apartment->rooms as $room) {
             if ($room->current_occupancy > 0) {
-                throw new BusinessValidationException("Cannot change activation status for room {$room->number} in apartment {$apartment->number} because it is currently occupied.");
+                throw new BusinessValidationException(__("Cannot change activation status for room {$room->number} in apartment {$apartment->number} because it is currently occupied."));
             }
             $room->active = $active;
             $room->save();

@@ -93,7 +93,7 @@ class RoomService
         ])->find($id);
 
         if (!$room) {
-            throw new BusinessValidationException('Room not found.');
+            throw new BusinessValidationException(__(':field not found.', ['field' => __('room')]));
         }
 
         return [
@@ -215,10 +215,10 @@ class RoomService
             ->addColumn('name', fn($room) => $room->formatted_name)
             ->addColumn('apartment', fn($room) => $room->apartment?->formatted_name)
             ->addColumn('building', fn($room) => $room->apartment?->building?->formatted_name)
-            ->editColumn('type', fn($room) => __("general.{$room->type}"))
-            ->editColumn('purpose', fn($room) => __("general.{$room->purpose}"))
-            ->editColumn('gender', fn($room) => __("general.{$room->gender}"))
-            ->editColumn('active', fn($room) => $room->active ? __('general.active') : __('general.inactive'))
+            ->editColumn('type', fn($room) => __("{$room->type}"))
+            ->editColumn('purpose', fn($room) => __("{$room->purpose}"))
+            ->editColumn('gender', fn($room) => __("{$room->gender}"))
+            ->editColumn('active', fn($room) => $room->active ? __('active') : __('inactive'))
             ->editColumn('occupancy_status', fn($room) => $room->occupancy_status ? ucfirst($room->occupancy_status) : null)
             ->addColumn('action', fn($room) => $this->renderActionButtons($room))
             ->orderColumn('number', 'rooms.number $1')
@@ -283,7 +283,7 @@ class RoomService
             'action' => $room->active ? 'deactivate' : 'activate',
             'icon' => $room->active ? 'bx bx-toggle-left' : 'bx bx-toggle-right',
             'class' => $room->active ? 'btn-warning' : 'btn-success',
-            'label' => $room->active ? __('rooms.buttons.deactivate') : __('rooms.buttons.activate')
+            'label' => $room->active ? __('deactivate') : __('activate')
         ];
         return view('components.ui.datatable.table-actions', [
             'mode' => 'both',
