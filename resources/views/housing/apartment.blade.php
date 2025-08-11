@@ -1,89 +1,89 @@
 @extends('layouts.home')
 
-@section('title', __('apartments.page.title'))
+@section('title', __('Apartment Management'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="secondary" icon="bx bx-building" :label="__('apartments.stats.total_apartments')" id="apartments" />
+            <x-ui.card.stat2 color="secondary" icon="bx bx-building" :label="__('Total Apartments')" id="apartments" />
         </div>
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="info" icon="bx bx-male" :label="__('apartments.stats.male_apartments')" id="apartments-male" />
+            <x-ui.card.stat2 color="info" icon="bx bx-male" :label="__('Male Apartments')" id="apartments-male" />
         </div>
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="danger" icon="bx bx-female" :label="__('apartments.stats.female_apartments')" id="apartments-female" />
+            <x-ui.card.stat2 color="danger" icon="bx bx-female" :label="__('Female Apartments')" id="apartments-female" />
         </div>
     </div>
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header 
-        :title="__('apartments.page.header.title')"
-        :description="__('apartments.page.header.description')"
+        :title="__('Apartments')"
+        :description="__('Manage all campus apartments and their details')"
         icon="bx bx-building"
     >
         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
             <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#apartmentSearchCollapse" aria-expanded="false" aria-controls="apartmentSearchCollapse">
-                <i class="bx bx-filter-alt me-1"></i> {{ __('apartments.buttons.search') }}
+                <i class="bx bx-filter-alt me-1"></i> {{ __('Search') }}
             </button>
         </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
     <x-ui.advanced-search 
-        :title="__('apartments.search.title')" 
+        :title="__('Advanced Apartment Search')" 
         formId="advancedApartmentSearch" 
         collapseId="apartmentSearchCollapse"
         :collapsed="false"
     >
         <div class="col-md-4">
-            <label for="search_building_id" class="form-label">{{ __('apartments.search.labels.building_number') }}:</label>
+            <label for="search_building_id" class="form-label">{{ __('Building Number') }}:</label>
             <select class="form-control" id="search_building_id">
-                <option value="">{{ __('apartments.search.placeholders.all') }}</option>
+                <option value="">{{ __('All') }}</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_apartment_id" class="form-label">{{ __('apartments.search.labels.apartment_number') }}:</label>
+            <label for="search_apartment_id" class="form-label">{{ __('Apartment Number') }}:</label>
             <select class="form-control" id="search_apartment_id" disabled>
-                <option value="">{{ __('apartments.search.placeholders.all') }}</option>
+                <option value="">{{ __('All') }}</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_gender_restriction" class="form-label">{{ __('apartments.search.labels.gender_restriction') }}:</label>
+            <label for="search_gender_restriction" class="form-label">{{ __('Gender Restriction') }}:</label>
             <select class="form-control" id="search_gender_restriction">
-                <option value="">{{ __('apartments.search.placeholders.all') }}</option>
-                <option value="male">{{ __('apartments.search.options.male') }}</option>
-                <option value="female">{{ __('apartments.search.options.female') }}</option>
-                <option value="mixed">{{ __('apartments.search.options.mixed') }}</option>
+                <option value="">{{ __('All') }}</option>
+                <option value="male">{{ __('Male') }}</option>
+                <option value="female">{{ __('Female') }}</option>
+                <option value="mixed">{{ __('Mixed') }}</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_active" class="form-label">{{ __('apartments.search.labels.active_status') }}:</label>
+            <label for="search_active" class="form-label">{{ __('Active Status') }}:</label>
             <select class="form-control" id="search_active">
-                <option value="">{{ __('apartments.search.placeholders.all') }}</option>
-                <option value="1">{{ __('apartments.search.options.active') }}</option>
-                <option value="0">{{ __('apartments.search.options.inactive') }}</option>
+                <option value="">{{ __('All') }}</option>
+                <option value="1">{{ __('Active') }}</option>
+                <option value="0">{{ __('Inactive') }}</option>
             </select>
         </div>
         <div class="w-100"></div>
         <button class="btn btn-outline-secondary mt-2 ms-2" id="clearApartmentFiltersBtn" type="button">
-            <i class="bx bx-x"></i> {{ __('apartments.buttons.clear_filters') }}
+            <i class="bx bx-x"></i> {{ __('Clear Filters') }}
         </button>
     </x-ui.advanced-search>
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable.table 
-        :headers="[
-            __('apartments.table.headers.name'),
-            __('apartments.table.headers.building'),
-            __('apartments.table.headers.total_rooms'),
-            __('apartments.table.headers.gender'),
-            __('apartments.table.headers.active'),
-            __('apartments.table.headers.created_at'),
-            __('apartments.table.headers.actions')
+        :headers=" [
+            __('Name'),
+            __('Building'),
+            __('Total Rooms'),
+            __('Gender'),
+            __('Active'),
+            __('Created At'),
+            __('Actions')
         ]"
-        :columns="[
+        :columns=" [
             ['data' => 'name', 'name' => 'name'],
             ['data' => 'building', 'name' => 'building'],
             ['data' => 'total_rooms', 'name' => 'total_rooms'],
@@ -101,7 +101,7 @@
     {{-- View Apartment Modal --}}
     <x-ui.modal 
         id="viewApartmentModal"
-        :title="__('apartments.modal.view_title')"
+        :title="__('View Apartment Details')"
         size="md"
         :scrollable="false"
         class="view-apartment-modal"
@@ -109,33 +109,33 @@
         <x-slot name="slot">
             <div class="row">
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">{{ __('apartments.modal.labels.number') }}:</label>
+                    <label class="form-label fw-bold">{{ __('Number') }}:</label>
                     <p id="view-apartment-number" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">{{ __('apartments.modal.labels.building') }}:</label>
+                    <label class="form-label fw-bold">{{ __('Building') }}:</label>
                     <p id="view-apartment-building" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">{{ __('apartments.modal.labels.total_rooms') }}:</label>
+                    <label class="form-label fw-bold">{{ __('Total Rooms') }}:</label>
                     <p id="view-apartment-total-rooms" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">{{ __('apartments.modal.labels.gender_restriction') }}:</label>
+                    <label class="form-label fw-bold">{{ __('Gender Restriction') }}:</label>
                     <p id="view-apartment-gender-restriction" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">{{ __('apartments.modal.labels.current_occupancy') }}:</label>
+                    <label class="form-label fw-bold">{{ __('Current Occupancy') }}:</label>
                     <p id="view-apartment-current-occupancy" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">{{ __('apartments.modal.labels.active') }}:</label>
+                    <label class="form-label fw-bold">{{ __('Active') }}:</label>
                     <p id="view-apartment-is-active" class="mb-0"></p>
                 </div>
             </div>
         </x-slot>
         <x-slot name="footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('apartments.buttons.close') }}</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
         </x-slot>
     </x-ui.modal>
 </div>
@@ -181,43 +181,43 @@ var ROUTES = {
 const TRANSLATION = {
   confirm: {
     activate: {
-      title: '{{ __('apartments.confirm.activate.title') }}',
-      text: '{{ __('apartments.confirm.activate.text') }}',
-      button: '{{ __('apartments.confirm.activate.button') }}'
+      title: '{{ __("Activate Apartment") }}',
+      text: '{{ __("Are you sure you want to activate this apartment?") }}',
+      button: '{{ __("Activate") }}'
     },
     deactivate: {
-      title: '{{ __('apartments.confirm.deactivate.title') }}',
-      text: '{{ __('apartments.confirm.deactivate.text') }}',
-      button: '{{ __('apartments.confirm.deactivate.button') }}'
+      title: '{{ __("Deactivate Apartment") }}',
+      text: '{{ __("Are you sure you want to deactivate this apartment?") }}',
+      button: '{{ __("Deactivate") }}'
     },
     delete: {
-      title: '{{ __('apartments.confirm.delete.title') }}',
-      text: '{{ __('apartments.confirm.delete.text') }}',
-      button: '{{ __('apartments.confirm.delete.button') }}'
+      title: '{{ __("Delete Apartment") }}',
+      text: '{{ __("Are you sure you want to delete this apartment? This action cannot be undone.") }}',
+      button: '{{ __("Delete") }}'
     }
   },
   success: {
-    activated: '{{ __('apartments.messages.activated') }}',
-    deactivated: '{{ __('apartments.messages.deactivated') }}',
-    deleted: '{{ __('apartments.messages.deleted') }}'
+    activated: '{{ __("Apartment has been successfully activated.") }}',
+    deactivated: '{{ __("Apartment has been successfully deactivated.") }}',
+    deleted: '{{ __("Apartment has been successfully deleted.") }}'
   },
   error: {
-    loadStats: '{{ __('apartments.messages.load_stats_error') }}',
-    loadApartment: '{{ __('apartments.messages.load_apartment_error') }}',
-    deleteApartment: '{{ __('apartments.messages.delete_error') }}',
-    operationFailed: '{{ __('apartments.messages.operation_failed') }}'
+    loadStats: '{{ __("Failed to load apartment statistics.") }}',
+    loadApartment: '{{ __("Failed to load apartment details.") }}',
+    deleteApartment: '{{ __("Failed to delete apartment.") }}',
+    operationFailed: '{{ __("Operation failed. Please try again.") }}'
   },
   placeholders: {
-    selectBuilding: '{{ __('apartments.placeholders.select_building') }}',
-    selectApartment: '{{ __('apartments.placeholders.select_apartment') }}',
-    selectBuildingFirst: '{{ __('apartments.placeholders.select_building_first') }}',
-    noApartments: '{{ __('apartments.placeholders.no_apartments') }}',
-    selectGender: '{{ __('apartments.placeholders.select_gender') }}',
-    selectStatus: '{{ __('apartments.placeholders.select_status') }}'
+    selectBuilding: '{{ __("Select Building") }}',
+    selectApartment: '{{ __("Select Apartment") }}',
+    selectBuildingFirst: '{{ __("Select a building first") }}',
+    noApartments: '{{ __("No apartments available") }}',
+    selectGender: '{{ __("Select Gender") }}',
+    selectStatus: '{{ __("Select Status") }}'
   },
   status: {
-    active: '{{ __('apartments.status.active') }}',
-    inactive: '{{ __('apartments.status.inactive') }}'
+    active: '{{ __("Active") }}',
+    inactive: '{{ __("Inactive") }}'
   }
 };
 

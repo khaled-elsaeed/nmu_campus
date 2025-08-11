@@ -1,6 +1,6 @@
 @extends('layouts.home')
 
-@section('title', __('payments.page_title'))
+@section('title', __('Payment Management'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -11,16 +11,16 @@
           <x-ui.card.stat2 
               color="secondary"
               icon="bx bx-door-open"
-              :label="__('payments.stats.total_payments')"
+              :label="__('Total Payments')"
               id="payments"
               :subStats="[
                   'male' => [
-                      'label' => __('payments.stats.male_payments'),
+                      'label' => __('Male Payments'),
                       'icon' => 'bx bx-male-sign',
                       'color' => 'info'
                   ],
                   'female' => [
-                      'label' => __('payments.stats.female_payments'), 
+                      'label' => __('Female Payments'), 
                       'icon' => 'bx bx-female-sign',
                       'color' => 'danger'
                   ]
@@ -33,16 +33,16 @@
           <x-ui.card.stat2 
               color="warning"
               icon="bx bx-time-five"
-              label="Pending Payments"
+              :label="__('Pending Payments')"
               id="payments-pending"
               :subStats="[
                   'male' => [
-                      'label' => 'Male Pending',
+                      'label' => __('Male Pending'),
                       'icon' => 'bx bx-male-sign',
                       'color' => 'info'
                   ],
                   'female' => [
-                      'label' => 'Female Pending', 
+                      'label' => __('Female Pending'), 
                       'icon' => 'bx bx-female-sign',
                       'color' => 'danger'
                   ]
@@ -55,16 +55,16 @@
           <x-ui.card.stat2 
               color="success"
               icon="bx bx-check-circle"
-              label="Completed Payments"
+              :label="__('Completed Payments')"
               id="payments-completed"
               :subStats="[
                   'male' => [
-                      'label' => 'Male Completed',
+                      'label' => __('Male Completed'),
                       'icon' => 'bx bx-male-sign',
                       'color' => 'info'
                   ],
                   'female' => [
-                      'label' => 'Female Completed', 
+                      'label' => __('Female Completed'), 
                       'icon' => 'bx bx-female-sign',
                       'color' => 'danger'
                   ]
@@ -77,16 +77,16 @@
           <x-ui.card.stat2 
               color="dark"
               icon="bx bx-x-circle"
-              label="Cancelled Payments"
+              :label="__('Cancelled Payments')"
               id="payments-cancelled"
               :subStats="[
                   'male' => [
-                      'label' => 'Male Cancelled',
+                      'label' => __('Male Cancelled'),
                       'icon' => 'bx bx-male-sign',
                       'color' => 'info'
                   ],
                   'female' => [
-                      'label' => 'Female Cancelled', 
+                      'label' => __('Female Cancelled'), 
                       'icon' => 'bx bx-female-sign',
                       'color' => 'danger'
                   ]
@@ -97,51 +97,60 @@
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header 
-        title="Payments"
-        description="Manage payments and their details."
+        :title="__('Payments Management')"
+        :description="__('Manage all campus payments and transactions')"
         icon="bx bx-money"
     >
     <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
                             <button class="btn btn-primary mx-2" id="addPaymentBtn">
-            <i class="bx bx-plus me-1"></i> Add Payment
+            <i class="bx bx-plus me-1"></i> {{ __('Add Payment') }}
         </button>
             <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#paymentSearchCollapse" aria-expanded="false" aria-controls="paymentSearchCollapse">
-                <i class="bx bx-filter-alt me-1"></i> Search
+                <i class="bx bx-filter-alt me-1"></i> {{ __('Search') }}
             </button>
         </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
     <x-ui.advanced-search 
-        title="Advanced Search" 
+        :title="__('Advanced Payment Search')" 
         formId="advancedPaymentSearch" 
         collapseId="paymentSearchCollapse"
         :collapsed="false"
     >
         <div class="col-md-4">
-            <label for="search_status" class="form-label">Status:</label>
+            <label for="search_status" class="form-label">{{ __('Status') }}:</label>
             <select class="form-control" id="search_status" name="search_status">
-                <option value="">All</option>
-                <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
-                <option value="refunded">Refunded</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="">{{ __('All') }}</option>
+                <option value="pending">{{ __('Pending') }}</option>
+                <option value="completed">{{ __('Completed') }}</option>
+                <option value="refunded">{{ __('Refunded') }}</option>
+                <option value="cancelled">{{ __('Cancelled') }}</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_reservation_id" class="form-label">Reservation ID:</label>
-            <input type="text" class="form-control" id="search_reservation_id" name="search_reservation_id">
+            <label for="search_reservation_id" class="form-label">{{ __('Reservation ID') }}:</label>
+            <input type="text" class="form-control" id="search_reservation_id" name="search_reservation_id" placeholder="{{ __('Enter reservation ID') }}">
         </div>
         <div class="w-100"></div>
         <button class="btn btn-outline-secondary mt-2 ms-2" id="clearPaymentFiltersBtn" type="button">
-            <i class="bx bx-x"></i> Clear Filters
+            <i class="bx bx-x"></i> {{ __('Clear Filters') }}
         </button>
     </x-ui.advanced-search>
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable.table 
-        :headers="['Reservation Number', 'User', 'Amount', 'Status', 'Notes', 'Details', 'Created At', 'Actions']"
-        :columns="[
+        :headers=" [
+            __('Reservation Number'),
+            __('User'),
+            __('Amount'),
+            __('Status'),
+            __('Notes'),
+            __('Details'),
+            __('Created At'),
+            __('Actions')
+        ]"
+        :columns=" [
             ['data' => 'reservation_number', 'name' => 'reservation_number'],
             ['data' => 'user_name', 'name' => 'user_name'],
             ['data' => 'amount', 'name' => 'amount'],
@@ -160,7 +169,7 @@
     {{-- Add/Edit Payment Modal --}}
     <x-ui.modal 
         id="paymentModal"
-        title="Add/Edit Payment"
+        :title="__('Manage Payment')"
         :scrollable="true"
         class="payment-modal"
     >
@@ -168,44 +177,44 @@
             <form id="paymentForm">
                 <div class="row">
                     <div class="col-md-12 mb-3">
-                        <label for="payment_reservation_id" class="form-label">Reservation Number</label>
+                        <label for="payment_reservation_id" class="form-label">{{ __('Reservation Number') }}</label>
                         <input type="text" id="payment_reservation_id" name="reservation_number" class="form-control" required>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label for="payment_notes" class="form-label">Notes</label>
+                        <label for="payment_notes" class="form-label">{{ __('Notes') }}</label>
                         <textarea id="payment_notes" name="notes" class="form-control"></textarea>
                     </div>
                     <div class="col-md-12">
-                        <label class="form-label fw-bold">Total Amount</label>
+                        <label class="form-label fw-bold">{{ __('Total Amount') }}</label>
                         <input type="number" step="0.01" id="payment_amount" name="amount" class="form-control bg-light" readonly>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label class="form-label">Payment Details</label>
+                        <label class="form-label">{{ __('Payment Details') }}</label>
                         <div id="payment_details_container">
                             <!-- Template for payment detail item -->
                             <div class="payment-detail-item card mb-3">
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-4 mb-2">
-                                            <label class="form-label">Payment Type</label>
+                                            <label class="form-label">{{ __('Payment Type') }}</label>
                                             <select name="details[0][type]" class="form-control payment-type" required>
-                                                <option value="">Select Type</option>
-                                                <option value="damages">damages</option>
-                                                <option value="service_fee">Service Fee</option>
-                                                <option value="other">Other</option>
+                                                <option value="">{{ __('Select Type') }}</option>
+                                                <option value="damages">{{ __('Damages') }}</option>
+                                                <option value="service_fee">{{ __('Service Fee') }}</option>
+                                                <option value="other">{{ __('Other') }}</option>
                                             </select>
                                         </div>
                                         <div class="col-md-4 mb-2">
-                                            <label class="form-label">Amount</label>
+                                            <label class="form-label">{{ __('Amount') }}</label>
                                             <input type="number" name="details[0][amount]" class="form-control payment-amount" step="0.01" required>
                                         </div>
                                         <div class="col-md-12 mb-2">
-                                            <label class="form-label">Description</label>
+                                            <label class="form-label">{{ __('Description') }}</label>
                                             <textarea name="details[0][description]" class="form-control payment-description" rows="2"></textarea>
                                         </div>
                                         <div class="col-12 text-end">
                                             <button type="button" class="btn btn-danger btn-sm remove-detail" style="display: none;">
-                                                <i class="bx bx-trash"></i> Remove
+                                                <i class="bx bx-trash"></i> {{ __('Remove') }}
                                             </button>
                                         </div>
                                     </div>
@@ -213,66 +222,66 @@
                             </div>
                         </div>
                         <button type="button" class="btn btn-secondary mt-2" id="add_payment_detail">
-                            <i class="bx bx-plus"></i> Add
+                            <i class="bx bx-plus"></i> {{ __('Add Detail') }}
                         </button>
                     </div>
                 </div>
             </form>
         </x-slot>
         <x-slot name="footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="submit" class="btn btn-primary" form="paymentForm">Save</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+            <button type="submit" class="btn btn-primary" form="paymentForm">{{ __('Save') }}</button>
         </x-slot>
     </x-ui.modal>
 
     {{-- View Payment Modal --}}
     <x-ui.modal 
         id="viewPaymentModal"
-        title="Payment Details"
+        :title="__('Payment Details')"
         :scrollable="true"
         class="view-payment-modal"
     >
         <x-slot name="slot">
             <div class="row">
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Reservation Number:</label>
+                    <label class="form-label fw-bold">{{ __('Reservation Number') }}:</label>
                     <p id="view-payment-reservation-number" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">User:</label>
+                    <label class="form-label fw-bold">{{ __('User') }}:</label>
                     <p id="view-payment-user" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Amount:</label>
+                    <label class="form-label fw-bold">{{ __('Amount') }}:</label>
                     <p id="view-payment-amount" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Status:</label>
+                    <label class="form-label fw-bold">{{ __('Status') }}:</label>
                     <p id="view-payment-status" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Notes:</label>
+                    <label class="form-label fw-bold">{{ __('Notes') }}:</label>
                     <p id="view-payment-notes" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Details:</label>
+                    <label class="form-label fw-bold">{{ __('Details') }}:</label>
                     <div id="view-payment-details-list"></div>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Created At:</label>
+                    <label class="form-label fw-bold">{{ __('Created At') }}:</label>
                     <p id="view-payment-created" class="mb-0"></p>
                 </div>
             </div>
         </x-slot>
         <x-slot name="footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
         </x-slot>
     </x-ui.modal>
 
     {{-- Details Modal --}}
     <x-ui.modal 
         id="paymentDetailsModal"
-        title="Payment Details"
+        :title="__('Payment Details')"
         :scrollable="true"
         class="view-payment-details-modal"
     >
@@ -280,7 +289,7 @@
             <pre id="payment-details-json" class="mb-0"></pre>
         </x-slot>
         <x-slot name="footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
         </x-slot>
     </x-ui.modal>
 </div>
@@ -288,6 +297,39 @@
 
 @push('scripts')
 <script>
+// ===========================
+// TRANSLATIONS
+// ===========================
+var translations = {
+    actions: {
+        viewDetails: "{{ __('View Details') }}",
+        loading: "{{ __('Loading...') }}",
+        saving: "{{ __('Saving...') }}",
+        save: "{{ __('Save') }}",
+    },
+    messages: {
+        failed_to_load_stats: "{{ __('Failed to load statistics') }}",
+        failed_to_load_data: "{{ __('Failed to load data') }}",
+        payment_saved: "{{ __('Payment saved successfully') }}",
+        failed_to_save: "{{ __('Failed to save payment') }}",
+        confirm_delete_title: "{{ __('Are you sure?') }}",
+        confirm_delete_text: "{{ __('You won\'t be able to revert this!') }}",
+        confirm_delete_button: "{{ __('Yes, delete it!') }}",
+        payment_deleted: "{{ __('Payment has been deleted') }}",
+        failed_to_delete: "{{ __('Failed to delete payment') }}",
+        failed_to_load_details: "{{ __('Failed to load payment details') }}",
+        no_details_available: "{{ __('No details available') }}",
+        filters_cleared: "{{ __('Filters cleared') }}",
+    },
+    modals: {
+        add_title: "{{ __('Add Payment') }}",
+        edit_title: "{{ __('Edit Payment') }}",
+    },
+    placeholders: {
+        select_status: "{{ __('Select Status') }}",
+    }
+};
+
 /**
  * Payment Management Page JS
  *
@@ -390,7 +432,7 @@ var StatsManager = Utils.createStatsManager({
     'payments-completed': ['male', 'female'],
     'payments-cancelled': ['male', 'female']
   },
-  onError: 'Failed to load payment statistics'
+  onError: translations.messages.failed_to_load_stats
 });
   
 
@@ -424,7 +466,7 @@ var PaymentManager = {
     var self = this;
     $(document).on('click', '#addPaymentBtn', function() {
       Utils.resetForm('paymentForm');
-      $('#paymentModalTitle').text('Add Payment');
+      $('#paymentModalTitle').text(translations.modals.add_title);
       $('#paymentModal').modal('show');
     });
   },
@@ -436,7 +478,7 @@ var PaymentManager = {
     $(document).on('click', '.editPaymentBtn', function(e) {
       var paymentId = $(e.currentTarget).data('id');
       Utils.resetForm('paymentForm');
-        $('#paymentModalTitle').text('Edit Payment');
+        $('#paymentModalTitle').text(translations.modals.edit_title);
     ApiService.fetchPayment(paymentId)
       .done(function(response) {
         if (response.success) {
@@ -446,7 +488,7 @@ var PaymentManager = {
       })
       .fail(function(xhr) {
         $('#paymentModal').modal('hide');
-          Utils.handleAjaxError(xhr,'Failed to load payment data');
+          Utils.handleAjaxError(xhr, translations.messages.failed_to_load_data);
       });
     });
   },
@@ -619,9 +661,9 @@ var PaymentManager = {
       .fail(function() {
         $('#viewPaymentModal').modal('hide');
         if (Utils && typeof Utils.showError === 'function') {
-          Utils.showError('Failed to load payment data');
+          Utils.showError(translations.messages.failed_to_load_data);
         } else {
-          alert('Failed to load payment data');
+          alert(translations.messages.failed_to_load_data);
         }
       });
   },
@@ -659,9 +701,9 @@ var PaymentManager = {
    */
   savePayment: function() {
     Utils.setLoadingState('#paymentForm button[type="submit"]', true, {
-      loadingText: 'Saving...',
+      loadingText: translations.actions.saving,
       loadingIcon: 'bx bx-loader-alt bx-spin',
-      normalText: 'Save',
+      normalText: translations.actions.save,
       normalIcon: 'bx bx-save'
     });
 
@@ -672,17 +714,17 @@ var PaymentManager = {
 
     apiCall
       .done(() => {
-        Utils.showSuccess('Payment saved successfully', true);
+        Utils.showSuccess(translations.messages.payment_saved, true);
         $('#paymentModal').modal('hide');
         Utils.reloadDataTable('#payments-table');
         StatsManager.load();
       })
       .fail((xhr) => {
-        Utils.handleAjaxError(xhr, 'Failed to save payment');
+        Utils.handleAjaxError(xhr, translations.messages.failed_to_save);
       })
       .always(() => {
         Utils.setLoadingState('#paymentForm button[type="submit"]', false, {
-          normalText: 'Save',
+          normalText: translations.actions.save,
           normalIcon: 'bx bx-save'
         });
       });
@@ -710,16 +752,16 @@ var PaymentManager = {
   deletePayment: function(paymentId) {
     if (Utils && typeof Utils.showConfirmDialog === 'function') {
       Utils.showConfirmDialog({
-        title: 'Are you sure?',
-        text: "You won't be able to revert this!",
-        confirmButtonText: 'Yes, delete it!'
+        title: translations.messages.confirm_delete_title,
+        text: translations.messages.confirm_delete_text,
+        confirmButtonText: translations.messages.confirm_delete_button
       }).then(function(result) {
         if (result.isConfirmed) {
           PaymentManager.performDelete(paymentId);
         }
       });
     } else {
-      if (confirm('Are you sure?')) {
+      if (confirm(translations.messages.confirm_delete_title)) {
         PaymentManager.performDelete(paymentId);
       }
     }
@@ -731,19 +773,19 @@ var PaymentManager = {
     ApiService.deletePayment(paymentId)
       .done(function() {
     Utils.reloadDataTable('#payments-table');
-    Utils.showSuccess('Payment has been deleted.');
+    Utils.showSuccess(translations.messages.payment_deleted);
     StatsManager.load();
       })
       .fail(function(xhr) {
-    var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to delete payment.';
+    var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : translations.messages.failed_to_delete;
     Utils.showError(message);
       });
   },
   viewDetails: function(paymentId) {
     Utils.setLoadingState('.viewDetailsBtn[data-id="' + paymentId + '"]', true, {
-      loadingText: 'Loading...',
+      loadingText: translations.actions.loading,
       loadingIcon: 'bx bx-loader-alt bx-spin',
-      normalText: 'View Details',
+      normalText: translations.actions.viewDetails,
       normalIcon: 'bx bx-info-circle'
     });
 
@@ -767,19 +809,19 @@ var PaymentManager = {
             });
             html += '</ul>';
           } else {
-            html = '<span class="text-muted">No details available</span>';
+            html = '<span class="text-muted">' + translations.messages.no_details_available + '</span>';
           }
           $('#payment-details-json').html(html);
         } else {
-          Utils.showError('Failed to load payment details', true);
+          Utils.showError(translations.messages.failed_to_load_details, true);
         }
       })
       .fail((xhr) => {
-        Utils.handleAjaxError(xhr, 'Failed to load payment details');
+        Utils.handleAjaxError(xhr, translations.messages.failed_to_load_details);
       })
       .always(() => {
         Utils.setLoadingState('.viewDetailsBtn[data-id="' + paymentId + '"]', false, {
-          normalText: 'View Details',
+          normalText: translations.actions.viewDetails,
           normalIcon: 'bx bx-info-circle'
         });
       });
@@ -809,7 +851,7 @@ var SearchManager = {
   initializeAdvancedSearch: function() {
     // Initialize select2 for status dropdown
     Utils.initSelect2('#search_status', {
-      placeholder: 'Select Status',
+      placeholder: translations.placeholders.select_status,
       allowClear: true
     });
 
@@ -827,7 +869,7 @@ var SearchManager = {
     $('#search_status').val('').trigger('change');
     $('#search_reservation_id').val('');
     Utils.reloadDataTable('#payments-table');
-    Utils.showSuccess('Filters cleared', true, 'top-end');
+    Utils.showSuccess(translations.messages.filters_cleared, true, 'top-end');
     });
   }
 };
@@ -854,4 +896,4 @@ $(document).ready(function() {
 });
 
 </script>
-@endpush 
+@endpush

@@ -1,16 +1,16 @@
 @extends('layouts.home')
 
-@section('title', __('reservations.check_in.page_title'))
+@section('title', __('Check-in Reservation'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
     <x-ui.page-header 
-        :title="__('reservations.check_in.page_header')"
-        :description="__('reservations.check_in.page_description')"
+        :title="__('Reservation Check-in')"
+        :description="__('Process guest check-in and equipment assignment')"
         icon="bx bx-log-in-circle"
     >
         <a href="{{ route('reservations.index') }}" class="btn btn-outline-secondary">
-            <i class="bx bx-arrow-back"></i> {{ __('reservations.check_in.back_to_list') }}
+            <i class="bx bx-arrow-back"></i> {{ __('Back to List') }}
         </a>
     </x-ui.page-header>
 
@@ -18,16 +18,16 @@
         <!-- Step 1: Reservation Number Search -->
         <div class="card mb-4 shadow-sm border-0">
             <div class="card-header bg-white border-bottom-0 pb-0">
-                <h5 class="mb-0"><i class="bx bx-id-card me-2"></i>{{ __('reservations.check_in.search_reservation') }}</h5>
+                <h5 class="mb-0"><i class="bx bx-id-card me-2"></i>{{ __('Search Reservation') }}</h5>
             </div>
             <div class="card-body pt-3">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-8">
-                        <input type="text" class="form-control" id="search_reservation_number" placeholder="{{ __('reservations.check_in.reservation_number_placeholder') }}">
+                        <input type="text" class="form-control" id="search_reservation_number" placeholder="{{ __('Enter Reservation Number') }}">
                     </div>
                     <div class="col-md-4">
                         <button type="button" class="btn btn-primary w-100" id="btnSearchReservation">
-                            <i class="bx bx-search"></i> {{ __('reservations.check_in.search_reservation_btn') }}
+                            <i class="bx bx-search"></i> {{ __('Search') }}
                         </button>
                     </div>
                 </div>
@@ -37,7 +37,7 @@
         <!-- Step 2: Reservation Info (hidden until found) -->
         <div id="reservation-info-section" class="card mb-4 shadow-sm border-0 d-none">
             <div class="card-header bg-white border-bottom-0 pb-0">
-                <h5 class="mb-0"><i class="bx bx-info-circle me-2"></i>Reservation Details</h5>
+                <h5 class="mb-0"><i class="bx bx-info-circle me-2"></i>{{ __('Reservation Details') }}</h5>
             </div>
             <div class="card-body pt-3">
                 <div id="reservation-info-content">
@@ -54,8 +54,8 @@
             <!-- Equipment Assignment -->
             <div class="card mb-4 shadow-sm border-0">
                 <div class="card-header bg-white border-bottom-0 pb-0">
-                    <h5 class="mb-0"><i class="bx bx-cube me-2"></i>Equipment Assignment</h5>
-                    <small class="text-muted">Select equipment to assign to the guest and specify condition</small>
+                    <h5 class="mb-0"><i class="bx bx-cube me-2"></i>{{ __('Equipment Assignment') }}</h5>
+                    <small class="text-muted">{{ __('Select equipment to assign to the guest and specify condition') }}</small>
                 </div>
                 <div class="card-body pt-3">
                     <div class="row">
@@ -63,7 +63,7 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="select_all_equipment">
                                 <label class="form-check-label" for="select_all_equipment">
-                                    <strong>Select All Equipment</strong>
+                                    <strong>{{ __('Select All Equipment') }}</strong>
                                 </label>
                             </div>
                         </div>
@@ -77,13 +77,13 @@
             <!-- Check-in Details -->
             <div class="card mb-4 shadow-sm border-0">
                 <div class="card-header bg-white border-bottom-0 pb-0">
-                    <h5 class="mb-0"><i class="bx bx-log-in-circle me-2"></i>Check-in Details</h5>
+                    <h5 class="mb-0"><i class="bx bx-log-in-circle me-2"></i>{{ __('Check-in Details') }}</h5>
                 </div>
                 <div class="card-body pt-3">
                     <div class="row g-3">
                         <div class="col-12">
-                            <label for="checkin_notes" class="form-label">Check-in Notes</label>
-                            <textarea class="form-control" id="checkin_notes" name="checkin_notes" rows="3" placeholder="Enter any notes about the check-in process..."></textarea>
+                            <label for="checkin_notes" class="form-label">{{ __('Check-in Notes') }}</label>
+                            <textarea class="form-control" id="checkin_notes" name="checkin_notes" rows="3" placeholder="{{ __('Enter any notes about the check-in process...') }}"></textarea>
                         </div>
                     </div>
                 </div>
@@ -91,7 +91,7 @@
 
             <div class="d-flex justify-content-end mt-4">
                 <button type="submit" class="btn btn-lg btn-success px-4 shadow">
-                    <i class="bx bx-log-in-circle"></i> Complete Check-in
+                    <i class="bx bx-log-in-circle"></i> {{ __('Complete Check-in') }}
                 </button>
             </div>
         </form>
@@ -129,19 +129,19 @@ const CONFIG = {
     
     messages: {
         success: {
-            checkinCompleted: 'Guest has been checked in successfully.'
+            checkinCompleted: '{{ __("Guest has been checked in successfully.") }}'
         },
         error: {
-            enterReservationNumber: 'Please enter a Reservation Number.',
-            reservationNotFound: 'No reservation found for this Reservation Number.',
-            fetchReservationFailed: 'Failed to fetch reservation details.',
-            checkinFailed: 'Failed to complete check-in.',
-            equipmentLoadFailed: 'Failed to load equipment list.'
+            enterReservationNumber: '{{ __("Please enter a Reservation Number.") }}',
+            reservationNotFound: '{{ __("No reservation found for this Reservation Number.") }}',
+            fetchReservationFailed: '{{ __("Failed to fetch reservation details.") }}',
+            checkinFailed: '{{ __("Failed to complete check-in.") }}',
+            equipmentLoadFailed: '{{ __("Failed to load equipment list.") }}'
         },
         validation: {
-            required: 'This field is required.',
-            invalidCost: 'Please enter a valid cost amount.',
-            missingNotes: 'Please provide notes for damaged/missing items.'
+            required: '{{ __("This field is required.") }}',
+            invalidCost: '{{ __("Please enter a valid cost amount.") }}',
+            missingNotes: '{{ __("Please provide notes for damaged/missing items.") }}'
         }
     },
 

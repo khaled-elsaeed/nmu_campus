@@ -1,6 +1,6 @@
 @extends('layouts.home')
 
-@section('title', __('rooms.page_title'))
+@section('title', __('Room Management'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -10,16 +10,16 @@
           <x-ui.card.stat2 
               color="secondary"
               icon="bx bx-door-open"
-              :label="__('rooms.stats.total_rooms')"
+              :label="__('Total Rooms')"
               id="rooms"
               :subStats="[
                   'male' => [
-                      'label' => __('rooms.stats.male_rooms'),
+                      'label' => __('Male Rooms'),
                       'icon' => 'bx bx-male-sign',
                       'color' => 'info'
                   ],
                   'female' => [
-                      'label' => __('rooms.stats.female_rooms'), 
+                      'label' => __('Female Rooms'), 
                       'icon' => 'bx bx-female-sign',
                       'color' => 'danger'
                   ]
@@ -30,16 +30,16 @@
           <x-ui.card.stat2 
               color="info"
               icon="bx bx-door-open"
-              :label="__('rooms.stats.total_double_rooms')"
+              :label="__('Total Double Rooms')"
               id="double-rooms"
               :subStats="[
                   'male' => [
-                      'label' => __('rooms.stats.male_double_rooms'),
+                      'label' => __('Male Double Rooms'),
                       'icon' => 'bx bx-male-sign',
                       'color' => 'info'
                   ],
                   'female' => [
-                      'label' => __('rooms.stats.female_double_rooms'),
+                      'label' => __('Female Double Rooms'),
                       'icon' => 'bx bx-female-sign',
                       'color' => 'danger'
                   ]
@@ -50,16 +50,16 @@
           <x-ui.card.stat2 
               color="secondary"
               icon="bx bx-door-open"
-              :label="__('rooms.stats.total_beds')"
+              :label="__('Total Beds')"
               id="beds"
               :subStats="[
                   'male' => [
-                      'label' => __('rooms.stats.male_beds'),
+                      'label' => __('Male Beds'),
                       'icon' => 'bx bx-male-sign',
                       'color' => 'info'
                   ],
                   'female' => [
-                      'label' => __('rooms.stats.female_beds'),
+                      'label' => __('Female Beds'),
                       'icon' => 'bx bx-female-sign',
                       'color' => 'danger'
                   ]
@@ -70,16 +70,16 @@
           <x-ui.card.stat2 
               color="secondary"
               icon="bx bx-door-open"
-              :label="__('rooms.stats.total_available_beds')"
+              :label="__('Total Available Beds')"
               id="available-beds"
               :subStats="[
                   'male' => [
-                      'label' => __('rooms.stats.available_male_beds'),
+                      'label' => __('Available Male Beds'),
                       'icon' => 'bx bx-male-sign',
                       'color' => 'info'
                   ],
                   'female' => [
-                      'label' => __('rooms.stats.available_female_beds'),
+                      'label' => __('Available Female Beds'),
                       'icon' => 'bx bx-female-sign',
                       'color' => 'danger'
                   ]
@@ -90,64 +90,64 @@
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header 
-        :title="__('rooms.page.header.title')"
-        :description="__('rooms.page.header.description')"
+        :title="__('Room Management')"
+        :description="__('Manage all campus rooms and their details')"
         icon="bx bx-door-open"
     >
         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
 
             <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#roomSearchCollapse" aria-expanded="false" aria-controls="buildingSearchCollapse">
-                <i class="bx bx-filter-alt me-1"></i> {{ __('rooms.buttons.search') }}
+                <i class="bx bx-filter-alt me-1"></i> {{ __('Search') }}
             </button>
         </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
     <x-ui.advanced-search 
-        :title="__('rooms.search.title')" 
+        :title="__('Advanced Room Search')" 
         formId="advancedRoomSearch" 
         collapseId="roomSearchCollapse"
         :collapsed="false"
     >
         <div class="col-md-4">
-            <label for="search_building_id" class="form-label">{{ __('rooms.search.labels.building_number') }}:</label>
+            <label for="search_building_id" class="form-label">{{ __('Building Number') }}:</label>
             <select class="form-control" id="search_building_id">
-                <option value="">{{ __('rooms.search.placeholders.all') }}</option>
+                <option value="">{{ __('All') }}</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_apartment_id" class="form-label">{{ __('rooms.search.labels.apartment_number') }}:</label>
+            <label for="search_apartment_id" class="form-label">{{ __('Apartment Number') }}:</label>
             <select class="form-control" id="search_apartment_id">
                 <!-- Apartment options will be loaded by JS -->
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_gender_restriction" class="form-label">{{ __('rooms.search.labels.gender_restriction') }}:</label>
+            <label for="search_gender_restriction" class="form-label">{{ __('Gender Restriction') }}:</label>
             <select class="form-control" id="search_gender_restriction">
-                <option value="">{{ __('rooms.search.placeholders.all') }}</option>
-                <option value="male">{{ __('rooms.search.options.male') }}</option>
-                <option value="female">{{ __('rooms.search.options.female') }}</option>
-                <option value="mixed">{{ __('rooms.search.options.mixed') }}</option>
+                <option value="">{{ __('All') }}</option>
+                <option value="male">{{ __('Male') }}</option>
+                <option value="female">{{ __('Female') }}</option>
+                <option value="mixed">{{ __('Mixed') }}</option>
             </select>
         </div>
         <div class="w-100"></div>
         <button class="btn btn-outline-secondary mt-2 ms-2" id="clearRoomFiltersBtn" type="button">
-            <i class="bx bx-x"></i> {{ __('rooms.buttons.clear_filters') }}
+            <i class="bx bx-x"></i> {{ __('Clear Filters') }}
         </button>
     </x-ui.advanced-search>
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable.table 
-        :headers="[
-            __('rooms.table.headers.name'),
-            __('rooms.table.headers.apartment'),
-            __('rooms.table.headers.building'),
-            __('rooms.table.headers.type'),
-            __('rooms.table.headers.purpose'),
-            __('rooms.table.headers.gender'),
-            __('rooms.table.headers.available_capacity'),
-            __('rooms.table.headers.active'),
-            __('rooms.table.headers.actions')
+        :headers=" [
+            __('Name'),
+            __('Apartment'),
+            __('Building'),
+            __('Type'),
+            __('Purpose'),
+            __('Gender'),
+            __('Available Capacity'),
+            __('Active'),
+            __('Actions')
         ]"
         :columns="[
             ['data' => 'name', 'name' => 'name'],
@@ -169,7 +169,7 @@
     {{-- Edit Room Modal (no create) --}}
     <x-ui.modal 
         id="roomModal"
-        :title="__('rooms.modals.edit.title')"
+        :title="__('Edit Room')"
         size="lg"
         :scrollable="true"
         class="room-modal"
@@ -178,40 +178,40 @@
             <form id="roomForm">
                 <div class="row">
                     <div class="col-md-12 mb-3">
-                        <label for="type" class="form-label">{{ __('rooms.modals.edit.labels.type') }}</label>
+                        <label for="type" class="form-label">{{ __('Room Type') }}</label>
                         <select id="type" name="type" class="form-control" required>
-                            <option value="">{{ __('rooms.modals.edit.placeholders.select_type') }}</option>
-                            <option value="single">{{ __('rooms.modals.edit.options.single') }}</option>
-                            <option value="double">{{ __('rooms.modals.edit.options.double') }}</option>
+                            <option value="">{{ __('Select Room Type') }}</option>
+                            <option value="single">{{ __('Single') }}</option>
+                            <option value="double">{{ __('Double') }}</option>
                         </select>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label for="purpose" class="form-label">{{ __('rooms.modals.edit.labels.purpose') }}</label>
+                        <label for="purpose" class="form-label">{{ __('Purpose') }}</label>
                         <select id="purpose" name="purpose" class="form-control" required>
-                            <option value="">{{ __('rooms.modals.edit.placeholders.select_purpose') }}</option>
-                            <option value="housing">{{ __('rooms.modals.edit.options.housing') }}</option>
-                            <option value="staff_housing">{{ __('rooms.modals.edit.options.staff_housing') }}</option>
-                            <option value="office">{{ __('rooms.modals.edit.options.office') }}</option>
-                            <option value="storage">{{ __('rooms.modals.edit.options.storage') }}</option>
+                            <option value="">{{ __('Select Purpose') }}</option>
+                            <option value="housing">{{ __('Housing') }}</option>
+                            <option value="staff_housing">{{ __('Staff Housing') }}</option>
+                            <option value="office">{{ __('Office') }}</option>
+                            <option value="storage">{{ __('Storage') }}</option>
                         </select>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label for="room_description" class="form-label">{{ __('rooms.modals.edit.labels.description') }}</label>
+                        <label for="room_description" class="form-label">{{ __('Description') }}</label>
                         <textarea id="room_description" name="description" class="form-control" rows="2"></textarea>
                     </div>
                 </div>
             </form>
         </x-slot>
         <x-slot name="footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('rooms.buttons.close') }}</button>
-            <button type="submit" class="btn btn-primary" form="roomForm">{{ __('rooms.buttons.save') }}</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+            <button type="submit" class="btn btn-primary" form="roomForm">{{ __('Save') }}</button>
         </x-slot>
     </x-ui.modal>
 
     {{-- View Room Modal --}}
     <x-ui.modal 
         id="viewRoomModal"
-        :title="__('rooms.modals.view.title')"
+        :title="__('Room Details')"
         size="md"
         :scrollable="true"
         class="view-room-modal"
@@ -220,74 +220,74 @@
           <div class="row">
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-hash"></i> {{ __('rooms.modals.view.labels.number') }}:
+                    <i class="bx bx-hash"></i> {{ __('Number') }}:
                 </label>
                 <p id="view-room-number" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-building"></i> {{ __('rooms.modals.view.labels.building') }}:
+                    <i class="bx bx-building"></i> {{ __('Building') }}:
                 </label>
                 <p id="view-room-building" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-home"></i> {{ __('rooms.modals.view.labels.apartment') }}:
+                    <i class="bx bx-home"></i> {{ __('Apartment') }}:
                 </label>
                 <p id="view-room-apartment" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-user"></i> {{ __('rooms.modals.view.labels.type') }}:
+                    <i class="bx bx-user"></i> {{ __('Type') }}:
                 </label>
                 <p id="view-room-type" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-male-female"></i> {{ __('rooms.modals.view.labels.gender_restriction') }}:
+                    <i class="bx bx-male-female"></i> {{ __('Gender Restriction') }}:
                 </label>
                 <p id="view-room-gender-restriction" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-check-circle"></i> {{ __('rooms.modals.view.labels.active') }}:
+                    <i class="bx bx-check-circle"></i> {{ __('Active') }}:
                 </label>
                 <p id="view-room-is-active" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-group"></i> {{ __('rooms.modals.view.labels.capacity') }}:
+                    <i class="bx bx-group"></i> {{ __('Capacity') }}:
                 </label>
                 <p id="view-room-capacity" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-user-check"></i> {{ __('rooms.modals.view.labels.current_occupancy') }}:
+                    <i class="bx bx-user-check"></i> {{ __('Current Occupancy') }}:
                 </label>
                 <p id="view-room-current-occupancy" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-user-plus"></i> {{ __('rooms.modals.view.labels.available_capacity') }}:
+                    <i class="bx bx-user-plus"></i> {{ __('Available Capacity') }}:
                 </label>
                 <p id="view-room-available-capacity" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-calendar"></i> {{ __('rooms.modals.view.labels.created_at') }}:
+                    <i class="bx bx-calendar"></i> {{ __('Created At') }}:
                 </label>
                 <p id="view-room-created" class="mb-0"></p>
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label fw-bold">
-                    <i class="bx bx-calendar-edit"></i> {{ __('rooms.modals.view.labels.updated_at') }}:
+                    <i class="bx bx-calendar-edit"></i> {{ __('Updated At') }}:
                 </label>
                 <p id="view-room-updated" class="mb-0"></p>
             </div>
           </div>
         </x-slot>
         <x-slot name="footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('rooms.buttons.close') }}</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
         </x-slot>
     </x-ui.modal>
 </div>
@@ -314,45 +314,45 @@
 const TRANSLATION = {
   confirm: {
     activate: {
-      title: '{{ __('rooms.confirm.activate.title') }}',
-      text: '{{ __('rooms.confirm.activate.text') }}',
-      button: '{{ __('rooms.confirm.activate.button') }}'
+      title: '{{ __("Activate Room") }}',
+      text: '{{ __("Are you sure you want to activate this room?") }}',
+      button: '{{ __("Activate") }}'
     },
     deactivate: {
-      title: '{{ __('rooms.confirm.deactivate.title') }}',
-      text: '{{ __('rooms.confirm.deactivate.text') }}',
-      button: '{{ __('rooms.confirm.deactivate.button') }}'
+      title: '{{ __("Deactivate Room") }}',
+      text: '{{ __("Are you sure you want to deactivate this room?") }}',
+      button: '{{ __("Deactivate") }}'
     },
     delete: {
-      title: '{{ __('rooms.confirm.delete.title') }}',
-      text: '{{ __('rooms.confirm.delete.text') }}',
-      button: '{{ __('rooms.confirm.delete.button') }}'
+      title: '{{ __("Delete Room") }}',
+      text: '{{ __("Are you sure you want to delete this room? This action cannot be undone.") }}',
+      button: '{{ __("Delete") }}'
     }
   },
   success: {
-    activated: '{{ __('rooms.messages.activated') }}',
-    deactivated: '{{ __('rooms.messages.deactivated') }}',
-    deleted: '{{ __('rooms.messages.deleted') }}',
-    saved: '{{ __('rooms.messages.saved') }}'
+    activated: '{{ __("Room has been activated successfully") }}',
+    deactivated: '{{ __("Room has been deactivated successfully") }}',
+    deleted: '{{ __("Room has been deleted successfully") }}',
+    saved: '{{ __("Room has been saved successfully") }}'
   },
   error: {
-    loadStats: '{{ __('rooms.messages.load_stats_error') }}',
-    loadRoom: '{{ __('rooms.messages.load_room_error') }}',
-    deleteRoom: '{{ __('rooms.messages.delete_error') }}',
-    operationFailed: '{{ __('rooms.messages.operation_failed') }}'
+    loadStats: '{{ __("Failed to load room statistics") }}',
+    loadRoom: '{{ __("Failed to load room details") }}',
+    deleteRoom: '{{ __("Failed to delete room") }}',
+    operationFailed: '{{ __("Operation failed. Please try again.") }}'
   },
   placeholders: {
-    selectBuilding: '{{ __('rooms.placeholders.select_building') }}',
-    selectApartment: '{{ __('rooms.placeholders.select_apartment') }}',
-    selectBuildingFirst: '{{ __('rooms.placeholders.select_building_first') }}',
-    noApartments: '{{ __('rooms.placeholders.no_apartments') }}',
-    selectGender: '{{ __('rooms.placeholders.select_gender') }}',
-    selectType: '{{ __('rooms.placeholders.select_type') }}',
-    selectPurpose: '{{ __('rooms.placeholders.select_purpose') }}'
+    selectBuilding: '{{ __("Select Building") }}',
+    selectApartment: '{{ __("Select Apartment") }}',
+    selectBuildingFirst: '{{ __("Select a building first") }}',
+    noApartments: '{{ __("No apartments available") }}',
+    selectGender: '{{ __("Select Gender") }}',
+    selectType: '{{ __("Select Room Type") }}',
+    selectPurpose: '{{ __("Select Purpose") }}'
   },
   status: {
-    active: '{{ __('rooms.status.active') }}',
-    inactive: '{{ __('rooms.status.inactive') }}'
+    active: '{{ __("Active") }}',
+    inactive: '{{ __("Inactive") }}'
   }
 };
 
@@ -847,4 +847,4 @@ $(document).ready(function() {
   RoomApp.init();
 });
 </script>
-@endpush 
+@endpush

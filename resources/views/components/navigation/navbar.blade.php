@@ -31,7 +31,7 @@
                             data-language="en"
                             data-text-direction="ltr"
                         >
-                            <span>English</span>
+                            <span>{{ __('English') }}</span>
                         </a>
                     </li>
                     <li>
@@ -41,7 +41,7 @@
                             data-language="ar"
                             data-text-direction="rtl"
                         >
-                            <span>Arabic</span>
+                            <span>{{ __('Arabic') }}</span>
                         </a>
                     </li>
                 </ul>
@@ -69,18 +69,18 @@
                         <div class="dropdown-header d-flex align-items-center py-3">
                             <h6 class="mb-0 me-auto">
                                 @if(app()->getLocale() == 'ar')
-                                    الإشعارات
+                                    {{ __('الإشعارات') }}
                                 @else
-                                    Notification
+                                    {{ __('Notification') }}
                                 @endif
                             </h6>
                             <div class="d-flex align-items-center h6 mb-0">
                                 <span class="badge bg-label-primary me-2">
                                     8 
                                     @if(app()->getLocale() == 'ar')
-                                        جديد
+                                        {{ __('جديد') }}
                                     @else
-                                        New
+                                        {{ __('New') }}
                                     @endif
                                 </span>
                                 <a
@@ -88,8 +88,8 @@
                                     class="dropdown-notifications-all p-2"
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="top"
-                                    aria-label="@if(app()->getLocale() == 'ar') تعليم الكل كمقروء @else Mark all as read @endif"
-                                    data-bs-original-title="@if(app()->getLocale() == 'ar') تعليم الكل كمقروء @else Mark all as read @endif"
+                                    aria-label="@if(app()->getLocale() == 'ar') {{ __('تعليم الكل كمقروء') }} @else {{ __('Mark all as read') }} @endif"
+                                    data-bs-original-title="@if(app()->getLocale() == 'ar') {{ __('تعليم الكل كمقروء') }} @else {{ __('Mark all as read') }} @endif"
                                 >
                                     <i class="icon-base bx bx-envelope-open text-heading"></i>
                                 </a>
@@ -112,23 +112,23 @@
                                     <div class="flex-grow-1">
                                         <h6 class="small mb-0">
                                             @if(app()->getLocale() == 'ar')
-                                                تهانينا ليتي 🎉
+                                                {{ __('تهانينا ليتي 🎉') }}
                                             @else
-                                                Congratulation Lettie 🎉
+                                                {{ __('Congratulation Lettie 🎉') }}
                                             @endif
                                         </h6>
                                         <small class="mb-1 d-block text-body">
                                             @if(app()->getLocale() == 'ar')
-                                                فزت بشارة أفضل بائع شهريًا
+                                                {{ __('فزت بشارة أفضل بائع شهريًا') }}
                                             @else
-                                                Won the monthly best seller gold badge
+                                                {{ __('Won the monthly best seller gold badge') }}
                                             @endif
                                         </small>
                                         <small class="text-body-secondary">
                                             @if(app()->getLocale() == 'ar')
-                                                منذ ساعة
+                                                {{ __('منذ ساعة') }}
                                             @else
-                                                1h ago
+                                                {{ __('1h ago') }}
                                             @endif
                                         </small>
                                     </div>
@@ -208,9 +208,9 @@
                                         </small>
                                         <small class="text-body-secondary">
                                             @if(app()->getLocale() == 'ar')
-                                                منذ ساعة
+                                                {{ __('منذ ساعة') }}
                                             @else
-                                                1h ago
+                                                {{ __('1h ago') }}
                                             @endif
                                         </small>
                                     </div>
@@ -486,9 +486,9 @@
                             <a class="btn btn-primary btn-sm d-flex" href="javascript:void(0);">
                                 <small class="align-middle">
                                     @if(app()->getLocale() == 'ar')
-                                        عرض جميع الإشعارات
+                                        {{ __('عرض جميع الإشعارات') }}
                                     @else
-                                        View all notifications
+                                        {{ __('View all notifications') }}
                                     @endif
                                 </small>
                             </a>
@@ -521,7 +521,7 @@
                                     </div>
                                 </div>
                                 <div class="flex-grow-1">
-                                    <span class="fw-semibold d-block">{{ optional(Auth::user())->name ?? 'Guest' }}</span>
+                                    <span class="fw-semibold d-block">{{ optional(Auth::user())->name ?? __('Guest') }}</span>
                                 </div>
                             </div>
                         </a>
@@ -531,7 +531,7 @@
                     <li>
                         <a class="dropdown-item" href="">
                             <i class="bx bx-user me-2"></i>
-                            <span class="align-middle">Account Settings</span>
+                            <span class="align-middle">{{ __('Account Settings') }}</span>
                         </a>
                     </li>
                     <li><div class="dropdown-divider"></div></li>
@@ -543,7 +543,7 @@
                             onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
                         >
                             <i class="bx bx-power-off me-2"></i>
-                            <span class="align-middle">Log Out</span>
+                            <span class="align-middle">{{ __('Log Out') }}</span>
                         </a>
                         <form id="logout-form" action="" method="POST" style="display: none;">
                             @csrf

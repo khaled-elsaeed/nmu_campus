@@ -1,6 +1,6 @@
 @extends('layouts.home')
 
-@section('title', 'Insurance Management | Housing')
+@section('title', __('Insurance Management'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -10,16 +10,16 @@
           <x-ui.card.stat2 
               color="secondary"
               icon="bx bx-door-open"
-              label="Total Insurances"
+              :label="__('Total Insurances')"
               id="insurances"
               :subStats="[
                   'male' => [
-                      'label' => 'Male Insurances',
+                      'label' => __('Male Insurances'),
                       'icon' => 'bx bx-male-sign',
                       'color' => 'info'
                   ],
                   'female' => [
-                      'label' => 'Female Insurances', 
+                      'label' => __('Female Insurances'), 
                       'icon' => 'bx bx-female-sign',
                       'color' => 'danger'
                   ]
@@ -30,16 +30,16 @@
           <x-ui.card.stat2 
               color="info"
               icon="bx bx-check-circle"
-              label="Active Insurances"
+              :label="__('Active Insurances')"
               id="insurances-active"
               :subStats="[
                   'male' => [
-                      'label' => 'Active Male Insurances',
+                      'label' => __('Male Active'),
                       'icon' => 'bx bx-male-sign',
                       'color' => 'info'
                   ],
                   'female' => [
-                      'label' => 'Active Female Insurances', 
+                      'label' => __('Female Active'), 
                       'icon' => 'bx bx-female-sign',
                       'color' => 'danger'
                   ]
@@ -50,16 +50,16 @@
           <x-ui.card.stat2 
               color="danger"
               icon="bx bx-check-circle"
-              label="Refunded Insurances"
+              :label="__('Refunded Insurances')"
               id="insurances-refunded"
               :subStats="[
                   'male' => [
-                      'label' => 'Refunded Male Insurances',
+                      'label' => __('Male Refunded'),
                       'icon' => 'bx bx-male-sign',
                       'color' => 'info'
                   ],
                   'female' => [
-                      'label' => 'Refunded Female Insurances', 
+                      'label' => __('Female Refunded'), 
                       'icon' => 'bx bx-female-sign',
                       'color' => 'danger'
                   ]
@@ -70,16 +70,16 @@
           <x-ui.card.stat2 
               color="warning"
               icon="bx bx-check-circle"
-              label="Carried Over Insurances"
+              :label="__('Carried Over Insurances')"
               id="insurances-carried-over"
               :subStats="[
                   'male' => [
-                      'label' => 'Carried Over Male Insurances',
+                      'label' => __('Male Carried Over'),
                       'icon' => 'bx bx-male-sign',
                       'color' => 'info'
                   ],
                   'female' => [
-                      'label' => 'Carried Over Female Insurances', 
+                      'label' => __('Female Carried Over'), 
                       'icon' => 'bx bx-female-sign',
                       'color' => 'danger'
                   ]
@@ -89,51 +89,59 @@
     </div>
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header 
-        title="Insurances"
-        description="Manage insurances and their details."
+        :title="__('Insurance Management')"
+        :description="__('Manage student housing insurance deposits and refunds')"
         icon="bx bx-shield"
     >
         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
 
             <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#insuranceSearchCollapse" aria-expanded="false" aria-controls="insuranceSearchCollapse">
-                <i class="bx bx-filter-alt me-1"></i> Search
+                <i class="bx bx-filter-alt me-1"></i> {{ __('Search') }}
             </button>
         </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
-    <x-ui.advanced-search 
-        title="Advanced Search" 
+  <x-ui.advanced-search 
+    :title="__('Advanced Insurance Search')" 
         formId="advancedInsuranceSearch" 
         collapseId="insuranceSearchCollapse"
         :collapsed="false"
     >
-        <div class="col-md-4">
-            <label for="search_status" class="form-label">Status:</label>
+    <div class="col-md-4">
+      <label for="search_status" class="form-label">{{ __('Status') }}:</label>
             <select class="form-control" id="search_status" name="search_status">
-                <option value="">All</option>
-                <option value="active">Active</option>
-                <option value="refunded">Refunded</option>
-                <option value="carried_over">Carried Over</option>
+        <option value="">{{ __('All') }}</option>
+        <option value="active">{{ __('Active') }}</option>
+        <option value="refunded">{{ __('Refunded') }}</option>
+        <option value="carried_over">{{ __('Carried Over') }}</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_reservation_number" class="form-label">Reservation Number:</label>
+      <label for="search_reservation_number" class="form-label">{{ __('Reservation Number') }}:</label>
             <input type="text" class="form-control" id="search_reservation_number" name="search_reservation_number">
         </div>
         <div class="col-md-4">
-            <label for="search_national_id" class="form-label">National ID:</label>
+      <label for="search_national_id" class="form-label">{{ __('National ID') }}:</label>
             <input type="text" class="form-control" id="search_national_id" name="search_national_id">
         </div>
         <div class="w-100"></div>
-        <button class="btn btn-outline-secondary mt-2 ms-2" id="clearInsuranceFiltersBtn" type="button">
-            <i class="bx bx-x"></i> Clear Filters
+    <button class="btn btn-outline-secondary mt-2 ms-2" id="clearInsuranceFiltersBtn" type="button">
+      <i class="bx bx-x"></i> {{ __('Clear Filters') }}
         </button>
     </x-ui.advanced-search>
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable.table 
-        :headers="['User', 'National ID','Reservation Number', 'Amount', 'Status', 'Created At', 'Actions']"
+        :headers="[
+            __('User'), 
+            __('National ID'),
+            __('Reservation Number'), 
+            __('Amount'), 
+            __('Status'), 
+            __('Created At'), 
+            __('Actions')
+        ]"
         :columns="[
             ['data' => 'user_name', 'name' => 'user_name'],
             ['data' => 'national_id', 'name' => 'national_id'],
@@ -152,7 +160,7 @@
     {{-- Edit Insurance Modal --}}
     <x-ui.modal 
         id="insuranceModal"
-        title="Edit Insurance"
+        :title="__('Manage Insurance')"
         :scrollable="true"
         class="insurance-modal"
     >
@@ -160,71 +168,71 @@
             <form id="insuranceForm">
                 <div class="row">
                     <div class="col-md-12 mb-3">
-                        <label for="insurance_reservation_number" class="form-label">Reservation Number</label>
+                        <label for="insurance_reservation_number" class="form-label">{{__('Reservation Number')}}</label>
                         <input type="text" id="insurance_reservation_number" name="reservation_number" class="form-control" required>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label for="insurance_amount" class="form-label">Amount</label>
+                        <label for="insurance_amount" class="form-label">{{__('Amount')}}</label>
                         <input type="number" step="0.01" id="insurance_amount" name="amount" class="form-control" required>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label for="insurance_status" class="form-label">Status</label>
+                        <label for="insurance_status" class="form-label">{{__('Status')}}</label>
                         <select id="insurance_status" name="status" class="form-control" required>
-                            <option value="active">Active</option>
-                            <option value="refunded">Refunded</option>
-                            <option value="carried_over">Carried Over</option>
+                            <option value="active">{{__('Active')}}</option>
+                            <option value="refunded">{{__('Refunded')}}</option>
+                            <option value="carried_over">{{__('Carried Over')}}</option>
                         </select>
                     </div>
                 </div>
             </form>
         </x-slot>
         <x-slot name="footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="submit" class="btn btn-primary" form="insuranceForm">Save</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{__('Close')}}</button>
+            <button type="submit" class="btn btn-primary" form="insuranceForm">{{__('Save')}}</button>
         </x-slot>
     </x-ui.modal>
 
     {{-- View Insurance Modal --}}
     <x-ui.modal 
         id="viewInsuranceModal"
-        title="Insurance Details"
+        :title="__('Insurance Details')"
         :scrollable="true"
         class="view-insurance-modal"
     >
         <x-slot name="slot">
             <div class="row">
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">User Name:</label>
+                    <label class="form-label fw-bold">{{__('User Name')}}</label>
                     <p id="view-insurance-user-name" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">National ID:</label>
+                    <label class="form-label fw-bold">{{__('National ID')}}</label>
                     <p id="view-insurance-national-id" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Reservation Number:</label>
+                    <label class="form-label fw-bold">{{__('Reservation Number')}}</label>
                     <p id="view-insurance-reservation-number" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Amount:</label>
+                    <label class="form-label fw-bold">{{__('Amount')}}</label>
                     <p id="view-insurance-amount" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Status:</label>
+                    <label class="form-label fw-bold">{{__('Status')}}</label>
                     <p id="view-insurance-status" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Created At:</label>
+                    <label class="form-label fw-bold">{{__('Created At')}}</label>
                     <p id="view-insurance-created-at" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">Updated At:</label>
+                    <label class="form-label fw-bold">{{__('Updated At')}}</label>
                     <p id="view-insurance-updated-at" class="mb-0"></p>
                 </div>
             </div>
         </x-slot>
         <x-slot name="footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{__('Close')}}</button>
         </x-slot>
     </x-ui.modal>
 
@@ -232,6 +240,26 @@
 @endsection
 
 @push('scripts')
+<script>
+    var translations = {
+        'add_insurance_title': "{{__('Add Insurance')}}",
+        'edit_insurance_title': "{{__('Edit Insurance')}}",
+        'insurance_added_message': "{{__('Insurance has been added successfully')}}",
+        'insurance_updated_message': "{{__('Insurance has been updated successfully')}}",
+        'insurance_deleted_message': "{{__('Insurance has been deleted successfully')}}",
+        'delete_confirm_title': "{{__('Delete Insurance')}}",
+        'delete_confirm_text': "{{__('Are you sure you want to delete this insurance?')}}",
+        'delete_confirm_button': "{{__('Yes, Delete')}}",
+        'delete_cancel_button': "{{__('Cancel')}}",
+        'ajax_error': "{{__('An error occurred. Please try again.')}}",
+        'search_status_placeholder': "{{ __('Select Status') }}",
+        'filters_cleared_message': "{{ __('Filters have been cleared') }}",
+        'cancel_success': "{{ __('Insurance has been cancelled successfully') }}",
+        'cancel_failed': "{{ __('Failed to cancel insurance') }}",
+        'refund_success': "{{ __('Insurance has been refunded successfully') }}",
+        'refund_failed': "{{ __('Failed to refund insurance') }}",
+    };
+</script>
 <script>
 /**
  * Insurance Management Page JS
@@ -381,7 +409,7 @@ var InsuranceManager = {
         })
         .fail(function() {
           $('#insuranceModal').modal('hide');
-          Utils.showError('Failed to load insurance data');
+          Utils.showError(translations.ajax_error);
         });
     });
   },
@@ -420,19 +448,20 @@ var InsuranceManager = {
     $(document).on('click', '.cancelInsuranceBtn', function(e) {
       var insuranceId = $(e.currentTarget).data('id');
       Utils.showConfirmDialog({
-        title: 'Are you sure?',
+        title: translations.delete_confirm_title,
         text: 'This will cancel the insurance.',
-        confirmButtonText: 'Yes, cancel it!'
+        confirmButtonText: translations.delete_confirm_button,
+        cancelButtonText: translations.delete_cancel_button
       }).then(function(result) {
         if (result.isConfirmed) {
           ApiService.cancelInsurance(insuranceId)
             .done(function() {
               $('#insurances-table').DataTable().ajax.reload(null, false);
-              Utils.showSuccess('Insurance has been cancelled.');
+              Utils.showSuccess(translations.cancel_success);
               StatsManager.load();
             })
             .fail(function(xhr) {
-              Utils.handleAjaxError ? Utils.handleAjaxError(xhr, 'Failed to cancel insurance.') : Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to cancel insurance.');
+              Utils.handleAjaxError ? Utils.handleAjaxError(xhr, translations.cancel_failed) : Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : translations.cancel_failed);
             });
         }
       });
@@ -445,19 +474,20 @@ var InsuranceManager = {
     $(document).on('click', '.refundInsuranceBtn', function(e) {
       var insuranceId = $(e.currentTarget).data('id');
       Utils.showConfirmDialog({
-        title: 'Are you sure?',
+        title: translations.delete_confirm_title,
         text: 'This will refund the insurance.',
-        confirmButtonText: 'Yes, refund it!'
+        confirmButtonText: translations.delete_confirm_button,
+        cancelButtonText: translations.delete_cancel_button
       }).then(function(result) {
         if (result.isConfirmed) {
           ApiService.refundInsurance(insuranceId)
             .done(function() {
               $('#insurances-table').DataTable().ajax.reload(null, false);
-              Utils.showSuccess('Insurance has been refunded.');
+              Utils.showSuccess(translations.refund_success);
               StatsManager.load();
             })
             .fail(function(xhr) {
-              Utils.handleAjaxError ? Utils.handleAjaxError(xhr, 'Failed to refund insurance.') : Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to refund insurance.');
+              Utils.handleAjaxError ? Utils.handleAjaxError(xhr, translations.refund_failed) : Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : translations.refund_failed);
             });
         }
       });
@@ -484,7 +514,7 @@ var InsuranceManager = {
       })
       .fail(function() {
         $('#viewInsuranceModal').modal('hide');
-        Utils.showError('Failed to load insurance data');
+        Utils.showError(translations.ajax_error);
       });
   },
   /**
@@ -518,10 +548,10 @@ var InsuranceManager = {
       .fail(function(xhr) {
         // Use global Utils.handleAjaxError if available, otherwise fallback
         if (Utils.handleAjaxError) {
-          Utils.handleAjaxError(xhr, 'An error occurred. Please check your input.');
+          Utils.handleAjaxError(xhr, translations.ajax_error);
         } else {
           $('#insuranceModal').modal('hide');
-          var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred. Please check your input.';
+          var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : translations.ajax_error;
           Utils.showError(message);
         }
       });
@@ -532,7 +562,7 @@ var InsuranceManager = {
   handleSaveSuccess: function() {
     $('#insuranceModal').modal('hide');
     $('#insurances-table').DataTable().ajax.reload(null, false);
-    Utils.showSuccess('Insurance has been saved successfully.');
+    Utils.showSuccess(this.currentInsuranceId ? translations.insurance_updated_message : translations.insurance_added_message);
     StatsManager.load();
   },
   /**
@@ -540,9 +570,10 @@ var InsuranceManager = {
    */
   deleteInsurance: function(insuranceId) {
     Utils.showConfirmDialog({
-      title: 'Are you sure?',
-      text: "You won't be able to revert this!",
-      confirmButtonText: 'Yes, delete it!'
+      title: translations.delete_confirm_title,
+      text: translations.delete_confirm_text,
+      confirmButtonText: translations.delete_confirm_button,
+      cancelButtonText: translations.delete_cancel_button
     }).then(function(result) {
       if (result.isConfirmed) {
         InsuranceManager.performDelete(insuranceId);
@@ -556,48 +587,12 @@ var InsuranceManager = {
     ApiService.deleteInsurance(insuranceId)
       .done(function() {
         $('#insurances-table').DataTable().ajax.reload(null, false);
-        Utils.showSuccess('Insurance has been deleted.');
+        Utils.showSuccess(translations.insurance_deleted_message);
         StatsManager.load();
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError ? Utils.handleAjaxError(xhr, 'Failed to delete insurance.') : Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to delete insurance.');
+        Utils.handleAjaxError ? Utils.handleAjaxError(xhr, translations.ajax_error) : Utils.showError(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : translations.ajax_error);
       });
-  }
-};
-
-// ===========================
-// SEARCH FUNCTIONALITY
-// ===========================
-var SearchManager = {
-  /**
-   * Initialize search functionality
-   */
-  init: function() {
-    this.bindEvents();
-  },
-  /**
-   * Bind search events
-   */
-  bindEvents: function() {
-    this.initializeAdvancedSearch();
-    this.handleClearFilters();
-  },
-  /**
-   * Initialize advanced search event listeners
-   */
-  initializeAdvancedSearch: function() {
-    $('#search_status, #search_reservation_number, #search_national_id').on('keyup change', function() {
-      $('#insurances-table').DataTable().ajax.reload();
-    });
-  },
-  /**
-   * Handle clear filters button click
-   */
-  handleClearFilters: function() {
-    $('#clearInsuranceFiltersBtn').on('click', function() {
-      $('#search_status, #search_reservation_number, #search_national_id').val('');
-      $('#insurances-table').DataTable().ajax.reload();
-    });
   }
 };
 
@@ -624,7 +619,7 @@ var SearchManager = {
   initializeAdvancedSearch: function() {
     // Initialize select2 for status dropdown
     Utils.initSelect2('#search_status', {
-      placeholder: 'Select Status',
+      placeholder: translations.search_status_placeholder,
       allowClear: true
     });
 
@@ -643,7 +638,7 @@ var SearchManager = {
       $('#search_reservation_number').val('');
       $('#search_national_id').val('');
       Utils.reloadDataTable('#insurances-table');
-      Utils.showSuccess('Filters cleared', true, 'top-end');
+      Utils.showSuccess(translations.filters_cleared_message, true, 'top-end');
     });
   }
 };
@@ -670,4 +665,4 @@ $(document).ready(function() {
 });
 
 </script>
-@endpush 
+@endpush

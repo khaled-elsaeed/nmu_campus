@@ -1,176 +1,176 @@
 @extends('layouts.home')
 
-@section('title', __('reservations.page_title'))
+@section('title', __('app.reservations.page_title'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 
-                color="secondary"
-                icon="bx bx-calendar"
-                label="Total Reservations"
-                id="reservations"
-                :subStats="[
-                    'male' => [
-                        'label' => 'Male Reservations',
-                        'icon' => 'bx bx-male-sign',
-                        'color' => 'info'
-                    ],
-                    'female' => [
-                        'label' => 'Female Reservations',
-                        'icon' => 'bx bx-female-sign',
-                        'color' => 'danger'
-                    ]
-                ]"
-            />
+      <x-ui.card.stat2 
+        color="secondary"
+        icon="bx bx-calendar"
+        :label="__('app.reservations.stats.total_reservations')"
+        id="reservations"
+        :subStats="[
+          'male' => [
+            'label' => __('app.reservations.stats.male_reservations'),
+            'icon' => 'bx bx-male-sign',
+            'color' => 'info'
+          ],
+          'female' => [
+            'label' => __('app.reservations.stats.female_reservations'),
+            'icon' => 'bx bx-female-sign',
+            'color' => 'danger'
+          ]
+        ]"
+      />
         </div>
-        <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 
-                color="warning"
-                icon="bx bx-time"
-                label="Pending Reservations"
-                id="pending"
-                :subStats="[
-                    'male' => [
-                        'label' => 'Pending Male',
-                        'icon' => 'bx bx-male-sign',
-                        'color' => 'info'
-                    ],
-                    'female' => [
-                        'label' => 'Pending Female',
-                        'icon' => 'bx bx-female-sign',
-                        'color' => 'danger'
-                    ]
-                ]"
-            />
+    <div class="col-sm-6 col-xl-3">
+      <x-ui.card.stat2 
+        color="warning"
+        icon="bx bx-time"
+        :label="__('app.reservations.stats.pending_reservations')"
+        id="pending"
+        :subStats="[
+          'male' => [
+            'label' => __('app.reservations.stats.male_pending'),
+            'icon' => 'bx bx-male-sign',
+            'color' => 'info'
+          ],
+          'female' => [
+            'label' => __('app.reservations.stats.female_pending'),
+            'icon' => 'bx bx-female-sign',
+            'color' => 'danger'
+          ]
+        ]"
+      />
         </div>
-        <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 
-                color="info"
-                icon="bx bx-check-circle"
-                label="Confirmed Reservations"
-                id="confirmed"
-                :subStats="[
-                    'male' => [
-                        'label' => 'Confirmed Male',
-                        'icon' => 'bx bx-male-sign',
-                        'color' => 'info'
-                    ],
-                    'female' => [
-                        'label' => 'Confirmed Female',
-                        'icon' => 'bx bx-female-sign',
-                        'color' => 'danger'
-                    ]
-                ]"
-            />
+    <div class="col-sm-6 col-xl-3">
+      <x-ui.card.stat2 
+        color="info"
+        icon="bx bx-check-circle"
+        :label="__('app.reservations.stats.confirmed_reservations')"
+        id="confirmed"
+        :subStats="[
+          'male' => [
+            'label' => __('app.reservations.stats.male_confirmed'),
+            'icon' => 'bx bx-male-sign',
+            'color' => 'info'
+          ],
+          'female' => [
+            'label' => __('app.reservations.stats.female_confirmed'),
+            'icon' => 'bx bx-female-sign',
+            'color' => 'danger'
+          ]
+        ]"
+      />
         </div>
-        <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 
-                color="success"
-                icon="bx bx-log-in"
-                label="Checked In"
-                id="checked_in"
-                :subStats="[
-                    'male' => [
-                        'label' => 'Checked In Male',
-                        'icon' => 'bx bx-male-sign',
-                        'color' => 'info'
-                    ],
-                    'female' => [
-                        'label' => 'Checked In Female',
-                        'icon' => 'bx bx-female-sign',
-                        'color' => 'danger'
-                    ]
-                ]"
-            />
+    <div class="col-sm-6 col-xl-3">
+      <x-ui.card.stat2 
+        color="success"
+        icon="bx bx-log-in"
+        :label="__('app.reservations.stats.checked_in')"
+        id="checked_in"
+        :subStats="[
+          'male' => [
+            'label' => __('app.reservations.stats.male_checked_in'),
+            'icon' => 'bx bx-male-sign',
+            'color' => 'info'
+          ],
+          'female' => [
+            'label' => __('app.reservations.stats.female_checked_in'),
+            'icon' => 'bx bx-female-sign',
+            'color' => 'danger'
+          ]
+        ]"
+      />
         </div>
     </div>
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header 
-        :title="__('reservations.page_header')"
-        :description="__('reservations.page_description')"
+        :title="__('app.reservations.page_header')"
+        :description="__('app.reservations.page_description')"
         icon="bx bx-calendar"
     >
     <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
-        <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#reservationSearchCollapse" aria-expanded="false" aria-controls="reservationSearchCollapse">
-            <i class="bx bx-filter-alt me-1"></i> Search
-        </button>
+    <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#reservationSearchCollapse" aria-expanded="false" aria-controls="reservationSearchCollapse">
+      <i class="bx bx-filter-alt me-1"></i> {{ __('app.general.search') }}
+    </button>
     </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
     <x-ui.advanced-search 
-        :title="__('reservations.search.advanced_title')" 
+        :title="__('app.reservations.search.advanced_title')" 
         formId="advancedReservationSearch" 
         collapseId="reservationSearchCollapse"
         :collapsed="false"
     >
         <div class="col-md-4">
-            <label for="search_national_id" class="form-label">{{ __('reservations.search.fields.national_id') }}:</label>
+            <label for="search_national_id" class="form-label">{{ __('app.reservations.search.fields.national_id') }}:</label>
             <input type="text" class="form-control" id="search_national_id" name="search_national_id">
         </div>
         <div class="col-md-4">
-            <label for="search_status" class="form-label">{{ __('reservations.search.fields.status') }}:</label>
+            <label for="search_status" class="form-label">{{ __('app.reservations.search.fields.status') }}:</label>
             <select class="form-control" id="search_status" name="search_status">
-                <option value="">{{ __('reservations.search.placeholders.all_statuses') }}</option>
-                <option value="pending">{{ __('reservations.status.pending') }}</option>
-                <option value="confirmed">{{ __('reservations.status.confirmed') }}</option>
-                <option value="checked_in">{{ __('reservations.status.checked_in') }}</option>
-                <option value="checked_out">{{ __('reservations.status.checked_out') }}</option>
-                <option value="cancelled">{{ __('reservations.status.cancelled') }}</option>
+                <option value="">{{ __('app.reservations.search.placeholders.all_statuses') }}</option>
+                <option value="pending">{{ __('app.reservations.status.pending') }}</option>
+                <option value="confirmed">{{ __('app.reservations.status.confirmed') }}</option>
+                <option value="checked_in">{{ __('app.reservations.status.checked_in') }}</option>
+                <option value="checked_out">{{ __('app.reservations.status.checked_out') }}</option>
+                <option value="cancelled">{{ __('app.reservations.status.cancelled') }}</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_active" class="form-label">{{ __('reservations.search.fields.active') }}:</label>
+            <label for="search_active" class="form-label">{{ __('app.reservations.search.fields.active') }}:</label>
             <select class="form-control" id="search_active" name="search_active">
-                <option value="">{{ __('reservations.search.placeholders.all') }}</option>
-                <option value="1">{{ __('reservations.active_status.active') }}</option>
-                <option value="0">{{ __('reservations.active_status.inactive') }}</option>
+                <option value="">{{ __('app.reservations.search.placeholders.all') }}</option>
+                <option value="1">{{ __('app.reservations.active_status.active') }}</option>
+                <option value="0">{{ __('app.reservations.active_status.inactive') }}</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_academic_term_id" class="form-label">{{ __('reservations.search.fields.academic_term') }}:</label>
+            <label for="search_academic_term_id" class="form-label">{{ __('app.reservations.search.fields.academic_term') }}:</label>
             <select class="form-control" id="search_academic_term_id" name="search_academic_term_id">
-                <option value="">{{ __('reservations.search.placeholders.all_terms') }}</option>
+                <option value="">{{ __('app.reservations.search.placeholders.all_terms') }}</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_building_id" class="form-label">{{ __('reservations.search.fields.building') }}:</label>
+            <label for="search_building_id" class="form-label">{{ __('app.reservations.search.fields.building') }}:</label>
             <select class="form-control" id="search_building_id" name="search_building_id">
-                <option value="">{{ __('reservations.search.placeholders.select_building') }}</option>
+                <option value="">{{ __('app.reservations.search.placeholders.select_building') }}</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_apartment_number" class="form-label">{{ __('reservations.search.fields.apartment') }}:</label>
+            <label for="search_apartment_number" class="form-label">{{ __('app.reservations.search.fields.apartment') }}:</label>
             <select class="form-control" id="search_apartment_number" name="search_apartment_number" disabled>
-                <option value="">{{ __('reservations.search.placeholders.select_apartment') }}</option>
+                <option value="">{{ __('app.reservations.search.placeholders.select_apartment') }}</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_room_number" class="form-label">{{ __('reservations.search.fields.room') }}:</label>
+            <label for="search_room_number" class="form-label">{{ __('app.reservations.search.fields.room') }}:</label>
             <select class="form-control" id="search_room_number" name="search_room_number" disabled>
-                <option value="">{{ __('reservations.search.placeholders.select_room') }}</option>
+                <option value="">{{ __('app.reservations.search.placeholders.select_room') }}</option>
             </select>
         </div>
         <div class="w-100"></div>
         <button class="btn btn-outline-secondary mt-2 ms-2" id="clearReservationFiltersBtn" type="button">
-            <i class="bx bx-x"></i> {{ __('reservations.search.clear_filters') }}
+            <i class="bx bx-x"></i> {{ __('app.reservations.search.clear_filters') }}
         </button>
     </x-ui.advanced-search>
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable.table 
         :headers="[
-            __('reservations.table.headers.reservation_number'),
-            __('reservations.table.headers.user'),
-            __('reservations.table.headers.location'),
-            __('reservations.table.headers.period'),
-            __('reservations.table.headers.status'),
-            __('reservations.table.headers.created'),
-            __('reservations.table.headers.actions')
+            __('app.reservations.table.headers.reservation_number'),
+            __('app.reservations.table.headers.user'),
+            __('app.reservations.table.headers.location'),
+            __('app.reservations.table.headers.period'),
+            __('app.reservations.table.headers.status'),
+            __('app.reservations.table.headers.created'),
+            __('app.reservations.table.headers.actions')
         ]"
         :columns="[
             ['data' => 'reservation_number', 'name' => 'reservation_number'],
@@ -214,43 +214,43 @@
 // ===========================
 // TRANSLATION CONSTANTS
 // ===========================
-var MESSAGES = {
+var TRANSLATIONS = {
   success: {
-    reservationCreated: @json(__('reservations.messages.success.created')),
-    reservationUpdated: @json(__('reservations.messages.success.updated')),
-    reservationDeleted: @json(__('reservations.messages.success.deleted')),
-    reservationCancelled: @json(__('reservations.messages.success.cancelled'))
+    reservationCreated: @json(__('app.reservations.messages.success.created')),
+    reservationUpdated: @json(__('app.reservations.messages.success.updated')),
+    reservationDeleted: @json(__('app.reservations.messages.success.deleted')),
+    reservationCancelled: @json(__('app.reservations.messages.success.cancelled'))
   },
   error: {
-    statsLoadFailed: @json(__('reservations.messages.error.stats_load_failed')),
-    reservationLoadFailed: @json(__('reservations.messages.error.load_failed')),
-    reservationCreateFailed: @json(__('reservations.messages.error.create_failed')),
-    reservationUpdateFailed: @json(__('reservations.messages.error.update_failed')),
-    reservationDeleteFailed: @json(__('reservations.messages.error.delete_failed')),
-    reservationCancelFailed: @json(__('reservations.messages.error.cancel_failed')),
-    buildingsLoadFailed: @json(__('reservations.messages.error.buildings_load_failed')),
-    apartmentsLoadFailed: @json(__('reservations.messages.error.apartments_load_failed')),
-    roomsLoadFailed: @json(__('reservations.messages.error.rooms_load_failed')),
-    academicTermsLoadFailed: @json(__('reservations.messages.error.academic_terms_load_failed')),
-    operationFailed: @json(__('reservations.messages.error.operation_failed'))
+    statsLoadFailed: @json(__('app.reservations.messages.error.stats_load_failed')),
+    reservationLoadFailed: @json(__('app.reservations.messages.error.load_failed')),
+    reservationCreateFailed: @json(__('app.reservations.messages.error.create_failed')),
+    reservationUpdateFailed: @json(__('app.reservations.messages.error.update_failed')),
+    reservationDeleteFailed: @json(__('app.reservations.messages.error.delete_failed')),
+    reservationCancelFailed: @json(__('app.reservations.messages.error.cancel_failed')),
+    buildingsLoadFailed: @json(__('app.reservations.messages.error.buildings_load_failed')),
+    apartmentsLoadFailed: @json(__('app.reservations.messages.error.apartments_load_failed')),
+    roomsLoadFailed: @json(__('app.reservations.messages.error.rooms_load_failed')),
+    academicTermsLoadFailed: @json(__('app.reservations.messages.error.academic_terms_load_failed')),
+    operationFailed: @json(__('app.reservations.messages.error.operation_failed'))
   },
   confirm: {
     deleteReservation: {
-      title: @json(__('reservations.confirm.delete.title')),
-      text: @json(__('reservations.confirm.delete.text')),
-      confirmButtonText: @json(__('reservations.confirm.delete.button'))
+      title: @json(__('app.reservations.confirm.delete.title')),
+      text: @json(__('app.reservations.confirm.delete.text')),
+      confirmButtonText: @json(__('app.reservations.confirm.delete.button'))
     },
     cancelReservation: {
-      title: @json(__('reservations.confirm.cancel.title')),
-      text: @json(__('reservations.confirm.cancel.text')),
-      confirmButtonText: @json(__('reservations.confirm.cancel.button'))
+      title: @json(__('app.reservations.confirm.cancel.title')),
+      text: @json(__('app.reservations.confirm.cancel.text')),
+      confirmButtonText: @json(__('app.reservations.confirm.cancel.button'))
     }
   },
   placeholders: {
-    selectBuilding: @json(__('reservations.search.placeholders.select_building')),
-    selectApartment: @json(__('reservations.search.placeholders.select_apartment')),
-    selectRoom: @json(__('reservations.search.placeholders.select_room')),
-    allTerms: @json(__('reservations.search.placeholders.all_terms'))
+    selectBuilding: @json(__('app.reservations.search.placeholders.select_building')),
+    selectApartment: @json(__('app.reservations.search.placeholders.select_apartment')),
+    selectRoom: @json(__('app.reservations.search.placeholders.select_room')),
+    allTerms: @json(__('app.reservations.search.placeholders.all_terms'))
   }
 };
 
@@ -326,7 +326,7 @@ var StatsManager = Utils.createStatsManager({
     'confirmed': ['male', 'female'],
     'checked_in': ['male', 'female']
   },
-  onError: 'Failed to load Reservation statistics'
+  onError: TRANSLATIONS.error.statsLoadFailed
 });
 
 // ===========================
@@ -347,7 +347,7 @@ var ReservationManager = {
     this.confirmAndDeleteReservation(reservationId);
   },
   confirmAndDeleteReservation: function(reservationId) {
-    Utils.confirmAction(MESSAGES.confirm.deleteReservation)
+    Utils.confirmAction(TRANSLATIONS.confirm.deleteReservation)
       .then(function(result) {
         if (result.isConfirmed) {
           ReservationManager.deleteReservation(reservationId);
@@ -359,10 +359,10 @@ var ReservationManager = {
       .done(function(response) {
         if (response.success) {
           Utils.reloadDataTable('#reservations-table');
-          Utils.showSuccess(MESSAGES.success.reservationDeleted);
+          Utils.showSuccess(TRANSLATIONS.success.reservationDeleted);
           StatsManager.load();
         } else {
-          Utils.showError(response.message || MESSAGES.error.reservationDeleteFailed);
+          Utils.showError(response.message || TRANSLATIONS.error.reservationDeleteFailed);
         }
       })
       .fail(function(xhr) {
@@ -375,7 +375,7 @@ var ReservationManager = {
     this.confirmAndCancelReservation(reservationId);
   },
   confirmAndCancelReservation: function(reservationId) {
-    Utils.confirmAction(MESSAGES.confirm.cancelReservation)
+    Utils.confirmAction(TRANSLATIONS.confirm.cancelReservation)
       .then(function(result) {
         if (result.isConfirmed) {
           ReservationManager.cancelReservation(reservationId);
@@ -387,10 +387,10 @@ var ReservationManager = {
       .done(function(response) {
         if (response.success) {
           Utils.reloadDataTable('#reservations-table');
-          Utils.showSuccess(MESSAGES.success.reservationCancelled);
+          Utils.showSuccess(TRANSLATIONS.success.reservationCancelled);
           StatsManager.refresh();
         } else {
-          Utils.showError(response.message || MESSAGES.error.reservationCancelFailed);
+          Utils.showError(response.message || TRANSLATIONS.error.reservationCancelFailed);
         }
       })
       .fail(function(xhr) {
@@ -434,8 +434,8 @@ var SearchManager = {
     ].join(', ');
     $(filterSelectors).val('');
     // Reset apartment and room selects to disabled
-    $('#search_apartment_number').prop('disabled', true).empty().append('<option value="">' + MESSAGES.placeholders.selectApartment + '</option>');
-    $('#search_room_number').prop('disabled', true).empty().append('<option value="">' + MESSAGES.placeholders.selectRoom + '</option>');
+    $('#search_apartment_number').prop('disabled', true).empty().append('<option value="">' + TRANSLATIONS.placeholders.selectApartment + '</option>');
+    $('#search_room_number').prop('disabled', true).empty().append('<option value="">' + TRANSLATIONS.placeholders.selectRoom + '</option>');
     Utils.reloadDataTable('#reservations-table');
   }
 };
@@ -458,7 +458,7 @@ var SelectManager = {
         self.populateApartmentSelect(buildingId);
         $('#search_apartment_number').prop('disabled', false);
       } else {
-        self.clearSelect('#search_apartment_number', MESSAGES.placeholders.selectApartment);
+        self.clearSelect('#search_apartment_number', TRANSLATIONS.placeholders.selectApartment);
         $('#search_apartment_number').prop('disabled', true);
       }
       self.clearRoomSelect();
@@ -483,30 +483,30 @@ var SelectManager = {
     ApiService.fetchBuildings()
       .done(function(response) {
         if (response.success && response.data) {
-          SelectManager.populateSelect('#search_building_id', response.data, 'number', MESSAGES.placeholders.selectBuilding);
+          SelectManager.populateSelect('#search_building_id', response.data, 'number', TRANSLATIONS.placeholders.selectBuilding);
         }
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr,'An error occurred')
+        Utils.handleAjaxError(xhr, @json(__('app.general.an_error_occurred')));
       });
   },
   populateApartmentSelect: function(buildingId) {
     if (!buildingId) {
-      this.clearSelect('#search_apartment_number', MESSAGES.placeholders.selectApartment);
+      this.clearSelect('#search_apartment_number', TRANSLATIONS.placeholders.selectApartment);
       $('#search_apartment_number').prop('disabled', true);
       return;
     }
     ApiService.fetchApartments(buildingId)
       .done(function(response) {
         if (response.success && response.data) {
-          SelectManager.populateSelect('#search_apartment_number', response.data, 'number', MESSAGES.placeholders.selectApartment);
+          SelectManager.populateSelect('#search_apartment_number', response.data, 'number', TRANSLATIONS.placeholders.selectApartment);
         } else {
-          SelectManager.clearSelect('#search_apartment_number', MESSAGES.placeholders.selectApartment);
+          SelectManager.clearSelect('#search_apartment_number', TRANSLATIONS.placeholders.selectApartment);
         }
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr,'An error occurred')
-        SelectManager.clearSelect('#search_apartment_number', MESSAGES.placeholders.selectApartment);
+        Utils.handleAjaxError(xhr, @json(__('app.general.an_error_occurred')));
+        SelectManager.clearSelect('#search_apartment_number', TRANSLATIONS.placeholders.selectApartment);
       });
   },
   populateRoomSelect: function(apartmentNumber) {
@@ -518,28 +518,28 @@ var SelectManager = {
     ApiService.fetchRooms(apartmentNumber)
       .done(function(response) {
         if (response.success && response.data) {
-          SelectManager.populateSelect('#search_room_number', response.data, 'number', MESSAGES.placeholders.selectRoom);
+          SelectManager.populateSelect('#search_room_number', response.data, 'number', TRANSLATIONS.placeholders.selectRoom);
         } else {
-          SelectManager.clearSelect('#search_room_number', MESSAGES.placeholders.selectRoom);
+          SelectManager.clearSelect('#search_room_number', TRANSLATIONS.placeholders.selectRoom);
         }
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr,'An error occurred')
-        SelectManager.clearSelect('#search_room_number', MESSAGES.placeholders.selectRoom);
+        Utils.handleAjaxError(xhr, @json(__('app.general.an_error_occurred')));
+        SelectManager.clearSelect('#search_room_number', TRANSLATIONS.placeholders.selectRoom);
       });
   },
   populateAcademicTermsSelect: function() {
     ApiService.fetchAcademicTerms()
       .done(function(response) {
         if (response.success && response.data) {
-          SelectManager.populateSelect('#search_academic_term_id', response.data, 'name', MESSAGES.placeholders.allTerms);
+          SelectManager.populateSelect('#search_academic_term_id', response.data, 'name', TRANSLATIONS.placeholders.allTerms);
         } else {
-          SelectManager.clearSelect('#search_academic_term_id', MESSAGES.placeholders.allTerms);
+          SelectManager.clearSelect('#search_academic_term_id', TRANSLATIONS.placeholders.allTerms);
         }
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr,'An error occurred')
-        SelectManager.clearSelect('#search_academic_term_id', MESSAGES.placeholders.allTerms);
+        Utils.handleAjaxError(xhr, @json(__('app.general.an_error_occurred')));
+        SelectManager.clearSelect('#search_academic_term_id', TRANSLATIONS.placeholders.allTerms);
       });
   },
   populateSelect: function(selector, data, valueField, placeholder) {
@@ -553,7 +553,7 @@ var SelectManager = {
     $(selector).empty().append('<option value="">' + placeholder + '</option>');
   },
   clearRoomSelect: function() {
-    this.clearSelect('#search_room_number', MESSAGES.placeholders.selectRoom);
+    this.clearSelect('#search_room_number', TRANSLATIONS.placeholders.selectRoom);
   },
 };
 

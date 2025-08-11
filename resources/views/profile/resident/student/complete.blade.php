@@ -1,6 +1,6 @@
 @extends('layouts.home-content-only')
 
-@section('title', 'Complete Your Profile | Housing')
+@section('title', __('Complete Your Profile | Housing'))
 
 @push('styles')
 <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
@@ -71,7 +71,7 @@
             <!-- Loading overlay -->
             <div id="form-loader" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 1050; background: rgba(255,255,255,0.7); backdrop-filter: blur(2px);">
                 <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                    <span class="visually-hidden">Loading...</span>
+                    <span class="visually-hidden">{{ __('Loading...') }}</span>
                 </div>
             </div> <!-- End of Loading overlay -->
 
@@ -87,8 +87,8 @@
                                         <i class='bx bx-user fs-4'></i>
                                     </div>
                                     <div class="d-flex flex-column text-start">
-                                        <span class="fw-bold">Step 1</span>
-                                        <span class="small">Personal Info</span>
+                                        <span class="fw-bold">{{ __('Step 1') }}</span>
+                                        <span class="small">{{ __('Personal Info') }}</span>
                                     </div>
                                 </div>
                             </button>
@@ -100,8 +100,8 @@
                                         <i class='bx bx-phone fs-4'></i>
                                     </div>
                                     <div class="d-flex flex-column text-start">
-                                        <span class="fw-bold">Step 2</span>
-                                        <span class="small">Contact Info</span>
+                                        <span class="fw-bold">{{ __('Step 2') }}</span>
+                                        <span class="small">{{ __('Contact Info') }}</span>
                                     </div>
                                 </div>
                             </button>
@@ -113,8 +113,8 @@
                                         <i class='bx bx-book fs-4'></i>
                                     </div>
                                     <div class="d-flex flex-column text-start">
-                                        <span class="fw-bold">Step 3</span>
-                                        <span class="small">Academic Info</span>
+                                        <span class="fw-bold">{{ __('Step 3') }}</span>
+                                        <span class="small">{{ __('Academic Info') }}</span>
                                     </div>
                                 </div>
                             </button>
@@ -126,8 +126,8 @@
                                         <i class='bx bx-user-voice fs-4'></i>
                                     </div>
                                     <div class="d-flex flex-column text-start">
-                                        <span class="fw-bold">Step 4</span>
-                                        <span class="small">Parent Info</span>
+                                        <span class="fw-bold">{{ __('Step 4') }}</span>
+                                        <span class="small">{{ __('Parent Info') }}</span>
                                     </div>
                                 </div>
                             </button>
@@ -139,8 +139,8 @@
                                         <i class='bx bx-group fs-4'></i>
                                     </div>
                                     <div class="d-flex flex-column text-start">
-                                        <span class="fw-bold">Step 5</span>
-                                        <span class="small">Sibling Info</span>
+                                        <span class="fw-bold">{{ __('Step 5') }}</span>
+                                        <span class="small">{{ __('Sibling Info') }}</span>
                                     </div>
                                 </div>
                             </button>
@@ -152,8 +152,8 @@
                                         <i class='bx bx-first-aid fs-4'></i>
                                     </div>
                                     <div class="d-flex flex-column text-start">
-                                        <span class="fw-bold">Step 6</span>
-                                        <span class="small">Emergency Contact</span>
+                                        <span class="fw-bold">{{ __('Step 6') }}</span>
+                                        <span class="small">{{ __('Emergency Contact') }}</span>
                                     </div>
                                 </div>
                             </button>
@@ -165,8 +165,8 @@
                                         <i class='bx bx-check-shield fs-4'></i>
                                     </div>
                                     <div class="d-flex flex-column text-start">
-                                        <span class="fw-bold">Step 7</span>
-                                        <span class="small">Terms</span>
+                                        <span class="fw-bold">{{ __('Step 7') }}</span>
+                                        <span class="small">{{ __('Terms') }}</span>
                                     </div>
                                 </div>
                             </button>
