@@ -33,7 +33,7 @@ class AcademicTerm extends Model
      *
      * @var list<string>
      */
-    protected $appends = ['name', 'season_en'];
+    protected $appends = ['name'];
 
     /**
      * The attributes that should be cast.
@@ -52,41 +52,6 @@ class AcademicTerm extends Model
             'started_at'      => 'datetime',
             'ended_at'        => 'datetime',
         ];
-    }
-
-    /**
-     * Get the semester with translated suffix.
-     *
-     * @return Attribute
-     */
-    protected function semester(): Attribute
-    {
-        return Attribute::make(
-            get: fn (string $value) => $value . __('semester'),
-        );
-    }
-    /**
-     * Get the season of the academic term.
-     *
-     * @return Attribute
-     */
-    protected function season(): Attribute
-    {
-        return Attribute::make(
-            get: fn (string $value) => __('academic_terms.season.' . ucfirst($value)),
-        );
-    }
-
-    /**
-     * Get the season in English.
-     *
-     * @return Attribute
-     */
-    protected function seasonEn(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value, $attributes) => $attributes['season'] ?? ''
-        );
     }
 
 

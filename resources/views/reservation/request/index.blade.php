@@ -1,182 +1,64 @@
 @extends('layouts.home')
 
-@section('title', __('reservation_requests.page_title'))
+@section('title', __('Reservation Requests'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 
-                color="secondary"
-                icon="bx bx-calendar"
-                label="Total Requests"
-                id="requests"
-                :subStats="[
-                    'male' => [
-                        'label' => 'Male Requests',
-                        'icon' => 'bx bx-male-sign',
-                        'color' => 'info'
-                    ],
-                    'female' => [
-                        'label' => 'Female Requests',
-                        'icon' => 'bx bx-female-sign',
-                        'color' => 'danger'
-                    ]
-                ]"
-            />
         </div>
         <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 
-                color="warning"
-                icon="bx bx-time-five"
-                label="Pending"
-                id="requests-pending"
-                :subStats="[
-                    'male' => [
-                        'label' => 'Pending Male',
-                        'icon' => 'bx bx-male-sign',
-                        'color' => 'info'
-                    ],
-                    'female' => [
-                        'label' => 'Pending Female',
-                        'icon' => 'bx bx-female-sign',
-                        'color' => 'danger'
-                    ]
-                ]"
-            />
         </div>
         <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 
-                color="success"
-                icon="bx bx-check-circle"
-                label="Approved"
-                id="requests-approved"
-                :subStats="[
-                    'male' => [
-                        'label' => 'Approved Male',
-                        'icon' => 'bx bx-male-sign',
-                        'color' => 'info'
-                    ],
-                    'female' => [
-                        'label' => 'Approved Female',
-                        'icon' => 'bx bx-female-sign',
-                        'color' => 'danger'
-                    ]
-                ]"
-            />
         </div>
         <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2 
-                color="info"
-                icon="bx bx-hourglass"
-                label="Rejected"
-                id="requests-rejected"
-                :subStats="[
-                    'male' => [
-                        'label' => 'Rejected Male',
-                        'icon' => 'bx bx-male-sign',
-                        'color' => 'info'
-                    ],
-                    'female' => [
-                        'label' => 'Rejected Female',
-                        'icon' => 'bx bx-female-sign',
-                        'color' => 'danger'
-                    ]
-                ]"
-            />
         </div>
     </div>
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header 
-        :title="__('reservation_requests.page_header')"
-        :description="__('reservation_requests.page_description')"
+        :title="__('Reservation Requests')"
+        :description="__('Manage all reservation requests')"
         icon="bx bx-calendar"
     >
         <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#reservationRequestSearchCollapse" aria-expanded="false" aria-controls="reservationRequestSearchCollapse">
-            <i class="bx bx-filter-alt me-1"></i> Search
         </button>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
     <x-ui.advanced-search 
-        :title="__('reservation_requests.search.advanced_title')" 
+        :title="__('Advanced Search')" 
         formId="advancedReservationRequestSearch" 
         collapseId="reservationRequestSearchCollapse"
         :collapsed="false"
     >
         <div class="col-md-4">
-            <label for="search_request_number" class="form-label">{{ __('reservation_requests.search.fields.request_number') }}:</label>
-            <input type="text" class="form-control" id="search_request_number" name="search_request_number">
         </div>
         <div class="col-md-4">
-            <label for="search_user_name" class="form-label">{{ __('reservation_requests.search.fields.user_name') }}:</label>
-            <input type="text" class="form-control" id="search_user_name" name="search_user_name">
         </div>
         <div class="col-md-4">
-            <label for="search_status" class="form-label">{{ __('reservation_requests.search.fields.status') }}:</label>
-            <select class="form-control" id="search_status" name="search_status">
-                <option value="">{{ __('reservation_requests.search.placeholders.all_statuses') }}</option>
-                <option value="pending">{{ __('reservation_requests.status.pending') }}</option>
-                <option value="approved">{{ __('reservation_requests.status.approved') }}</option>
-                <option value="rejected">{{ __('reservation_requests.status.rejected') }}</option>
-                <option value="cancelled">{{ __('reservation_requests.status.cancelled') }}</option>
-            </select>
         </div>
         <div class="col-md-4">
-            <label for="search_active" class="form-label">{{ __('reservation_requests.search.fields.active') }}:</label>
-            <select class="form-control" id="search_active" name="search_active">
-                <option value="">{{ __('reservation_requests.search.placeholders.all') }}</option>
-                <option value="1">{{ __('reservation_requests.active_status.active') }}</option>
-                <option value="0">{{ __('reservation_requests.active_status.inactive') }}</option>
-            </select>
         </div>
         <div class="col-md-4">
-            <label for="search_academic_term_id" class="form-label">{{ __('reservation_requests.search.fields.academic_term') }}:</label>
-            <select class="form-control" id="search_academic_term_id" name="search_academic_term_id">
-                <option value="">{{ __('reservation_requests.search.placeholders.all_terms') }}</option>
-            </select>
         </div>
         <div class="w-100"></div>
         <button class="btn btn-outline-secondary mt-2 ms-2" id="clearReservationRequestFiltersBtn" type="button">
-            <i class="bx bx-x"></i> {{ __('reservation_requests.search.clear_filters') }}
         </button>
     </x-ui.advanced-search>
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable.table 
-        :headers="[
-            __('reservation_requests.table.headers.request_number'),
-            __('reservation_requests.table.headers.user'),
-            __('reservation_requests.table.headers.accommodation'),
-            __('reservation_requests.table.headers.academic_term'),
-            __('reservation_requests.table.headers.requested_check_in'),
-            __('reservation_requests.table.headers.requested_check_out'),
-            __('reservation_requests.table.headers.status'),
-            __('reservation_requests.table.headers.total_points'),
-            __('reservation_requests.table.headers.created'),
-            __('reservation_requests.table.headers.actions')
+        :headers=" [
+            __('Actions')
         ]"
-        :columns="[
-            ['data' => 'request_number', 'name' => 'request_number', 'orderable' => false],
-            ['data' => 'name', 'name' => 'name', 'orderable' => false],
-            ['data' => 'accommodation_info', 'name' => 'accommodation_info', 'orderable' => false],
-            ['data' => 'academic_term', 'name' => 'academic_term', 'orderable' => false],
-            ['data' => 'requested_check_in_date', 'name' => 'requested_check_in_date', 'orderable' => false],
-            ['data' => 'requested_check_out_date', 'name' => 'requested_check_out_date', 'orderable' => false],
-            ['data' => 'status', 'name' => 'status', 'orderable' => false],
-            ['data' => 'total_points', 'name' => 'total_points', 'orderable' => false],
-            ['data' => 'created_at', 'name' => 'created_at', 'orderable' => false],
+        :columns=" [
             ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false]
         ]"
         :ajax-url="route('reservation-requests.datatable')"
         :table-id="'reservation-requests-table'"
-        :filter-fields="[
-            'search_request_number',
-            'search_user_name',
-            'search_status',
-            'search_active',
+        :filter-fields=" [
             'search_academic_term_id',
         ]"
     />
@@ -185,143 +67,28 @@
     {{-- View Reservation Modal --}}
     <x-ui.modal 
         id="viewReservationRequestModal"
-        title="{{ __('reservation_requests.modals.view.title') }}"
+        title="{{ __('View Reservation Request') }}"
         size="md"
         :scrollable="true"
         class="view-reservation-request-modal"
     >
         <x-slot name="slot">
-          <div class="row">
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">{{ __('reservation_requests.modals.view.fields.request_number') }}:</label>
-                <p id="view-reservation-request-number" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">{{ __('reservation_requests.modals.view.fields.user') }}:</label>
-                <p id="view-reservation-request-user" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">{{ __('reservation_requests.modals.view.fields.accommodation_type') }}:</label>
-                <p id="view-reservation-request-accommodation-type" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3" id="view-room-type-group" style="display:none;">
-                <label class="form-label fw-bold">{{ __('reservation_requests.modals.view.fields.room_type') }}:</label>
-                <p id="view-reservation-request-room-type" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3" id="view-double-room-bed-option-group" style="display:none;">
-                <label class="form-label fw-bold">{{ __('reservation_requests.modals.view.fields.double_room_bed_option') }}:</label>
-                <p id="view-reservation-request-double-room-bed-option" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">{{ __('reservation_requests.modals.view.fields.academic_term') }}:</label>
-                <p id="view-reservation-request-academic-term" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">{{ __('reservation_requests.modals.view.fields.requested_check_in') }}:</label>
-                <p id="view-reservation-request-check-in" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">{{ __('reservation_requests.modals.view.fields.requested_check_out') }}:</label>
-                <p id="view-reservation-request-check-out" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">{{ __('reservation_requests.modals.view.fields.status') }}:</label>
-                <p id="view-reservation-request-status" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">{{ __('reservation_requests.modals.view.fields.total_points') }}:</label>
-                <p id="view-reservation-request-total-points" class="mb-0"></p>
-            </div>
-            <div class="col-12 mb-3">
-                <label class="form-label fw-bold">{{ __('reservation_requests.modals.view.fields.notes') }}:</label>
-                <p id="view-reservation-request-notes" class="mb-0"></p>
-            </div>
-            <div class="col-6 mb-3">
-                <label class="form-label fw-bold">{{ __('reservation_requests.modals.view.fields.created') }}:</label>
-                <p id="view-reservation-request-created" class="mb-0"></p>
-            </div>
-          </div>
         </x-slot>
         <x-slot name="footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('reservation_requests.modals.view.close') }}</button>
         </x-slot>
     </x-ui.modal>
     
     {{-- Edit Reservation Modal --}}
     <x-ui.modal 
         id="editReservationRequestModal"
-        title="{{ __('reservation_requests.modals.edit.title') }}"
+        title="{{ __('Edit Reservation Request') }}"
         size="md"
         :scrollable="true"
         class="edit-reservation-request-modal"
     >
         <x-slot name="slot">
-            <form id="editReservationRequestForm">
-                <input type="hidden" id="edit_reservation_request_id" name="reservation_request_id">
-                <div class="row">
-                    <div class="col-6 mb-3">
-                        <label class="form-label fw-bold">{{ __('reservation_requests.modals.edit.fields.user') }}:</label>
-                        <input type="text" class="form-control" id="edit_user_name" name="user_name" readonly>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <label class="form-label fw-bold">{{ __('reservation_requests.modals.edit.fields.accommodation_type') }}:</label>
-                        <select class="form-control" id="edit_accommodation_type" name="accommodation_type">
-                            <option value="room">{{ __('reservation_requests.accommodation_types.room') }}</option>
-                            <option value="apartment">{{ __('reservation_requests.accommodation_types.apartment') }}</option>
-                        </select>
-                    </div>
-                    <div class="col-6 mb-3" id="edit_room_type_group" style="display:none;">
-                        <label class="form-label fw-bold">{{ __('reservation_requests.modals.edit.fields.room_type') }}:</label>
-                        <select class="form-control" id="edit_room_type" name="room_type">
-                            <option value="single">{{ __('reservation_requests.room_types.single') }}</option>
-                            <option value="double">{{ __('reservation_requests.room_types.double') }}</option>
-                        </select>
-                    </div>
-                    <div class="col-6 mb-3" id="edit_double_room_bed_option_group" style="display:none;">
-                        <label class="form-label fw-bold">{{ __('reservation_requests.modals.edit.fields.double_room_bed_option') }}:</label>
-                        <select class="form-control" id="edit_double_room_bed_option" name="double_room_bed_option">
-                            <option value="both">{{ __('reservation_requests.bed_options.both') }}</option>
-                            <option value="one">{{ __('reservation_requests.bed_options.one') }}</option>
-                        </select>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <label class="form-label fw-bold">{{ __('reservation_requests.modals.edit.fields.academic_term') }}:</label>
-                        <select class="form-control" id="edit_academic_term_id" name="academic_term_id"></select>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <label class="form-label fw-bold">{{ __('reservation_requests.modals.edit.fields.requested_check_in') }}:</label>
-                        <input type="date" class="form-control" id="edit_check_in_date" name="requested_check_in_date">
-                    </div>
-                    <div class="col-6 mb-3">
-                        <label class="form-label fw-bold">{{ __('reservation_requests.modals.edit.fields.requested_check_out') }}:</label>
-                        <input type="date" class="form-control" id="edit_check_out_date" name="requested_check_out_date">
-                    </div>
-                    <div class="col-6 mb-3">
-                        <label class="form-label fw-bold">{{ __('reservation_requests.modals.edit.fields.status') }}:</label>
-                        <select class="form-control" id="edit_status" name="status">
-                            <option value="pending">{{ __('reservation_requests.status.pending') }}</option>
-                            <option value="approved">{{ __('reservation_requests.status.approved') }}</option>
-                            <option value="rejected">{{ __('reservation_requests.status.rejected') }}</option>
-                            <option value="cancelled">{{ __('reservation_requests.status.cancelled') }}</option>
-                        </select>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <label class="form-label fw-bold">{{ __('reservation_requests.modals.edit.fields.period') }}:</label>
-                        <select class="form-control" id="edit_period" name="period">
-                            <option value="long">{{ __('reservation_requests.period_types.long') }}</option>
-                            <option value="short">{{ __('reservation_requests.period_types.short') }}</option>
-                        </select>
-                    </div>
-                    <div class="col-12 mb-3">
-                        <label class="form-label fw-bold">{{ __('reservation_requests.modals.edit.fields.notes') }}:</label>
-                        <textarea class="form-control" id="edit_notes" name="notes"></textarea>
-                    </div>
-                </div>
-            </form>
         </x-slot>
         <x-slot name="footer">
-            <button type="button" class="btn btn-primary" id="updateReservationRequestBtn">{{ __('reservation_requests.modals.edit.save') }}</button>
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('reservation_requests.modals.edit.close') }}</button>
         </x-slot>
     </x-ui.modal>
 </div>
@@ -346,19 +113,19 @@
 // ===========================
 var MESSAGES = {
   success: {
-    reservationRequestCreated: @json(__('reservation_requests.messages.success.created')),
-    reservationRequestUpdated: @json(__('reservation_requests.messages.success.updated')),
-    reservationRequestDeleted: @json(__('reservation_requests.messages.success.deleted'))
+    reservationRequestCreated: @json(__('Reservation request created successfully')),
+    reservationRequestUpdated: @json(__('Reservation request updated successfully')),
+    reservationRequestDeleted: @json(__('Reservation request deleted successfully'))
   },
   error: {
-    statsLoadFailed: @json(__('reservation_requests.messages.error.stats_load_failed')),
-    reservationRequestLoadFailed: @json(__('reservation_requests.messages.error.load_failed')),
-    reservationRequestCreateFailed: @json(__('reservation_requests.messages.error.create_failed')),
-    reservationRequestUpdateFailed: @json(__('reservation_requests.messages.error.update_failed')),
-    reservationRequestDeleteFailed: @json(__('reservation_requests.messages.error.delete_failed')),
-    academicTermsLoadFailed: @json(__('reservation_requests.messages.error.academic_terms_load_failed')),
-    accommodationsLoadFailed: @json(__('reservation_requests.messages.error.accommodations_load_failed')),
-    operationFailed: @json(__('reservation_requests.messages.error.operation_failed'))
+    statsLoadFailed: @json(__('Failed to load statistics')),
+    reservationRequestLoadFailed: @json(__('Failed to load reservation request')),
+    reservationRequestCreateFailed: @json(__('Failed to create reservation request')),
+    reservationRequestUpdateFailed: @json(__('Failed to update reservation request')),
+    reservationRequestDeleteFailed: @json(__('Failed to delete reservation request')),
+    academicTermsLoadFailed: @json(__('Failed to load academic terms')),
+    accommodationsLoadFailed: @json(__('Failed to load accommodations')),
+    operationFailed: @json(__('Operation failed'))
   },
   confirm: {
     deleteReservationRequest: {
@@ -368,8 +135,8 @@ var MESSAGES = {
     }
   },
   placeholders: {
-    allTerms: @json(__('reservation_requests.search.placeholders.all_terms')),
-    allAccommodations: @json(__('reservation_requests.search.placeholders.all_accommodations'))
+    allTerms: @json(__('All Terms')),
+    allAccommodations: @json(__('All Accommodations'))
   }
 };
 

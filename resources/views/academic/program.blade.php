@@ -1,6 +1,6 @@
 @extends('layouts.home')
 
-@section('title', __('programs.page.title'))
+@section('title', __('Academic Programs'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -10,7 +10,7 @@
         <div class="col-sm-6 col-xl-4">
             <x-ui.card.stat2 
                 id="programs"
-                label="{{ __('programs.stats.total_programs') }}"
+                label="{{ __('Total Programs') }}"
                 color="secondary"
                 icon="bx bx-book-open"
             />
@@ -18,7 +18,7 @@
         <div class="col-sm-6 col-xl-4">
             <x-ui.card.stat2 
                 id="with-students"
-                label="{{ __('programs.stats.with_students') }}"
+                label="{{ __('Programs with Students') }}"
                 color="success"
                 icon="bx bx-user-check"
             />
@@ -26,7 +26,7 @@
         <div class="col-sm-6 col-xl-4">
             <x-ui.card.stat2 
                 id="without-students"
-                label="{{ __('programs.stats.without_students') }}"
+                label="{{ __('Programs without Students') }}"
                 color="warning"
                 icon="bx bx-user-x"
             />
@@ -35,50 +35,50 @@
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header 
-        title="{{ __('programs.page.header.title') }}"
-        description="{{ __('programs.page.header.description') }}"
+        title="{{ __('Academic Programs') }}"
+        description="{{ __('Manage university academic programs') }}"
         icon="bx bx-book-open"
     >
         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
           <button class="btn btn-primary mx-2" id="addProgramBtn" type="button" data-bs-toggle="modal" data-bs-target="#programModal">
-              <i class="bx bx-plus me-1"></i> {{ __('programs.buttons.add_program') }}
+              <i class="bx bx-plus me-1"></i> {{ __('Add Program') }}
           </button>
           <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#programSearchCollapse" aria-expanded="false" aria-controls="programSearchCollapse">
-              <i class="bx bx-filter-alt me-1"></i> {{ __('programs.buttons.search') }}
+              <i class="bx bx-filter-alt me-1"></i> {{ __('Search') }}
           </button>
         </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
     <x-ui.advanced-search 
-        title="{{ __('programs.search.title') }}" 
+        title="{{ __('Search Programs') }}" 
         formId="advancedProgramSearch" 
         collapseId="programSearchCollapse"
         :collapsed="false"
     >
         <div class="col-md-6">
-            <label for="search_name" class="form-label">{{ __('programs.search.labels.program_name') }}:</label>
-            <input type="text" class="form-control" id="search_name" placeholder="{{ __('programs.search.placeholders.program_name') }}">
+            <label for="search_name" class="form-label">{{ __('Program Name') }}:</label>
+            <input type="text" class="form-control" id="search_name" placeholder="{{ __('Enter program name') }}">
         </div>
         <div class="col-md-6">
-            <label for="faculty_id_search" class="form-label">{{ __('programs.search.labels.faculty') }}:</label>
+            <label for="faculty_id_search" class="form-label">{{ __('Faculty') }}:</label>
             <select class="form-control" id="search_faculty" name="search_faculty_id">
-                <option value="">{{ __('programs.search.placeholders.select_faculty') }}</option>
+                <option value="">{{ __('Select Faculty') }}</option>
                 <!-- Options loaded via AJAX -->
             </select>
         </div>
         <button class="btn btn-outline-secondary" id="clearFiltersBtn" type="button">
-            <i class="bx bx-x"></i> {{ __('programs.buttons.clear_filters') }}
+            <i class="bx bx-x"></i> {{ __('Clear Filters') }}
         </button>
     </x-ui.advanced-search>
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable.table
         :headers="[
-            __('programs.table.headers.name'),
-            __('programs.table.headers.faculty'),
-            __('programs.table.headers.students_count'),
-            __('programs.table.headers.action')
+            __('Name'),
+            __('Faculty'),
+            __('Students Count'),
+            __('Action')
         ]"
         :columns="[
             ['data' => 'name', 'name' => 'name'],
@@ -95,7 +95,7 @@
     {{-- Add/Edit Program Modal --}}
     <x-ui.modal 
         id="programModal"
-        title="{{ __('programs.modal.title') }}"
+        title="{{ __('Program Details') }}"
         size="lg"
         :scrollable="false"
         class="program-modal"
@@ -105,17 +105,17 @@
                 <input type="hidden" id="program_id" name="program_id">
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label for="name_en" class="form-label">{{ __('programs.form.labels.name_en') }}</label>
+                        <label for="name_en" class="form-label">{{ __('Name (English)') }}</label>
                         <input type="text" class="form-control" id="name_en" name="name_en" required>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="name_ar" class="form-label">{{ __('programs.form.labels.name_ar') }}</label>
+                        <label for="name_ar" class="form-label">{{ __('Name (Arabic)') }}</label>
                         <input type="text" class="form-control" id="name_ar" name="name_ar" required>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="duration_years" class="form-label">{{ __('programs.form.labels.duration_years') }}</label>
+                        <label for="duration_years" class="form-label">{{ __('Duration (Years)') }}</label>
                         <select class="form-control" id="duration_years" name="duration_years" required>
-                            <option value="">{{ __('programs.form.placeholders.select_duration') }}</option>
+                            <option value="">{{ __('Select Duration') }}</option>
                             <option value="1">1</option>
                             <option value="2">2</option>
                             <option value="3">3</option>
@@ -124,9 +124,9 @@
                         </select>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label for="faculty" class="form-label">{{ __('programs.form.labels.faculty') }}</label>
+                        <label for="faculty" class="form-label">{{ __('Faculty') }}</label>
                         <select class="form-control" id="faculty" name="faculty_id" required>
-                            <option value="">{{ __('programs.form.placeholders.select_faculty') }}</option>
+                            <option value="">{{ __('Select Faculty') }}</option>
                             <!-- Options will be loaded via AJAX -->
                         </select>
                     </div>
@@ -135,10 +135,10 @@
         </x-slot>
         <x-slot name="footer">
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                {{ __('programs.buttons.close') }}
+                {{ __('Close') }}
             </button>
             <button type="submit" class="btn btn-primary" id="saveProgramBtn" form="programForm">
-                {{ __('programs.buttons.save') }}
+                {{ __('Save') }}
             </button>
         </x-slot>
     </x-ui.modal>
@@ -235,34 +235,23 @@ var ApiService = {
 // TRANSLATION CONSTANTS
 // ===========================
 const TRANSLATION = {
-  stats: {
-    error: '{{ __('programs.messages.stats_error') }}'
-  },
-  program: {
-    saveSuccess: '{{ __('programs.messages.save_success') }}',
-    deleteSuccess: '{{ __('programs.messages.delete_success') }}',
-    fetchError: '{{ __('programs.messages.fetch_error') }}',
-    deleteError: '{{ __('programs.messages.delete_error') }}',
-    inputError: '{{ __('programs.messages.input_error') }}'
-  },
   buttons: {
-    saving: '{{ __('programs.buttons.saving') }}',
-    updating: '{{ __('programs.buttons.updating') }}',
-    save: '{{ __('programs.buttons.save') }}',
-    update: '{{ __('programs.buttons.update') }}'
+    saving: '{{ __('Saving...') }}',
+    updating: '{{ __('Updating...') }}',
+    save: '{{ __('Save') }}',
+    update: '{{ __('Update') }}'
   },
   modal: {
-    addTitle: '{{ __('programs.modal.add_title') }}',
-    editTitle: '{{ __('programs.modal.edit_title') }}'
+    addTitle: '{{ __('Add New Program') }}',
+    editTitle: '{{ __('Edit Program') }}'
   },
   confirm: {
-    title: '{{ __('programs.confirm.title') }}',
-    text: '{{ __('programs.confirm.text') }}',
-    confirmButton: '{{ __('programs.confirm.confirm_button') }}'
+    title: '{{ __('Are you sure?') }}',
+    text: '{{ __('You won\'t be able to revert this!') }}',
+    confirmButton: '{{ __('Delete') }}'
   },
   dropdown: {
-    selectFaculty: '{{ __('programs.dropdown.select_faculty') }}',
-    error: '{{ __('programs.messages.dropdown_error') }}'
+    selectFaculty: '{{ __('Select Faculty') }}',
   }
 };
 
@@ -355,7 +344,7 @@ var DropdownManager = {
         }
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr, TRANSLATION.dropdown.error);
+        Utils.handleAjaxError(xhr, xhr.responseJSON.message);
       });
   },
 };
@@ -366,7 +355,6 @@ var DropdownManager = {
 var StatsManager = Utils.createStatsManager({
   apiMethod: ApiService.fetchProgramStats,
   statsKeys: ['programs', 'with-students', 'without-students'],
-  onError: TRANSLATION.stats.error
 });
 
 // ===========================
@@ -395,14 +383,14 @@ var ProgramManager = {
         loadingText: programId ? TRANSLATION.buttons.updating : TRANSLATION.buttons.saving
       });
       ApiService.saveProgram(formData, programId || null)
-        .done(function() {
+        .done(function(response) {
           $('#programModal').modal('hide');
           Utils.reloadDataTable('#programs-table', null, true);
-          Utils.showSuccess(TRANSLATION.program.saveSuccess);
+          Utils.showSuccess(response.message);
           StatsManager.refresh();
         })
         .fail(function(xhr) {
-          Utils.handleAjaxError(xhr, TRANSLATION.program.inputError);
+          Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
         })
         .always(function() {
           Utils.setLoadingState($submitBtn, false, { normalText: originalText });
@@ -425,7 +413,7 @@ var ProgramManager = {
           $('#programModal').modal('show');
         })
         .fail(function(xhr) {
-          Utils.handleAjaxError(xhr, TRANSLATION.program.fetchError);
+          Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
         });
     });
   },
@@ -441,13 +429,13 @@ var ProgramManager = {
       }).then(function(result) {
         if (result.isConfirmed) {
           ApiService.deleteProgram(programId)
-            .done(function() {
+            .done(function(response) {
               Utils.reloadDataTable('#programs-table', null, true);
-              Utils.showSuccess(TRANSLATION.program.deleteSuccess);
+              Utils.showSuccess(response.message);
               StatsManager.refresh();
             })
             .fail(function(xhr) {
-              Utils.handleAjaxError(xhr, TRANSLATION.program.deleteError);
+              Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
             });
         }
       });

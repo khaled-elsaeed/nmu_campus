@@ -15,19 +15,19 @@
                     @if($actionItem === 'view')
                         <li>
                             <a class="dropdown-item view{{ $type }}Btn" href="javascript:void(0);" data-id="{{ $id }}">
-                                <i class="bx bx-show me-1"></i> {{ __('general.view') }}
+                                <i class="bx bx-show me-1"></i> {{ __('app.general.buttons.view') }}
                             </a>
                         </li>
                     @elseif($actionItem === 'edit')
                         <li>
                             <a class="dropdown-item edit{{ $type }}Btn" href="javascript:void(0);" data-id="{{ $id }}">
-                                <i class="bx bx-edit-alt me-1"></i> {{ __('general.edit') }}
+                                <i class="bx bx-edit-alt me-1"></i> {{ __('app.general.buttons.edit') }}
                             </a>
                         </li>
                     @elseif($actionItem === 'delete')
                         <li>
                             <a class="dropdown-item text-danger delete{{ $type }}Btn" href="javascript:void(0);" data-id="{{ $id }}">
-                                <i class="bx bx-trash me-1"></i> {{ __('general.delete') }}
+                                <i class="bx bx-trash me-1"></i> {{ __('app.general.buttons.delete') }}
                             </a>
                         </li>
                     @endif
@@ -44,7 +44,7 @@
                     type="button" 
                     class="btn rounded-pill btn-icon {{ $singleAction['class'] }} {{ $singleAction['action'] }}{{ $type }}Btn"
                     @if($id) data-id="{{ $id }}" @endif
-                    title="{{ __('general.' . $singleAction['label']) }}"
+                    title="{{ __('app.general.' . $singleAction['label']) }}"
                 >
                     <i class="{{ $singleAction['icon'] }}"></i>
                 </button>

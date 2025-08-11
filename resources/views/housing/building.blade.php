@@ -1,6 +1,6 @@
 @extends('layouts.home')
 
-@section('title', __('buildings.page.title'))
+@section('title', __('Building Management'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -8,74 +8,74 @@
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="secondary" icon="bx bx-buildings" :label="__('buildings.stats.total_buildings')" id="buildings" />
+            <x-ui.card.stat2 color="secondary" icon="bx bx-buildings" :label="__('Total Buildings')" id="buildings" />
         </div>
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="info" icon="bx bx-male" :label="__('buildings.stats.male_buildings')" id="buildings-male" />
+            <x-ui.card.stat2 color="info" icon="bx bx-male" :label="__('Male Buildings')" id="buildings-male" />
         </div>
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 color="danger" icon="bx bx-female" :label="__('buildings.stats.female_buildings')" id="buildings-female" />
+            <x-ui.card.stat2 color="danger" icon="bx bx-female" :label="__('Female Buildings')" id="buildings-female" />
         </div>
     </div>
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header 
-        :title="__('buildings.page.header.title')"
-        :description="__('buildings.page.header.description')"
+        :title="__('Buildings')"
+        :description="__('Manage all campus buildings and their details')"
         icon="bx bx-buildings"
     >
         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
             <button class="btn btn-primary mx-2" id="addBuildingBtn" type="button" data-bs-toggle="modal" data-bs-target="#buildingModal">
-                <i class="bx bx-plus me-1"></i> {{ __('buildings.buttons.add_building') }}
+                <i class="bx bx-plus me-1"></i> {{ __('Add Building') }}
             </button>
             <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#buildingSearchCollapse" aria-expanded="false" aria-controls="buildingSearchCollapse">
-                <i class="bx bx-filter-alt me-1"></i> {{ __('buildings.buttons.search') }}
+                <i class="bx bx-filter-alt me-1"></i> {{ __('Search') }}
             </button>
         </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
     <x-ui.advanced-search 
-        :title="__('buildings.search.title')" 
+        :title="__('Advanced Building Search')" 
         formId="advancedBuildingSearch" 
         collapseId="buildingSearchCollapse"
         :collapsed="false"
     >
         <div class="col-md-4">
-            <label for="search_gender_restriction" class="form-label">{{ __('buildings.search.labels.gender_restriction') }}:</label>
+            <label for="search_gender_restriction" class="form-label">{{ __('Gender Restriction') }}:</label>
             <select class="form-control" id="search_gender_restriction">
-                <option value="">{{ __('general.messages.select.gender_placeholder') }}</option>
-                <option value="male">{{ __('general.male') }}</option>
-                <option value="female">{{ __('general.female') }}</option>
+                <option value="">{{ __('Select Gender') }}</option>
+                <option value="male">{{ __('Male') }}</option>
+                <option value="female">{{ __('Female') }}</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_active" class="form-label">{{ __('buildings.search.labels.active_status') }}:</label>
+            <label for="search_active" class="form-label">{{ __('Active Status') }}:</label>
             <select class="form-control" id="search_active">
-                <option value="">{{ __('general.messages.select.status_placeholder') }}</option>
-                <option value="1">{{ __('general.active') }}</option>
-                <option value="0">{{ __('general.inactive') }}</option>
+                <option value="">{{ __('Select Status') }}</option>
+                <option value="1">{{ __('Active') }}</option>
+                <option value="0">{{ __('Inactive') }}</option>
             </select>
         </div>
         <div class="w-100"></div>
         <button class="btn btn-outline-secondary mt-2 ms-2" id="clearBuildingFiltersBtn" type="button">
-            <i class="bx bx-x"></i> {{ __('buildings.buttons.clear_filters') }}
+            <i class="bx bx-x"></i> {{ __('Clear Filters') }}
         </button>
     </x-ui.advanced-search>
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable.table 
-        :headers="[
-            __('buildings.table.headers.number'),
-            __('buildings.table.headers.total_apartments'),
-            __('buildings.table.headers.total_rooms'),
-            __('buildings.table.headers.has_double_room'),
-            __('buildings.table.headers.gender'),
-            __('buildings.table.headers.active'),
-            __('buildings.table.headers.current_occupancy'),
-            __('buildings.table.headers.actions')
+        :headers=" [
+            __('Number'),
+            __('Total Apartments'),
+            __('Total Rooms'),
+            __('Has Double Room'),
+            __('Gender'),
+            __('Active'),
+            __('Current Occupancy'),
+            __('Actions')
         ]"
-        :columns="[
+        :columns=" [
             ['data' => 'name', 'name' => 'name'],
             ['data' => 'total_apartments', 'name' => 'total_apartments'],
             ['data' => 'total_rooms', 'name' => 'total_rooms'],
@@ -94,7 +94,7 @@
     {{-- Add/Edit Building Modal --}}
     <x-ui.modal 
         id="buildingModal"
-        :title="__('buildings.modal.title')"
+        :title="__('Manage Building')"
         :scrollable="true"
         class="building-modal"
     >
@@ -102,80 +102,80 @@
             <form id="buildingForm">
                 <div class="row">
                     <div class="col-md-12 mb-3">
-                        <label for="building_number" class="form-label">{{ __('buildings.form.labels.building_number') }}</label>
+                        <label for="building_number" class="form-label">{{ __('Building Number') }}</label>
                         <input type="number" id="building_number" name="number" class="form-control" required>
                     </div>
                     <div class="col-md-12 mb-3 edit-hide">
-                        <label for="building_total_apartments" class="form-label">{{ __('buildings.form.labels.total_apartments') }}</label>
+                        <label for="building_total_apartments" class="form-label">{{ __('Total Apartments') }}</label>
                         <input type="number" id="building_total_apartments" name="total_apartments" class="form-control" required min="1">
                     </div>
                     <div class="col-md-12 mb-3 edit-hide">
-                        <label for="building_rooms_per_apartment" class="form-label">{{ __('buildings.form.labels.rooms_per_apartment') }}</label>
+                        <label for="building_rooms_per_apartment" class="form-label">{{ __('Rooms per Apartment') }}</label>
                         <input type="number" id="building_rooms_per_apartment" name="rooms_per_apartment" class="form-control" required min="1">
                     </div>
                     <div class="col-md-12 mb-3 edit-hide">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="has_double_rooms" name="has_double_rooms">
                             <label class="form-check-label" for="has_double_rooms">
-                                {{ __('buildings.form.labels.has_double_rooms') }}
+                                {{ __('Has Double Rooms') }}
                             </label>
                         </div>
                     </div>
                     <div class="col-md-12 mb-3 edit-hide" id="apartments-double-rooms-section" style="display: none;"></div>
                     <div class="col-md-12 mb-3">
-                        <label for="building_gender_restriction" class="form-label">{{ __('buildings.form.labels.gender_restriction') }}</label>
+                        <label for="building_gender_restriction" class="form-label">{{ __('Gender Restriction') }}</label>
                         <select id="building_gender_restriction" name="gender_restriction" class="form-control" required>
-                            <option value="">{{ __('buildings.form.placeholders.select_gender_restriction') }}</option>
-                            <option value="male">{{ __('general.male') }}</option>
-                            <option value="female">{{ __('general.female') }}</option>
+                            <option value="">{{ __('Select Gender Restriction') }}</option>
+                            <option value="male">{{ __('Male') }}</option>
+                            <option value="female">{{ __('Female') }}</option>
                         </select>
                     </div>
                 </div>
             </form>
         </x-slot>
         <x-slot name="footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('buildings.buttons.close') }}</button>
-            <button type="submit" class="btn btn-primary" form="buildingForm">{{ __('buildings.buttons.save') }}</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+            <button type="submit" class="btn btn-primary" form="buildingForm">{{ __('Save') }}</button>
         </x-slot>
     </x-ui.modal>
 
     {{-- View Building Modal --}}
     <x-ui.modal 
         id="viewBuildingModal"
-        :title="__('buildings.modal.view_title')"
+        :title="__('Building Details')"
         :scrollable="true"
         class="view-building-modal"
     >
         <x-slot name="slot">
             <div class="row">
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">{{ __('buildings.modal.labels.number') }}:</label>
+                    <label class="form-label fw-bold">{{ __('Number') }}:</label>
                     <p id="view-building-number" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">{{ __('buildings.modal.labels.total_apartments') }}:</label>
+                    <label class="form-label fw-bold">{{ __('Total Apartments') }}:</label>
                     <p id="view-building-total-apartments" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">{{ __('buildings.modal.labels.total_rooms') }}:</label>
+                    <label class="form-label fw-bold">{{ __('Total Rooms') }}:</label>
                     <p id="view-building-total-rooms" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">{{ __('buildings.modal.labels.gender_restriction') }}:</label>
+                    <label class="form-label fw-bold">{{ __('Gender Restriction') }}:</label>
                     <p id="view-building-gender-restriction" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">{{ __('buildings.modal.labels.active') }}:</label>
+                    <label class="form-label fw-bold">{{ __('Active') }}:</label>
                     <p id="view-building-is-active" class="mb-0"></p>
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label fw-bold">{{ __('buildings.modal.labels.created_at') }}:</label>
+                    <label class="form-label fw-bold">{{ __('Created At') }}:</label>
                     <p id="view-building-created" class="mb-0"></p>
                 </div>
             </div>
         </x-slot>
         <x-slot name="footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('buildings.buttons.close') }}</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
         </x-slot>
     </x-ui.modal>
 </div>
@@ -285,54 +285,40 @@ var ApiService = {
 const TRANSLATION = {
   confirm: {
     activate: {
-      title: '{{ __('buildings.confirm.activate.title') }}',
-      text: '{{ __('buildings.confirm.activate.text') }}',
-      button: '{{ __('buildings.confirm.activate.button') }}'
+      title: '{{ __("Activate Building") }}',
+      text: '{{ __("Are you sure you want to activate this building?") }}',
+      button: '{{ __("Activate") }}'
     },
     deactivate: {
-      title: '{{ __('buildings.confirm.deactivate.title') }}',
-      text: '{{ __('buildings.confirm.deactivate.text') }}',
-      button: '{{ __('buildings.confirm.deactivate.button') }}'
+      title: '{{ __("Deactivate Building") }}',
+      text: '{{ __("Are you sure you want to deactivate this building?") }}',
+      button: '{{ __("Deactivate") }}'
     },
     delete: {
-      title: '{{ __('buildings.confirm.delete.title') }}',
-      text: '{{ __('buildings.confirm.delete.text') }}',
-      button: '{{ __('buildings.confirm.delete.button') }}'
+      title: '{{ __("Delete Building") }}',
+      text: '{{ __("Are you sure you want to delete this building? This action cannot be undone.") }}',
+      button: '{{ __("Delete") }}'
     }
   },
-  success: {
-    activated: '{{ __('buildings.messages.activated') }}',
-    deactivated: '{{ __('buildings.messages.deactivated') }}',
-    saved: '{{ __('buildings.messages.saved') }}',
-    deleted: '{{ __('buildings.messages.deleted') }}'
-  },
-  error: {
-    loadStats: '{{ __('buildings.errors.load_stats') }}',
-    loadBuilding: '{{ __('buildings.errors.load_building') }}',
-    saveError: '{{ __('buildings.errors.save') }}',
-    deleteError: '{{ __('buildings.errors.delete') }}',
-    activateError: '{{ __('buildings.errors.activate') }}',
-    deactivateError: '{{ __('buildings.errors.deactivate') }}'
-  },
   modal: {
-    addTitle: '{{ __('buildings.modal.add_title') }}',
-    editTitle: '{{ __('buildings.modal.edit_title') }}',
-    saving: '{{ __('general.saving') }}'
+    addTitle: '{{ __("Add Building") }}',
+    editTitle: '{{ __("Edit Building") }}',
+    saving: '{{ __("Saving...") }}'
   },
   status: {
-    active: '{{ __('general.active') }}',
-    inactive: '{{ __('general.inactive') }}',
-    activating: '{{ __('buildings.status.activating') }}',
-    deactivating: '{{ __('buildings.status.deactivating') }}'
+    active: '{{ __("Active") }}',
+    inactive: '{{ __("Inactive") }}',
+    activating: '{{ __("Activating...") }}',
+    deactivating: '{{ __("Deactivating...") }}'
   },
   apartment: {
-    title: '{{ __('buildings.apartment.title') }}',
-    doubleRooms: '{{ __('buildings.apartment.double_rooms') }}',
-    room: '{{ __('buildings.apartment.room') }}'
+    title: '{{ __("Apartment") }}',
+    doubleRooms: '{{ __("Double Rooms") }}',
+    room: '{{ __("Room") }}'
   },
   placeholders: {
-    selectGenderRestriction: '{{ __('general.messages.select.gender_placeholder') }}',
-    selectStatus : '{{ __('general.messages.select.status_placeholder') }}'
+    selectGenderRestriction: '{{ __("Select Gender") }}',
+    selectStatus : '{{ __("Select Status") }}'
   }
 };
 
@@ -512,21 +498,21 @@ var BuildingManager = {
         text: TRANSLATION.confirm.activate.text,
         icon: 'question',
         confirmButtonText: TRANSLATION.confirm.activate.button,
-        cancelButtonText: '{{ __('general.cancel') }}'
+        cancelButtonText: '{{ __('app.housing.general.cancel') }}'
       }).then(function(result) {
         if (result.isConfirmed) {
           Utils.setLoadingState($btn, true, { loadingText: TRANSLATION.status.activating });
           ApiService.activateBuilding(id)
             .done(function(response) {
-              Utils.showSuccess(response.message || TRANSLATION.success.activated);
+              Utils.showSuccess(response.message);
               Utils.reloadDataTable('#buildings-table', null, true);
               StatsManager.refresh();
             })
             .fail(function(xhr) {
-              Utils.handleAjaxError(xhr, TRANSLATION.error.activateError);
+              Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
             })
             .always(function() {
-              Utils.setLoadingState($btn, false, { normalText: '{{ __('general.activate') }}', normalIcon: 'bx bx-check' });
+              Utils.setLoadingState($btn, false, { normalText: '{{ __('app.housing.general.activate') }}', normalIcon: 'bx bx-check' });
             });
         }
       });
@@ -541,21 +527,21 @@ var BuildingManager = {
         text: TRANSLATION.confirm.deactivate.text,
         icon: 'warning',
         confirmButtonText: TRANSLATION.confirm.deactivate.button,
-        cancelButtonText: '{{ __('general.cancel') }}'
+        cancelButtonText: '{{ __('app.housing.general.cancel') }}'
       }).then(function(result) {
         if (result.isConfirmed) {
           Utils.setLoadingState($btn, true, { loadingText: TRANSLATION.status.deactivating });
           ApiService.deactivateBuilding(id)
             .done(function(response) {
-              Utils.showSuccess(response.message || TRANSLATION.success.deactivated);
+              Utils.showSuccess(response.message);
               Utils.reloadDataTable('#buildings-table', null, true);
               StatsManager.refresh();
             })
             .fail(function(xhr) {
-              Utils.handleAjaxError(xhr, TRANSLATION.error.deactivateError);
+              Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
             })
             .always(function() {
-              Utils.setLoadingState($btn, false, { normalText: '{{ __('general.deactivate') }}', normalIcon: 'bx bx-x' });
+              Utils.setLoadingState($btn, false, { normalText: '{{ __('app.housing.general.deactivate') }}', normalIcon: 'bx bx-x' });
             });
         }
       });
@@ -612,7 +598,7 @@ var BuildingManager = {
       })
       .fail(function(xhr) {
         $('#buildingModal').modal('hide');
-        Utils.handleAjaxError(xhr, '{{ __('buildings.errors.load_building') }}');
+        Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
       });
   },
   /**
@@ -621,7 +607,7 @@ var BuildingManager = {
   populateEditForm: function(building) {
     $('#building_number').val(building.number).prop('disabled', false);
     $('.edit-hide').hide().find('input, select, textarea').prop('required', false).prop('disabled', true);
-    Utils.populateSelect('#building_gender_restriction', [{ id: 'male', name: '{{ __('general.male') }}' }, { id: 'female', name: '{{ __('general.female') }}' }], {
+    Utils.populateSelect('#building_gender_restriction', [{ id: 'male', name: '{{ __('app.housing.general.male') }}' }, { id: 'female', name: '{{ __('app.housing.general.female') }}' }], {
       valueField: 'id',
       textField: 'name',
       placeholder: TRANSLATION.placeholders.selectGenderRestriction,
@@ -642,7 +628,7 @@ var BuildingManager = {
       })
       .fail(function(xhr) {
         $('#viewBuildingModal').modal('hide');
-        Utils.handleAjaxError(xhr, '{{ __('buildings.errors.load_building') }}');
+        Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
       });
   },
   /**
@@ -669,15 +655,15 @@ var BuildingManager = {
     });
     
     ApiService.createBuilding(formData)
-      .done(function() {
+      .done(function(response) {
         $('#buildingModal').modal('hide');
         Utils.reloadDataTable('#buildings-table', null, true);
-        Utils.showSuccess(TRANSLATION.success.saved);
+        Utils.showSuccess(response.message);
         StatsManager.refresh();
       })
       .fail(function(xhr) {
         $('#buildingModal').modal('hide');
-        Utils.handleAjaxError(xhr, TRANSLATION.error.saveError);
+        Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
       })
       .always(function() {
         Utils.setLoadingState($submitBtn, false);
@@ -697,15 +683,15 @@ var BuildingManager = {
     });
     
     ApiService.saveBuilding(formData, this.currentBuildingId)
-      .done(function() {
+      .done(function(response) {
         $('#buildingModal').modal('hide');
         Utils.reloadDataTable('#buildings-table', null, true);
-        Utils.showSuccess(TRANSLATION.success.saved);
+        Utils.showSuccess(response.message);
         StatsManager.refresh();
       })
       .fail(function(xhr) {
         $('#buildingModal').modal('hide');
-        Utils.handleAjaxError(xhr, TRANSLATION.error.saveError);
+        Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
       })
       .always(function() {
         Utils.setLoadingState($submitBtn, false);
@@ -732,11 +718,11 @@ var BuildingManager = {
     ApiService.deleteBuilding(buildingId)
       .done(function(response) {
         Utils.reloadDataTable('#buildings-table', null, true);
-        Utils.showSuccess(response.message || TRANSLATION.success.deleted);
+        Utils.showSuccess(response.message);
         StatsManager.refresh();
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr, TRANSLATION.error.deleteError);
+        Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
       });
   }
 };
