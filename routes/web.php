@@ -71,7 +71,6 @@ Route::middleware(['auth'])->group(function () {
     // ====================
     // Organizational Structure
     // ====================
-    require __DIR__.'/web/staff-category.php';
     require __DIR__.'/web/department.php';
     require __DIR__.'/web/campus-units.php';
 

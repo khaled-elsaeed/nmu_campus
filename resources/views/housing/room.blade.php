@@ -328,18 +328,6 @@ const TRANSLATION = {
       button: @json(__('Delete'))
     }
   },
-  success: {
-    activated: @json(__('Room has been activated successfully')),
-    deactivated: @json(__('Room has been deactivated successfully')),
-    deleted: @json(__('Room has been deleted successfully')),
-    saved: @json(__('Room has been saved successfully'))
-  },
-  error: {
-    loadStats: @json(__('Failed to load room statistics')),
-    loadRoom: @json(__('Failed to load room details')),
-    deleteRoom: @json(__('Failed to delete room')),
-    operationFailed: @json(__('Operation failed. Please try again.'))
-  },
   placeholders: {
     selectBuilding: @json(__('Select Building')),
     selectApartment: @json(__('Select Apartment')),
@@ -508,7 +496,7 @@ var RoomManager = {
       })
       .fail(function(xhr) {
         $('#roomModal').modal('hide');
-        Utils.handleAjaxError(xhr, TRANSLATION.error.loadRoom)
+        Utils.handleAjaxError(xhr, xhr.responseJSON.message);
       });
   },
   /**
@@ -525,7 +513,7 @@ var RoomManager = {
       })
       .fail(function(xhr) {
         $('#viewRoomModal').modal('hide');
-        Utils.handleAjaxError(xhr, TRANSLATION.error.loadRoom)
+        Utils.handleAjaxError(xhr, xhr.responseJSON.message);
       });
   },
   /**
@@ -585,11 +573,11 @@ var RoomManager = {
       .done(function(response) {
         $('#roomModal').modal('hide');
         Utils.reloadDataTable('#rooms-table');
-        Utils.showSuccess(response.message || TRANSLATION.success.saved);
+        Utils.showSuccess(response.message);
         StatsManager.refresh();
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr, TRANSLATION.error.operationFailed)
+        Utils.handleAjaxError(xhr, xhr.responseJSON.message);
       });
   },
   /**
@@ -629,11 +617,11 @@ var RoomManager = {
     ApiService.deleteRoom(roomId)
       .done(function(response) {
         Utils.reloadDataTable('#rooms-table');
-        Utils.showSuccess(response.message || TRANSLATION.success.deleted);
+        Utils.showSuccess(response.message);
         StatsManager.load();
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr, TRANSLATION.error.deleteRoom)
+        Utils.handleAjaxError(xhr, xhr.responseJSON.message);
       });
   },
   /**
@@ -641,19 +629,18 @@ var RoomManager = {
    */
   toggleRoomStatus: function(roomId, isActivate, $button) {
     var apiCall = isActivate ? ApiService.activateRoom : ApiService.deactivateRoom;
-    var successMessage = isActivate ? TRANSLATION.success.activated : TRANSLATION.success.deactivated;
     Utils.setLoadingState($button, true);
     apiCall(roomId)
       .done(function(response) {
         if (response.success) {
-          Utils.showSuccess(response.message || successMessage);
+          Utils.showSuccess(response.message);
           Utils.reloadDataTable('#rooms-table');
         } else {
-          Utils.showError(response.message || TRANSLATION.error.operationFailed);
+          Utils.showError(response.message);
         }
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr, TRANSLATION.error.operationFailed)
+        Utils.handleAjaxError(xhr, xhr.responseJSON.message);
       })
       .always(function() {
         Utils.setLoadingState($button, false);
@@ -779,8 +766,8 @@ var SelectManager = {
           Select2Manager.initSearchSelect2();
         }
       })
-      .fail(function() {
-        console.error('Failed to load buildings');
+      .fail(function(xhr) {
+          Utils.handleAjaxError(xhr, xhr.responseJSON.message);
       });
   },
   /**
@@ -820,7 +807,7 @@ var SelectManager = {
       })
       .fail(function(xhr) {
         $('#search_apartment_id').prop('disabled', true);
-        Utils.handleAjaxError(xhr, TRANSLATION.error.operationFailed);
+        Utils.handleAjaxError(xhr, xhr.responseJSON.message);
       });
   }
 };

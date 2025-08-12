@@ -151,7 +151,7 @@ class StudentService
             ->find($id);
 
         if (!$student) {
-            throw new BusinessValidationException('Student not found.');
+            throw new BusinessValidationException(__(':field not found.', ['field' => 'Student']));
         }
 
         return [

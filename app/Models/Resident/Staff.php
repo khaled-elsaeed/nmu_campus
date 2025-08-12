@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use App\Models\User;
-use App\Models\StaffCategory;
 use App\Models\Academic\Faculty;
 use App\Models\Department;
 use App\Models\CampusUnit;
@@ -21,10 +20,11 @@ class Staff extends Model
      */
     protected $fillable = [
         'user_id',
-        'staff_category_id',
-        'notes',
-        'unit_id',
         'unit_type',
+        'notes',
+        'faculty_id',
+        'department_id',
+        'campus_unit_id',
         'national_id',
     ];
 
@@ -33,47 +33,27 @@ class Staff extends Model
      *
      * @var list<string>
      */
-    protected $appends = ['work_unit'];
+    protected $appends = ['unit_name'];
 
-    /**
-     * Get the staff's work unit details (name and type).
-     *
-     * @return Attribute
-     */
-    protected function WorkUnit(): Attribute
+
+    public function unitName(): Attribute
     {
         return Attribute::make(
             get: function ($value, $attributes) {
-                if ($this->isFacultyStaff() && $this->faculty) {
-                    return [
-                        'id' => $this->faculty->id ?? null,
-                        'name' => $this->faculty->name ?? 'Faculty',
-                        'type' => 'faculty',
-                    ];
+                // Use loaded relationships if available, else fallback to null
+                if ($this->faculty) {
+                    return $this->faculty->name ?? null;
                 }
-                if ($this->isDepartmentStaff() && $this->department) {
-                    return [
-                        'id' => $this->department->id ?? null,
-                        'name' => $this->department->name ?? 'Department',
-                        'type' => 'administrative',
-                    ];
+                if ($this->department) {
+                    return $this->department->name ?? null;
                 }
-                if ($this->isCampusStaff() && $this->campusUnit) {
-                    return [
-                        'id' => $this->campusUnit->id ?? null,
-                        'name' => $this->campusUnit->name ?? 'Campus Unit',
-                        'type' => 'campus',
-                    ];
+                if ($this->campusUnit) {
+                    return $this->campusUnit->name ?? null;
                 }
-                return [
-                    'id' => null,
-                    'name' => 'Unassigned',
-                    'type' => null,
-                ];
+                return null;
             }
         );
     }
-
 
     /**
      * Get the user for the staff member.
@@ -83,28 +63,13 @@ class Staff extends Model
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get the staff category for the staff member.
-     */
-    public function staffCategory(): BelongsTo
-    {
-        return $this->belongsTo(StaffCategory::class, 'staff_category_id');
-    }
-
-    /**
-     * Get the unit (faculty, department, or campus unit) for the staff member.
-     */
-    public function unit(): MorphTo
-    {
-        return $this->morphTo();
-    }
 
     /**
      * Get the faculty for the staff member (if unit is a faculty).
      */
     public function faculty(): BelongsTo
     {
-        return $this->belongsTo(Faculty::class, 'unit_id');
+        return $this->belongsTo(Faculty::class);
     }
 
     /**
@@ -112,7 +77,7 @@ class Staff extends Model
      */
     public function department(): BelongsTo
     {
-        return $this->belongsTo(Department::class, 'unit_id');
+        return $this->belongsTo(Department::class);
     }
 
     /**
@@ -120,7 +85,7 @@ class Staff extends Model
      */
     public function campusUnit(): BelongsTo
     {
-        return $this->belongsTo(CampusUnit::class, 'unit_id');
+        return $this->belongsTo(CampusUnit::class);
     }
 
     /**
@@ -128,7 +93,7 @@ class Staff extends Model
      */
     public function isFacultyStaff(): bool
     {
-        return $this->unit_type === Faculty::class;
+        return $this->unit_type === 'faculty';
     }
 
     /**
@@ -136,7 +101,7 @@ class Staff extends Model
      */
     public function isDepartmentStaff(): bool
     {
-        return $this->unit_type === Department::class;
+        return $this->unit_type === 'department';
     }
 
     /**
@@ -144,7 +109,7 @@ class Staff extends Model
      */
     public function isCampusStaff(): bool
     {
-        return $this->unit_type === CampusUnit::class;
+        return $this->unit_type === 'campus';
     }
 
 }

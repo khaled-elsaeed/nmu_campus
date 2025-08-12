@@ -36,7 +36,7 @@
         :title="__('Advanced Student Search')" 
         formId="advancedStudentSearch" 
         collapseId="studentSearchCollapse"
-        :collapsed="false"
+        collapsed="false"
     >
         <div class="col-md-4">
             <label for="search_id" class="form-label">{{ __('Student ID') }}</label>
@@ -75,15 +75,7 @@
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable.table 
-        :headers=" [
-            __('Academic ID'),
-            __('Name'),
-            __('Phone'),
-            __('Gender'),
-            __('Level'),
-            __('Faculty'),
-            __('Actions')
-        ]"
+        :headers="[ __('Academic ID'), __('Name'), __('Phone'), __('Gender'), __('Level'), __('Faculty'), __('Actions') ]"
         :columns=" [
             ['data' => 'academic_id', 'name' => 'academic_id'],
             ['data' => 'name_en', 'name' => 'name_en'],
@@ -100,12 +92,7 @@
 
     {{-- ===== MODALS SECTION ===== --}}
     {{-- View Student Modal --}}
-    <x-ui.modal 
-        id="viewStudentModal"
-        :title="__('Student Details')"
-        :scrollable="true"
-        class="view-student-modal"
-    >
+    <x-ui.modal id="viewStudentModal" :title="__('Student Details')" :scrollable="true" class="view-student-modal">
         <x-slot name="slot">
             <div class="row">
                 <div class="col-12 mb-3">
@@ -176,21 +163,14 @@
 // TRANSLATIONS
 // ===========================
 var TRANSLATION = {
-    error: {
-        load_data: '{{ __("Failed to load data") }}',
-        load_stats: '{{ __("Failed to load statistics") }}',
-        operation_failed: '{{ __("An error occurred") }}',
-        load_governorates: '{{ __("Error loading governorates") }}',
-        load_faculties: '{{ __("Error loading faculties") }}',
-    },
     placeholders: {
-        all_governorates: '{{ __("All Governorates") }}',
-        all_faculties: '{{ __("All Faculties") }}',
+        all_governorates: @json(__('All Governorates')),
+        all_faculties: @json(__('All Faculties')),
     },
     general: {
-        na: '{{ __("N/A") }}',
-        yes: '{{ __("Yes") }}',
-        no: '{{ __("No") }}',
+        na: @json(__('N/A')),
+        yes: @json(__('Yes')),
+        no: @json(__('No')),
     }
 };
 
@@ -294,9 +274,9 @@ var SelectManager = {
                     });
                 }
             })
-            .fail(function() {
+            .fail(function(xhr) {
                 Utils.populateSelect($select, [], { placeholder: TRANSLATION.error.load_governorates });
-                Utils.showError(TRANSLATION.error.load_governorates);
+                Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
             });
     },
     /**
@@ -315,9 +295,9 @@ var SelectManager = {
                     });
                 }
             })
-            .fail(function() {
+            .fail(function(xhr) {
                 Utils.populateSelect($select, [], { placeholder: TRANSLATION.error.load_faculties });
-                Utils.showError(TRANSLATION.error.load_faculties);
+                Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
             });
     },
     /**
@@ -358,7 +338,7 @@ var StudentManager = {
                 })
                 .fail(function(xhr) {
                     $('#viewStudentModal').modal('hide');
-                    Utils.handleAjaxError(xhr, TRANSLATION.error.load_data);
+                    Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
                 });
         });
     },
@@ -400,7 +380,6 @@ var SearchManager = {
 var StatsManager = Utils.createStatsManager({
     apiMethod: ApiService.fetchStats,
     statsKeys: ['students', 'students-male', 'students-female'],
-    onError: TRANSLATION.error.load_stats
 });
 
 // ===========================

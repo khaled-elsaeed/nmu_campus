@@ -179,17 +179,6 @@ const TRANSLATION = {
       button: @json(__('Yes,Delete'))
     }
   },
-  success: {
-    activated: @json(__('Apartment has been successfully activated.')),
-    deactivated: @json(__('Apartment has been successfully deactivated.')),
-    deleted: @json(__('Apartment has been successfully deleted.'))
-  },
-  error: {
-    loadStats: @json(__('Failed to load apartment statistics.')),
-    loadApartment: @json(__('Failed to load apartment details.')),
-    deleteApartment: @json(__('Failed to delete apartment.')),
-    operationFailed: @json(__('Operation failed. Please try again.'))
-  },
   placeholders: {
     selectBuilding: @json(__('Select Building')),
     selectApartment: @json(__('Select Apartment')),
@@ -322,9 +311,9 @@ var ApartmentManager = {
           $('#viewApartmentModal').modal('show');
         }
       })
-      .fail(function() {
+      .fail(function(xhr) {
         $('#viewApartmentModal').modal('hide');
-        Utils.showError(TRANSLATION.error.loadApartment);
+        Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
       });
   },
   /**
@@ -388,11 +377,11 @@ var ApartmentManager = {
             Utils.showSuccess(successMessage);
             Utils.reloadDataTable('#apartments-table');
           } else {
-            Utils.showError(response.message || TRANSLATION.error.operationFailed);
+            Utils.showError(response.message);
           }
         })
         .fail(function(xhr) {
-          Utils.handleAjaxError(xhr, TRANSLATION.error.operationFailed);
+          Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
         })
         .always(function() {
           Utils.setLoadingState($btn, false);
@@ -407,11 +396,11 @@ var ApartmentManager = {
     ApiService.deleteApartment(apartmentId)
         .done(function(response) {
         Utils.reloadDataTable('#apartments-table');
-        Utils.showSuccess(response.message || TRANSLATION.success.deleted);
+        Utils.showSuccess(response.message);
         StatsManager.load();
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr, TRANSLATION.error.deleteApartment);
+        Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
       });
   },
   /**
@@ -540,8 +529,8 @@ var SelectManager = {
           Select2Manager.initSearchSelect2();
         }
       })
-      .fail(function() {
-        console.error('Failed to load buildings');
+      .fail(function(xhr) {
+        Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
       });
   },
   /**
@@ -580,7 +569,7 @@ var SelectManager = {
       })
       .fail(function(xhr) {
         $('#search_apartment_id').prop('disabled', true);
-        Utils.handleAjaxError(xhr, TRANSLATION.error.operationFailed);
+        Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
       });
   }
 };

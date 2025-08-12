@@ -41,7 +41,7 @@ class StudentController extends Controller
     {
         try {
             $stats = $this->studentService->getStats();
-            return successResponse('Stats fetched successfully.', $stats);
+            return successResponse('Students Statistics fetched successfully.', $stats);
         } catch (Exception $e) {
             logError('StudentController@stats', $e);
             return errorResponse('Internal server error.', [], 500);

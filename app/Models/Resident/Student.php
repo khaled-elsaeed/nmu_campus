@@ -54,7 +54,7 @@ class Student extends Model
      *
      * @var list<string>
      */
-    protected $appends = ['name', 'date_of_birth'];
+    protected $appends = ['name'];
 
     /**
      * The attributes that should be cast.
@@ -82,21 +82,6 @@ class Student extends Model
                 $attributes['name_en'] ??
                 $attributes['name_ar'] ??
                 null
-        );
-    }
-
-    /**
-     * Get the student's date of birth in Y-m-d format.
-     *
-     * @return Attribute
-     */
-    protected function dateOfBirth(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value, $attributes) =>
-                isset($attributes['date_of_birth']) && $attributes['date_of_birth']
-                    ? date('Y-m-d', strtotime($attributes['date_of_birth']))
-                    : null
         );
     }
 

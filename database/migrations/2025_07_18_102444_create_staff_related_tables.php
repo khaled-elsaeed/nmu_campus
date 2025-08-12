@@ -11,16 +11,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Create staff categories table
-        Schema::create('staff_categories', function (Blueprint $table) {
-            $table->id();
-            $table->string('name_en')->unique();
-            $table->string('name_ar')->nullable();
-            $table->enum('type', ['faculty', 'administrative', 'campus', 'technical', 'support']);
-            $table->text('description')->nullable();
-            $table->timestamps();
-        });
-
         // Create departments table
         Schema::create('departments', function (Blueprint $table) {
             $table->id();
@@ -45,6 +35,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('departments');
-        Schema::dropIfExists('staff_categories');
     }
 };
