@@ -28,12 +28,18 @@ class ProgramService
     /**
      * Update an existing program.
      *
-     * @param Program $program
+     * @param int $programId
      * @param array $data
      * @return Program
      */
-    public function updateProgram(Program $program, array $data): Program
+    public function updateProgram(int $programId, array $data): Program
     {
+        $program = Program::findOrFail($programId);
+
+        if(!$program){
+            throw new BusinessValidationException(__(':field not found.', ['field' => __('Program')]));
+        }
+
         $program->update([
             'name_en' => $data['name_en'],
             'name_ar' => $data['name_ar'],
@@ -46,14 +52,14 @@ class ProgramService
     /**
      * Get a single program.
      *
-     * @param int $id
+     * @param int $programId
      * @return array
      */
-    public function getProgram(int $id): array
+    public function getProgram(int $programId): array
     {
-        $program = Program::with('faculty')->select(['id', 'name_en', 'name_ar', 'faculty_id', 'duration_years'])->find($id);
+        $program = Program::with('faculty')->select(['id', 'name_en', 'name_ar', 'faculty_id', 'duration_years'])->find($programId);
         if (!$program) {
-            throw new BusinessValidationException(__(':field not found.', ['field' => __('program')]));
+            throw new BusinessValidationException(__(':field not found.', ['field' => __('Program')]));
         }
 
         return [
@@ -69,14 +75,18 @@ class ProgramService
     /**
      * Delete a program.
      *
-     * @param Program $program
+     * @param int $programId
      * @return void
      * @throws BusinessValidationException
      */
-    public function deleteProgram($id): void
+    public function deleteProgram(int $programId): void
     {
-        $program = Program::findOrFail($id);
-        
+        $program = Program::findOrFail($programId);
+
+        if(!$program){
+            throw new BusinessValidationException(__(':field not found.', ['field' => __('Program')]));
+        }
+
         if ($program->students()->count() > 0) {
             throw new BusinessValidationException(__('This program cannot be deleted because it has associated students.'));
         }
@@ -108,26 +118,46 @@ class ProgramService
      * @return array
      */
     public function getStats(): array
-    {
-        $totalPrograms = Program::count();
-        $programsWithStudents = Program::has('students')->count();
-        $programsWithoutStudents = Program::doesntHave('students')->count();
-        $lastUpdateTime = formatDate(Program::max('updated_at'));
+{
+        $programs = Program::select('programs.id', 'programs.updated_at')
+            ->leftJoin('students', 'students.program_id', '=', 'programs.id')
+            ->groupBy('programs.id', 'programs.updated_at')
+            ->get();
+
+        $totalPrograms = $programs->count();
+
+        $programsWithStudents = $programs->filter(function ($program) {
+            return $program->students_count > 0;
+        })->count();
+
+        $programsWithoutStudents = $totalPrograms - $programsWithStudents;
+
+        $lastUpdateAll = $programs->max('updated_at');
+
+        $lastUpdateWithStudents = $programs->filter(function ($program) {
+            return $program->students_count > 0;
+        })->max('updated_at');
+
+        $lastUpdateWithoutStudents = $programs->filter(function ($program) {
+            return $program->students_count === 0;
+        })->max('updated_at');
+
         return [
             'programs' => [
                 'count' => formatNumber($totalPrograms),
-                'lastUpdateTime' => $lastUpdateTime
+                'lastUpdateTime' => formatDate($lastUpdateAll),
             ],
             'with-students' => [
                 'count' => formatNumber($programsWithStudents),
-                'lastUpdateTime' => $lastUpdateTime
+                'lastUpdateTime' => formatDate($lastUpdateWithStudents),
             ],
             'without-students' => [
                 'count' => formatNumber($programsWithoutStudents),
-                'lastUpdateTime' => $lastUpdateTime
-            ]
+                'lastUpdateTime' => formatDate($lastUpdateWithoutStudents),
+            ],
         ];
     }
+
 
     /**
      * Get program data for DataTables.
@@ -176,7 +206,7 @@ class ProgramService
             });
         }
         // Filter by faculty
-        $facultyId = $request->input('faculty_id');
+        $facultyId = $request->input('search_faculty');
         if (!empty($facultyId)) {
             $query->where('faculty_id', $facultyId);
         }

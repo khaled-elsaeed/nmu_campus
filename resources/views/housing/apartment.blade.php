@@ -18,11 +18,7 @@
     </div>
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
-    <x-ui.page-header 
-        :title="__('Apartments')"
-        :description="__('Manage all campus apartments and their details')"
-        icon="bx bx-building"
-    >
+    <x-ui.page-header :title="__('Apartments')" :description="__('Manage all campus apartments and their details')" icon="bx bx-building">
         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
             <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#apartmentSearchCollapse" aria-expanded="false" aria-controls="apartmentSearchCollapse">
                 <i class="bx bx-filter-alt me-1"></i> {{ __('Search') }}
@@ -31,12 +27,7 @@
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
-    <x-ui.advanced-search 
-        :title="__('Advanced Apartment Search')" 
-        formId="advancedApartmentSearch" 
-        collapseId="apartmentSearchCollapse"
-        :collapsed="false"
-    >
+    <x-ui.advanced-search :title="__('Advanced Apartment Search')" formId="advancedApartmentSearch" collapseId="apartmentSearchCollapse" :collapsed="false">
         <div class="col-md-4">
             <label for="search_building_id" class="form-label">{{ __('Building Number') }}:</label>
             <select class="form-control" id="search_building_id">
@@ -55,7 +46,6 @@
                 <option value="">{{ __('All') }}</option>
                 <option value="male">{{ __('Male') }}</option>
                 <option value="female">{{ __('Female') }}</option>
-                <option value="mixed">{{ __('Mixed') }}</option>
             </select>
         </div>
         <div class="col-md-4">
@@ -74,26 +64,19 @@
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable.table 
-        :headers=" [
-            __('Name'),
-            __('Building'),
-            __('Total Rooms'),
-            __('Gender'),
-            __('Active'),
-            __('Created At'),
-            __('Actions')
-        ]"
+        :headers=" [__('Name'),__('Building'),__('Total Rooms'),__('Gender'),__('Status'),__('Current Occupancy'),__('Created At'),__('Actions')]"
         :columns=" [
-            ['data' => 'name', 'name' => 'name'],
+            ['data' => 'number', 'name' => 'number'],
             ['data' => 'building', 'name' => 'building'],
             ['data' => 'total_rooms', 'name' => 'total_rooms'],
             ['data' => 'gender', 'name' => 'gender'],
-            ['data' => 'active', 'name' => 'active'],
+            ['data' => 'status', 'name' => 'status'],
+            ['data' => 'current_occupancy', 'name' => 'current_occupancy', 'orderable' => false, 'searchable' => false],
             ['data' => 'created_at', 'name' => 'created_at'],
             ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false]
         ]"
         :ajax-url="route('housing.apartments.datatable')"
-        :table-id="'apartments-table'"
+        table-id='apartments-table'
         :filter-fields="['search_apartment_id','search_building_id','search_gender_restriction','search_active']"
     />
 
@@ -181,43 +164,43 @@ var ROUTES = {
 const TRANSLATION = {
   confirm: {
     activate: {
-      title: '{{ __("Activate Apartment") }}',
-      text: '{{ __("Are you sure you want to activate this apartment?") }}',
-      button: '{{ __("Activate") }}'
+      title:  @json(__('Activate Apartment')),
+      text: @json(__('Are you sure you want to activate this apartment?')),
+      button: @json(__('Yes,Activate'))
     },
     deactivate: {
-      title: '{{ __("Deactivate Apartment") }}',
-      text: '{{ __("Are you sure you want to deactivate this apartment?") }}',
-      button: '{{ __("Deactivate") }}'
+      title: @json(__('Deactivate Apartment')),
+      text: @json(__('Are you sure you want to deactivate this apartment?')),
+      button: @json(__('Yes,Deactivate'))
     },
     delete: {
-      title: '{{ __("Delete Apartment") }}',
-      text: '{{ __("Are you sure you want to delete this apartment? This action cannot be undone.") }}',
-      button: '{{ __("Delete") }}'
+      title: @json(__('Delete Apartment')),
+      text: @json(__('Are you sure you want to delete this apartment? This action cannot be undone.')),
+      button: @json(__('Yes,Delete'))
     }
   },
   success: {
-    activated: '{{ __("Apartment has been successfully activated.") }}',
-    deactivated: '{{ __("Apartment has been successfully deactivated.") }}',
-    deleted: '{{ __("Apartment has been successfully deleted.") }}'
+    activated: @json(__('Apartment has been successfully activated.')),
+    deactivated: @json(__('Apartment has been successfully deactivated.')),
+    deleted: @json(__('Apartment has been successfully deleted.'))
   },
   error: {
-    loadStats: '{{ __("Failed to load apartment statistics.") }}',
-    loadApartment: '{{ __("Failed to load apartment details.") }}',
-    deleteApartment: '{{ __("Failed to delete apartment.") }}',
-    operationFailed: '{{ __("Operation failed. Please try again.") }}'
+    loadStats: @json(__('Failed to load apartment statistics.')),
+    loadApartment: @json(__('Failed to load apartment details.')),
+    deleteApartment: @json(__('Failed to delete apartment.')),
+    operationFailed: @json(__('Operation failed. Please try again.'))
   },
   placeholders: {
-    selectBuilding: '{{ __("Select Building") }}',
-    selectApartment: '{{ __("Select Apartment") }}',
-    selectBuildingFirst: '{{ __("Select a building first") }}',
-    noApartments: '{{ __("No apartments available") }}',
-    selectGender: '{{ __("Select Gender") }}',
-    selectStatus: '{{ __("Select Status") }}'
+    selectBuilding: @json(__('Select Building')),
+    selectApartment: @json(__('Select Apartment')),
+    selectBuildingFirst: @json(__('Select a building first')),
+    noApartments: @json(__('No apartments available')),
+    selectGender: @json(__('Select Gender')),
+    selectStatus: @json(__('Select Status'))
   },
   status: {
-    active: '{{ __("Active") }}',
-    inactive: '{{ __("Inactive") }}'
+    active: @json(__('Active')),
+    inactive: @json(__('Inactive'))
   }
 };
 
@@ -482,7 +465,7 @@ var Select2Manager = {
      */
     clearSelect2: function(selectors) {
         selectors.forEach(function(selector) {
-            $(selector).val('').trigger('change');
+            $(selector).val('').trigger('change.select2');
         });
     },
 
@@ -524,7 +507,6 @@ var SearchManager = {
    */
   clearFilters: function() {
     Select2Manager.resetSearchSelect2();
-    // Reset apartment select to disabled
     $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">' + TRANSLATION.placeholders.selectBuildingFirst + '</option>');
     Utils.reloadDataTable('#apartments-table');
   }

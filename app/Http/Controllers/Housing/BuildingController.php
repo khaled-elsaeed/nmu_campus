@@ -41,10 +41,10 @@ class BuildingController extends Controller
     {
         try {
             $stats = $this->buildingService->getStats();
-            return successResponse(__('buildings.messages.stats_fetched_successfully'), $stats);
+            return successResponse(__('Building statistics fetched successfully'), $stats);
         } catch (Exception $e) {
             logError('BuildingController@stats', $e);
-            return errorResponse(__('buildings.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -59,7 +59,7 @@ class BuildingController extends Controller
             return $this->buildingService->getDatatable();
         } catch (Exception $e) {
             logError('BuildingController@datatable', $e);
-            return errorResponse('Internal server error.', [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -74,10 +74,10 @@ class BuildingController extends Controller
         try {
             $validated = $request->validated();
             $building = $this->buildingService->createBuilding($validated);
-            return successResponse(__('buildings.messages.created_successfully'), $building);
+            return successResponse(__('Building created successfully'), $building);
         } catch (Exception $e) {
             logError('BuildingController@store', $e, ['request' => $request->all()]);
-            return errorResponse(__('buildings.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -91,10 +91,10 @@ class BuildingController extends Controller
     {
         try {
             $building = $this->buildingService->getBuilding($id);
-            return successResponse(__('buildings.messages.details_fetched_successfully'), $building);
+            return successResponse(__('Building details fetched successfully'), $building);
         } catch (Exception $e) {
             logError('BuildingController@show', $e, ['building_id' => $id]);
-            return errorResponse(__('buildings.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -112,10 +112,10 @@ class BuildingController extends Controller
         try {
             $validated = $request->only(['number', 'gender_restriction']);
             $building = $this->buildingService->updateBuilding($id, $validated);
-            return successResponse(__('buildings.messages.updated_successfully'), $building);
+            return successResponse(__('Building updated successfully'), $building);
         } catch (Exception $e) {
             logError('BuildingController@update', $e, ['building_id' => $id, 'request' => $request->all()]);
-            return errorResponse(__('buildings.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -129,12 +129,12 @@ class BuildingController extends Controller
     {
         try {
             $this->buildingService->deleteBuilding($id);
-            return successResponse(__('buildings.messages.deleted_successfully'));
+            return successResponse(__('Building deleted successfully'));
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('BuildingController@destroy', $e, ['building_id' => $id]);
-            return errorResponse(__('buildings.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -147,10 +147,10 @@ class BuildingController extends Controller
     {
         try {
             $this->buildingService->activateBuilding($id);
-            return successResponse(__('buildings.messages.activated_successfully'));
+            return successResponse(__('Building activated successfully'));
         } catch (Exception $e) {
             logError('BuildingController@activate', $e, ['building_id' => $id]);
-            return errorResponse(__('buildings.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -163,10 +163,10 @@ class BuildingController extends Controller
     {
         try {
             $this->buildingService->deactivateBuilding($id);
-            return successResponse(__('buildings.messages.deactivated_successfully'));
+            return successResponse(__('Building deactivated successfully'));
         } catch (Exception $e) {
             logError('BuildingController@deactivate', $e, ['building_id' => $id]);
-            return errorResponse(__('buildings.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -179,10 +179,10 @@ class BuildingController extends Controller
     {
         try {
             $buildings = $this->buildingService->getAll();
-            return successResponse(__('buildings.messages.fetched_successfully'), $buildings);
+            return successResponse(__('Building details fetched successfully'), $buildings);
         } catch (Exception $e) {
             logError('BuildingController@all', $e);
-            return errorResponse(__('buildings.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 }

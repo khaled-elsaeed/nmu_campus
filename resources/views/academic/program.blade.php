@@ -8,37 +8,18 @@
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 
-                id="programs"
-                label="{{ __('Total Programs') }}"
-                color="secondary"
-                icon="bx bx-book-open"
-            />
+            <x-ui.card.stat2 id="programs" :label="__('Total Programs')" color="secondary" icon="bx bx-book-open" />
         </div>
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 
-                id="with-students"
-                label="{{ __('Programs with Students') }}"
-                color="success"
-                icon="bx bx-user-check"
-            />
+            <x-ui.card.stat2 id="with-students" :label="__('Programs with Students')" color="success" icon="bx bx-user-check" />
         </div>
         <div class="col-sm-6 col-xl-4">
-            <x-ui.card.stat2 
-                id="without-students"
-                label="{{ __('Programs without Students') }}"
-                color="warning"
-                icon="bx bx-user-x"
-            />
+            <x-ui.card.stat2 id="without-students" :label="__('Programs without Students')" color="warning" icon="bx bx-user-x" />
         </div>
     </div>
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
-    <x-ui.page-header 
-        title="{{ __('Academic Programs') }}"
-        description="{{ __('Manage university academic programs') }}"
-        icon="bx bx-book-open"
-    >
+    <x-ui.page-header :title="__('Academic Programs')" :description="__('Manage university academic programs')" icon="bx bx-book-open">
         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
           <button class="btn btn-primary mx-2" id="addProgramBtn" type="button" data-bs-toggle="modal" data-bs-target="#programModal">
               <i class="bx bx-plus me-1"></i> {{ __('Add Program') }}
@@ -50,19 +31,14 @@
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
-    <x-ui.advanced-search 
-        title="{{ __('Search Programs') }}" 
-        formId="advancedProgramSearch" 
-        collapseId="programSearchCollapse"
-        :collapsed="false"
-    >
+    <x-ui.advanced-search :title="__('Search Programs')" formId="advancedProgramSearch" collapseId="programSearchCollapse" :collapsed="false">
         <div class="col-md-6">
             <label for="search_name" class="form-label">{{ __('Program Name') }}:</label>
             <input type="text" class="form-control" id="search_name" placeholder="{{ __('Enter program name') }}">
         </div>
         <div class="col-md-6">
             <label for="faculty_id_search" class="form-label">{{ __('Faculty') }}:</label>
-            <select class="form-control" id="search_faculty" name="search_faculty_id">
+            <select class="form-control" id="search_faculty" name="search_faculty">
                 <option value="">{{ __('Select Faculty') }}</option>
                 <!-- Options loaded via AJAX -->
             </select>
@@ -74,12 +50,7 @@
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable.table
-        :headers="[
-            __('Name'),
-            __('Faculty'),
-            __('Students Count'),
-            __('Action')
-        ]"
+        :headers="[__('Name'),__('Faculty'),__('Students Count'),__('Action')]"
         :columns="[
             ['data' => 'name', 'name' => 'name'],
             ['data' => 'faculty', 'name' => 'faculty'],
@@ -94,12 +65,7 @@
     {{-- ===== MODALS SECTION ===== --}}
     {{-- Add/Edit Program Modal --}}
     <x-ui.modal 
-        id="programModal"
-        title="{{ __('Program Details') }}"
-        size="lg"
-        :scrollable="false"
-        class="program-modal"
-    >
+        id="programModal" :title="__('Program Details')" size="lg" scrollable="false" class="program-modal">
         <x-slot name="slot">
             <form id="programForm">
                 <input type="hidden" id="program_id" name="program_id">
@@ -236,22 +202,22 @@ var ApiService = {
 // ===========================
 const TRANSLATION = {
   buttons: {
-    saving: '{{ __('Saving...') }}',
-    updating: '{{ __('Updating...') }}',
-    save: '{{ __('Save') }}',
-    update: '{{ __('Update') }}'
+    saving: @json(__('Saving...')),
+    updating: @json(__('Updating...')),
+    save: @json(__('Save')),
+    update: @json(__('Update'))
   },
   modal: {
-    addTitle: '{{ __('Add New Program') }}',
-    editTitle: '{{ __('Edit Program') }}'
+    addTitle: @json(__('Add New Program')),
+    editTitle: @json(__('Edit Program'))
   },
   confirm: {
-    title: '{{ __('Are you sure?') }}',
-    text: '{{ __('You won\'t be able to revert this!') }}',
-    confirmButton: '{{ __('Delete') }}'
+    title: @json(__('Delete Program')),
+      text: @json(__('Are you sure you want to delete this Program ?')),
+    confirmButton: @json(__('Yes, Delete'))
   },
   dropdown: {
-    selectFaculty: '{{ __('Select Faculty') }}',
+    selectFaculty: @json(__('Select Faculty')),
   }
 };
 

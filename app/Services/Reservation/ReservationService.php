@@ -92,7 +92,7 @@ class ReservationService
         $reservation = Reservation::findOrFail($reservationId);
 
         if ($reservation->status === 'checked_in') {
-            throw new BusinessValidationException('Cannot delete a reservation that has been checked in.');
+            throw new BusinessValidationException(__('Cannot delete a reservation that has been checked in.'));
         }
 
         $deleted = $reservation->delete();
@@ -285,7 +285,7 @@ class ReservationService
                     'action' => 'cancel',
                     'icon' => 'bx bx-block',
                     'class' => 'btn-danger',
-                    'label' => 'Cancel'
+                    'label' => __('Cancel')
                 ]
             ]
         ])->render();

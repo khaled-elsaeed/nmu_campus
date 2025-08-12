@@ -33,11 +33,7 @@ class Room extends Model
      *
      * @var array<string>
      */
-    protected $appends = [
-        'gender',
-        'formatted_gender',
-        'formatted_name',
-    ];
+    protected $appends = ['gender','occupancy_status'];
 
     /**
      * Get the attributes that should be cast.
@@ -82,42 +78,20 @@ class Room extends Model
     }
 
     /**
-     * Get the formatted gender text for the room.
+     * Get the occupancy status for the room.
      */
-    protected function formattedGender(): Attribute
+    protected function occupancyStatus(): Attribute
     {
         return Attribute::make(
-            get: fn($value) => match ($this->gender) {
-                'male' => __('general.male'),
-                'female' => __('general.female'),
-                default => __('general.unknown'),
-            },
+            get: function () {
+                if ($this->available_capacity === 0) {
+                    return 'full';
+                } elseif ($this->current_occupancy === 0) {
+                    return 'empty';
+                } else {
+                    return 'partially occupied';
+                }
+            }
         );
-    }
-
-    /**
-     * Get the formatted name for the room.
-     */
-    protected function formattedName(): Attribute
-    {
-        return Attribute::make(
-            get: fn($value) => __('general.room', ['number' => $this->number]),
-        );
-    }
-
-    // Methods
-
-    /**
-     * Get the location information for the room.
-     *
-     * @return array<string, string|null>
-     */
-    public function getLocationAttribute(): array
-    {
-        return [
-            'number' => $this->number,
-            'apartment_number' => $this->apartment?->number,
-            'building_number' => $this->apartment?->building?->number,
-        ];
     }
 }

@@ -8,78 +8,35 @@
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2
-                id="terms"
-                :label="__('Total Terms')"
-                color="secondary"
-                icon="bx bx-calendar"
-            />
+            <x-ui.card.stat2 id="terms" :label="__('Total Terms')" color="secondary" icon="bx bx-calendar"/>
         </div>
         <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2
-                id="active"
-                :label="__('Active Terms')"
-                color="success"
-                icon="bx bx-check-circle"
-            />
+            <x-ui.card.stat2 id="active" :label="__('Active Terms')" color="success" icon="bx bx-check-circle"/>
         </div>
         <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2
-                id="inactive"
-                :label="__('Inactive Terms')"
-                color="warning"
-                icon="bx bx-x-circle"
-            />
+            <x-ui.card.stat2 id="inactive" :label="__('Inactive Terms')" color="warning" icon="bx bx-x-circle"/>
         </div>
         <div class="col-sm-6 col-xl-3">
-            <x-ui.card.stat2
-                id="current"
-                :label="__('Current Term')"
-                color="info"
-                icon="bx bx-time"
-            />
+            <x-ui.card.stat2 id="current" :label="__('Current Term')" color="info" icon="bx bx-time"/>
         </div>
     </div>
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
-    <x-ui.page-header
-        :title="__('Academic Terms')"
-        :description="__('Manage academic terms and semesters')"
-        icon="bx bx-calendar"
-    >
+    <x-ui.page-header :title="__('Academic Terms')" :description="__('Manage academic terms and semesters')" icon="bx bx-calendar">
         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
-            <button class="btn btn-primary"
-                    id="addTermBtn"
-                    type="button"
-                    data-bs-toggle="modal"
-                    data-bs-target="#termModal">
+            <button class="btn btn-primary" id="addTermBtn" type="button" data-bs-toggle="modal" data-bs-target="#termModal">
                 <i class="bx bx-plus me-1"></i> 
                 <span class="d-none d-sm-inline">{{ __('Add Term') }}</span>
-                <span class="d-inline d-sm-none">{{ __('Add') }}</span>
             </button>
-            <button class="btn btn-secondary"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#termSearchCollapse"
-                    aria-expanded="false"
-                    aria-controls="termSearchCollapse">
+            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#termSearchCollapse" aria-expanded="false"aria-controls="termSearchCollapse">
                 <i class="bx bx-filter-alt me-1"></i> 
                 <span class="d-none d-sm-inline">{{ __('Search') }}</span>
-                <span class="d-inline d-sm-none">{{ __('Filter') }}</span>
             </button>
         </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
-    <x-ui.advanced-search
-        :title="__('Search Academic Terms')"
-        formId="advancedTermSearch"
-        collapseId="termSearchCollapse"
-        :collapsed="false"
-        :show-clear-button="true"
-        :clear-button-text="__('Clear Filters')"
-        clear-button-id="clearTermFiltersBtn"
-    >
+    <x-ui.advanced-search :title="__('Search Academic Terms')" formId="advancedTermSearch" collapseId="termSearchCollapse" collapsed="false" show-clear-button="true" :clear-button-text="__('Clear Filters')" clear-button-id="clearTermFiltersBtn">
         <div class="col-md-3">
             <label for="search_season" class="form-label">{{ __('Season') }}</label>
             <select class="form-select" id="search_season">
@@ -107,17 +64,8 @@
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable.table
-        :headers=" [
-            __('Season'),
-            __('Year'),
-            __('Code'),
-            __('Start Date'),
-            __('End Date'),
-            __('Reservations'),
-            __('Status'),
-            __('Action')
-        ]"
-        :columns=" [
+        :headers="['Season', 'Year', 'Code', 'Start Date', 'End Date', 'Reservations', 'Status', 'Action']"
+        :columns="[
             ['data' => 'season', 'name' => 'season'],
             ['data' => 'year', 'name' => 'year'],
             ['data' => 'code', 'name' => 'code'],
@@ -125,7 +73,7 @@
             ['data' => 'end_date', 'name' => 'end_date'],
             ['data' => 'reservations', 'name' => 'reservations'],
             ['data' => 'status', 'name' => 'status'],
-            ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false],
+            ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false]
         ]"
         :ajax-url="route('academic.academic_terms.datatable')"
         table-id="terms-table"
@@ -134,13 +82,7 @@
 
     {{-- ===== MODALS SECTION ===== --}}
     {{-- Add/Edit Term Modal --}}
-    <x-ui.modal
-        id="termModal"
-        :title="__('Add Academic Term')"
-        size="lg"
-        :scrollable="false"
-        class="term-modal"
-    >
+    <x-ui.modal id="termModal" :title="__('Add Academic Term')" size="lg" scrollable="false" class="term-modal">
         <x-slot name="slot">
             <form id="termForm">
                 <input type="hidden" id="term_id" name="term_id">
@@ -189,13 +131,7 @@
     </x-ui.modal>
 
     {{-- View Academic Term Modal --}}
-    <x-ui.modal
-        id="viewTermModal"
-        :title="__('Academic Term Details')"
-        size="md"
-        :scrollable="true"
-        class="view-term-modal"
-    >
+    <x-ui.modal id="viewTermModal" :title="__('Academic Term Details')" size="md" scrollable="true" class="view-term-modal">
         <x-slot name="slot">
             <div class="row">
                 <div class="col-6 mb-3">
@@ -256,6 +192,7 @@
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
         </x-slot>
     </x-ui.modal>
+
 </div>
 @endsection
 
@@ -470,7 +407,7 @@ var Select2Manager = {
      */
     clearSelect2: function(selectors) {
         selectors.forEach(function(selector) {
-            $(selector).val('').trigger('change');
+            $(selector).val('').trigger('change.select2');
         });
     },
 
@@ -515,12 +452,9 @@ var SearchManager = {
      */
     populateSearchDropdowns: function() {
         var academicYears = SearchManager.generateAcademicYears();
-        // Populate academic years using Utils
         Utils.populateSelect('#search_year', academicYears, {
-            valueField: null,
-            textField: null,
             includePlaceholder: true,
-            placeholder: TRANSLATION.placeholders.allYears 
+            placeholder: TRANSLATION.placeholders.selectYear
         });
     },
 
@@ -528,12 +462,10 @@ var SearchManager = {
      * Bind search-related event handlers
      */
     bindEvents: function() {
-        // Immediate search for dropdowns
         $('#search_season, #search_year, #search_active').on('change', function() {
             Utils.reloadDataTable('#terms-table');
         });
 
-        // Clear filters
         $('#clearTermFiltersBtn').on('click', function() {
             Select2Manager.resetSearchSelect2();
             Utils.reloadDataTable('#terms-table');
@@ -562,8 +494,8 @@ var TermManager = {
             $('#termForm')[0].reset();
             $('#term_id').val('');
             Select2Manager.resetModalSelect2();
-            $('#termModal .modal-title').text(TRANSLATION.modal.addTermTitle); 
-            $('#saveTermBtn').text(TRANSLATION.modal.saveButton); 
+            $('#termModal .modal-title').text(TRANSLATION.modal.addTermTitle);
+            $('#saveTermBtn').text(TRANSLATION.modal.saveButton);
             $('#termModal').modal('show');
         });
     },
@@ -576,19 +508,19 @@ var TermManager = {
     validateForm: function(formData) {
         var errors = [];
 
-        if (Utils.isEmpty(formData.season)) errors.push(TRANSLATION.error.seasonRequired); 
+        if (Utils.isEmpty(formData.season)) errors.push(TRANSLATION.error.seasonRequired);
         if (Utils.isEmpty(formData.year)) {
-            errors.push(TRANSLATION.error.yearRequired); 
+            errors.push(TRANSLATION.error.yearRequired);
         } else if (!/^\d{4}-\d{4}$/.test(formData.year)) {
-            errors.push(TRANSLATION.error.invalidYearFormat); 
+            errors.push(TRANSLATION.error.invalidYearFormat);
         }
-        if (Utils.isEmpty(formData.semester_number)) errors.push(TRANSLATION.error.semesterRequired); 
-        if (Utils.isEmpty(formData.start_date)) errors.push(TRANSLATION.error.startDateRequired); 
+        if (Utils.isEmpty(formData.semester_number)) errors.push(TRANSLATION.error.semesterRequired);
+        if (Utils.isEmpty(formData.start_date)) errors.push(TRANSLATION.error.startDateRequired);
 
         if (!Utils.isEmpty(formData.start_date) && !Utils.isEmpty(formData.end_date)) {
             var startDate = new Date(formData.start_date);
             var endDate = new Date(formData.end_date);
-            if (endDate <= startDate) errors.push(TRANSLATION.error.invalidDateRange); 
+            if (endDate <= startDate) errors.push(TRANSLATION.error.invalidDateRange);
         }
 
         return { isValid: errors.length === 0, errors: errors };
@@ -602,28 +534,28 @@ var TermManager = {
             e.preventDefault();
 
             var termId = $('#term_id').val();
-            var formData = new FormData(e.target);
+            var formData = new FormData(this);
 
             var formObject = {};
             formData.forEach(function(value, key) { formObject[key] = value; });
 
             var validation = TermManager.validateForm(formObject);
             if (!validation.isValid) {
-                Utils.showErrorHtml(TRANSLATION.error.validationError, Utils.formatValidationErrors({errors: validation.errors})); 
+                Utils.showErrorHtml(TRANSLATION.error.validationError, Utils.formatValidationErrors({errors: validation.errors}));
                 return;
             }
 
             var $submitBtn = $('#saveTermBtn');
             Utils.setLoadingState($submitBtn, true, {
-                loadingText: TRANSLATION.modal.savingButton, 
-                normalText: $submitBtn.text()
+                loadingText: termId ? TRANSLATION.modal.updatingButton : TRANSLATION.modal.savingButton,
+                normalText: termId ? TRANSLATION.modal.updateButton : TRANSLATION.modal.saveButton
             });
 
             ApiService.saveTerm(formData, termId || null)
                 .done(function(response) {
                     $('#termModal').modal('hide');
                     Utils.reloadDataTable('#terms-table', null, true);
-                    Utils.showSuccess(response.message); 
+                    Utils.showSuccess(response.message);
                     StatsManager.refresh();
                     SearchManager.populateSearchDropdowns();
                 })
@@ -632,7 +564,7 @@ var TermManager = {
                 })
                 .always(function() {
                     Utils.setLoadingState($submitBtn, false, {
-                        normalText: termId ? TRANSLATION.modal.updateButton : TRANSLATION.modal.saveButton 
+                        normalText: termId ? TRANSLATION.modal.updateButton : TRANSLATION.modal.saveButton
                     });
                 });
         });
@@ -645,27 +577,29 @@ var TermManager = {
         $(document).on('click', '.editTermBtn', function() {
             var termId = $(this).data('id');
             if (!termId) {
-                Utils.showError(TRANSLATION.error.termMissing); 
+                Utils.showError(TRANSLATION.error.termMissing);
                 return;
             }
-            Utils.setLoadingState($('.editTermBtn'), true, {
+
+            var $button = $(this);
+            Utils.setLoadingState($button, true, {
                 loadingText: TRANSLATION.modal.updatingButton,
-                normalText: TRANSLATION.modal.editTermTitle
+                normalText: '<i class="bx bx-edit-alt"></i>'
             });
+
             ApiService.fetchTerm(termId)
                 .done(function(response) {
                     var term = response.data;
                     TermManager.populateModal(term);
                     TermManager.prepareModal();
                     $('#termModal').modal('show');
-                    Utils.setLoadingState($('.editTermBtn'), false, {
-                        normalText: TRANSLATION.modal.editTermTitle
-                    });
                 })
                 .fail(function(xhr) {
                     Utils.handleAjaxError(xhr.responseJSON?.message || xhr.statusText);
-                    Utils.setLoadingState($('.editTermBtn'), false, {
-                        normalText: TRANSLATION.modal.editTermTitle
+                })
+                .always(function() {
+                    Utils.setLoadingState($button, false, {
+                        normalText: '<i class="bx bx-edit-alt"></i>'
                     });
                 });
         });
@@ -675,21 +609,20 @@ var TermManager = {
      * Populates the term modal with data
      */
     populateModal: function(term) {
-        $('#term_id').val(term.id);
-        $('#season').val(term.season_en).trigger('change');
-        $('#year').val(term.year);
-        $('#semester_number').val(term.semester_number).trigger('change');
+        $('#term_id').val(term.id || '');
+        $('#season').val(term.season || '').trigger('change.select2');
+        $('#year').val(term.year || '');
+        $('#semester_number').val(term.semester_number || '').trigger('change.select2');
         $('#start_date').val(term.start_date ? term.start_date.substring(0, 10) : '');
         $('#end_date').val(term.end_date ? term.end_date.substring(0, 10) : '');
-        $('#active').prop('checked', Boolean(term.active));
     },
 
     /**
      * Prepares the term modal for editing
      */
     prepareModal: function() {
-        $('#termModal .modal-title').text(TRANSLATION.modal.editTermTitle); 
-        $('#saveTermBtn').text(TRANSLATION.modal.updateButton); 
+        $('#termModal .modal-title').text(TRANSLATION.modal.editTermTitle);
+        $('#saveTermBtn').text(TRANSLATION.modal.updateButton);
     },
 
     /**
@@ -699,7 +632,7 @@ var TermManager = {
         $(document).on('click', '.deleteTermBtn', function() {
             var termId = $(this).data('id');
             if (!termId) {
-                Utils.showError(TRANSLATION.error.termMissing); 
+                Utils.showError(TRANSLATION.error.termMissing);
                 return;
             }
 
@@ -710,15 +643,15 @@ var TermManager = {
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.deleteTerm(termId)
-                        .done(function(response) {
-                            Utils.reloadDataTable('#terms-table', null, true);
-                            Utils.showSuccess(response.message); 
-                            StatsManager.refresh();
-                            SearchManager.populateSearchDropdowns();
-                        })
-                        .fail(function(xhr) {
-                            Utils.handleAjaxError(xhr.responseJSON?.message || xhr.statusText);
-                        });
+                    .done(function(response) {
+                        Utils.reloadDataTable('#terms-table', null, true);
+                        Utils.showSuccess(response.message);
+                        StatsManager.refresh();
+                        SearchManager.populateSearchDropdowns();
+                    })
+                    .fail(function(xhr) {
+                        Utils.handleAjaxError(xhr.responseJSON?.message || xhr.statusText);
+                    });
                 }
             });
         });
@@ -731,26 +664,26 @@ var TermManager = {
         $(document).on('click', '.startTermBtn', function() {
             var termId = $(this).data('id');
             if (!termId) {
-                Utils.showError(TRANSLATION.error.termMissing); 
+                Utils.showError(TRANSLATION.error.termMissing);
                 return;
             }
+
             Utils.showConfirmDialog({
                 title: TRANSLATION.confirm.startTerm.title,
                 text: TRANSLATION.confirm.startTerm.text,
                 confirmButtonText: TRANSLATION.confirm.startTerm.confirmButtonText,
-                
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.startTerm(termId)
-                        .done(function(response) {
-                            Utils.reloadDataTable('#terms-table', null, true);
-                            Utils.showSuccess(response.message); 
-                            StatsManager.refresh();
-                            SearchManager.populateSearchDropdowns();
-                        })
-                        .fail(function(xhr) {
-                            Utils.handleAjaxError(xhr.responseJSON?.message || xhr.statusText);
-                        });
+                    .done(function(response) {
+                        Utils.reloadDataTable('#terms-table', null, true);
+                        Utils.showSuccess(response.message);
+                        StatsManager.refresh();
+                        SearchManager.populateSearchDropdowns();
+                    })
+                    .fail(function(xhr) {
+                        Utils.handleAjaxError(xhr.responseJSON?.message || xhr.statusText);
+                    });
                 }
             });
         });
@@ -763,7 +696,7 @@ var TermManager = {
         $(document).on('click', '.endTermBtn', function() {
             var termId = $(this).data('id');
             if (!termId) {
-                Utils.showError(TRANSLATION.error.termMissing); 
+                Utils.showError(TRANSLATION.error.termMissing);
                 return;
             }
 
@@ -771,19 +704,18 @@ var TermManager = {
                 title: TRANSLATION.confirm.endTerm.title,
                 text: TRANSLATION.confirm.endTerm.text,
                 confirmButtonText: TRANSLATION.confirm.endTerm.confirmButtonText,
-                
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.endTerm(termId)
-                        .done(function(response) {
-                            Utils.reloadDataTable('#terms-table', null, true);
-                            Utils.showSuccess(response.message); 
-                            StatsManager.refresh();
-                            SearchManager.populateSearchDropdowns();
-                        })
-                        .fail(function(xhr) {
-                            Utils.handleAjaxError(xhr.responseJSON?.message || xhr.statusText);
-                        });
+                    .done(function(response) {
+                        Utils.reloadDataTable('#terms-table', null, true);
+                        Utils.showSuccess(response.message);
+                        StatsManager.refresh();
+                        SearchManager.populateSearchDropdowns();
+                    })
+                    .fail(function(xhr) {
+                        Utils.handleAjaxError(xhr.responseJSON?.message || xhr.statusText);
+                    });
                 }
             });
         });
@@ -796,7 +728,7 @@ var TermManager = {
         $(document).on('click', '.activateTermBtn', function() {
             var termId = $(this).data('id');
             if (!termId) {
-                Utils.showError(TRANSLATION.error.termMissing); 
+                Utils.showError(TRANSLATION.error.termMissing);
                 return;
             }
 
@@ -805,19 +737,18 @@ var TermManager = {
                 text: TRANSLATION.confirm.activateTerm.text,
                 confirmButtonText: TRANSLATION.confirm.activateTerm.confirmButtonText,
                 icon: 'question',
-                
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.activateTerm(termId)
-                        .done(function(response) {
-                            Utils.reloadDataTable('#terms-table', null, true);
-                            Utils.showSuccess(response.message); 
-                            StatsManager.refresh();
-                            SearchManager.populateSearchDropdowns();
-                        })
-                        .fail(function(xhr) {
-                            Utils.handleAjaxError(xhr.responseJSON?.message || xhr.statusText);
-                        });
+                    .done(function(response) {
+                        Utils.reloadDataTable('#terms-table', null, true);
+                        Utils.showSuccess(response.message);
+                        StatsManager.refresh();
+                        SearchManager.populateSearchDropdowns();
+                    })
+                    .fail(function(xhr) {
+                        Utils.handleAjaxError(xhr.responseJSON?.message || xhr.statusText);
+                    });
                 }
             });
         });
@@ -830,7 +761,7 @@ var TermManager = {
         $(document).on('click', '.deactivateTermBtn', function() {
             var termId = $(this).data('id');
             if (!termId) {
-                Utils.showError(TRANSLATION.error.termMissing); 
+                Utils.showError(TRANSLATION.error.termMissing);
                 return;
             }
 
@@ -838,19 +769,18 @@ var TermManager = {
                 title: TRANSLATION.confirm.deactivateTerm.title,
                 text: TRANSLATION.confirm.deactivateTerm.text,
                 confirmButtonText: TRANSLATION.confirm.deactivateTerm.confirmButtonText,
-                
             }).then(function(result) {
                 if (result.isConfirmed) {
                     ApiService.deactivateTerm(termId)
-                        .done(function(response) {
-                            Utils.reloadDataTable('#terms-table', null, true);
-                            Utils.showSuccess(response.message); 
-                            StatsManager.refresh();
-                            SearchManager.populateSearchDropdowns();
-                        })
-                        .fail(function(xhr) {
-                            Utils.handleAjaxError(xhr.responseJSON?.message || xhr.statusText);
-                        });
+                    .done(function(response) {
+                        Utils.reloadDataTable('#terms-table', null, true);
+                        Utils.showSuccess(response.message);
+                        StatsManager.refresh();
+                        SearchManager.populateSearchDropdowns();
+                    })
+                    .fail(function(xhr) {
+                        Utils.handleAjaxError(xhr.responseJSON?.message || xhr.statusText);
+                    });
                 }
             });
         });
@@ -863,7 +793,7 @@ var TermManager = {
         $(document).on('click', '.viewTermBtn', function() {
             var termId = $(this).data('id');
             if (!termId) {
-                Utils.showError(TRANSLATION.error.termMissing); 
+                Utils.showError(TRANSLATION.error.termMissing);
                 return;
             }
 
@@ -882,15 +812,15 @@ var TermManager = {
     /**
      * Populates the view modal with term details
      */
-    populateViewModal: (term) => {
+    populateViewModal: function(term) {
         $('#view-term-season').text(term.season ?? '--');
         $('#view-term-year').text(term.year ?? '--');
         $('#view-term-code').text(term.code ?? '--');
         $('#view-term-semester-number').text(term.semester_number ?? '--');
         $('#view-term-start-date').text(term.start_date_formatted ?? '--');
         $('#view-term-end-date').text(term.end_date_formatted ?? '--');
-        $('#view-term-active').text(term.active ? TRANSLATION.modal.yes : TRANSLATION.modal.no); 
-        $('#view-term-current').text(term.current ? TRANSLATION.modal.yes : TRANSLATION.modal.no); 
+        $('#view-term-active').text(term.active ? TRANSLATION.modal.yes : TRANSLATION.modal.no);
+        $('#view-term-current').text(term.current ? TRANSLATION.modal.yes : TRANSLATION.modal.no);
         $('#view-term-activated-at').text(term.activated_at_formatted ?? '--');
         $('#view-term-started-at').text(term.started_at_formatted ?? '--');
         $('#view-term-ended-at').text(term.ended_at_formatted ?? '--');

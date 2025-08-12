@@ -42,7 +42,7 @@ class EquipmentReturnService
         $equipmentCheckout = EquipmentCheckout::where('reservation_id', $reservation->id)->first();
 
         if (!$equipmentCheckout) {
-            throw new BusinessValidationException("Equipment checkout record not found for reservation ID {$reservation->id}.");
+            throw new BusinessValidationException(__("Equipment checkout record not found for reservation ID :id", ['id' => $reservation->id]));
         }
 
         foreach ($equipmentData as $equipmentItem) {
@@ -202,11 +202,11 @@ class EquipmentReturnService
     {
         $equipment = Equipment::find($equipmentId);
         if (!$equipment) {
-            throw new BusinessValidationException("Equipment with ID {$equipmentId} not found.");
+            throw new BusinessValidationException(__(':field not found.', ['field' => __('Equipment')]));
         }
 
         if ($quantity <= 0) {
-            throw new BusinessValidationException("Invalid quantity {$quantity} for equipment ID {$equipmentId}.");
+            throw new BusinessValidationException(__("Invalid quantity :quantity for equipment ID :id.", ['quantity' => $quantity, 'id' => $equipmentId]));
         }
     }
 
@@ -232,7 +232,7 @@ class EquipmentReturnService
             ->first();
 
         if (!$checkoutDetail) {
-            throw new BusinessValidationException("Equipment checkout detail not found for checkout ID {$equipmentCheckout->id} and equipment ID {$equipmentId}.");
+            throw new BusinessValidationException(__("Equipment checkout detail not found for checkout ID :checkoutId and equipment ID :equipmentId.", ['checkoutId' => $equipmentCheckout->id, 'equipmentId' => $equipmentId]));
         }
 
         $checkoutDetail->quantity_returned = $quantity;

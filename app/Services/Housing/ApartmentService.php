@@ -74,7 +74,7 @@ class ApartmentService
         $apartment = Apartment::findOrFail($id);
 
         if ($apartment->rooms()->sum('current_occupancy') > 0) {
-            throw new BusinessValidationException(__('This apartment cannot be deleted because it has residents.'));
+            throw new BusinessValidationException(__('This apartment cannot be deleted because it has :count residents.', ['count' => $apartment->rooms()->sum('current_occupancy')]));
         }
         $apartment->delete();
     }
@@ -131,7 +131,7 @@ class ApartmentService
                 'lastUpdateTime' => formatDate($stats->female_last_update),
             ],
         ];
-}
+    }
 
 
     /**
@@ -155,21 +155,22 @@ class ApartmentService
         return DataTables::of($query)
             ->addIndexColumn()
             // Computed/display columns
-            ->addColumn('name', fn($apartment) => $apartment->formattedName)
-            ->addColumn('building', fn($apartment) => $apartment->building?->formattedName)
-            ->addColumn('total_rooms', fn($apartment) => formatNumber($apartment->total_rooms))
-            ->addColumn('gender', fn($apartment) => $apartment->formattedGender)
-            ->editColumn('active', fn($apartment) => $apartment->active ? __('active') : __('inactive'))
+            ->editColumn('number', fn($apartment) => __('Apartment :number', ['number' => $apartment->number]))
+            ->addColumn('building', fn($apartment) => __('Building :number', ['number' => $apartment?->building->number]))
+            ->editColumn('total_rooms', fn($apartment) => formatNumber($apartment->total_rooms))
+            ->editColumn('gender', fn($apartment) => __($apartment->gender))
+            ->editColumn('current_occupancy', fn($apartment) => $this->renderProgressBar($apartment->current_occupancy, $apartment->available_capacity))
+            ->addColumn('status', fn($apartment) => $this->renderStatusBadge($apartment->active))
             ->editColumn('created_at', fn($apartment) => formatDate($apartment->created_at))
             ->addColumn('action', fn($apartment) => $this->renderActionButtons($apartment))
             // Ordering mappings aligned with frontend column names
-            ->orderColumn('name', 'apartments.number $1')
+            ->orderColumn('number', 'apartments.number $1')
             ->orderColumn('building', 'buildings.number $1')
             ->orderColumn('total_rooms', 'apartments.total_rooms $1')
             ->orderColumn('gender', 'buildings.gender_restriction $1')
-            ->orderColumn('active', 'apartments.active $1')
+            ->orderColumn('status', 'apartments.active $1')
             ->orderColumn('created_at', 'apartments.created_at $1')
-            ->rawColumns(['action'])
+            ->rawColumns(['action', 'current_occupancy', 'status'])
             ->make(true);
     }
 
@@ -182,8 +183,8 @@ class ApartmentService
     protected function applySearchFilters($query): Builder
     {
         $searchActive = request('search_active');
-        if (!empty($searchActive)) {
-            $query->where('active', $searchActive);
+        if ($searchActive !== null && $searchActive !== '') {
+            $query->where('apartments.active', $searchActive);
         }
         $searchApartmentId = request('search_apartment_id');
         if (!empty($searchApartmentId)) {
@@ -229,6 +230,29 @@ class ApartmentService
             'id' => $apartment->id,
             'type' => 'Apartment'
         ])->render();
+    }
+
+    
+    /**
+     * Render a progress bar for occupancy.
+     *
+     * @param int $occupancy
+     * @param int $capacity
+     * @return string
+     */
+    public function renderProgressBar($occupancy, $capacity): string
+    {
+        $percentage = $capacity > 0 ? ($occupancy / $capacity) * 100 : 0;
+        return "<div class='progress'>
+                    <div class='progress-bar' role='progressbar' style='width: {$percentage}%;' aria-valuenow='{$occupancy}' aria-valuemin='0' aria-valuemax='{$capacity}'>{$occupancy} / {$capacity}</div>
+                </div>";
+    }
+
+    public function renderStatusBadge(bool $active): string
+    {
+        $status = $active ? __('Active') : __('Inactive');
+        $class = $active ? 'success' : 'secondary';
+        return "<span class='badge rounded-pill bg-label-{$class}'>{$status}</span>";
     }
 
     /**

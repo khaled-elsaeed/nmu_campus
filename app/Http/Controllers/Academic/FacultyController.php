@@ -39,10 +39,10 @@ class FacultyController extends Controller
     {
         try {
             $stats = $this->facultyService->getStats();
-            return successResponse(__('faculties.messages.stats_fetched_successfully'), $stats);
+            return successResponse(__('Faculty statistics fetched successfully'), $stats);
         } catch (Exception $e) {
             logError('FacultyController@stats', $e);
-            return errorResponse(__('faculties.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -57,7 +57,7 @@ class FacultyController extends Controller
             return $this->facultyService->getDatatable();
         } catch (Exception $e) {
             logError('FacultyController@datatable', $e);
-            return errorResponse(__('faculties.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -77,10 +77,10 @@ class FacultyController extends Controller
         try {
             $validated = $request->only(['name_en', 'name_ar']);
             $faculty = $this->facultyService->createFaculty($validated);
-            return successResponse(__('faculties.messages.created_successfully'), $faculty);
+            return successResponse(__('Faculty created successfully'), $faculty);
         } catch (Exception $e) {
             logError('FacultyController@store', $e, ['request' => $request->all()]);
-            return errorResponse(__('faculties.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -94,10 +94,10 @@ class FacultyController extends Controller
     {
         try {
             $faculty = $this->facultyService->getFaculty($id);
-            return successResponse(__('faculties.messages.details_fetched_successfully'), $faculty);
+            return successResponse(__('Faculty details fetched successfully'), $faculty);
         } catch (Exception $e) {
             logError('FacultyController@show', $e, ['faculty_id' => $id]);
-            return errorResponse(__('faculties.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -118,10 +118,10 @@ class FacultyController extends Controller
         try {
             $validated = $request->only(['name_en', 'name_ar']);
             $faculty = $this->facultyService->updateFaculty($id, $validated);
-            return successResponse(__('faculties.messages.updated_successfully'), $faculty);
+            return successResponse(__('Faculty updated successfully'), $faculty);
         } catch (Exception $e) {
             logError('FacultyController@update', $e, ['faculty_id' => $id, 'request' => $request->all()]);
-            return errorResponse(__('faculties.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -135,12 +135,12 @@ class FacultyController extends Controller
     {
         try {
             $this->facultyService->deleteFaculty($id);
-            return successResponse(__('faculties.messages.deleted_successfully'));
+            return successResponse(__('Faculty deleted successfully'));
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('FacultyController@destroy', $e, ['faculty_id' => $id]);
-            return errorResponse(__('faculties.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -153,10 +153,10 @@ class FacultyController extends Controller
     {
         try {
             $faculties = $this->facultyService->getAll();
-            return successResponse(__('faculties.messages.fetched_successfully'), $faculties);
+            return successResponse(__('Faculties fetched successfully'), $faculties);
         } catch (Exception $e) {
             logError('FacultyController@all', $e);
-            return errorResponse(__('faculties.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 }

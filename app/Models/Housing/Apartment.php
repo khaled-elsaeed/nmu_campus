@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Reservation\Accommodation;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-
  
 
 class Apartment extends Model
@@ -25,13 +24,26 @@ class Apartment extends Model
     ];
 
 
-
-    protected function formattedName(): Attribute
+    /**
+     * The attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
     {
-        return Attribute::make(
-            get: fn() => __('general.apartment', ['number' => $this->number])
-        );
+        return [
+            'active' => 'boolean',
+        ];
     }
+
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = ['current_occupancy', 'available_capacity'];
+
 
     /**
      * Get the gender restriction for the room.
@@ -45,34 +57,30 @@ class Apartment extends Model
         );
     }
 
-    protected function formattedGender(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => __('general.' . $this->building?->gender_restriction)
-        );
-    }
-
     /**
-     * The current occupancy of the apartment.
+     * The current occupancy of the building.
      */
     public function currentOccupancy(): Attribute
     {
         return Attribute::make(
-            get: fn() => formatNumber($this->rooms()->sum('current_occupancy'))
+            get: function () {
+                return $this->rooms()->sum('current_occupancy');
+            }
         );
     }
 
     /**
-     * The attributes that should be cast.
-     *
-     * @return array<string, string>
+     * Get the available capacity of the building.
      */
-    protected function casts(): array
+    public function availableCapacity(): Attribute
     {
-        return [
-            'active' => 'boolean',
-        ];
+        return Attribute::make(
+            get: function () {
+                return $this->rooms()->sum('available_capacity');
+            }
+        );
     }
+
 
     /**
      * Get the building for the apartment.
@@ -102,19 +110,5 @@ class Apartment extends Model
     public function accommodations(): HasMany
     {
         return $this->hasMany(Accommodation::class);
-    }
-
-
-    /**
-     * Get the location information for the apartment.
-     *
-     * @return array<string, string|null>
-     */
-    public function location(): array
-    {
-        return [
-            'number' => $this->number,
-            'building_number' => $this->building->number ?? null,
-        ];
     }
 }

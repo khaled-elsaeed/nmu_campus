@@ -24,8 +24,6 @@ class Building extends Model
         'has_double_rooms',
     ];
 
-
-
     /**
      * The attributes that should be cast.
      *
@@ -38,20 +36,12 @@ class Building extends Model
         ];
     }
 
-    public function formattedName(): Attribute
-    {
-        return Attribute::make(
-            get: fn() => __('general.building', ['number' => $this->number])
-        );
-    }
-
-    public function formattedGender(): Attribute
-    {
-        return Attribute::make(
-            get: fn() => __('general.' . $this->gender_restriction)
-        );
-    }
-
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = ['current_occupancy', 'available_capacity'];
 
     /**
      * The current occupancy of the building.
@@ -59,14 +49,36 @@ class Building extends Model
     public function currentOccupancy(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->rooms()->sum('current_occupancy')
+            get: function () {
+                return $this->rooms()->sum('current_occupancy');
+            }
         );
     }
 
     /**
+     * Get the available capacity of the building.
+     */
+    public function availableCapacity(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return $this->rooms()->sum('available_capacity');
+            }
+        );
+    }
+
+
+    /**
+     * Check if building is full
+     */
+    public function isFull(): bool
+    {
+        return $this->available_capacity === 0;
+    }
+
+
+    /**
      * Get the apartments for the building.
-     *
-     * @return HasMany
      */
     public function apartments(): HasMany
     {
@@ -75,11 +87,10 @@ class Building extends Model
 
     /**
      * Get the rooms for the building through apartments.
-     *
-     * @return HasManyThrough
      */
     public function rooms(): HasManyThrough
     {
         return $this->hasManyThrough(Room::class, Apartment::class);
     }
-}
+
+};

@@ -39,10 +39,10 @@ class ProgramController extends Controller
     {
         try {
             $stats = $this->programService->getStats();
-            return successResponse(__('programs.messages.stats_fetched_successfully'), $stats);
+            return successResponse(__('Program statistics fetched successfully'), $stats);
         } catch (Exception $e) {
             logError('ProgramController@stats', $e);
-            return errorResponse(__('programs.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -57,7 +57,7 @@ class ProgramController extends Controller
             return $this->programService->getDatatable();
         } catch (Exception $e) {
             logError('ProgramController@datatable', $e);
-            return errorResponse(__('programs.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -79,10 +79,10 @@ class ProgramController extends Controller
         try {
             $validated = $request->only(['name_en', 'name_ar', 'faculty_id', 'duration_years']);
             $program = $this->programService->createProgram($validated);
-            return successResponse(__('programs.messages.created_successfully'), $program);
+            return successResponse(__('Program created successfully'), $program);
         } catch (Exception $e) {
             logError('ProgramController@store', $e, ['request' => $request->all()]);
-            return errorResponse(__('programs.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -96,10 +96,10 @@ class ProgramController extends Controller
     {
         try {
             $program = $this->programService->getProgram($id);
-            return successResponse(__('programs.messages.details_fetched_successfully'), $program);
+            return successResponse(__('Program details fetched successfully'), $program);
         } catch (Exception $e) {
             logError('ProgramController@show', $e, ['program_id' => $id]);
-            return errorResponse(__('programs.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -122,10 +122,10 @@ class ProgramController extends Controller
         try {
             $validated = $request->only(['name_en', 'name_ar', 'faculty_id', 'duration_years']);
             $program = $this->programService->updateProgram($id, $validated);
-            return successResponse(__('programs.messages.updated_successfully'), $program);
+            return successResponse(__('Program updated successfully'), $program);
         } catch (Exception $e) {
             logError('ProgramController@update', $e, ['program_id' => $id, 'request' => $request->all()]);
-            return errorResponse(__('programs.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -139,12 +139,12 @@ class ProgramController extends Controller
     {
         try {
             $this->programService->deleteProgram($id);
-            return successResponse(__('programs.messages.deleted_successfully'));
+            return successResponse(__('Program deleted successfully'));
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('ProgramController@destroy', $e, ['program_id' => $id]);
-            return errorResponse(__('programs.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -157,10 +157,10 @@ class ProgramController extends Controller
     {
         try {
             $programs = $this->programService->getAll();
-            return successResponse(__('programs.messages.fetched_successfully'), $programs);
+            return successResponse(__('Programs fetched successfully'), $programs);
         } catch (Exception $e) {
             logError('ProgramController@all', $e);
-            return errorResponse(__('programs.messages.internal_server_error'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 }

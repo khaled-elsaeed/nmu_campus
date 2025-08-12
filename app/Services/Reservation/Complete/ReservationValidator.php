@@ -24,12 +24,12 @@ class ReservationValidator
 
         // Only allow completion if reservation is in a valid state
         if (!in_array($reservation->status, ['confirmed', 'checked_in'])) {
-            throw new BusinessValidationException('Reservation cannot be completed in its current status.');
+            throw new BusinessValidationException(__('Reservation cannot be completed in its current status.'));
         }
 
         // Check if already completed or checked out
         if ($reservation->status === 'checked_out' || $reservation->status === 'completed') {
-            throw new BusinessValidationException('Reservation has already been completed or checked out.');
+            throw new BusinessValidationException(__('Reservation has already been completed or checked out.'));
         }
 
         // Check if check-out date is not in the future
@@ -37,7 +37,7 @@ class ReservationValidator
             $now = Carbon::now()->startOfDay();
             $checkOut = Carbon::parse($reservation->check_out_date)->startOfDay();
             if ($checkOut->gt($now)) {
-                throw new BusinessValidationException('Cannot complete reservation before the check-out date.');
+                throw new BusinessValidationException(__('Cannot complete reservation before the check-out date.'));
             }
         }
     }

@@ -121,13 +121,12 @@
                 <!-- Apartment options will be loaded by JS -->
             </select>
         </div>
-        <div class="col-md-4">
+                <div class="col-md-4">
             <label for="search_gender_restriction" class="form-label">{{ __('Gender Restriction') }}:</label>
             <select class="form-control" id="search_gender_restriction">
                 <option value="">{{ __('All') }}</option>
                 <option value="male">{{ __('Male') }}</option>
                 <option value="female">{{ __('Female') }}</option>
-                <option value="mixed">{{ __('Mixed') }}</option>
             </select>
         </div>
         <div class="w-100"></div>
@@ -145,23 +144,23 @@
             __('Type'),
             __('Purpose'),
             __('Gender'),
-            __('Available Capacity'),
-            __('Active'),
+            __('Occupied'),
+            __('Status'),
             __('Actions')
         ]"
         :columns="[
-            ['data' => 'name', 'name' => 'name'],
+            ['data' => 'number', 'name' => 'number'],
             ['data' => 'apartment', 'name' => 'apartment'],
             ['data' => 'building', 'name' => 'building'],
             ['data' => 'type', 'name' => 'type'],
             ['data' => 'purpose', 'name' => 'purpose'],
             ['data' => 'gender', 'name' => 'gender'],
-            ['data' => 'available_capacity', 'name' => 'available_capacity'],
-            ['data' => 'active', 'name' => 'active'],
+            ['data' => 'occupied', 'name' => 'occupied', 'orderable' => false, 'searchable' => false],
+            ['data' => 'status', 'name' => 'status'],
             ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false]
         ]"
         :ajax-url="route('housing.rooms.datatable')"
-        :table-id="'rooms-table'"
+        table-id="rooms-table"
         :filter-fields="['search_apartment_id','search_building_id','search_gender_restriction']"
     />
 
@@ -314,45 +313,49 @@
 const TRANSLATION = {
   confirm: {
     activate: {
-      title: '{{ __("Activate Room") }}',
-      text: '{{ __("Are you sure you want to activate this room?") }}',
-      button: '{{ __("Activate") }}'
+      title: @json(__('Activate Room')),
+      text: @json(__('Are you sure you want to activate this room?')),
+      button: @json(__('Activate'))
     },
     deactivate: {
-      title: '{{ __("Deactivate Room") }}',
-      text: '{{ __("Are you sure you want to deactivate this room?") }}',
-      button: '{{ __("Deactivate") }}'
+      title: @json(__('Deactivate Room')),
+      text: @json(__('Are you sure you want to deactivate this room?')),
+      button: @json(__('Deactivate'))
     },
     delete: {
-      title: '{{ __("Delete Room") }}',
-      text: '{{ __("Are you sure you want to delete this room? This action cannot be undone.") }}',
-      button: '{{ __("Delete") }}'
+      title: @json(__('Delete Room')),
+      text: @json(__('Are you sure you want to delete this room? This action cannot be undone.')),
+      button: @json(__('Delete'))
     }
   },
   success: {
-    activated: '{{ __("Room has been activated successfully") }}',
-    deactivated: '{{ __("Room has been deactivated successfully") }}',
-    deleted: '{{ __("Room has been deleted successfully") }}',
-    saved: '{{ __("Room has been saved successfully") }}'
+    activated: @json(__('Room has been activated successfully')),
+    deactivated: @json(__('Room has been deactivated successfully')),
+    deleted: @json(__('Room has been deleted successfully')),
+    saved: @json(__('Room has been saved successfully'))
   },
   error: {
-    loadStats: '{{ __("Failed to load room statistics") }}',
-    loadRoom: '{{ __("Failed to load room details") }}',
-    deleteRoom: '{{ __("Failed to delete room") }}',
-    operationFailed: '{{ __("Operation failed. Please try again.") }}'
+    loadStats: @json(__('Failed to load room statistics')),
+    loadRoom: @json(__('Failed to load room details')),
+    deleteRoom: @json(__('Failed to delete room')),
+    operationFailed: @json(__('Operation failed. Please try again.'))
   },
   placeholders: {
-    selectBuilding: '{{ __("Select Building") }}',
-    selectApartment: '{{ __("Select Apartment") }}',
-    selectBuildingFirst: '{{ __("Select a building first") }}',
-    noApartments: '{{ __("No apartments available") }}',
-    selectGender: '{{ __("Select Gender") }}',
-    selectType: '{{ __("Select Room Type") }}',
-    selectPurpose: '{{ __("Select Purpose") }}'
+    selectBuilding: @json(__('Select Building')),
+    selectApartment: @json(__('Select Apartment')),
+    selectBuildingFirst: @json(__('Select a building first')),
+    noApartments: @json(__('No apartments available')),
+    selectGender: @json(__('Select Gender')),
+    selectType: @json(__('Select Room Type')),
+    selectPurpose: @json(__('Select Purpose'))
+  },
+  gender: {
+    male: @json(__('Male')),
+    female: @json(__('Female'))
   },
   status: {
-    active: '{{ __("Active") }}',
-    inactive: '{{ __("Inactive") }}'
+    active: @json(__('Active')),
+    inactive: @json(__('Inactive'))
   }
 };
 
@@ -676,8 +679,6 @@ var Select2Manager = {
             '#search_building_id': { placeholder: TRANSLATION.placeholders.selectBuilding },
             '#search_apartment_id': { placeholder: TRANSLATION.placeholders.selectApartment },
             '#search_gender_restriction': { placeholder: TRANSLATION.placeholders.selectGender },
-            '#type': { placeholder: TRANSLATION.placeholders.selectType },
-            '#purpose': { placeholder: TRANSLATION.placeholders.selectPurpose }
         }
     },
 
@@ -702,10 +703,11 @@ var Select2Manager = {
      * @param {Array} selectors - Array of selectors to clear
      */
     clearSelect2: function(selectors) {
-        selectors.forEach(function(selector) {
-            $(selector).val('').trigger('change');
-        });
+      selectors.forEach(function(selector) {
+          $(selector).val('').trigger('change.select2');
+      });
     },
+
 
     /**
      * Reset search Select2 elements
@@ -744,7 +746,6 @@ var SearchManager = {
    */
   clearFilters: function() {
     Select2Manager.resetSearchSelect2();
-    // Reset apartment select to disabled
     $('#search_apartment_id').prop('disabled', true).empty().append('<option value="">' + TRANSLATION.placeholders.selectBuildingFirst + '</option>');
     Utils.reloadDataTable('#rooms-table');
   }
@@ -844,7 +845,11 @@ var RoomApp = {
 // DOCUMENT READY
 // ===========================
 $(document).ready(function() {
-  RoomApp.init();
+  try {
+    RoomApp.init();
+  } catch (error) {
+    console.error('RoomApp initialization error:', error);
+  }
 });
 </script>
 @endpush

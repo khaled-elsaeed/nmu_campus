@@ -28,20 +28,20 @@ class AccommodationService
         $room = Room::find($roomId);
 
         if (!$room) {
-            throw new BusinessValidationException('Room not found.');
+            throw new BusinessValidationException(__(':field not found.', ['field' => __('Room')]));
         }
 
         if ($room->purpose !== 'housing') {
-            throw new BusinessValidationException('Room is not designated for housing.');
+            throw new BusinessValidationException(__('Room is not designated for housing.'));
         }
 
         if ($room->occupancy_status === 'occupied' || $room->available_capacity === 0) {
-            throw new BusinessValidationException('Room is fully occupied or has no available capacity.');
+            throw new BusinessValidationException(__('Room is fully occupied or has no available capacity.'));
         }
 
         if ($doubleRoomBedOption) {
             if ($room->available_capacity !== 2 || $room->occupancy_status === 'occupied') {
-                throw new BusinessValidationException('Selected room does not have 2 available beds or is occupied.');
+                throw new BusinessValidationException(__('Selected room does not have 2 available beds or is occupied.'));
             }
         }
 
@@ -83,11 +83,11 @@ class AccommodationService
         $apartment = Apartment::find($apartmentId);
         
         if (!$apartment) {
-            throw new BusinessValidationException('Selected apartment does not exist.');
+            throw new BusinessValidationException(__(':field not found.', ['field' => __('Apartment')]));
         }
         
         if (!$apartment->active) {
-            throw new BusinessValidationException('Selected apartment is not active.');
+            throw new BusinessValidationException(__('Selected apartment is not active.'));
         }
 
         // Check if accommodation already exists for this apartment

@@ -115,10 +115,10 @@ class EquipmentAssignmentService
     {
         $equipment = Equipment::find($equipmentId);
         if (!$equipment) {
-            throw new BusinessValidationException("Equipment with ID {$equipmentId} not found.");
+            throw new BusinessValidationException(__(':field not found.', ['field' => __('Equipment')]));
         }
         if ($quantity <= 0) {
-            throw new BusinessValidationException("Quantity must be greater than 0 for equipment {$equipment->name_en}.");
+            throw new BusinessValidationException(__('Quantity must be greater than 0 for equipment :equipment.', ['equipment' => $equipment->name_en]));
         }
     }
 }

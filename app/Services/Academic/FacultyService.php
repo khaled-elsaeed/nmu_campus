@@ -149,25 +149,29 @@ class FacultyService
 
         return DataTables::of($faculties)
             ->addIndexColumn()
-            ->addColumn('name', function ($faculty) {
-                return $faculty->name;
-            })
-            ->addColumn('programs', function ($faculty) {
+            ->addColumn('programs_count', function ($faculty) {
                 return formatNumber($faculty->programs_count);
             })
-            ->addColumn('students', function ($faculty) {
+            ->addColumn('students_count', function ($faculty) {
                 return formatNumber($faculty->students_count);
             })
-            ->addColumn('staff', function ($faculty) {
+            ->addColumn('staff_count', function ($faculty) {
                 return formatNumber($faculty->staff_count);
+            })
+            ->editColumn('created_at',function($faculty){
+                return formatDate($faculty->created_at);
             })
             ->addColumn('action', function ($faculty) {
                 return $this->renderActionButtons($faculty);
             })
-            ->orderColumn('name', 'name_en $1')
-            ->orderColumn('programs', 'programs_count $1')
-            ->orderColumn('students', 'students_count $1')
-            ->orderColumn('staff', 'staff_count $1')
+            ->orderColumn('name', function ($query, $order) {
+                $lang = app()->getLocale();
+                $column = $lang === 'ar' ? 'name_ar' : 'name_en';
+                $query->orderBy($column, $order);
+            })
+            ->orderColumn('programs_count', 'programs_count $1')
+            ->orderColumn('students_count', 'students_count $1')
+            ->orderColumn('staff_count', 'staff_count $1')
 
             ->rawColumns(['action'])
             ->make(true);

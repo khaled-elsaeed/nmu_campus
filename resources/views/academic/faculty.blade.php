@@ -8,24 +8,15 @@
   {{-- ===== STATISTICS CARDS ===== --}}
   <div class="row g-4 mb-4">
       <div class="col-sm-6 col-xl-4">
-          <x-ui.card.stat2 
-              id="faculties"
-              label="{{  __('Total Faculties') }}"
-              color="secondary"
-              icon="bx bx-building"
-          />
+          <x-ui.card.stat2 id="faculties" :label="__('Total Faculties')" color="secondary" icon="bx bx-building"/>
       </div>
   </div>
 
   {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
-  <x-ui.page-header 
-      title="{{  __('Faculties') }}"
-      description="{{  __('Manage university faculties') }}"
-      icon="bx bx-building"
-  >
-  <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
+  <x-ui.page-header :title="__('Faculties')" :description="__('Manage university faculties')" icon="bx bx-building">
+    <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
         <button class="btn btn-primary mx-2" id="addFacultyBtn" type="button" data-bs-toggle="modal" data-bs-target="#facultyModal">
-            <i class="bx bx-plus me-1"></i> {{ __('Add') }}
+            <i class="bx bx-plus me-1"></i> {{ __('Add Faculty') }}
         </button>
         <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#facultySearchCollapse" aria-expanded="false" aria-controls="facultySearchCollapse">
             <i class="bx bx-filter-alt me-1"></i> {{ __('Search') }}
@@ -34,12 +25,7 @@
   </x-ui.page-header>
 
   {{-- ===== ADVANCED SEARCH SECTION ===== --}}
-  <x-ui.advanced-search 
-      title="{{  __('Search Faculties') }}" 
-      formId="advancedFacultySearch" 
-      collapseId="facultySearchCollapse"
-      :collapsed="false"
-  >
+  <x-ui.advanced-search  :title="__('Search Faculties')" formId="advancedFacultySearch" collapseId="facultySearchCollapse" collapsed="false">
       <div class="col-md-4">
             <label for="search_name" class="form-label">{{  __('Faculty Name') }}:</label>
           <input type="text" class="form-control" id="search_name" name="search_name" placeholder="{{  __('Enter faculty name') }}">
@@ -51,18 +37,13 @@
 
   {{-- ===== DATA TABLE ===== --}}
   <x-ui.datatable.table
-      :headers="[
-          __('Name (English)'),
-          __('Name (Arabic)'),
-          __('Created At'),
-          __('Updated At'),
-          __('Actions')
-      ]"
+      :headers="[__('Name'),__('Programs'),__('Students'),__('Staff'),__('Created At'),__('Actions')]"
       :columns="[
           ['data' => 'name', 'name' => 'name'],
-          ['data' => 'programs', 'name' => 'programs'],
-          ['data' => 'students', 'name' => 'students'],
-          ['data' => 'staff', 'name' => 'staff'],
+          ['data' => 'programs_count', 'name' => 'programs_count'],
+          ['data' => 'students_count', 'name' => 'students_count'],
+          ['data' => 'staff_count', 'name' => 'staff_count'],
+          ['data' => 'created_at', 'name' => 'created_at'],
           ['data' => 'action', 'name' => 'action', 'orderable' => false, 'searchable' => false],
       ]"
       :ajax-url="route('academic.faculties.datatable')"
@@ -73,13 +54,7 @@
   {{-- ===== MODALS SECTION ===== --}}
   
   {{-- Add/Edit Faculty Modal --}}
-  <x-ui.modal 
-      id="facultyModal"
-      title="{{  __('Faculty Details') }}"
-      size="md"
-      :scrollable="false"
-      class="faculty-modal"
-  >
+  <x-ui.modal id="facultyModal" :title="__('Faculty Details')" size="md" scrollable="false" class="faculty-modal">
       <x-slot name="slot">
           <form id="facultyForm">
               <input type="hidden" id="faculty_id" name="faculty_id">
@@ -139,21 +114,21 @@ const ROUTES = {
 // ===========================
 const TRANSLATION = {
   buttons: {
-    saving: '{{ __('Saving...') }}',
-    updating: '{{ __('Updating...') }}',
-    save: '{{ __('Save') }}',
-    update: '{{ __('Update') }}'
+    saving: @json(__('Saving...')),
+    updating: @json(__('Updating...')),
+    save: @json(__('Save')),
+    update: @json(__('Update'))
   },
   modal: {
-    addTitle: '{{  __('Add New Faculty') }}',
-    editTitle: '{{  __('Edit Faculty') }}',
-    viewTitle: '{{  __('View Faculty') }}'
+    addTitle: @json(__('Add New Faculty')),
+    editTitle: @json(__('Edit Faculty')),
+    viewTitle: @json(__('View Faculty'))
   },
   confirm: {
     delete: {
-      title: '{{ __('Are you sure?') }}',
-      text: "{{ __('You won\'t be able to revert this!') }}",
-      button: '{{ __('Delete') }}'
+      title: @json(__('Delete Faculty')),
+      text: @json(__('Are you sure you want to delete this Faculty ?')),
+      button: @json(__('Yes, Delete'))
     }
   }
 };
@@ -289,10 +264,10 @@ const FacultyManager = {
     $(document).on('click', '.deleteFacultyBtn', function() {
       const facultyId = $(this).data('id');
       Utils.showConfirmDialog({
-          title: TRANSLATION.confirm.title,
-          text: TRANSLATION.confirm.text,
+          title: TRANSLATION.confirm.delete.title,
+          text: TRANSLATION.confirm.delete.text,
           icon: 'warning',
-          confirmButtonText: TRANSLATION.confirm.confirmButton,
+          confirmButtonText: TRANSLATION.confirm.delete.button,
         }).then(function(result) {
           if (result.isConfirmed) {
             ApiService.deleteFaculty(facultyId)

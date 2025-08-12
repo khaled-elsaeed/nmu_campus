@@ -188,11 +188,11 @@ class PaymentService
     private function validatePaymentData(array $paymentData): void
     {
         if (isset($paymentData['amount']) && $paymentData['amount'] < 0) {
-            throw new BusinessValidationException('Payment amount cannot be negative.');
+            throw new BusinessValidationException(__('Payment amount cannot be negative.'));
         }
 
         if (isset($paymentData['status']) && !in_array($paymentData['status'], ['pending', 'completed', 'failed', 'cancelled'])) {
-            throw new BusinessValidationException('Invalid payment status.');
+            throw new BusinessValidationException(__('Invalid payment status.'));
         }
     }
 
@@ -203,25 +203,25 @@ class PaymentService
     {
         if ($reservation->period_type === 'calendar') {
             if (!$reservation->check_in_date || !$reservation->check_out_date) {
-                throw new BusinessValidationException('Calendar-based reservations must have check-in and check-out dates.');
+                throw new BusinessValidationException(__('Calendar-based reservations must have check-in and check-out dates.'));
             }
 
             $checkIn = Carbon::parse($reservation->check_in_date);
             $checkOut = Carbon::parse($reservation->check_out_date);
 
             if ($checkOut->lte($checkIn)) {
-                throw new BusinessValidationException('Check-out date must be after check-in date.');
+                throw new BusinessValidationException(__('Check-out date must be after check-in date.'));
             }
 
             if ($checkIn->isPast()) {
-                throw new BusinessValidationException('Check-in date cannot be in the past.');
+                throw new BusinessValidationException(__('Check-in date cannot be in the past.'));
             }
         } elseif ($reservation->period_type === 'academic') {
             if (!$reservation->academic_term_id) {
-                throw new BusinessValidationException('Academic reservations must have a valid academic term ID.');
+                throw new BusinessValidationException(__('Academic reservations must have a valid academic term ID.'));
             }
         } else {
-            throw new BusinessValidationException('Invalid period type. Must be either "academic" or "calendar".');
+            throw new BusinessValidationException(__('Invalid period type. Must be either "academic" or "calendar".'));
         }
     }
 

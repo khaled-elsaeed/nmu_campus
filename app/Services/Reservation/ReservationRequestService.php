@@ -318,7 +318,7 @@ class ReservationRequestService
         ])->find($id);
 
         if (!$request) {
-            throw new BusinessValidationException('Reservation request not found.');
+            throw new BusinessValidationException(__('Reservation request not found.'));
         }
 
         return [

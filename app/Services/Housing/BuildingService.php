@@ -57,6 +57,7 @@ class BuildingService
     public function getBuilding(int $id): array
     {
         $building = Building::find($id);
+
         if (!$building) {
             throw new BusinessValidationException(__(':field not found.', ['field' => __('building')]));
         }
@@ -79,9 +80,14 @@ class BuildingService
     {
         $building = Building::findOrFail($id);
 
-        if ($building->apartments()->rooms()->sum('current_occupancy') > 0) {
+        if (!$building) {
+            throw new BusinessValidationException(__(":field not found.", ['field' => __('Building')]));
+        }
+
+        if ($building->current_occupancy > 0) {
             throw new BusinessValidationException(__('This building cannot be deleted because it has occupied rooms.'));
         }
+        
         $building->delete();
     }
 
@@ -147,20 +153,20 @@ class BuildingService
         return DataTables::of($query)
             ->addIndexColumn()
             // Display columns from model accessors
-            ->addColumn('name', fn($building) => $building->formattedName)
-            ->addColumn('gender', fn($building) => $building->formattedGender)
-            ->editColumn('active', fn($building) => $building->active ? __('active') : __('inactive'))
+            ->addColumn('number', fn($building) => __('Building :number', ['number' => $building->number]))
+            ->editColumn('gender_restriction', fn($building) => __($building->gender_restriction))
+            ->addColumn('status', fn($building) => $this->renderStatusBadge($building->active))
             ->editColumn('has_double_rooms', fn($building) => $building->has_double_rooms ? __('yes') : __('no'))
-            ->addColumn('current_occupancy', fn($building) => $building->currentOccupancy)
+            ->editColumn('current_occupancy', fn($building) => $this->renderProgressBar($building->current_occupancy, $building->available_capacity))
             ->addColumn('action', fn($building) => $this->renderActionButtons($building))
             // Ordering mappings to actual DB columns
-            ->orderColumn('name', 'number $1')
-            ->orderColumn('gender', 'gender_restriction $1')
+            ->orderColumn('number', 'number $1')
+            ->orderColumn('gender_restriction', 'gender_restriction $1')
             ->orderColumn('total_apartments', 'total_apartments $1')
             ->orderColumn('total_rooms', 'total_rooms $1')
-            ->orderColumn('active', 'active $1')
+            ->orderColumn('status', 'active $1')
             ->orderColumn('has_double_rooms', 'has_double_rooms $1')
-            ->rawColumns(['action'])
+            ->rawColumns(['action','status' ,'current_occupancy'])
             ->make(true);
     }
 
@@ -200,6 +206,28 @@ class BuildingService
             'type' =>'Building',
             'singleActions' => []
         ])->render();
+    }
+
+    /**
+     * Render a progress bar for occupancy.
+     *
+     * @param int $occupancy
+     * @param int $capacity
+     * @return string
+     */
+    public function renderProgressBar($occupancy, $capacity): string
+    {
+        $percentage = $capacity > 0 ? ($occupancy / $capacity) * 100 : 0;
+        return "<div class='progress'>
+                    <div class='progress-bar' role='progressbar' style='width: {$percentage}%;' aria-valuenow='{$occupancy}' aria-valuemin='0' aria-valuemax='{$capacity}'>{$occupancy} / {$capacity}</div>
+                </div>";
+    }
+
+    public function renderStatusBadge(bool $active): string
+    {
+        $status = $active ? __('Active') : __('Inactive');
+        $class = $active ? 'success' : 'secondary';
+        return "<span class='badge rounded-pill bg-label-{$class}'>{$status}</span>";
     }
 
     /**

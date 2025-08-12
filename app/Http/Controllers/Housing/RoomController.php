@@ -39,7 +39,7 @@ class RoomController extends Controller
     {
         try {
             $stats = $this->roomService->getStats();
-            return successResponse('Stats fetched successfully.', $stats);
+            return successResponse('Room statistics fetched successfully.', $stats);
         } catch (Exception $e) {
             logError('RoomController@stats', $e);
             return errorResponse('Internal server error.', [], 500);

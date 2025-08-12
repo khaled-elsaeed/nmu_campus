@@ -44,36 +44,36 @@ class ReservationValidator
     private function validateInputData(array $data): void
     {
         if (empty($data['user_id'])) {
-            throw new BusinessValidationException('User ID is required.');
+            throw new BusinessValidationException(__('User ID is required.'));
         }
 
         $periodType = $data['period_type'] ?? null;
 
         if ($periodType === 'academic') {
             if (empty($data['academic_term_id'])) {
-                throw new BusinessValidationException('Academic term ID is required for academic period.');
+                throw new BusinessValidationException(__('Academic term ID is required for academic period.'));
             }
             // Also check that the academic term is active
             $term = AcademicTerm::find($data['academic_term_id']);
             if (!$term || !$term->active) {
-                throw new BusinessValidationException('Selected academic term is not active.');
+                throw new BusinessValidationException(__('Selected academic term is not active.'));
             }
         } elseif ($periodType === 'calendar') {
             $checkInDate = $data['check_in_date'] ?? null;
             $checkOutDate = $data['check_out_date'] ?? null;
 
             if (!$checkInDate || !$checkOutDate) {
-                throw new BusinessValidationException('Check-in and check-out dates are required for calendar period.');
+                throw new BusinessValidationException(__('Check-in and check-out dates are required for calendar period.'));
             }
 
             $checkIn = Carbon::parse($checkInDate);
             $checkOut = Carbon::parse($checkOutDate);
 
             if ($checkOut->lte($checkIn)) {
-                throw new BusinessValidationException('Check-out date must be after check-in date.');
+                throw new BusinessValidationException(__('Check-out date must be after check-in date.'));
             }
         } else {
-            throw new BusinessValidationException('Period type must be either academic or calendar.');
+            throw new BusinessValidationException(__('Period type must be either academic or calendar.'));
         }
     }
 
@@ -132,7 +132,7 @@ class ReservationValidator
     {
         if ($academicTermId && $conflictingReservation->academic_term_id === $academicTermId) {
             throw new BusinessValidationException(
-                'A reservation already exists for this academic term.'
+                __('A reservation already exists for this academic term.')
             );
         }
 
@@ -141,18 +141,10 @@ class ReservationValidator
                 return Carbon::parse($date)->format('M j, Y');
             };
 
-            throw new BusinessValidationException(
-                sprintf(
-                    'A reservation already exists with overlapping dates (%s to %s).',
-                    $formatDate($conflictingReservation->check_in_date),
-                    $formatDate($conflictingReservation->check_out_date)
-                )
-            );
+            throw new BusinessValidationException(__('A reservation already exists with overlapping dates of another reservation'));
         }
 
-        throw new BusinessValidationException(
-            'A conflicting reservation already exists for this user.'
-        );
+        throw new BusinessValidationException(__('A conflicting reservation already exists for this user.'));
     }
 
     /**

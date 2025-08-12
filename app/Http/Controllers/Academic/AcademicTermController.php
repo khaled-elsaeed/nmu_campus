@@ -41,10 +41,10 @@ class AcademicTermController extends Controller
     {
         try {
             $stats = $this->academicTermService->getStats();
-            return successResponse(__('app.academic.academic_terms.messages.success.stats_fetched'), $stats);
+            return successResponse(__('Academic term statistics fetched successfully'), $stats);
         } catch (Exception $e) {
             logError('AcademicTermController@stats', $e);
-            return errorResponse(__('app.general.messages.error.internal_server'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -59,7 +59,7 @@ class AcademicTermController extends Controller
             return $this->academicTermService->getDatatable();
         } catch (Exception $e) {
             logError('AcademicTermController@datatable', $e);
-            return errorResponse(__('app.general.messages.error.internal_server'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -74,12 +74,12 @@ class AcademicTermController extends Controller
         try {
             $validated = $request->validated();
             $term = $this->academicTermService->createTerm($validated);
-            return successResponse(__('app.academic.academic_terms.messages.success.created'), $term);
+            return successResponse(__('Term created successfully.'), $term);
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('AcademicTermController@store', $e, ['request' => $request->all()]);
-            return errorResponse(__('app.general.messages.error.internal_server'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -93,10 +93,10 @@ class AcademicTermController extends Controller
     {
         try {
             $term = $this->academicTermService->getTerm($id);
-            return successResponse(__('app.academic.academic_terms.messages.success.fetched'), $term);
+            return successResponse(__('Term fetched successfully.'), $term);
         } catch (Exception $e) {
             logError('AcademicTermController@show', $e, ['term_id' => $id]);
-            return errorResponse(__('app.general.messages.error.internal_server'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -112,12 +112,12 @@ class AcademicTermController extends Controller
         try {
             $validated = $request->validated();
             $term = $this->academicTermService->updateTerm($id, $validated);
-            return successResponse(__('app.academic.academic_terms.messages.success.updated'), $term);
+            return successResponse(__('Term updated successfully.'), $term);
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('AcademicTermController@update', $e, ['term_id' => $id, 'request' => $request->all()]);
-            return errorResponse(__('app.general.messages.error.internal_server'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -131,12 +131,12 @@ class AcademicTermController extends Controller
     {
         try {
             $this->academicTermService->deleteTerm($id);
-            return successResponse('Term deleted successfully.');
+            return successResponse(__('Term deleted successfully.'));
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('AcademicTermController@destroy', $e, ['term_id' => $id]);
-            return errorResponse(__('app.general.messages.error.internal_server'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -149,10 +149,10 @@ class AcademicTermController extends Controller
     {
         try {
             $terms = $this->academicTermService->getAll();
-            return successResponse(__('app.academic.academic_terms.messages.success.fetched'), $terms);
+            return successResponse(__('Terms fetched successfully.'), $terms);
         } catch (Exception $e) {
             logError('AcademicTermController@all', $e);
-            return errorResponse(__('app.general.messages.error.internal_server'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -165,10 +165,10 @@ class AcademicTermController extends Controller
     {
         try {
             $terms = $this->academicTermService->getAllWithInactive();
-            return successResponse(__('app.academic.academic_terms.messages.success.fetched'), $terms);
+            return successResponse(__('Terms fetched successfully.'), $terms);
         } catch (Exception $e) {
             logError('AcademicTermController@allWithInactive', $e);
-            return errorResponse(__('app.general.messages.error.internal_server'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -188,7 +188,7 @@ class AcademicTermController extends Controller
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('AcademicTermController@startTerm', $e, ['term_id' => $id]);
-            return errorResponse(__('app.general.messages.error.internal_server'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -200,11 +200,11 @@ class AcademicTermController extends Controller
      */
     private function generateStartTermMessage(int $activatedCount): string
     {
-        $message = __('app.academic.academic_terms.messages.success.started');
+        $message = __('Term started successfully.');
         if ($activatedCount > 0) {
-            $message .= " " . __('app.academic.academic_terms.messages.success.reservations_activated', ['count' => $activatedCount]);
+            $message .= " " . __('Reservations activated: :count', ['count' => $activatedCount]);
         } else {
-            $message .= " " . __('app.academic.academic_terms.messages.success.no_reservations_activated');
+            $message .= " " . __('No reservations activated.');
         }
         return $message;
     }
@@ -218,12 +218,12 @@ class AcademicTermController extends Controller
     {
         try {
             $term = $this->academicTermService->end($id);
-            return successResponse(__('app.academic.academic_terms.messages.success.ended'), $term);
+            return successResponse(__('Term ended successfully.'), $term);
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('AcademicTermController@endTerm', $e, ['term_id' => $id]);
-            return errorResponse(__('app.general.messages.error.internal_server'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -236,12 +236,12 @@ class AcademicTermController extends Controller
     {
         try {
             $term = $this->academicTermService->setActive($id, true);
-            return successResponse(__('app.academic.academic_terms.messages.success.activated'), $term);
+            return successResponse(__('Term activated successfully.'), $term);
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('AcademicTermController@activateTerm', $e, ['term_id' => $id]);
-            return errorResponse(__('app.general.messages.error.internal_server'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 
@@ -254,12 +254,12 @@ class AcademicTermController extends Controller
     {
         try {
             $term = $this->academicTermService->setActive($id, false);
-            return successResponse(__('app.academic.academic_terms.messages.success.deactivated'), $term);
+            return successResponse(__('Term deactivated successfully.'), $term);
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], $e->getCode());
         } catch (Exception $e) {
             logError('AcademicTermController@deactivateTerm', $e, ['term_id' => $id]);
-            return errorResponse(__('app.general.messages.error.internal_server'), [], 500);
+            return errorResponse(__('Internal server error'), [], 500);
         }
     }
 } 

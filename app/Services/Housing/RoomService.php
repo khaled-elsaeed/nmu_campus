@@ -172,27 +172,27 @@ class RoomService
 
         return [
             'rooms' => [
-                'count' => formatNumber($stats->total_count ?? 0),
-                'male' => formatNumber($stats->male_count ?? 0),
-                'female' => formatNumber($stats->female_count ?? 0),
+                'count' => formatNumber($stats->total_count),
+                'male' => formatNumber($stats->male_count),
+                'female' => formatNumber($stats->female_count),
                 'lastUpdateTime' => formatDate($stats->last_update),
             ],
             'beds' => [
-                'count' => formatNumber($stats->total_beds_count ?? 0),
-                'male' => formatNumber($stats->male_beds_count ?? 0),
-                'female' => formatNumber($stats->female_beds_count ?? 0),
+                'count' => formatNumber($stats->total_beds_count),
+                'male' => formatNumber($stats->male_beds_count),
+                'female' => formatNumber($stats->female_beds_count),
                 'lastUpdateTime' => formatDate($stats->last_update), 
             ],
             'double-rooms' => [ 
-                'count' => formatNumber($stats->total_double_rooms_count ?? 0),
-                'male' => formatNumber($stats->male_count_double_rooms ?? 0), 
-                'female' => formatNumber($stats->female_count_double_rooms ?? 0), 
+                'count' => formatNumber($stats->total_double_rooms_count),
+                'male' => formatNumber($stats->male_count_double_rooms), 
+                'female' => formatNumber($stats->female_count_double_rooms), 
                 'lastUpdateTime' => formatDate($stats->last_update), 
             ],
             'available-beds' => [
-                'count' => formatNumber($stats->available_beds_count ?? 0),
-                'male' => formatNumber($stats->available_male_beds_count ?? 0),
-                'female' => formatNumber($stats->available_female_beds_count ?? 0),
+                'count' => formatNumber($stats->available_beds_count),
+                'male' => formatNumber($stats->available_male_beds_count),
+                'female' => formatNumber($stats->available_female_beds_count),
                 'lastUpdateTime' => formatDate($stats->last_update),
             ],
         ];
@@ -212,24 +212,23 @@ class RoomService
         
         return DataTables::of($query)
             ->addIndexColumn()
-            ->addColumn('name', fn($room) => $room->formatted_name)
-            ->addColumn('apartment', fn($room) => $room->apartment?->formatted_name)
-            ->addColumn('building', fn($room) => $room->apartment?->building?->formatted_name)
-            ->editColumn('type', fn($room) => __("{$room->type}"))
-            ->editColumn('purpose', fn($room) => __("{$room->purpose}"))
+            ->editColumn('number', fn($room) => __("Room :number", ['number' => $room->number]))
+            ->addColumn('apartment', fn($room) => __("Apartment :number", ['number' => $room->apartment?->number]))
+            ->addColumn('building', fn($room) => __("Building :number", ['number' => $room->apartment?->building?->number]))
+            ->editColumn('type', fn($room) => $this->renderBadges("roomType",$room->type))
+            ->editColumn('purpose', fn($room) => $this->renderBadges("roomPurpose",$room->purpose))
             ->editColumn('gender', fn($room) => __("{$room->gender}"))
-            ->editColumn('active', fn($room) => $room->active ? __('active') : __('inactive'))
-            ->editColumn('occupancy_status', fn($room) => $room->occupancy_status ? ucfirst($room->occupancy_status) : null)
+            ->editColumn('status', fn($room) => $this->renderBadges("roomStatus",$room->active?"active":"inactive"))
+            ->editColumn('occupied', fn($room) => $this->renderBadges("roomOccupancy",$room->occupancy_status))
             ->addColumn('action', fn($room) => $this->renderActionButtons($room))
             ->orderColumn('number', 'rooms.number $1')
-            ->orderColumn('apartment_number', 'apartments.number $1')
-            ->orderColumn('building_number', 'buildings.number $1')
+            ->orderColumn('apartment', 'apartments.number $1')
+            ->orderColumn('building', 'buildings.number $1')
             ->orderColumn('type', 'rooms.type $1')
             ->orderColumn('purpose', 'rooms.purpose $1')
-            ->orderColumn('building_gender_restriction', 'buildings.gender_restriction $1')
-            ->orderColumn('active', 'rooms.active $1')
-            ->orderColumn('occupancy_status', 'rooms.occupancy_status $1')
-            ->rawColumns(['action'])
+            ->orderColumn('gender', 'buildings.gender_restriction $1')
+            ->orderColumn('status', 'rooms.active $1')
+            ->rawColumns(['action', 'type', 'purpose', 'gender', 'status', 'occupied'])
             ->make(true);
     }
 
@@ -293,6 +292,41 @@ class RoomService
             'singleActions' => $singleActions
         ])->render();
     }
+
+   public function renderBadges(string $type, string $value): string
+{
+    $badgeClasses = match ($type) {
+        'roomType' => [
+            'single' => 'success',
+            'double' => 'info'
+        ],
+        'roomPurpose' => [
+            'housing' => 'success',
+            'staff_housing' => 'info',
+            'office' => 'warning',
+            'storage' => 'secondary'
+        ],
+        'roomGender' => [
+            'male' => 'info',
+            'female' => 'warning',
+        ],
+        'roomOccupancy' => [
+            'full' => 'warning',
+            'empty' => 'secondary',
+            'partially occupied' => 'info',
+        ],
+        'roomStatus' => [
+            'active' => 'success',
+            'inactive' => 'danger',
+        ],
+        default => [],
+    };
+    
+    // Get the specific badge class for the given value, or use 'light' as default
+    $badgeClass = $badgeClasses[$value] ?? 'light';
+    
+    return "<span class='badge rounded-pill bg-label-{$badgeClass}'>{$value}</span>";
+}
 
     /**
      * Set a room as active or inactive
