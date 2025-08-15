@@ -5,9 +5,8 @@ namespace App\Services\Reservation;
 use App\Models\Reservation\Reservation;
 use App\Services\Reservation\Create\ReservationValidator;
 use App\Services\Reservation\Create\ReservationCreator;
-use App\Services\Reservation\Create\AccommodationService;
+use App\Services\Reservation\Shared\AccommodationService;
 use App\Services\Reservation\Create\PaymentService;
-use App\Services\Reservation\Create\EquipmentAssignmentService;
 
 class CreateReservationService
 {
@@ -23,7 +22,6 @@ class CreateReservationService
         $this->creator = new ReservationCreator();
         $this->accommodationService = new AccommodationService();
         $this->paymentService = new PaymentService();
-        $this->equipmentService = new EquipmentAssignmentService();
     }
 
     /**
@@ -38,7 +36,6 @@ class CreateReservationService
         $reservation = $this->creator->createReservationRecord($data);
         $this->accommodationService->handleAccommodationCreation($data, $reservation->id);
         $this->paymentService->createPaymentRecord($reservation, $data['payment'] ?? []);
-        $this->equipmentService->assignEquipmentIfProvided($reservation, $data['equipment'] ?? []);
-        return $reservation->load(['equipmentTracking']);
+        return $reservation;
     }
 }

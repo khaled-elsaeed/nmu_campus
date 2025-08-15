@@ -56,14 +56,8 @@
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_governorate_id" class="form-label">{{ __('Governorate') }}</label>
-            <select class="form-control" id="search_governorate_id">
-                <option value="">{{ __('All Governorates') }}</option>
-            </select>
-        </div>
-        <div class="col-md-4">
-            <label for="faculty_id" class="form-label">{{ __('Faculty') }}</label>
-            <select class="form-control" id="faculty_id">
+            <label for="search_faculty" class="form-label">{{ __('Faculty') }}</label>
+            <select class="form-control" id="search_faculty">
                 <option value="">{{ __('All Faculties') }}</option>
             </select>
         </div>
@@ -87,7 +81,7 @@
         ]"
         :ajax-url="route('resident.students.datatable')"
         :table-id="'students-table'"
-        :filter-fields="['search_id', 'search_name', 'search_gender', 'faculty_id', 'search_governorate_id']"
+        :filter-fields="['search_id', 'search_name', 'search_gender', 'search_faculty']"
     />
 
     {{-- ===== MODALS SECTION ===== --}}
@@ -164,8 +158,9 @@
 // ===========================
 var TRANSLATION = {
     placeholders: {
-        all_governorates: @json(__('All Governorates')),
         all_faculties: @json(__('All Faculties')),
+        select_faculty: @json(__('Select Faculty')),
+        select_gender: @json(__('Select Gender'))
     },
     general: {
         na: @json(__('N/A')),
@@ -182,9 +177,6 @@ var ROUTES = {
         show: '{{ route('resident.students.show', ':id') }}',
         datatable: '{{ route('resident.students.datatable') }}',
         stats: '{{ route('resident.students.stats') }}'
-    },
-    governorates: {
-        all: '{{ route('governorates.all') }}'
     },
     programs: {
         all: '{{ route('academic.programs.all', ':id') }}'
@@ -214,13 +206,6 @@ var ApiService = {
      */
     fetchStudent: function(id) {
         return ApiService.request({ url: Utils.replaceRouteId(ROUTES.students.show, id), method: 'GET' });
-    },
-    /**
-     * Fetch all governorates
-     * @returns {jqXHR}
-     */
-    fetchGovernorates: function() {
-        return ApiService.request({ url: ROUTES.governorates.all, method: 'GET' });
     },
     /**
      * Fetch all cities for a governorate
@@ -259,31 +244,10 @@ var ApiService = {
 // ===========================
 var SelectManager = {
     /**
-     * Populate governorates in search
-     */
-    populateSearchGovernorates: function() {
-        var $select = $('#search_governorate_id');
-        $select.empty();
-        ApiService.fetchGovernorates()
-            .done(function(response) {
-                if (response.success) {
-                    Utils.populateSelect($select, response.data, { 
-                        valueField: 'id', 
-                        textField: 'name', 
-                        placeholder: TRANSLATION.placeholders.all_governorates 
-                    });
-                }
-            })
-            .fail(function(xhr) {
-                Utils.populateSelect($select, [], { placeholder: TRANSLATION.error.load_governorates });
-                Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
-            });
-    },
-    /**
      * Populate faculties in search
      */
     populateSearchFaculties: function() {
-        var $select = $('#faculty_id');
+        var $select = $('#search_faculty');
         $select.empty();
         ApiService.fetchFaculties()
             .done(function(response) {
@@ -304,8 +268,75 @@ var SelectManager = {
      * Initialize select manager
      */
     init: function() {
-        this.populateSearchGovernorates();
         this.populateSearchFaculties();
+    }
+};
+
+// ===========================
+// SELECT2 MANAGER
+// ===========================
+var Select2Manager = {
+    /**
+     * Configuration for all Select2 elements
+     */
+    config: {
+        search: {
+            '#search_gender': { placeholder: TRANSLATION.placeholders.select_gender },
+            '#search_faculty': { placeholder: TRANSLATION.placeholders.select_faculty }, 
+        },
+        modal: {
+            // Add modal select2 configs here if needed
+        },
+    },
+
+    /**
+     * Initialize all search Select2 elements
+     */
+    initSearchSelect2: function() {
+        Object.keys(this.config.search).forEach(function(selector) {
+            Utils.initSelect2(selector, Select2Manager.config.search[selector]);
+        });
+    },
+
+    /**
+     * Initialize all modal Select2 elements
+     */
+    initModalSelect2: function() {
+        Object.keys(this.config.modal).forEach(function(selector) {
+            Utils.initSelect2(selector, Select2Manager.config.modal[selector]);
+        });
+    },
+
+    /**
+     * Initialize all Select2 elements
+     */
+    initAll: function() {
+        this.initSearchSelect2();
+        this.initModalSelect2();
+    },
+
+    /**
+     * Clear specific Select2 elements
+     * @param {Array} selectors - Array of selectors to clear
+     */
+    clearSelect2: function(selectors) {
+        selectors.forEach(function(selector) {
+            $(selector).val('').trigger('change.select2');
+        });
+    },
+
+    /**
+     * Reset modal Select2 elements
+     */
+    resetModalSelect2: function() {
+        this.clearSelect2(Object.keys(this.config.modal));
+    },
+
+    /**
+     * Reset search Select2 elements
+     */
+    resetSearchSelect2: function() {
+        this.clearSelect2(Object.keys(this.config.search));
     }
 };
 
@@ -364,12 +395,14 @@ var SearchManager = {
      * Bind search and clear events
      */
     bindEvents: function() {
-        $('#search_id, #search_name, #search_gender, #search_governorate_id, #faculty_id').on('keyup change', function() {
+        $('#search_id, #search_name, #search_gender, #search_faculty').on('keyup change', function() {
             Utils.reloadDataTable('#students-table');
+
         });
         $('#clearStudentFiltersBtn').on('click', function() {
-            $('#search_id, #search_name, #search_gender, #search_governorate_id, #faculty_id').val('');
+            $('#search_id, #search_name, #search_gender, #search_faculty').val('');
             Utils.reloadDataTable('#students-table');
+            Select2Manager.resetSearchSelect2();
         });
     }
 };
@@ -393,6 +426,7 @@ var StudentApp = {
         StudentManager.init();
         SearchManager.init();
         SelectManager.init();
+        Select2Manager.initAll();
         StatsManager.init();
     }
 };

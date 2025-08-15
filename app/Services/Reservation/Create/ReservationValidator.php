@@ -20,7 +20,7 @@ class ReservationValidator
     {
         $this->validateInputData($data);
 
-        $userId = $data['user_id'];
+        $userId = $data['user_id'] ;
         $academicTermId = $data['academic_term_id'] ?? null;
         $checkInDate = $data['check_in_date'] ?? null;
         $checkOutDate = $data['check_out_date'] ?? null;

@@ -1,19 +1,19 @@
 <?php
 
-namespace App\Services\Reservation\Complete;
+namespace App\Services\Reservation\CheckOut;
 
 use App\Models\Reservation\Reservation;
 use Carbon\Carbon;
 
-class ReservationComplete
+class ReservationCheckOut
 {
     /**
-     * Mark a reservation as completed (ended).
+     * Mark a reservation as checked out.
      *
      * @param array $data Array containing at least 'reservation_id'
      * @return Reservation
      */
-    public function completeReservation(array $data): Reservation
+    public function checkOutReservation(array $data): Reservation
     {
         $reservationId = $data['reservation_id'] ?? null;
 

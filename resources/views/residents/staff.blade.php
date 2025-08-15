@@ -56,8 +56,8 @@
         </select>
     </div>
     <div class="col-md-4">
-        <label for="search_department_id" class="form-label">{{ __('Department') }}:</label>
-        <select class="form-control" id="search_department_id" name="department_id">
+        <label for="search_department" class="form-label">{{ __('Department') }}:</label>
+        <select class="form-control" id="search_department" name="department_id">
             <option value="">{{ __('All Departments') }}</option>
         </select>
     </div>
@@ -68,8 +68,8 @@
         </select>
     </div>
     <div class="col-md-4">
-        <label for="search_faculty_id" class="form-label">{{ __('Faculty') }}:</label>
-        <select class="form-control" id="search_faculty_id" name="search_faculty_id">
+        <label for="search_faculty" class="form-label">{{ __('Faculty') }}:</label>
+        <select class="form-control" id="search_faculty" name="search_faculty">
             <option value="">{{ __('All Faculties') }}</option>
         </select>
     </div>
@@ -99,7 +99,7 @@
         ]"
         :ajax-url="route('resident.staff.datatable')"
         :table-id="'staff-table'"
-        :filter-fields="['search_name','search_gender','search_type','search_department_id','search_faculty_id']"
+        :filter-fields="['search_name','search_gender','search_type','search_department','search_faculty']"
     />
 
     {{-- ===== MODALS SECTION ===== --}}
@@ -413,7 +413,7 @@ var SelectManager = {
     });
   },
   populateSearchDepartments: function() {
-    var $select = $('#search_department_id');
+    var $select = $('#search_department');
     Utils.populateSelect($select, [], { placeholder: TRANSLATION.placeholders.all });
     ApiService.fetchDepartments()
       .done(function(response) {
@@ -438,7 +438,7 @@ var SelectManager = {
     });
   },
   populateSearchFaculties: function() {
-    var $select = $('#search_faculty_id');
+    var $select = $('#search_faculty');
     Utils.populateSelect($select, [], { placeholder: TRANSLATION.placeholders.selectFaculty });
     ApiService.fetchFaculties()
       .done(function(response) {
@@ -459,6 +459,78 @@ var SelectManager = {
     this.populateSearchTypes();
     this.populateSearchFaculties();
   }
+};
+
+// ===========================
+// SELECT2 MANAGER
+// ===========================
+var Select2Manager = {
+    /**
+     * Configuration for all Select2 elements
+     */
+    config: {
+        search: {
+            '#search_gender': {placeholder: TRANSLATION.placeholders.selectGender} ,
+            '#search_type': {placeholder: TRANSLATION.placeholders.selectType},
+            '#search_department': {placeholder: TRANSLATION.placeholders.selectDepartment},
+            '#search_faculty': {placeholder: TRANSLATION.placeholders.selectFaculty}
+        },
+        modal: {
+            '#staff_gender': {placeholder: TRANSLATION.placeholders.selectGender} ,
+            '#staff_unit_type': {placeholder: TRANSLATION.placeholders.selectType},
+            '#staff_unit_id': {placeholder: TRANSLATION.placeholders.selectDepartment},
+        },
+    },
+
+    /**
+     * Initialize all search Select2 elements
+     */
+    initSearchSelect2: function() {
+        Object.keys(this.config.search).forEach(function(selector) {
+            Utils.initSelect2(selector, Select2Manager.config.search[selector]);
+        });
+    },
+
+    /**
+     * Initialize all modal Select2 elements
+     */
+    initModalSelect2: function() {
+        Object.keys(this.config.modal).forEach(function(selector) {
+            Utils.initSelect2(selector, Select2Manager.config.modal[selector]);
+        });
+    },
+
+    /**
+     * Initialize all Select2 elements
+     */
+    initAll: function() {
+        this.initSearchSelect2();
+        this.initModalSelect2();
+    },
+
+    /**
+     * Clear specific Select2 elements
+     * @param {Array} selectors - Array of selectors to clear
+     */
+    clearSelect2: function(selectors) {
+        selectors.forEach(function(selector) {
+            $(selector).val('').trigger('change.select2');
+        });
+    },
+
+    /**
+     * Reset modal Select2 elements
+     */
+    resetModalSelect2: function() {
+        this.clearSelect2(Object.keys(this.config.modal));
+    },
+
+    /**
+     * Reset search Select2 elements
+     */
+    resetSearchSelect2: function() {
+        this.clearSelect2(Object.keys(this.config.search));
+    }
 };
 
 // ===========================
@@ -651,12 +723,13 @@ var SearchManager = {
     this.bindEvents();
   },
   bindEvents: function() {
-    $('#search_name, #search_gender, #search_department_id, #search_type, #search_faculty_id').on('keyup change', function() {
+    $('#search_name, #search_gender, #search_department, #search_type, #search_faculty').on('keyup change', function() {
       Utils.reloadDataTable('#staff-table');
     });
     $('#clearStaffFiltersBtn').on('click', function() {
-      $('#search_name, #search_gender, #search_department_id, #search_type, #search_faculty_id').val('');
+      $('#search_name, #search_gender, #search_department, #search_type, #search_faculty').val('');
       Utils.reloadDataTable('#staff-table');
+      Select2Manager.resetSearchSelect2();
     });
   }
 };
@@ -678,6 +751,7 @@ var StaffApp = {
     StaffManager.init();
     SearchManager.init();
     SelectManager.init();
+    Select2Manager.initAll();
     StatsManager.init();
   }
 };

@@ -105,25 +105,36 @@ class ReservationRequestController extends Controller
         }
     }
 
-    /**
-     * Remove the specified reservation.
-     *
-     * @param int $id
-     * @return JsonResponse
-     */
-    public function destroy($id): JsonResponse
+    public function accept(Request $request, $id): JsonResponse
     {
         try {
-            $deleted = $this->reservationRequestService->deleteReservation($id);
-            if (!$deleted) {
-                return errorResponse('Reservation not found.', [], 404);
-            }
-            return successResponse('Reservation deleted successfully.');
+            $validated = $request->validate(
+                [   'building_id' => 'required|integer|exists:buildings,id',
+                    'room_id' => 'required|integer|exists:rooms,id',
+                    'apartment_id' => 'required|integer|exists:apartments,id',
+                    'comment' => 'nullable|string|max:255',
+                ]
+            );
+            $this->reservationRequestService->acceptRequest($validated, $id);
+            return successResponse('Reservation request accepted successfully.');
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], 422);
         } catch (Exception $e) {
-            logError('ReservationRequestController@destroy', $e, ['id' => $id]);
-            return errorResponse('Failed to delete reservation.', [$e->getMessage()]);
+            logError('ReservationRequestController@accept', $e, ['id' => $id]);
+            return errorResponse('Failed to accept reservation request.', [$e->getMessage()]);
+        }
+    }
+
+    public function cancel($id): JsonResponse
+    {
+        try {
+            $this->reservationRequestService->cancelRequest($id);
+            return successResponse('Reservation request canceled successfully.');
+        } catch (BusinessValidationException $e) {
+            return errorResponse($e->getMessage(), [], 422);
+        } catch (Exception $e) {
+            logError('ReservationRequestController@cancel', $e, ['id' => $id]);
+            return errorResponse('Failed to cancel reservation request.', [$e->getMessage()]);
         }
     }
 }

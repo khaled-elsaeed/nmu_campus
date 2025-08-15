@@ -40,9 +40,23 @@
                 <h5 class="mb-0"><i class="bx bx-info-circle me-2"></i>{{ __('Reservation Details') }}</h5>
             </div>
             <div class="card-body pt-3">
-                <div id="reservation-info-content">
-                    <!-- Populated by JS -->
-                </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <strong>{{ __('Guest Name:') }}</strong> <span id="guest-name"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>{{ __('Email:') }}</strong> <span id="guest-email"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>{{ __('Location:') }}</strong> <span id="location-info"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>{{ __('Period:') }}</strong> <span id="period-info"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>{{ __('Current Status:') }}</strong> <span id="current-status"></span>
+                        </div>
+                    </div>
             </div>
         </div>
 
@@ -114,48 +128,37 @@
  */
 
 // ===========================
-// CONFIGURATION & CONSTANTS
+// Routes
 // ===========================
-const CONFIG = {
-    routes: {
-        reservations: {
-            checkin: '{{ route("reservations.checkin") }}',
-            findByNumber: '{{ route("reservations.findByNumber") }}'
-        },
-        equipment: {
-            all: '{{ route("equipment.all") }}'
-        }
+const Routes = {
+    reservations: {
+        checkin: '{{ route("reservations.checkin") }}',
+        findByNumber: '{{ route("reservations.findByNumber") }}'
     },
-    
-    messages: {
-        success: {
-            checkinCompleted: '{{ __("Guest has been checked in successfully.") }}'
-        },
-        error: {
-            enterReservationNumber: '{{ __("Please enter a Reservation Number.") }}',
-            reservationNotFound: '{{ __("No reservation found for this Reservation Number.") }}',
-            fetchReservationFailed: '{{ __("Failed to fetch reservation details.") }}',
-            checkinFailed: '{{ __("Failed to complete check-in.") }}',
-            equipmentLoadFailed: '{{ __("Failed to load equipment list.") }}'
-        },
-        validation: {
-            required: '{{ __("This field is required.") }}',
-            invalidCost: '{{ __("Please enter a valid cost amount.") }}',
-            missingNotes: '{{ __("Please provide notes for damaged/missing items.") }}'
-        }
-    },
+    equipment: {
+        all: '{{ route("equipment.all") }}'
+    }
+};
 
-    ui: {
-        statusBadges: {
-            'pending': 'bg-warning',
-            'confirmed': 'bg-info',
-            'checked_in': 'bg-success',
-            'checked_out': 'bg-secondary',
-            'cancelled': 'bg-danger',
-            'good': 'bg-success',
-            'damaged': 'bg-warning',
-            'missing': 'bg-danger'
-        }
+// ============================
+// TRANSLATIONS
+// ============================
+const TRANSLATIONS = {
+    general: {
+        searchReservation: @json(__('Search Reservation')),
+        completeCheckin: @json(__('Complete Check-in')),
+        searching: @json(__('Searching...')),
+        processing: @json(__('Processing...'))
+    },
+    validation: {
+        required: @json(__('This field is required.')),
+        invalidCost: @json(__('Please enter a valid cost amount.')),
+        missingNotes: @json(__('Please provide notes for damaged/missing items.')),
+        noReservationSelected: @json(__('No reservation selected.')),
+        reservationNotFound: @json(__('Reservation not found.'))
+    },
+    equipment: {
+        noEquipmentAvailable: @json(__('No equipment available for assignment.'))
     }
 };
 
@@ -163,33 +166,16 @@ const CONFIG = {
 // API SERVICE
 // ===========================
 const ApiService = {
-    /**
-     * Generic AJAX request wrapper
-     */
-    async request(options) {
-        try {
-            const response = await $.ajax({
-                ...options,
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                    ...options.headers
-                }
-            });
-            return response;
-        } catch (error) {
-            if (error && error.xhr) {
-                Utils.handleAjaxError(error.xhr, 'API Request failed.');
-            }
-            throw error;
-        }
+    request: function(options) {
+        return $.ajax(options);
     },
 
     /**
      * Find reservation by number
      */
-    findReservationByNumber(reservationNumber) {
+    findReservationByNumber: function(reservationNumber) {
         return this.request({ 
-            url: CONFIG.routes.reservations.findByNumber, 
+            url: Routes.reservations.findByNumber, 
             method: 'GET', 
             data: { reservation_number: reservationNumber } 
         });
@@ -198,9 +184,9 @@ const ApiService = {
     /**
      * Fetch all equipment
      */
-    fetchEquipment() {
+    fetchEquipment: function() {
         return this.request({ 
-            url: CONFIG.routes.equipment.all, 
+            url: Routes.equipment.all, 
             method: 'GET' 
         });
     },
@@ -208,9 +194,9 @@ const ApiService = {
     /**
      * Process check-in
      */
-    processCheckin(formData) {
+    processCheckin: function(formData) {
         return this.request({ 
-            url: CONFIG.routes.reservations.checkin, 
+            url: Routes.reservations.checkin, 
             method: 'POST', 
             data: formData,
             processData: false,
@@ -226,145 +212,102 @@ const ReservationManager = {
     /**
      * Initialize reservation manager
      */
-    init() {
+    init: function() {
         this.bindEvents();
-        this.setDefaultDates();
     },
 
     /**
      * Bind reservation search events
      */
-    bindEvents() {
+    bindEvents: function() {
         $('#btnSearchReservation').on('click', this.handleSearch.bind(this));
         $('#search_reservation_number').on('keypress', (e) => {
-            if (e.which === 13) { // Enter key
+            if (e.which === 13) { 
                 this.handleSearch();
             }
         });
     },
 
     /**
-     * Set default dates and times
-     */
-    setDefaultDates() {
-        // Use global Utils for date/time
-        $('#checkin_date').val(Utils.getCurrentDate ? Utils.getCurrentDate() : (new Date().toISOString().split('T')[0]));
-        $('#checkin_time').val(Utils.getCurrentTime ? Utils.getCurrentTime() : (new Date().toTimeString().split(' ')[0].substring(0, 5)));
-    },
-
-    /**
      * Handle reservation search
      */
-    async handleSearch() {
+    handleSearch: function() {
         const reservationNumber = $('#search_reservation_number').val().trim();
-        
+
         if (!reservationNumber) {
-            Utils.showError(CONFIG.messages.error.enterReservationNumber);
+            Utils.showError('Please enter a reservation number.');
             return;
         }
 
         const $btn = $('#btnSearchReservation');
-        Utils.setLoadingState($btn, true, { loadingText: 'Searching...' });
+        Utils.setLoadingState($btn, true, { loadingText: TRANSLATIONS.general.searching });
 
-        try {
-            const response = await ApiService.findReservationByNumber(reservationNumber);
-            
+        ApiService.findReservationByNumber(reservationNumber)
+        .done((response) => {
             if (response.success && response.data) {
                 this.handleReservationFound(response.data);
             } else {
-                this.handleReservationNotFound(response.message);
+                this.handleReservationNotFound(response.message || TRANSLATIONS.validation.reservationNotFound);
             }
-        } catch (error) {
-            this.handleReservationNotFound();
-        } finally {
-            Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-search"></i> Search Reservation' });
-        }
+        }).fail((xhr) => {
+            const errorMessage = xhr.responseJSON?.message || 'An error occurred while searching.';
+            Utils.showError(errorMessage);
+        }).always(() => {
+            Utils.setLoadingState($btn, false, { normalText: `<i class="bx bx-search"></i> ${TRANSLATIONS.general.searchReservation}` });
+        });
     },
 
     /**
      * Handle successful reservation found
      */
-    handleReservationFound(reservation) {
-        this.displayReservationInfo(reservation);
-        Utils.showElement($('#reservation-info-section'));
-
+    handleReservationFound: function(reservation) {
+        this.populateReservationInfo(reservation);
+        $('#reservation-info-section').removeClass('d-none').show();
         // Reset forms
         this.resetForms();
-
-        if (reservation.status === 'confirmed') {
-            this.setupCheckinForm(reservation);
-        } else if (reservation.status === 'checked_in') {
-            Utils.showWarning(`Guest is already checked in. Check-in is not required.`);
-        } else {
-            Utils.showWarning(`Reservation status is "${reservation.status}". Only confirmed reservations can be checked in.`);
-        }
+        this.setupCheckinForm(reservation);
     },
 
     /**
      * Handle reservation not found
      */
-    handleReservationNotFound(message = null) {
+    handleReservationNotFound: function(message) {
         this.resetForms();
-        $('#reservation-info-section').hide();
-        Utils.showError(message || CONFIG.messages.error.reservationNotFound);
+        $('#reservation-info-section').addClass('d-none').hide();
+        Utils.showError(message);
     },
 
     /**
-     * Display reservation information
+     * Populate reservation information
      */
-    displayReservationInfo(reservation) {
+    populateReservationInfo: function(reservation) {
         const user = reservation.user || {};
-        const accommodation = reservation.accommodation || {};
-        const statusBadge = Utils.getStatusBadge(reservation.status);
-        
-        let actionText = '';
-        if (reservation.status === 'confirmed') {
-            actionText = '<i class="bx bx-log-in-circle text-success me-1"></i>Ready for Check-in';
-        } else if (reservation.status === 'checked_in') {
-            actionText = '<i class="bx bx-check-circle text-success me-1"></i>Already Checked In';
-        }
-        
-        const html = `
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <strong>Guest Name:</strong> ${user.name_en || user.name_ar || '-'}
-                </div>
-                <div class="col-md-6">
-                    <strong>Email:</strong> ${user.email || '-'}
-                </div>
-                <div class="col-md-6">
-                    <strong>Accommodation:</strong> ${accommodation.number || accommodation.name || '-'}
-                </div>
-                <div class="col-md-6">
-                    <strong>Reservation Period:</strong> ${reservation.check_in_date || '-'} to ${reservation.check_out_date || '-'}
-                </div>
-                <div class="col-md-6">
-                    <strong>Current Status:</strong> 
-                    <span class="badge ${statusBadge}">${reservation.status}</span>
-                </div>
-                <div class="col-md-6">
-                    <strong>Action:</strong> ${actionText}
-                </div>
-            </div>
-        `;
-        $('#reservation-info-content').html(html);
+        const location = reservation.location || {};
+        const period = reservation.period || {};
+
+        $('#guest-name').text(user.name || 'N/A');
+        $('#guest-email').text(user.email || 'N/A');
+        $('#location-info').text(location || 'N/A');
+        $('#period-info').text(period || 'N/A');
+        $('#current-status').text(reservation.status || 'N/A');
     },
 
     /**
      * Setup check-in form
      */
-    setupCheckinForm(reservation) {
+    setupCheckinForm: function(reservation) {
         $('#checkin_reservation_id').val(reservation.id);
-        Utils.showElement($('#checkinReservationForm'));
+        $('#checkinReservationForm').removeClass('d-none').show();
         EquipmentManager.loadAvailableEquipment();
     },
 
     /**
      * Reset all forms
      */
-    resetForms() {
-        $('#checkinReservationForm').hide();
+    resetForms: function() {
+        $('#checkinReservationForm').addClass('d-none').hide();
         $('#checkinReservationForm')[0].reset();
+        $('#equipment-checkin-list').empty();
     }
 };
 
@@ -375,26 +318,27 @@ const EquipmentManager = {
     /**
      * Load available equipment for check-in
      */
-    async loadAvailableEquipment() {
-        try {
-            const response = await ApiService.fetchEquipment();
+    loadAvailableEquipment: function() {
+        ApiService.fetchEquipment()
+        .done((response) => {
             if (response.success && response.data) {
                 this.renderCheckinEquipment(response.data);
             }
-        } catch (error) {
-            Utils.showError(CONFIG.messages.error.equipmentLoadFailed);
-        }
+        }).fail((xhr) => {
+            const errorMessage = xhr.responseJSON?.message || 'Failed to load equipment.';
+            Utils.showError(errorMessage);
+        });
     },
 
     /**
      * Render equipment list for check-in
      */
-    renderCheckinEquipment(equipmentData) {
+    renderCheckinEquipment: function(equipmentData) {
         const $list = $('#equipment-checkin-list');
         $list.empty();
 
         if (!equipmentData.length) {
-            $list.append('<div class="col-12 text-muted">No equipment available for assignment.</div>');
+            $list.append(`<div class="col-12 text-muted">${TRANSLATIONS.equipment.noEquipmentAvailable}</div>`);
             return;
         }
 
@@ -409,11 +353,11 @@ const EquipmentManager = {
                                            type="checkbox" 
                                            value="${item.id}" 
                                            id="checkin_equipment_${item.id}" 
-                                           data-name="${item.name_en}">
+                                           data-name="${item.name_en || item.name || 'Unknown'}">
                                 </div>
                                 <div class="col">
                                     <label class="form-check-label fw-bold" for="checkin_equipment_${item.id}">
-                                        ${item.name_en}
+                                        ${item.name_en || item.name || 'Unknown Equipment'}
                                     </label>
                                     <div class="text-muted small">${item.description || 'No description available'}</div>
                                 </div>
@@ -471,7 +415,7 @@ const EquipmentManager = {
     /**
      * Bind check-in equipment events
      */
-    bindCheckinEvents($list) {
+    bindCheckinEvents: function($list) {
         // Equipment checkbox change
         $list.find('.equipment-checkbox').on('change', function() {
             const id = $(this).val();
@@ -518,21 +462,21 @@ const CheckinProcessor = {
     /**
      * Initialize check-in processor
      */
-    init() {
+    init: function() {
         this.bindEvents();
     },
 
     /**
      * Bind check-in events
      */
-    bindEvents() {
+    bindEvents: function() {
         $('#checkinReservationForm').on('submit', this.handleSubmit.bind(this));
     },
 
     /**
      * Handle form submission
      */
-    async handleSubmit(e) {
+    handleSubmit: function(e) {
         e.preventDefault();
         
         const formData = this.getFormData();
@@ -542,36 +486,36 @@ const CheckinProcessor = {
         }
         
         const $btn = $('#checkinReservationForm button[type="submit"]');
-        Utils.setLoadingState($btn, true, { loadingText: 'Processing...' });
+        Utils.setLoadingState($btn, true, { loadingText: TRANSLATIONS.general.processing });
 
-        try {
-            const response = await ApiService.processCheckin(formData);
-            
+        ApiService.processCheckin(formData)
+        .done((response) => {
             if (response.success) {
                 this.handleSuccess(response);
             } else {
-                Utils.showError(response.message || CONFIG.messages.error.checkinFailed);
+                Utils.showError(response.message || 'Check-in failed.');
             }
-        } catch (error) {
-            // Use global error handler if available
-            if (error && error.xhr) {
-                Utils.handleAjaxError(error.xhr, CONFIG.messages.error.checkinFailed);
-            }
-        } finally {
-            Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-log-in-circle"></i> Complete Check-in' });
-        }
+        }).fail((xhr) => {
+            const errorMessage = xhr.responseJSON?.message || 'An error occurred during check-in.';
+            Utils.showError(errorMessage);
+        }).always(() => {
+            Utils.setLoadingState($btn, false, { normalText: `<i class="bx bx-log-in-circle"></i> ${TRANSLATIONS.general.completeCheckin}` });
+        });
     },
 
     /**
      * Get form data for submission
      */
-    getFormData() {
+    getFormData: function() {
         const fd = new FormData();
         const reservationId = $('#checkin_reservation_id').val();
         const notes = $('#checkin_notes').val();
         
         fd.append('reservation_id', reservationId);
         fd.append('checkin_notes', notes || '');
+        
+        // Add CSRF token
+        fd.append('_token', $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').val());
         
         // Collect selected equipment
         const equipment = [];
@@ -600,11 +544,11 @@ const CheckinProcessor = {
     /**
      * Validate form data
      */
-    validateForm(formData) {
+    validateForm: function(formData) {
         const reservationId = $('#checkin_reservation_id').val();
         
         if (!reservationId) {
-            Utils.showError('No reservation selected.');
+            Utils.showError(TRANSLATIONS.validation.noReservationSelected);
             return false;
         }
 
@@ -614,21 +558,22 @@ const CheckinProcessor = {
     /**
      * Handle successful check-in
      */
-    handleSuccess(response) {
-        Utils.showSuccess(CONFIG.messages.success.checkinCompleted);
+    handleSuccess: function(response) {
+        Utils.showSuccess(response.message || 'Check-in completed successfully!');
         this.resetForm();
     },
 
     /**
      * Reset form after successful submission
      */
-    resetForm() {
+    resetForm: function() {
         $('#checkinReservationForm')[0].reset();
         $('#checkin_reservation_id').val('');
-        $('#reservation-info-section').hide();
-        $('#checkinReservationForm').hide();
+        $('#reservation-info-section').addClass('d-none').hide();
+        $('#checkinReservationForm').addClass('d-none').hide();
         $('#search_reservation_number').val('');
-        ReservationManager.setDefaultDates();
+        $('#equipment-checkin-list').empty();
+        $('#select_all_equipment').prop('checked', false);
     }
 };
 
@@ -639,29 +584,9 @@ const CheckinApp = {
     /**
      * Initialize the entire application
      */
-    init() {
-        // Use global Utils for logging if desired
-        if (window.console) console.log('Initializing Check-in System...');
-        
-        // Initialize all managers
+    init: function() {
         ReservationManager.init();
         CheckinProcessor.init();
-        
-        // Set up global error handling
-        this.setupErrorHandling();
-        
-        if (window.console) console.log('Check-in System initialized successfully');
-    },
-
-    /**
-     * Setup global error handling
-     */
-    setupErrorHandling() {
-        $(document).ajaxError(function(event, xhr, settings, thrownError) {
-            if (xhr.status === 419) {
-                Utils.showError('Session expired. Please refresh the page and try again.');
-            }
-        });
     }
 };
 

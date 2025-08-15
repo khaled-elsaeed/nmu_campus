@@ -10,7 +10,7 @@
         icon="bx bx-calendar"
     >
         <a href="{{ route('reservations.index') }}" class="btn btn-outline-secondary">
-            <i class="bx bx-arrow-back"></i> __('Back to List')
+            <i class="bx bx-arrow-back"></i> {{ __('Back to List') }}
         </a>
     </x-ui.page-header>
     
@@ -39,9 +39,23 @@
             <div class="card-header bg-white border-bottom-0 pb-0">
                 <h5 class="mb-0"><i class="bx bx-user me-2"></i>{{ __('User Information') }}</h5>
             </div>
-            <div class="card-body pt-3">
-                <div id="user-info-content">
-                    <!-- Populated by JS -->
+                    <div class="card-body pt-3">
+                        <div id="user-info-content">
+                            <div class="row g-3">
+                    <div class="col-md-6">
+                        <strong>{{ __('Name:') }}</strong> <span id="user-name"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>{{ __('Email:') }}</strong> <span id="user-email"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>{{ __('User Type:') }}</strong> <span id="user-type"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>{{ __('National ID:') }}</strong> <span id="user-national-id"></span>
+                    </div>
+                </div>
+
                 </div>
             </div>
         </div>
@@ -128,16 +142,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <label for="add_status" class="form-label">{{ __('Status') }}</label>
-                            <select class="form-control" id="add_status" name="status">
-                                <option value="pending">{{ __('Pending') }}</option>
-                                <option value="confirmed">{{ __('Confirmed') }}</option>
-                                <option value="checked_in">{{ __('Checked In') }}</option>
-                                <option value="checked_out">{{ __('Checked Out') }}</option>
-                                <option value="cancelled">{{ __('Cancelled') }}</option>
-                            </select>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -222,33 +226,19 @@ var ROUTES = {
 };
 
 // ===========================
-// MESSAGES CONSTANTS
+// TRANSLATION CONSTANTS
 // ===========================
-var MESSAGES = {
-    success: {
-        reservationCreated: '{{ __("Reservation has been created successfully.") }}'
-    },
-    error: {
-        enterNationalId: '{{ __("Please enter a National ID.") }}',
-        userNotFound: '{{ __("User not found.") }}',
-        fetchUserFailed: '{{ __("Failed to fetch user.") }}',
-        selectUser: '{{ __("Please select a user.") }}',
-        selectAccommodationType: '{{ __("Please select accommodation type.") }}',
-        selectAccommodation: '{{ __("Please select a room/apartment.") }}',
-        invalidCheckOutDate: '{{ __("Check-out date must be after check-in date.") }}',
-        reservationCreateFailed: '{{ __("Failed to create reservation.") }}',
-        buildingsLoadFailed: '{{ __("Failed to load buildings.") }}',
-        apartmentsLoadFailed: '{{ __("Failed to load apartments.") }}',
-        roomsLoadFailed: '{{ __("Failed to load rooms.") }}',
-        apartmentRoomsLoadFailed: '{{ __("Failed to load rooms for this apartment.") }}',
-        academicTermsLoadFailed: '{{ __("Failed to load academic terms.") }}',
-        equipmentLoadFailed: '{{ __("Failed to load equipment.") }}'
-    },
+var TRANSLATION = {
     validation: {
-        required: '{{ __("This field is required.") }}',
-        selectPeriod: '{{ __("Please select a period.") }}',
-        selectAcademicTerm: '{{ __("Please select an academic term.") }}',
-        selectDates: '{{ __("Please select check-in and check-out dates.") }}'
+        required: @json(__('This field is required.')),
+        selectPeriod: @json(__('Please select a period.')),
+        selectAcademicTerm: @json(__('Please select an academic term.')),
+        selectDates: @json(__('Please select check-in and check-out dates.'))
+    },
+    general: {
+        search : @json(__('Search')),
+        searching : @json(__('Searching')),
+        saveReservation : @json(__('Save Reservation')),
     }
 };
 
@@ -256,26 +246,9 @@ var MESSAGES = {
 // API SERVICE
 // ===========================
 var ApiService = {
-    /**
-     * Generic AJAX request wrapper
-     * @param {object} options
-     * @returns {jqXHR}
-     */
-    request: function(options) {
-        var requestOptions = {
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        };
-        
-        // Merge options
-        for (var key in options) {
-            if (options.hasOwnProperty(key)) {
-                requestOptions[key] = options[key];
-            }
-        }
-        
-        return $.ajax(requestOptions);
+    
+      request: function(options) {
+        return $.ajax(options);
     },
 
     /**
@@ -380,7 +353,7 @@ var UserSearchManager = {
             self.handleSearch();
         });
         $('#search_national_id').on('keypress', function(e) {
-            if (e.which === 13) { // Enter key
+            if (e.which === 13) {
                 self.handleSearch();
             }
         });
@@ -394,12 +367,12 @@ var UserSearchManager = {
         var nationalId = $('#search_national_id').val().trim();
         
         if (!nationalId) {
-            Utils.showError(MESSAGES.error.enterNationalId);
+            Utils.showError(TRANSLATION.error.enterNationalId);
             return;
         }
 
         var $btn = $('#btnSearchNationalId');
-        Utils.setLoadingState($btn, true, { loadingText: 'Searching...' });
+        Utils.setLoadingState($btn, true, { loadingText: TRANSLATION.general.searching });
 
         ApiService.findUserByNationalId(nationalId)
             .done(function(response) {
@@ -409,11 +382,11 @@ var UserSearchManager = {
                     self.handleUserNotFound(response.message);
                 }
             })
-            .fail(function() {
-                self.handleUserNotFound();
+            .fail(function(xhr) {
+                self.handleUserNotFound(xhr.responseJSON.message);
             })
             .always(function() {
-                Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-search"></i> Search' });
+                Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-search"></i> ' + TRANSLATION.general.search });
             });
     },
 
@@ -421,7 +394,7 @@ var UserSearchManager = {
      * Handle successful user found
      */
     handleUserFound: function(user) {
-        this.displayUserInfo(user);
+        this.populateUserInfo(user);
         $('#add_user_id').val(user.id);
         $('#user-info-section').removeClass('d-none').show();
         $('#addReservationForm').removeClass('d-none').show();
@@ -433,28 +406,17 @@ var UserSearchManager = {
     handleUserNotFound: function(message) {
         $('#user-info-section').hide();
         $('#addReservationForm').hide();
-        Utils.showError(message || MESSAGES.error.userNotFound);
+        Utils.showError(message);
     },
 
     /**
      * Display user information
      */
-    displayUserInfo: function(user) {
-        var html = '<div class="row g-3">' +
-            '<div class="col-md-6">' +
-                '<strong>Name:</strong> ' + (user.name_en || user.name_ar || '-') +
-            '</div>' +
-            '<div class="col-md-6">' +
-                '<strong>Email:</strong> ' + (user.email || '-') +
-            '</div>' +
-            '<div class="col-md-6">' +
-                '<strong>User Type:</strong> ' + (user.user_type || '-') +
-            '</div>' +
-            '<div class="col-md-6">' +
-                '<strong>National ID:</strong> ' + (user.national_id || '-') +
-            '</div>' +
-        '</div>';
-        $('#user-info-content').html(html);
+    populateUserInfo: function(user) {
+        $('#user-name').text(user.name || '-');
+        $('#user-email').text(user.email || '-');
+        $('#user-type').text(user.user_type || '-');
+        $('#user-national-id').text(user.national_id || '-');
     }
 };
 
@@ -600,8 +562,8 @@ var AccommodationManager = {
                     self.populateSelect($('#add_building_id'), response.data, 'number', 'Select Building');
                 }
             })
-            .fail(function() {
-                Utils.showError(MESSAGES.error.buildingsLoadFailed);
+            .fail(function(xhr) {
+                Utils.handleAjaxError(xhr,xhr.responseJSON?.message);
             });
     },
 
@@ -616,9 +578,8 @@ var AccommodationManager = {
                     self.populateSelect($('#add_apartment_id'), response.data, 'number', 'Select Apartment');
                 }
             })
-            .fail(function(error) {
-                console.log(error);
-                Utils.showError(MESSAGES.error.apartmentsLoadFailed);
+            .fail(function(xhr) {
+                Utils.handleAjaxError(xhr,xhr.responseJSON?.message);
             });
     },
 
@@ -634,8 +595,8 @@ var AccommodationManager = {
                     $('#add_room_id').trigger('change');
                 }
             })
-            .fail(function() {
-                Utils.showError(MESSAGES.error.apartmentRoomsLoadFailed);
+            .fail(function(xhr) {
+                Utils.handleAjaxError(xhr,xhr.responseJSON?.message);
             });
     },
 
@@ -684,7 +645,7 @@ var PeriodManager = {
     init: function() {
         this.bindEvents();
         this.loadAcademicTerms();
-        this.handlePeriodChange(); // Set initial state
+        this.handlePeriodChange(); 
     },
 
     /**
@@ -734,8 +695,8 @@ var PeriodManager = {
                     AccommodationManager.populateSelect($('#add_academic_term_id'), response.data, 'name', 'Select Academic Term');
                 }
             })
-            .fail(function() {
-                Utils.showError(MESSAGES.error.academicTermsLoadFailed);
+            .fail(function(xhr) {
+                Utils.handleAjaxError(xhr,xhr.responseJSON?.message);
             });
     }
 };
@@ -762,8 +723,8 @@ var EquipmentManager = {
                     self.renderEquipmentList(response.data);
                 }
             })
-            .fail(function() {
-                Utils.showError(MESSAGES.error.equipmentLoadFailed);
+            .fail(function(xhr) {
+                Utils.handleAjaxError(xhr,xhr.responseJSON?.message);
             });
     },
 
@@ -852,6 +813,7 @@ var ReservationProcessor = {
         }
         
         var $btn = $('#addReservationForm button[type="submit"]');
+
         Utils.setLoadingState($btn, true, { loadingText: 'Saving...' });
         
         ApiService.createReservation(JSON.stringify(formData))
@@ -859,16 +821,14 @@ var ReservationProcessor = {
                 if (response.success) {
                     self.handleSuccess(response);
                 } else {
-                    Utils.showError(response.message || MESSAGES.error.reservationCreateFailed);
+                    Utils.showError(response.message);
                 }
             })
             .fail(function(xhr) {
-                if (xhr && xhr.responseJSON) {
-                    Utils.handleAjaxError(xhr, MESSAGES.error.reservationCreateFailed);
-                }
+                Utils.handleAjaxError(xhr, xhr.response);
             })
             .always(function() {
-                Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-save"></i> Save Reservation' });
+                Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-save"></i> ' + TRANSLATION.general.saveReservation });
             });
     },
 
@@ -924,27 +884,27 @@ var ReservationProcessor = {
      */
     validateForm: function(formData) {
         if (!formData.user_id) {
-            Utils.showError(MESSAGES.error.selectUser);
+            Utils.showError(TRANSLATION.error.selectUser);
             return false;
         }
         
         if (!formData.period_type) {
-            Utils.showError(MESSAGES.validation.selectPeriod);
+            Utils.showError(TRANSLATION.validation.selectPeriod);
             return false;
         }
         
         if (formData.period_type === 'academic' && !formData.academic_term_id) {
-            Utils.showError(MESSAGES.validation.selectAcademicTerm);
+            Utils.showError(TRANSLATION.validation.selectAcademicTerm);
             return false;
         }
         
         if (formData.period_type === 'calendar') {
             if (!formData.check_in_date || !formData.check_out_date) {
-                Utils.showError(MESSAGES.validation.selectDates);
+                Utils.showError(TRANSLATION.validation.selectDates);
                 return false;
             }
             if (new Date(formData.check_out_date) <= new Date(formData.check_in_date)) {
-                Utils.showError(MESSAGES.error.invalidCheckOutDate);
+                Utils.showError(TRANSLATION.error.invalidCheckOutDate);
                 return false;
             }
         }
@@ -956,7 +916,7 @@ var ReservationProcessor = {
      * Handle successful reservation creation
      */
     handleSuccess: function(response) {
-        Utils.showSuccess(MESSAGES.success.reservationCreated);
+        Utils.showSuccess(response.message);
         this.resetForm();
     },
 
@@ -987,33 +947,14 @@ var ReservationApp = {
     /**
      * Initialize the entire application
      */
-    init: function() {
-        // Use global Utils for logging if desired
-        if (window.console) console.log('Initializing Add Reservation System...');
-        
+    init: function() {        
         // Initialize all managers
         UserSearchManager.init();
         AccommodationManager.init();
         PeriodManager.init();
         EquipmentManager.init();
-        ReservationProcessor.init();
-        
-        // Set up global error handling
-        this.setupErrorHandling();
-        
-        if (window.console) console.log('Add Reservation System initialized successfully');
+        ReservationProcessor.init();        
     },
-
-    /**
-     * Setup global error handling
-     */
-    setupErrorHandling: function() {
-        $(document).ajaxError(function(event, xhr, settings, thrownError) {
-            if (xhr.status === 419) {
-                Utils.showError('Session expired. Please refresh the page and try again.');
-            }
-        });
-    }
 };
 
 // ===========================

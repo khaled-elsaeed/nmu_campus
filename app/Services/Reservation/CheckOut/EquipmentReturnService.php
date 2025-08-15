@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Reservation\Complete;
+namespace App\Services\Reservation\CheckOut;
 
 use App\Models\Reservation\Reservation;
 use App\Models\Equipment;

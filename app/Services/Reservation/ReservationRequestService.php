@@ -13,12 +13,13 @@ use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
-use App\Services\Reservation\CreateReservationService;
+use App\Services\Reservation\AcceptReservationRequestService;
 
 class ReservationRequestService
 {
-    public function __construct(protected CreateReservationService $createReservationService)
-    {}
+    public function __construct(
+        protected AcceptReservationRequestService $acceptReservationRequestService
+    ) {}
 
     /**
      * Update an existing reservation request.
@@ -55,25 +56,6 @@ class ReservationRequestService
         return ReservationRequest::with(['user', 'academicTerm', 'reviewer', 'createdReservation'])->findOrFail($id);
     }
 
-    /**
-     * Delete a reservation request.
-     *
-     * @param int $reservationRequestId
-     * @return bool
-     * @throws BusinessValidationException
-     */
-    public function deleteReservation(int $reservationRequestId): bool
-    {
-        $reservationRequest = ReservationRequest::findOrFail($reservationRequestId);
-
-        if ($reservationRequest->status === 'approved') {
-            throw new BusinessValidationException('Cannot delete a reservation request that has been approved.');
-        }
-
-        $deleted = $reservationRequest->delete();
-
-        return $deleted;
-    }
 
     /**
      * Get all reservation requests (for dropdowns/forms).
@@ -89,7 +71,6 @@ class ReservationRequestService
                     'id' => $request->id,
                     'request_number' => $request->request_number,
                     'user_name' => $request->user?->name_en ?? 'N/A',
-                    'accommodation_info' => $this->getAccommodationInfo($request),
                     'status' => $request->status,
                     'total_points' => $request->total_points,
                     'active' => $request->status === 'approved',
@@ -153,18 +134,6 @@ class ReservationRequestService
                 'female' => formatNumber($stats->approved_female),
                 'lastUpdateTime' => formatDate($stats->approved_last_update)
             ],
-            'requests-rejected' => [
-                'count' => formatNumber($stats->rejected),
-                'male' => formatNumber($stats->rejected_male),
-                'female' => formatNumber($stats->rejected_female),
-                'lastUpdateTime' => formatDate($stats->rejected_last_update)
-            ],
-            'cancelled' => [
-                'count' => formatNumber($stats->cancelled),
-                'male' => formatNumber($stats->cancelled_male),
-                'female' => formatNumber($stats->cancelled_female),
-                'lastUpdateTime' => formatDate($stats->cancelled_last_update)
-            ],
         ];
     }
 
@@ -182,30 +151,21 @@ class ReservationRequestService
             ->addIndexColumn()
             ->addColumn('request_number', fn($request) => $request->request_number)
             ->addColumn('name', fn($request) => $request->user?->name ?? 'N/A')
-            ->addColumn('accommodation_info', fn($request) => $this->getAccommodationInfo($request))
-            ->addColumn('academic_term', fn($request) => $request->academicTerm?->name ?? 'N/A')
-            ->addColumn('requested_check_in_date', fn($request) => $request->requested_check_in_date ? formatDate($request->requested_check_in_date) : 'N/A')
-            ->addColumn('requested_check_out_date', fn($request) => $request->requested_check_out_date ? formatDate($request->requested_check_out_date) : 'N/A')
+            ->addColumn('period', fn($request) => $this->getPeriod($request))
             ->addColumn('status', fn($request) => ucfirst($request->status))
             ->addColumn('total_points', fn($request) => $request->total_points)
             ->addColumn('created_at', fn($request) => formatDate($request->created_at))
             ->addColumn('action', fn($request) => $this->renderActionButtons($request))
 
-            // Order columns for related tables
             ->orderColumn('request_number', 'reservation_requests.request_number $1')
             ->orderColumn('user_name', function ($query, $order) {
                 return $query->leftJoin('users', 'reservation_requests.user_id', '=', 'users.id')
                              ->orderBy('users.name_en', $order);
             })
-            ->orderColumn('accommodation_info', function ($query, $order) {
-                return $query->orderBy('requested_accommodation_type', $order);
-            })
             ->orderColumn('academic_term', function ($query, $order) {
                 return $query->leftJoin('academic_terms', 'reservation_requests.academic_term_id', '=', 'academic_terms.id')
                              ->orderBy('academic_terms.name_en', $order);
             })
-            ->orderColumn('requested_check_in_date', 'reservation_requests.requested_check_in_date $1')
-            ->orderColumn('requested_check_out_date', 'reservation_requests.requested_check_out_date $1')
             ->orderColumn('status', 'reservation_requests.status $1')
             ->orderColumn('total_points', 'reservation_requests.total_points $1')
             ->orderColumn('created_at', 'reservation_requests.created_at $1')
@@ -259,12 +219,51 @@ class ReservationRequestService
     protected function renderActionButtons($request): string
     {
         return view('components.ui.datatable.table-actions', [
-            'mode' => 'dropdown',
-            'actions' => ['view', 'edit', 'delete'],
+            'mode' => 'both',
+            'actions' => ['view', 'edit'],
             'id' => $request->id,
             'type' => 'ReservationRequest',
-            'singleActions' => []
+            'singleActions' => [
+                [
+                    'action' => 'accept',
+                    'icon' => 'bx bx-check',
+                    'class' => 'btn-success',
+                    'label' => __('Accept')
+                ],
+                [
+                    'action' => 'reject',
+                    'icon' => 'bx bx-x',
+                    'class' => 'btn-danger',
+                    'label' => __('Reject')
+                ]
+            ]
         ])->render();
+    }
+
+        /**
+     * Get period information for display.
+     *
+     * @param ReservationRequest $request
+     * @return string
+     */
+    private function getPeriod(ReservationRequest $request): string
+    {
+        $period = 'N/A';
+
+        switch($request->period_type) {
+            case 'academic':
+                $period = $request->academicTerm->name ?? 'N/A';
+                break;
+            case 'calendar':
+                if ($request->requested_check_in_date && $request->requested_check_out_date) {
+                    $checkInDate = formatDate($request->requested_check_in_date);
+                    $checkOutDate = formatDate($request->requested_check_out_date);
+                    $period = $checkInDate . ' - ' . $checkOutDate;
+                }
+                break;
+        }
+
+        return $period;
     }
 
     /**
@@ -328,5 +327,32 @@ class ReservationRequestService
             'room_id' => $request->room_id,
             'status' => $request->status,
         ];
+    }
+
+    public function acceptRequest($data, $id): bool
+    {
+        $request = ReservationRequest::find($id);
+        if (!$request) {
+            throw new BusinessValidationException(__('Reservation request not found.'));
+        }
+
+        $this->acceptReservationRequestService->accept($request, $data);
+
+        $request->update([
+            'status' => 'approved',
+            'created_reservation_id' => $reservation->id,
+            'reviewer_id' => auth()->id(),
+        ]);
+    }
+
+    public function cancelRequest($id): bool
+    {
+        $request = ReservationRequest::find($id);
+        if (!$request) {
+            throw new BusinessValidationException(__('Reservation request not found.'));
+        }
+
+        $request->status = 'canceled';
+        return $request->save();
     }
 } 

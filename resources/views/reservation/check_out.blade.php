@@ -41,7 +41,23 @@
             </div>
             <div class="card-body pt-3">
                 <div id="reservation-info-content">
-                    <!-- Populated by JS -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <strong>{{ __('Guest Name:') }}</strong> <span id="guest-name"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>{{ __('Email:') }}</strong> <span id="guest-email"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>{{ __('Location:') }}</strong> <span id="location-info"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>{{ __('Period:') }}</strong> <span id="period-info"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>{{ __('Current Status:') }}</strong> <span id="reservation-status"></span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -104,46 +120,46 @@
  */
 
 // ===========================
-// CONFIGURATION & CONSTANTS
+// ROUTES
 // ===========================
-const CONFIG = {
-    routes: {
-        reservations: {
-            checkout: '{{ route("reservations.checkout") }}',
-            findByNumber: '{{ route("reservations.findByNumber") }}'
-        }
-    },
-    
-    messages: {
-        success: {
-            checkoutCompleted: '{{ __("Guest has been checked out successfully.") }}'
-        },
-        error: {
-            enterReservationNumber: '{{ __("Please enter a Reservation Number.") }}',
-            reservationNotFound: '{{ __("No reservation found for this Reservation Number.") }}',
-            fetchReservationFailed: '{{ __("Failed to fetch reservation details.") }}',
-            checkoutFailed: '{{ __("Failed to complete check-out.") }}',
-            noEquipmentToReturn: '{{ __("No equipment found to return.") }}',
-            invalidDamageData: '{{ __("Please provide valid damage information (cost and notes) for damaged/missing items.") }}'
-        },
-        validation: {
-            required: '{{ __("This field is required.") }}',
-            invalidCost: '{{ __("Please enter a valid cost amount.") }}',
-            missingNotes: '{{ __("Please provide notes for damaged/missing items.") }}'
-        }
-    },
+const ROUTES = {
+    reservations: {
+        checkout: '{{ route("reservations.checkout") }}',
+        findByNumber: '{{ route("reservations.findByNumber") }}'
+    }
+};
 
-    ui: {
-        statusBadges: {
-            'pending': 'bg-warning',
-            'confirmed': 'bg-info',
-            'checked_in': 'bg-success',
-            'checked_out': 'bg-secondary',
-            'cancelled': 'bg-danger',
-            'good': 'bg-success',
-            'damaged': 'bg-warning',
-            'missing': 'bg-danger'
-        }
+const TRANSLATIONS = {
+    general: {
+        search: @json(__('Search')),
+        searchReservation: @json(__('Search Reservation')),
+        searching: @json(__('Searching...')),
+        unknownEquipment: @json(__('Unknown Equipment')),
+        checkedOut: @json(__('Checked out')),
+        items: @json(__('items')),
+        item: @json(__('item')),
+        quantityReturned: @json(__('Quantity Returned')),
+        condition: @json(__('Condition')),
+        goodCondition: @json(__('Good Condition')),
+        damaged: @json(__('Damaged')),
+        missingLost: @json(__('Missing/Lost')),
+        estimatedCost: @json(__('Estimated Cost ($)')),
+        damageMissingNotes: @json(__('Damage/Missing Notes')),
+        damageMissingPlaceholder: @json(__('Describe the damage, missing circumstances, or any other relevant information...')),
+        processing: @json(__('Processing...')),
+        completeCheckout: @json(__('Complete Check-out')),
+        errorOccurred: @json(__('An error occurred. Please try again.')),
+        noReservationSelected: @json(__('No reservation selected.')),
+        noEquipmentFound: @json(__('No Equipment Found')),
+        noEquipmentCheckedOut: @json(__('No equipment was checked out with this reservation.')),
+        details: @json(__('Details:')),
+        enterReservationNumber: @json(__('Please enter a reservation number.'))
+    },
+    validation: {
+        required: @json(__('This field is required.')),
+        invalidCost: @json(__('Please enter a valid cost amount.')),
+        missingNotes: @json(__('Please provide notes for damaged/missing items.')),
+        validationErrors: @json(__('Please fix the following validation errors:'))
     }
 };
 
@@ -151,33 +167,16 @@ const CONFIG = {
 // API SERVICE
 // ===========================
 const ApiService = {
-    /**
-     * Generic AJAX request wrapper
-     */
-    async request(options) {
-        try {
-            const response = await $.ajax({
-                ...options,
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                    ...options.headers
-                }
-            });
-            return response;
-        } catch (error) {
-            if (error && error.xhr) {
-                Utils.handleAjaxError(error.xhr, 'API Request failed.');
-            }
-            throw error;
-        }
+    request: function(options) {
+        return $.ajax(options);
     },
 
     /**
      * Find reservation by number
      */
-    findReservationByNumber(reservationNumber) {
+    findReservationByNumber: function(reservationNumber) {
         return this.request({ 
-            url: CONFIG.routes.reservations.findByNumber, 
+            url: ROUTES.reservations.findByNumber, 
             method: 'GET', 
             data: { reservation_number: reservationNumber } 
         });
@@ -186,9 +185,9 @@ const ApiService = {
     /**
      * Process check-out
      */
-    processCheckout(formData) {
+    processCheckout: function(formData) {
         return this.request({ 
-            url: CONFIG.routes.reservations.checkout, 
+            url: ROUTES.reservations.checkout, 
             method: 'POST', 
             data: formData,
             processData: false,
@@ -204,142 +203,101 @@ const ReservationManager = {
     /**
      * Initialize reservation manager
      */
-    init() {
+    init: function() {
         this.bindEvents();
-        this.setDefaultDates();
     },
 
     /**
      * Bind reservation search events
      */
-    bindEvents() {
+    bindEvents: function() {
         $('#btnSearchReservation').on('click', this.handleSearch.bind(this));
         $('#search_reservation_number').on('keypress', (e) => {
-            if (e.which === 13) { // Enter key
+            if (e.which === 13) {
                 this.handleSearch();
             }
         });
     },
 
     /**
-     * Set default dates and times
-     */
-    setDefaultDates() {
-        // Use global Utils for date/time
-        $('#checkout_date').val(Utils.getCurrentDate ? Utils.getCurrentDate() : (new Date().toISOString().split('T')[0]));
-        $('#checkout_time').val(Utils.getCurrentTime ? Utils.getCurrentTime() : (new Date().toTimeString().split(' ')[0].substring(0, 5)));
-    },
-
-    /**
      * Handle reservation search
      */
-    async handleSearch() {
+    handleSearch: function() {
         const reservationNumber = $('#search_reservation_number').val().trim();
         
         if (!reservationNumber) {
-            Utils.showError(CONFIG.messages.error.enterReservationNumber);
+            Utils.showError(TRANSLATIONS.general.enterReservationNumber);
             return;
         }
-
+        
         const $btn = $('#btnSearchReservation');
-        Utils.setLoadingState($btn, true, { loadingText: 'Searching...' });
+        Utils.setLoadingState($btn, true, { loadingText: TRANSLATIONS.general.searching });
 
-        try {
-            const response = await ApiService.findReservationByNumber(reservationNumber);
-            
-            if (response.success && response.data) {
-                this.handleReservationFound(response.data);
-            } else {
-                this.handleReservationNotFound(response.message);
-            }
-        } catch (error) {
-            this.handleReservationNotFound();
-        } finally {
-            Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-search"></i> Search Reservation' });
-        }
+        ApiService.findReservationByNumber(reservationNumber)
+            .done((response) => {
+                if (response.success && response.data) {
+                    this.handleReservationFound(response.data);
+                } else {
+                    this.handleReservationNotFound(response.message || TRANSLATIONS.general.errorOccurred);
+                }
+            }).fail((xhr) => {
+                const errorMessage = xhr.responseJSON?.message || TRANSLATIONS.general.errorOccurred;
+                Utils.showError(errorMessage);
+            }).always(() => {
+                Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-search"></i> ' + TRANSLATIONS.general.searchReservation });
+            });
     },
 
     /**
      * Handle successful reservation found
      */
-    handleReservationFound(reservation) {
-        this.displayReservationInfo(reservation);
-        Utils.showElement($('#reservation-info-section'));
+    handleReservationFound: function(reservation) {
+        this.populateReservationInfo(reservation);
+        $('#reservation-info-section').removeClass('d-none').show();
 
         // Reset forms
         this.resetForms();
-
-        if (reservation.status === 'checked_in') {
-            this.setupCheckoutForm(reservation);
-        } else if (reservation.status === 'checked_out') {
-            Utils.showWarning(`Guest is already checked out. Check-out is not required.`);
-        } else {
-            Utils.showWarning(`Reservation status is "${reservation.status}". Only checked-in guests can be checked out.`);
-        }
+        this.setupCheckoutForm(reservation);
     },
 
     /**
      * Handle reservation not found
      */
-    handleReservationNotFound(message = null) {
+    handleReservationNotFound: function(message) {
         this.resetForms();
-        $('#reservation-info-section').hide();
-        Utils.showError(message || CONFIG.messages.error.reservationNotFound);
+        $('#reservation-info-section').addClass('d-none').hide();
+        Utils.showError(message);
     },
 
     /**
-     * Display reservation information
-     */
-    displayReservationInfo(reservation) {
+    * Populate reservation information
+    */
+    populateReservationInfo: function(reservation) {
         const user = reservation.user || {};
-        const accommodation = reservation.accommodation || {};
-        const statusBadge = Utils.getStatusBadge(reservation.status);
-        
-        let actionText = '';
-        if (reservation.status === 'checked_in') {
-            actionText = '<i class="bx bx-log-out-circle text-danger me-1"></i>Ready for Check-out';
-        } else if (reservation.status === 'checked_out') {
-            actionText = '<i class="bx bx-check-circle text-secondary me-1"></i>Already Checked Out';
-        }
-        
-        const html = `
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <strong>Guest Name:</strong> ${user.name_en || user.name_ar || '-'}
-                </div>
-                <div class="col-md-6">
-                    <strong>Email:</strong> ${user.email || '-'}
-                </div>
-                <div class="col-md-6">
-                    <strong>Accommodation:</strong> ${accommodation.number || accommodation.name || '-'}
-                </div>
-                <div class="col-md-6">
-                    <strong>Reservation Period:</strong> ${reservation.check_in_date || '-'} to ${reservation.check_out_date || '-'}
-                </div>
-                <div class="col-md-6">
-                    <strong>Current Status:</strong> 
-                    <span class="badge ${statusBadge}">${reservation.status}</span>
-                </div>
-                <div class="col-md-6">
-                    <strong>Action:</strong> ${actionText}
-                </div>
-            </div>
-        `;
-        $('#reservation-info-content').html(html);
+        const location = reservation.location || {};
+        const period = reservation.period || {};
+
+        $('#guest-name').text(user.name || 'N/A');
+        $('#guest-email').text(user.email || 'N/A');
+        $('#location-info').text(location || 'N/A');
+        $('#period-info').text(period || 'N/A');
+        $('#reservation-status').text(reservation.status || 'N/A');
     },
 
     /**
      * Setup check-out form
      */
-    setupCheckoutForm(reservation) {
+    setupCheckoutForm: function(reservation) {
         $('#checkout_reservation_id').val(reservation.id);
-        Utils.showElement($('#checkoutReservationForm'));
+        $('#checkoutReservationForm').removeClass('d-none').show();
 
         let allEquipmentDetails = [];
-        if (Array.isArray(reservation.equipment_tracking)) {
-            reservation.equipment_tracking.forEach(tracking => {
-                if (Array.isArray(tracking.equipment_details)) {
-                    allEquipmentDetails = allEquipmentDetails.concat(tracking.equipment_details);
+        if (Array.isArray(reservation.equipmentTracking) || Array.isArray(reservation.equipment_tracking)) {
+            const equipmentTracking = reservation.equipmentTracking || reservation.equipment_tracking;
+            equipmentTracking.forEach(tracking => {
+                if (Array.isArray(tracking.equipmentDetails) || Array.isArray(tracking.equipment_details)) {
+                    const details = tracking.equipmentDetails || tracking.equipment_details;
+                    allEquipmentDetails = allEquipmentDetails.concat(details);
                 }
             });
         }
@@ -354,9 +312,10 @@ const ReservationManager = {
     /**
      * Reset all forms
      */
-    resetForms() {
-        $('#checkoutReservationForm').hide();
+    resetForms: function() {
+        $('#checkoutReservationForm').addClass('d-none').hide();
         $('#checkoutReservationForm')[0].reset();
+        $('#equipment-return-list').empty();
     }
 };
 
@@ -367,7 +326,7 @@ const EquipmentManager = {
     /**
      * Render equipment list for check-out
      */
-    renderCheckoutEquipment(equipmentData) {
+    renderCheckoutEquipment: function(equipmentData) {
         const $list = $('#equipment-return-list');
         $list.empty();
 
@@ -377,16 +336,17 @@ const EquipmentManager = {
         }
 
         equipmentData.forEach((item, index) => {
+            const equipment = item.equipment || {};
             const html = `
-                <div class="equipment-item mb-4 border rounded" data-equipment-id="${item.equipment_id}">
+                <div class="equipment-item mb-4 border rounded" data-equipment-id="${item.equipment_id || equipment.id}">
                     <div class="card-header bg-light">
-                        <h6 class="mb-0">${item.equipment.name || 'Unknown Equipment'}</h6>
-                        <small class="text-muted">Checked out: ${item.quantity || 1} ${item.quantity > 1 ? 'items' : 'item'}</small>
+                        <h6 class="mb-0">${equipment.name_en || equipment.name || TRANSLATIONS.general.unknownEquipment}</h6>
+                        <small class="text-muted">${TRANSLATIONS.general.checkedOut}: ${item.quantity || 1} ${(item.quantity || 1) > 1 ? TRANSLATIONS.general.items : TRANSLATIONS.general.item}</small>
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-md-3">
-                                <label class="form-label">Quantity Returned</label>
+                                <label class="form-label">${TRANSLATIONS.general.quantityReturned}</label>
                                 <input type="number" 
                                        class="form-control equipment-qty-returned" 
                                        name="equipment[${index}][quantity]" 
@@ -395,19 +355,19 @@ const EquipmentManager = {
                                        max="${item.quantity || 1}">
                                 <input type="hidden" 
                                        name="equipment[${index}][equipment_id]" 
-                                       value="${item.equipment_id}">
+                                       value="${item.equipment_id || equipment.id}">
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">Condition</label>
+                                <label class="form-label">${TRANSLATIONS.general.condition}</label>
                                 <select class="form-control equipment-condition" 
                                         name="equipment[${index}][returned_status]">
-                                    <option value="good">Good Condition</option>
-                                    <option value="damaged">Damaged</option>
-                                    <option value="missing">Missing/Lost</option>
+                                    <option value="good">${TRANSLATIONS.general.goodCondition}</option>
+                                    <option value="damaged">${TRANSLATIONS.general.damaged}</option>
+                                    <option value="missing">${TRANSLATIONS.general.missingLost}</option>
                                 </select>
                             </div>
                             <div class="col-md-3 damage-cost-group" style="display:none;">
-                                <label class="form-label">Estimated Cost ($)</label>
+                                <label class="form-label">${TRANSLATIONS.general.estimatedCost}</label>
                                 <input type="number" 
                                        class="form-control equipment-cost" 
                                        name="equipment[${index}][estimated_cost]" 
@@ -418,11 +378,11 @@ const EquipmentManager = {
                         </div>
                         <div class="row mt-3 damage-notes-group" style="display:none;">
                             <div class="col-12">
-                                <label class="form-label">Damage/Missing Notes</label>
+                                <label class="form-label">${TRANSLATIONS.general.damageMissingNotes}</label>
                                 <textarea class="form-control equipment-notes" 
                                           name="equipment[${index}][returned_notes]" 
                                           rows="3" 
-                                          placeholder="Describe the damage, missing circumstances, or any other relevant information..."></textarea>
+                                          placeholder="${TRANSLATIONS.general.damageMissingPlaceholder}"></textarea>
                             </div>
                         </div>
                     </div>
@@ -437,7 +397,7 @@ const EquipmentManager = {
     /**
      * Bind check-out equipment events
      */
-    bindCheckoutEvents($list) {
+    bindCheckoutEvents: function($list) {
         // Condition change events
         $list.find('.equipment-condition').on('change', function() {
             const $item = $(this).closest('.equipment-item');
@@ -449,14 +409,14 @@ const EquipmentManager = {
                 $costGroup.show();
                 $notesGroup.show();
                 $item.addClass(condition === 'damaged' ? 'border-warning' : 'border-danger');
+                $item.removeClass(condition === 'damaged' ? 'border-danger' : 'border-warning');
                 $item.find('.equipment-cost').prop('required', true);
-                $item.find('.equipment-notes').prop('required', true);
             } else {
                 $costGroup.hide();
                 $notesGroup.hide();
                 $item.removeClass('border-warning border-danger');
                 $item.find('.equipment-cost').prop('required', false).val('');
-                $item.find('.equipment-notes').prop('required', false).val('');
+                $item.find('.equipment-notes').val('');
             }
         });
     },
@@ -464,12 +424,12 @@ const EquipmentManager = {
     /**
      * Show no equipment message
      */
-    showNoEquipmentMessage() {
+    showNoEquipmentMessage: function() {
         $('#equipment-return-list').html(`
             <div class="text-center py-5">
                 <i class="bx bx-info-circle text-muted" style="font-size: 4rem;"></i>
-                <h5 class="text-muted mt-3">No Equipment Found</h5>
-                <p class="text-muted">No equipment was checked out with this reservation.</p>
+                <h5 class="text-muted mt-3">${TRANSLATIONS.general.noEquipmentFound}</h5>
+                <p class="text-muted">${TRANSLATIONS.general.noEquipmentCheckedOut}</p>
             </div>
         `);
     }
@@ -482,21 +442,21 @@ const CheckoutProcessor = {
     /**
      * Initialize check-out processor
      */
-    init() {
+    init: function() {
         this.bindEvents();
     },
 
     /**
      * Bind check-out events
      */
-    bindEvents() {
+    bindEvents: function() {
         $('#checkoutReservationForm').on('submit', this.handleSubmit.bind(this));
     },
 
     /**
      * Handle form submission
      */
-    async handleSubmit(e) {
+    handleSubmit: function(e) {
         e.preventDefault();
         
         if (!this.validateForm()) {
@@ -506,46 +466,49 @@ const CheckoutProcessor = {
         const formData = this.getFormData();
         
         const $btn = $('#checkoutReservationForm button[type="submit"]');
-        Utils.setLoadingState($btn, true, { loadingText: 'Processing...' });
+        Utils.setLoadingState($btn, true, { loadingText: TRANSLATIONS.general.processing });
 
-        try {
-            const response = await ApiService.processCheckout(formData);
-            
-            if (response.success) {
-                this.handleSuccess(response);
-            } else {
-                Utils.showError(response.message || CONFIG.messages.error.checkoutFailed);
-            }
-        } catch (error) {
-            if (error && error.xhr) {
-                Utils.handleAjaxError(error.xhr, CONFIG.messages.error.checkoutFailed);
-            }
-        } finally {
-            Utils.setLoadingState($btn, false, { normalText: '<i class="bx bx-log-out-circle"></i> Complete Check-out' });
-        }
+        ApiService.processCheckout(formData)
+            .done((response) => {
+                if (response.success) {
+                    this.handleSuccess(response);
+                } else {
+                    Utils.showError(response.message || TRANSLATIONS.general.errorOccurred);
+                }
+            }).fail((xhr) => {
+                const errorMessage = xhr.responseJSON?.message || TRANSLATIONS.general.errorOccurred;
+                Utils.showError(errorMessage);
+            }).always(() => {
+                Utils.setLoadingState($btn, false, { normalText: `<i class="bx bx-log-out-circle"></i> ${TRANSLATIONS.general.completeCheckout}` });
+            });
     },
 
     /**
      * Get form data for submission
      */
-    getFormData() {
+    getFormData: function() {
         const fd = new FormData($('#checkoutReservationForm')[0]);
+        // Add CSRF token if not already present
+        if (!fd.has('_token')) {
+            const token = $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').val();
+            if (token) {
+                fd.append('_token', token);
+            }
+        }
         return fd;
     },
 
     /**
      * Validate form data
      */
-    validateForm() {
+    validateForm: function() {
         const reservationId = $('#checkout_reservation_id').val();
-        
         if (!reservationId) {
-            Utils.showError('No reservation selected.');
+            Utils.showError(TRANSLATIONS.general.noReservationSelected);
             return false;
         }
 
         // Validate damage/missing items
-        let hasInvalidDamageData = false;
         const invalidItems = [];
         
         $('#equipment-return-list .equipment-item').each(function() {
@@ -554,22 +517,15 @@ const CheckoutProcessor = {
             
             if (condition === 'damaged' || condition === 'missing') {
                 const cost = $(this).find('.equipment-cost').val();
-                const notes = $(this).find('.equipment-notes').val();
                 
                 if (!cost || parseFloat(cost) < 0) {
-                    invalidItems.push(`${equipmentName}: Missing or invalid cost`);
-                    hasInvalidDamageData = true;
-                }
-                
-                if (!notes || notes.trim() === '') {
-                    invalidItems.push(`${equipmentName}: Missing notes`);
-                    hasInvalidDamageData = true;
+                    invalidItems.push(`${equipmentName}: ${TRANSLATIONS.validation.invalidCost}`);
                 }
             }
         });
 
-        if (hasInvalidDamageData) {
-            const errorMessage = `Please fix the following issues:<br>• ${invalidItems.join('<br>• ')}`;
+        if (invalidItems.length > 0) {
+            let errorMessage = TRANSLATIONS.validation.validationErrors + '\n' + invalidItems.join('\n');
             Utils.showError(errorMessage);
             return false;
         }
@@ -580,48 +536,21 @@ const CheckoutProcessor = {
     /**
      * Handle successful check-out
      */
-    handleSuccess(response) {
-        let message = CONFIG.messages.success.checkoutCompleted;
-        
-        // Add damage summary if applicable
-        if (response.damages && response.damages.length > 0) {
-            // Use global Utils.formatCurrency if available
-            const formatCurrency = Utils.formatCurrency ? Utils.formatCurrency : (amt) => '$' + (amt || 0).toFixed(2);
-
-            const totalCost = response.damages.reduce((sum, damage) => 
-                sum + parseFloat(damage.estimated_cost || 0), 0);
-            message += `<br><br><strong>Damage Charges:</strong> ${formatCurrency(totalCost)}`;
-            
-            const damageList = response.damages.map(damage => 
-                `• ${damage.equipment_name}: ${formatCurrency(damage.estimated_cost)}`
-            ).join('<br>');
-            message += `<br><br><strong>Details:</strong><br>${damageList}`;
-        }
-        
-        if (window.Swal) {
-            Swal.fire({
-                title: 'Check-out Complete',
-                html: message,
-                icon: 'success',
-                confirmButtonText: 'OK'
-            });
-        } else {
-            alert(message.replace(/<br>/g, '\n').replace(/<strong>.*?<\/strong>/g, ''));
-        }
-        
+    handleSuccess: function(response) {
+        Utils.showSuccess(response.message || 'Check-out completed successfully!');
         this.resetForm();
     },
 
     /**
      * Reset form after successful submission
      */
-    resetForm() {
+    resetForm: function() {
         $('#checkoutReservationForm')[0].reset();
         $('#checkout_reservation_id').val('');
-        $('#reservation-info-section').hide();
-        $('#checkoutReservationForm').hide();
+        $('#reservation-info-section').addClass('d-none').hide();
+        $('#checkoutReservationForm').addClass('d-none').hide();
         $('#search_reservation_number').val('');
-        ReservationManager.setDefaultDates();
+        $('#equipment-return-list').empty();
     }
 };
 
@@ -632,29 +561,10 @@ const CheckoutApp = {
     /**
      * Initialize the entire application
      */
-    init() {
-        // Use global Utils for logging if desired
-        if (window.console) console.log('Initializing Check-out System...');
-        
+    init: function() {
         // Initialize all managers
         ReservationManager.init();
-        CheckoutProcessor.init();
-        
-        // Set up global error handling
-        this.setupErrorHandling();
-        
-        if (window.console) console.log('Check-out System initialized successfully');
-    },
-
-    /**
-     * Setup global error handling
-     */
-    setupErrorHandling() {
-        $(document).ajaxError(function(event, xhr, settings, thrownError) {
-            if (xhr.status === 419) {
-                Utils.showError('Session expired. Please refresh the page and try again.');
-            }
-        });
+        CheckoutProcessor.init();        
     }
 };
 

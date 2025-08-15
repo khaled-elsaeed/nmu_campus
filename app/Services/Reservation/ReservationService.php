@@ -16,14 +16,17 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use App\Services\Reservation\CreateReservationService;
 use App\Services\Reservation\CancelReservationService;
-use App\Services\Reservation\CompleteReservationService;
+use App\Services\Reservation\CheckOutReservationService;
+use App\Services\Reservation\CheckInReservationService;
 use Carbon\Carbon;
 
 class ReservationService
 {
     public function __construct(
         protected CreateReservationService $createReservationService,
-        protected CompleteReservationService $completeReservationService
+        protected CheckInReservationService $checkInService,
+        protected CheckOutReservationService $checkOutService,
+        protected CancelReservationService $cancelReservationService
     ) {}
 
     /**
@@ -32,13 +35,23 @@ class ReservationService
      * @param string $number
      * @return Reservation|null
      */
+ 
     public function findByNumber(string $number): ?Reservation
     {
-        return Reservation::with(['user', 'accommodation', 'academicTerm','equipmentTracking.equipmentDetails.equipment'])
+        $reservation = Reservation::with(['user', 'accommodation', 'academicTerm','equipmentTracking.equipmentDetails.equipment'])
             ->where('reservation_number', $number)
             ->first();
-    }
 
+        if (!$reservation) {
+            return null;
+        }
+
+        $reservation->location = $this->getLocation($reservation);
+        $reservation->period = $this->getPeriod($reservation);
+        $reservation->status = __(ucfirst(str_replace("_", " ", $reservation->status)));
+
+        return $reservation;
+    }
     /**
      * Create a new reservation.
      *
@@ -47,21 +60,26 @@ class ReservationService
      */
     public function createReservation(array $data)
     {
+            return DB::transaction(function () use ($data) {
+                return $this->createReservationService->create($data);
+            });
+    }
+
+    public function checkIn(array $data){
         return DB::transaction(function () use ($data) {
-            return $this->createReservationService->create($data);
+            return $this->checkInService->checkIn($data);
         });
     }
 
     /**
-     * Complete a new reservation.
+     * Check out a reservation.
      *
      * @param array $data
-     * @return Reservation
      */
-    public function completeReservation(array $data): Reservation
+    public function checkOut(array $data)
     {
         return DB::transaction(function () use ($data) {
-            return $this->completeReservationService->complete($data);
+            return $this->checkOutService->checkOut($data);
         });
     }
 
@@ -70,13 +88,12 @@ class ReservationService
      *
      * @param int $reservationId
      * @param CancelReservationService $cancelReservationService
-     * @return Reservation
      * @throws BusinessValidationException
      */
-    public function cancelReservation(int $reservationId, CancelReservationService $cancelReservationService): Reservation
+    public function cancelReservation(int $reservationId): void
     {
-        return DB::transaction(function () use ($reservationId, $cancelReservationService) {
-            return $cancelReservationService->cancel($reservationId);
+        DB::transaction(function () use ($reservationId) {
+            $this->cancelReservationService->cancel($reservationId);
         });
     }
 
@@ -227,14 +244,14 @@ class ReservationService
         }
         
         
-        if (request()->filled('search_academic_term_id')) {
-            $query->where('academic_term_id', request('search_academic_term_id'));
+        if (request()->filled('search_academic_term')) {
+            $query->where('academic_term_id', request('search_academic_term'));
         }
         
 
         // Search by building
-        if (request()->filled('search_building_id')) {
-            $buildingId = request('search_building_id');
+        if (request()->filled('search_building')) {
+            $buildingId = request('search_building');
             $query->where(function ($q) use ($buildingId) {
                 $q->whereHas('accommodation.room.apartment.building', function ($subQ) use ($buildingId) {
                     $subQ->where('id', $buildingId);
@@ -245,8 +262,8 @@ class ReservationService
         }
 
         // Search by apartment number
-        if (request()->filled('search_apartment_number')) {
-            $apartmentNumber = request('search_apartment_number');
+        if (request()->filled('search_apartment')) {
+            $apartmentNumber = request('search_apartment');
             $query->where(function ($q) use ($apartmentNumber) {
                 $q->whereHas('accommodation.room.apartment', function ($subQ) use ($apartmentNumber) {
                     $subQ->where('number', $apartmentNumber);
@@ -257,8 +274,8 @@ class ReservationService
         }
 
         // Search by room number
-        if (request()->filled('search_room_number')) {
-            $roomNumber = request('search_room_number');
+        if (request()->filled('search_room')) {
+            $roomNumber = request('search_room');
             $query->whereHas('accommodation.room', function ($q) use ($roomNumber) {
                 $q->where('number', $roomNumber);
             });
@@ -307,16 +324,13 @@ class ReservationService
 
         switch($reservation->accommodation->type) {
             case 'room':
-                $locationDetails = $reservation->accommodation->room->location() ?? 'N/A';
-                if (is_array($locationDetails)) {
-                    $location = 'B' . $locationDetails['building_number']. 'A' . $locationDetails['apartment_number'] . 'R' . $locationDetails['number'];
-                }
+                $room = $reservation->accommodation->room;
+                $location = 'B' . $room->apartment->building->number . ' - A' . $room->apartment->number . ' - R' . $room->number;
+
                 break;
             case 'apartment':
-                $locationDetails = $reservation->accommodation->apartment->location() ?? 'N/A';
-                if (is_array($locationDetails)) {
-                    $location = 'B' . $locationDetails['building_number']. 'A' . $locationDetails['number'];
-                }
+                $apartment = $reservation->accommodation->apartment;
+                $location = 'B' . $apartment->building->number . ' - A' . $apartment->number;
                 break;
             default:
                 return 'N/A';

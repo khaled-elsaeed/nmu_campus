@@ -567,63 +567,80 @@ const Utils = {
     };
   },
 
-  /**
-   * Populate a <select> element with options.
-   * @param {string} select - Selector string for the select element
-   * @param {Array} items - Array of items to populate. Each item can be an object or a string/number.
-   * @param {Object} options - Optional config:
-   *   - valueField: property name for option value (default: 'id')
-   *   - textField: property name for option text (default: 'name')
-   *   - placeholder: placeholder text for the first option (default: 'Select')
-   *   - selected: value to be selected by default
-   *   - includePlaceholder: whether to include placeholder (default: true)
-   *   - triggerChange: whether to trigger change event after populating (default: true)
-   * @param {boolean} isSelect2 - true if select2 is used, false for normal select (default: false)
-   */
   populateSelect(select, items, options = {}, isSelect2 = false) {
-    // Always expect a selector string for select
-    const $select = $(select);
+  const $select = $(select);
 
-    const {
-      valueField = 'id',
-      textField = 'name',
-      placeholder = 'Select',
-      selected = null,
-      includePlaceholder = true,
-      triggerChange = false
-    } = options;
+  const {
+    valueField = 'id',
+    textField = 'name',
+    dataAttributes = {}, // mapping: { htmlAttrName: fieldNameInItem }
+    placeholder = 'Select',
+    selected = null,
+    includePlaceholder = true,
+    triggerChange = true
+  } = options;
 
-    let html = '';
-    if (includePlaceholder) {
-      html += `<option value="">${placeholder}</option>`;
+  let html = '';
+
+  if (includePlaceholder) {
+    html += `<option value="">${placeholder}</option>`;
+  }
+
+  items.forEach(item => {
+    let value = typeof item === 'object' ? item[valueField] : item;
+    let text  = typeof item === 'object' ? item[textField]  : item;
+
+    // Build data-* attributes from mapping
+    let dataAttrs = '';
+    if (typeof item === 'object') {
+      Object.entries(dataAttributes).forEach(([attrName, fieldName]) => {
+        if (item[fieldName] !== undefined && item[fieldName] !== null) {
+          // Ensure camelCase keys become kebab-case for HTML attributes
+          const kebabAttr = attrName.replace(/([A-Z])/g, '-$1').toLowerCase();
+          dataAttrs += ` data-${kebabAttr}="${item[fieldName]}"`;
+        }
+      });
     }
 
-    items.forEach(item => {
-      let value, text;
-      if (typeof item === 'object') {
-        value = item[valueField];
-        text = item[textField];
-      } else {
-        value = item;
-        text = item;
-      }
-      html += `<option value="${value}"${selected != null && value == selected ? ' selected' : ''}>${text}</option>`;
-    });
+    html += `<option value="${value}"${dataAttrs}${selected != null && value == selected ? ' selected' : ''}>${text}</option>`;
+  });
 
-    $select.html(html);
+  $select.html(html);
 
-    // If select2 is requested, trigger the appropriate event
-    if (triggerChange) {
-      if (isSelect2) {
-        if ($select.hasClass('select2-hidden-accessible')) {
-          $select.trigger('change.select2');
-        } else {
-          $select.trigger('change');
-        }
+  // Trigger appropriate change event
+  if (triggerChange) {
+    if (isSelect2) {
+      if ($select.hasClass('select2-hidden-accessible')) {
+        $select.trigger('change.select2');
       } else {
         $select.trigger('change');
       }
+    } else {
+      $select.trigger('change');
     }
+  }
+}
+,
+
+  getElementData(element, attributes = null) {
+    const $element = $(element);
+    if ($element.length === 0) return null;
+
+    if (attributes && Array.isArray(attributes) && attributes.length === 1 && attributes[0] === 'id') {
+      return $element.data('id');
+    }
+
+    const data = {};
+    if (attributes && Array.isArray(attributes)) {
+      attributes.forEach(attr => {
+        data[attr] = $element.data(attr);
+      });
+    } else {
+      $.each($element.data(), (key, value) => {
+        data[key] = value;
+      });
+    }
+    return data;
   },
 
   /**

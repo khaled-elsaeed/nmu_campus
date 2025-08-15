@@ -1,25 +1,21 @@
 @extends('layouts.home')
 
-@section('title', __('app.reservations.page_title'))
+@section('title', __('Reservations'))
 
 @section('page-content')
 <div class="container-xxl flex-grow-1 container-p-y">
     {{-- ===== STATISTICS CARDS ===== --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-3">
-      <x-ui.card.stat2 
-        color="secondary"
-        icon="bx bx-calendar"
-        :label="__('app.reservations.stats.total_reservations')"
-        id="reservations"
+      <x-ui.card.stat2 color="secondary" icon="bx bx-calendar" :label="__('Total Reservations')" id="reservations"
         :subStats="[
           'male' => [
-            'label' => __('app.reservations.stats.male_reservations'),
+            'label' => __('Male Reservations'),
             'icon' => 'bx bx-male-sign',
             'color' => 'info'
           ],
           'female' => [
-            'label' => __('app.reservations.stats.female_reservations'),
+            'label' => __('Female Reservations'),
             'icon' => 'bx bx-female-sign',
             'color' => 'danger'
           ]
@@ -27,19 +23,16 @@
       />
         </div>
     <div class="col-sm-6 col-xl-3">
-      <x-ui.card.stat2 
-        color="warning"
-        icon="bx bx-time"
-        :label="__('app.reservations.stats.pending_reservations')"
+      <x-ui.card.stat2 color="warning" icon="bx bx-time" :label="__('Pending Reservations')"
         id="pending"
         :subStats="[
           'male' => [
-            'label' => __('app.reservations.stats.male_pending'),
+            'label' => __('Male Pending Reservations'),
             'icon' => 'bx bx-male-sign',
             'color' => 'info'
           ],
           'female' => [
-            'label' => __('app.reservations.stats.female_pending'),
+            'label' => __('Female Pending Reservations'),
             'icon' => 'bx bx-female-sign',
             'color' => 'danger'
           ]
@@ -50,16 +43,16 @@
       <x-ui.card.stat2 
         color="info"
         icon="bx bx-check-circle"
-        :label="__('app.reservations.stats.confirmed_reservations')"
+        :label="__('Confirmed Reservations')"
         id="confirmed"
         :subStats="[
           'male' => [
-            'label' => __('app.reservations.stats.male_confirmed'),
+            'label' => __('Male Confirmed Reservations'),
             'icon' => 'bx bx-male-sign',
             'color' => 'info'
           ],
           'female' => [
-            'label' => __('app.reservations.stats.female_confirmed'),
+            'label' => __('Female Confirmed Reservations'),
             'icon' => 'bx bx-female-sign',
             'color' => 'danger'
           ]
@@ -70,16 +63,16 @@
       <x-ui.card.stat2 
         color="success"
         icon="bx bx-log-in"
-        :label="__('app.reservations.stats.checked_in')"
+        :label="__('Checked In Reservations')"
         id="checked_in"
         :subStats="[
           'male' => [
-            'label' => __('app.reservations.stats.male_checked_in'),
+            'label' => __('Male Checked In Reservations'),
             'icon' => 'bx bx-male-sign',
             'color' => 'info'
           ],
           'female' => [
-            'label' => __('app.reservations.stats.female_checked_in'),
+            'label' => __('Female Checked In Reservations'),
             'icon' => 'bx bx-female-sign',
             'color' => 'danger'
           ]
@@ -90,88 +83,84 @@
 
     {{-- ===== PAGE HEADER & ACTION BUTTONS ===== --}}
     <x-ui.page-header 
-        :title="__('app.reservations.page_header')"
-        :description="__('app.reservations.page_description')"
+  :title="__('Reservations')"
+  :description="__('Manage and view all reservations.')"
         icon="bx bx-calendar"
     >
     <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
     <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#reservationSearchCollapse" aria-expanded="false" aria-controls="reservationSearchCollapse">
-      <i class="bx bx-filter-alt me-1"></i> {{ __('app.general.search') }}
+  <i class="bx bx-filter-alt me-1"></i> {{ __('Search') }}
     </button>
     </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
     <x-ui.advanced-search 
-        :title="__('app.reservations.search.advanced_title')" 
+  :title="__('Advanced Search')" 
         formId="advancedReservationSearch" 
         collapseId="reservationSearchCollapse"
         :collapsed="false"
     >
         <div class="col-md-4">
-            <label for="search_national_id" class="form-label">{{ __('app.reservations.search.fields.national_id') }}:</label>
+            <label for="search_national_id" class="form-label">{{ __('National ID') }}:</label>
             <input type="text" class="form-control" id="search_national_id" name="search_national_id">
         </div>
         <div class="col-md-4">
-            <label for="search_status" class="form-label">{{ __('app.reservations.search.fields.status') }}:</label>
+            <label for="search_status" class="form-label">{{ __('Status') }}:</label>
             <select class="form-control" id="search_status" name="search_status">
-                <option value="">{{ __('app.reservations.search.placeholders.all_statuses') }}</option>
-                <option value="pending">{{ __('app.reservations.status.pending') }}</option>
-                <option value="confirmed">{{ __('app.reservations.status.confirmed') }}</option>
-                <option value="checked_in">{{ __('app.reservations.status.checked_in') }}</option>
-                <option value="checked_out">{{ __('app.reservations.status.checked_out') }}</option>
-                <option value="cancelled">{{ __('app.reservations.status.cancelled') }}</option>
+                <option value="" disabled selected>{{ __('Select Status') }}</option>
+                <option value="pending">{{ __('Pending') }}</option>
+                <option value="confirmed">{{ __('Confirmed') }}</option>
+                <option value="checked_in">{{ __('Checked In') }}</option>
+                <option value="checked_out">{{ __('Checked Out') }}</option>
+                <option value="cancelled">{{ __('Cancelled') }}</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_active" class="form-label">{{ __('app.reservations.search.fields.active') }}:</label>
+            <label for="search_active" class="form-label">{{ __('Active') }}:</label>
             <select class="form-control" id="search_active" name="search_active">
-                <option value="">{{ __('app.reservations.search.placeholders.all') }}</option>
-                <option value="1">{{ __('app.reservations.active_status.active') }}</option>
-                <option value="0">{{ __('app.reservations.active_status.inactive') }}</option>
+                <option value="" disabled selected>{{ __('Select Status') }}</option>
+                <option value="1">{{ __('Active') }}</option>
+                <option value="0">{{ __('Inactive') }}</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_academic_term_id" class="form-label">{{ __('app.reservations.search.fields.academic_term') }}:</label>
-            <select class="form-control" id="search_academic_term_id" name="search_academic_term_id">
-                <option value="">{{ __('app.reservations.search.placeholders.all_terms') }}</option>
+            <label for="search_academic_term" class="form-label">{{ __('Academic Term') }}:</label>
+            <select class="form-control" id="search_academic_term" name="search_academic_term">
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_building_id" class="form-label">{{ __('app.reservations.search.fields.building') }}:</label>
-            <select class="form-control" id="search_building_id" name="search_building_id">
-                <option value="">{{ __('app.reservations.search.placeholders.select_building') }}</option>
+            <label for="search_building" class="form-label">{{ __('Building') }}:</label>
+            <select class="form-control" id="search_building" name="search_building">
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_apartment_number" class="form-label">{{ __('app.reservations.search.fields.apartment') }}:</label>
-            <select class="form-control" id="search_apartment_number" name="search_apartment_number" disabled>
-                <option value="">{{ __('app.reservations.search.placeholders.select_apartment') }}</option>
+            <label for="search_apartment" class="form-label">{{ __('Apartment') }}:</label>
+            <select class="form-control" id="search_apartment" name="search_apartment" disabled>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="search_room_number" class="form-label">{{ __('app.reservations.search.fields.room') }}:</label>
-            <select class="form-control" id="search_room_number" name="search_room_number" disabled>
-                <option value="">{{ __('app.reservations.search.placeholders.select_room') }}</option>
+            <label for="search_room" class="form-label">{{ __('Room') }}:</label>
+            <select class="form-control" id="search_room" name="search_room" disabled>
             </select>
         </div>
         <div class="w-100"></div>
-        <button class="btn btn-outline-secondary mt-2 ms-2" id="clearReservationFiltersBtn" type="button">
-            <i class="bx bx-x"></i> {{ __('app.reservations.search.clear_filters') }}
-        </button>
+    <button class="btn btn-outline-secondary mt-2 ms-2" id="clearReservationFiltersBtn" type="button">
+      <i class="bx bx-x"></i> {{ __('Clear Filters') }}
+    </button>
     </x-ui.advanced-search>
 
     {{-- ===== DATA TABLE ===== --}}
     <x-ui.datatable.table 
-        :headers="[
-            __('app.reservations.table.headers.reservation_number'),
-            __('app.reservations.table.headers.user'),
-            __('app.reservations.table.headers.location'),
-            __('app.reservations.table.headers.period'),
-            __('app.reservations.table.headers.status'),
-            __('app.reservations.table.headers.created'),
-            __('app.reservations.table.headers.actions')
-        ]"
+    :headers="[
+      __('Reservation Number'),
+      __('User'),
+      __('Location'),
+      __('Period'),
+      __('Status'),
+      __('Created'),
+      __('Actions')
+    ]"
         :columns="[
             ['data' => 'reservation_number', 'name' => 'reservation_number'],
             ['data' => 'name', 'name' => 'name'],
@@ -187,10 +176,10 @@
             'search_national_id',
             'search_status',
             'search_active',
-            'search_academic_term_id',
-            'search_building_id',
-            'search_apartment_number',
-            'search_room_number',
+            'search_academic_term',
+            'search_building',
+            'search_apartment',
+            'search_room',
             'search_period_type'
         ]"
     />
@@ -215,42 +204,24 @@
 // TRANSLATION CONSTANTS
 // ===========================
 var TRANSLATIONS = {
-  success: {
-    reservationCreated: @json(__('app.reservations.messages.success.created')),
-    reservationUpdated: @json(__('app.reservations.messages.success.updated')),
-    reservationDeleted: @json(__('app.reservations.messages.success.deleted')),
-    reservationCancelled: @json(__('app.reservations.messages.success.cancelled'))
-  },
-  error: {
-    statsLoadFailed: @json(__('app.reservations.messages.error.stats_load_failed')),
-    reservationLoadFailed: @json(__('app.reservations.messages.error.load_failed')),
-    reservationCreateFailed: @json(__('app.reservations.messages.error.create_failed')),
-    reservationUpdateFailed: @json(__('app.reservations.messages.error.update_failed')),
-    reservationDeleteFailed: @json(__('app.reservations.messages.error.delete_failed')),
-    reservationCancelFailed: @json(__('app.reservations.messages.error.cancel_failed')),
-    buildingsLoadFailed: @json(__('app.reservations.messages.error.buildings_load_failed')),
-    apartmentsLoadFailed: @json(__('app.reservations.messages.error.apartments_load_failed')),
-    roomsLoadFailed: @json(__('app.reservations.messages.error.rooms_load_failed')),
-    academicTermsLoadFailed: @json(__('app.reservations.messages.error.academic_terms_load_failed')),
-    operationFailed: @json(__('app.reservations.messages.error.operation_failed'))
-  },
   confirm: {
-    deleteReservation: {
-      title: @json(__('app.reservations.confirm.delete.title')),
-      text: @json(__('app.reservations.confirm.delete.text')),
-      confirmButtonText: @json(__('app.reservations.confirm.delete.button'))
+    delete: {
+      title: @json(__('Delete Reservation')),
+      text: @json(__('Are you sure you want to delete this reservation?')),
+      confirmButtonText: @json(__('yes, delete it'))
     },
-    cancelReservation: {
-      title: @json(__('app.reservations.confirm.cancel.title')),
-      text: @json(__('app.reservations.confirm.cancel.text')),
-      confirmButtonText: @json(__('app.reservations.confirm.cancel.button'))
+    cancel: {
+      title: @json(__('Cancel Reservation')),
+      text: @json(__('Are you sure you want to cancel this reservation?')),
+      confirmButtonText: @json(__('yes, cancel it'))
     }
   },
   placeholders: {
-    selectBuilding: @json(__('app.reservations.search.placeholders.select_building')),
-    selectApartment: @json(__('app.reservations.search.placeholders.select_apartment')),
-    selectRoom: @json(__('app.reservations.search.placeholders.select_room')),
-    allTerms: @json(__('app.reservations.search.placeholders.all_terms'))
+    selectBuilding: @json(__('Select Building')),
+    selectApartment: @json(__('Select Apartment')),
+    selectRoom: @json(__('Select Room')),
+    selectTerm: @json(__('Select Term')),
+    selectStatus: @json(__('Select Status')),
   }
 };
 
@@ -263,7 +234,7 @@ var ROUTES = {
     store: '{{ route("reservations.store") }}',
     destroy: '{{ route("reservations.destroy", ":id") }}',
     datatable: '{{ route("reservations.datatable") }}',
-    cancel: '{{ route("reservations.cancel", ":id") }}', // Added cancel route
+    cancel: '{{ route("reservations.cancel", ":id") }}',
   },
   buildings: {
     all: '{{ route("housing.buildings.all") }}'
@@ -326,7 +297,6 @@ var StatsManager = Utils.createStatsManager({
     'confirmed': ['male', 'female'],
     'checked_in': ['male', 'female']
   },
-  onError: TRANSLATIONS.error.statsLoadFailed
 });
 
 // ===========================
@@ -347,7 +317,14 @@ var ReservationManager = {
     this.confirmAndDeleteReservation(reservationId);
   },
   confirmAndDeleteReservation: function(reservationId) {
-    Utils.confirmAction(TRANSLATIONS.confirm.deleteReservation)
+    Utils.showConfirmDialog(
+      {
+        title: TRANSLATIONS.confirm.delete.title,
+        text: TRANSLATIONS.confirm.delete.text,
+        icon: 'warning',
+        confirmButtonText: TRANSLATIONS.confirm.delete.confirmButtonText,
+      }
+    )
       .then(function(result) {
         if (result.isConfirmed) {
           ReservationManager.deleteReservation(reservationId);
@@ -359,23 +336,30 @@ var ReservationManager = {
       .done(function(response) {
         if (response.success) {
           Utils.reloadDataTable('#reservations-table');
-          Utils.showSuccess(TRANSLATIONS.success.reservationDeleted);
+          Utils.showSuccess(response.message);
           StatsManager.load();
         } else {
-          Utils.showError(response.message || TRANSLATIONS.error.reservationDeleteFailed);
+          Utils.showError(response.message);
         }
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr,'An error occurred')
+        Utils.handleAjaxError(xhr,xhr.responseJSON?.message)
       });
   },
   // --- Cancel Reservation Handlers ---
   handleCancelReservation: function(e) {
-    var reservationId = Utils.getElementData(e.currentTarget, 'id');
+    var reservationId = Utils.getElementData(e.currentTarget, ['id']);
     this.confirmAndCancelReservation(reservationId);
   },
   confirmAndCancelReservation: function(reservationId) {
-    Utils.confirmAction(TRANSLATIONS.confirm.cancelReservation)
+    Utils.showConfirmDialog(
+      {
+        title: TRANSLATIONS.confirm.cancel.title,
+        text: TRANSLATIONS.confirm.cancel.text,
+        icon: 'warning',
+        confirmButtonText: TRANSLATIONS.confirm.cancel.confirmButtonText
+      }
+    )
       .then(function(result) {
         if (result.isConfirmed) {
           ReservationManager.cancelReservation(reservationId);
@@ -387,14 +371,14 @@ var ReservationManager = {
       .done(function(response) {
         if (response.success) {
           Utils.reloadDataTable('#reservations-table');
-          Utils.showSuccess(TRANSLATIONS.success.reservationCancelled);
+          Utils.showSuccess(response.message);
           StatsManager.refresh();
         } else {
-          Utils.showError(response.message || TRANSLATIONS.error.reservationCancelFailed);
+          Utils.showError(response.message);
         }
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr,'An error occurred')
+        Utils.handleAjaxError(xhr,xhr.responseJSON?.message)
       });
   }
 };
@@ -412,10 +396,10 @@ var SearchManager = {
       '#search_national_id',
       '#search_status',
       '#search_active',
-      '#search_academic_term_id',
-      '#search_building_id',
-      '#search_apartment_number',
-      '#search_room_number',
+      '#search_academic_term',
+      '#search_building',
+      '#search_apartment',
+      '#search_room',
       '#search_period_type'
     ].join(', ');
     $(filterSelectors).on('keyup change', function() {Utils.reloadDataTable('#reservations-table');});
@@ -426,17 +410,18 @@ var SearchManager = {
       '#search_national_id',
       '#search_status',
       '#search_active',
-      '#search_academic_term_id',
-      '#search_building_id',
-      '#search_apartment_number',
-      '#search_room_number',
+      '#search_academic_term',
+      '#search_building',
+      '#search_apartment',
+      '#search_room',
       '#search_period_type'
     ].join(', ');
     $(filterSelectors).val('');
     // Reset apartment and room selects to disabled
-    $('#search_apartment_number').prop('disabled', true).empty().append('<option value="">' + TRANSLATIONS.placeholders.selectApartment + '</option>');
-    $('#search_room_number').prop('disabled', true).empty().append('<option value="">' + TRANSLATIONS.placeholders.selectRoom + '</option>');
+    $('#search_apartment').prop('disabled', true).empty().append('<option value="">' + TRANSLATIONS.placeholders.selectApartment + '</option>');
+    $('#search_room').prop('disabled', true).empty().append('<option value="">' + TRANSLATIONS.placeholders.selectRoom + '</option>');
     Utils.reloadDataTable('#reservations-table');
+    Select2Manager.resetSearchSelect2();
   }
 };
 
@@ -452,111 +437,196 @@ var SelectManager = {
   },
   bindEvents: function() {
     var self = this;
-    $('#search_building_id').on('change', function(e) {
+    $('#search_building').on('change', function(e) {
       var buildingId = $(e.target).val();
       if (buildingId) {
         self.populateApartmentSelect(buildingId);
-        $('#search_apartment_number').prop('disabled', false);
+        $('#search_apartment').prop('disabled', false);
       } else {
-        self.clearSelect('#search_apartment_number', TRANSLATIONS.placeholders.selectApartment);
-        $('#search_apartment_number').prop('disabled', true);
+        self.clearSelect('#search_apartment', TRANSLATIONS.placeholders.selectApartment);
+        $('#search_apartment').prop('disabled', true);
       }
       self.clearRoomSelect();
-      $('#search_room_number').prop('disabled', true);
+      $('#search_room').prop('disabled', true);
     });
-    $('#search_apartment_number').on('change', function(e) {
+    $('#search_apartment').on('change', function(e) {
       var apartmentNumber = $(e.target).val();
       if (apartmentNumber) {
         self.populateRoomSelect(apartmentNumber);
-        $('#search_room_number').prop('disabled', false);
+        $('#search_room').prop('disabled', false);
       } else {
         self.clearRoomSelect();
-        $('#search_room_number').prop('disabled', true);
+        $('#search_room').prop('disabled', true);
       }
     });
   },
   disableApartmentAndRoom: function() {
-    $('#search_apartment_number').prop('disabled', true);
-    $('#search_room_number').prop('disabled', true);
+    $('#search_apartment').prop('disabled', true);
+    $('#search_room').prop('disabled', true);
   },
   populateBuildingSelect: function() {
     ApiService.fetchBuildings()
       .done(function(response) {
         if (response.success && response.data) {
-          SelectManager.populateSelect('#search_building_id', response.data, 'number', TRANSLATIONS.placeholders.selectBuilding);
+          Utils.populateSelect('#search_building', response.data, {
+            valueField: 'id',
+            textField: 'number',
+            placeholder: TRANSLATIONS.placeholders.selectBuilding
+          }, true);
         }
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr, @json(__('app.general.an_error_occurred')));
+        Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
       });
   },
   populateApartmentSelect: function(buildingId) {
     if (!buildingId) {
-      this.clearSelect('#search_apartment_number', TRANSLATIONS.placeholders.selectApartment);
-      $('#search_apartment_number').prop('disabled', true);
+      this.clearSelect('#search_apartment', TRANSLATIONS.placeholders.selectApartment);
+      $('#search_apartment').prop('disabled', true);
       return;
     }
     ApiService.fetchApartments(buildingId)
       .done(function(response) {
         if (response.success && response.data) {
-          SelectManager.populateSelect('#search_apartment_number', response.data, 'number', TRANSLATIONS.placeholders.selectApartment);
+          Utils.populateSelect('#search_apartment', response.data, {
+            valueField: 'id',
+            textField: 'number',
+            placeholder: TRANSLATIONS.placeholders.selectApartment
+          }, true);
         } else {
-          SelectManager.clearSelect('#search_apartment_number', TRANSLATIONS.placeholders.selectApartment);
+          SelectManager.clearSelect('#search_apartment', TRANSLATIONS.placeholders.selectApartment);
         }
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr, @json(__('app.general.an_error_occurred')));
-        SelectManager.clearSelect('#search_apartment_number', TRANSLATIONS.placeholders.selectApartment);
+        Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
+        SelectManager.clearSelect('#search_apartment', TRANSLATIONS.placeholders.selectApartment);
       });
   },
   populateRoomSelect: function(apartmentNumber) {
     if (!apartmentNumber) {
       this.clearRoomSelect();
-      $('#search_room_number').prop('disabled', true);
+      $('#search_room').prop('disabled', true);
       return;
     }
     ApiService.fetchRooms(apartmentNumber)
       .done(function(response) {
         if (response.success && response.data) {
-          SelectManager.populateSelect('#search_room_number', response.data, 'number', TRANSLATIONS.placeholders.selectRoom);
+          Utils.populateSelect('#search_room', response.data, {
+            valueField: 'id',
+            textField: 'number',
+            placeholder: TRANSLATIONS.placeholders.selectRoom
+          }, true);
         } else {
-          SelectManager.clearSelect('#search_room_number', TRANSLATIONS.placeholders.selectRoom);
+          SelectManager.clearSelect('#search_room', TRANSLATIONS.placeholders.selectRoom);
         }
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr, @json(__('app.general.an_error_occurred')));
-        SelectManager.clearSelect('#search_room_number', TRANSLATIONS.placeholders.selectRoom);
+        Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
+        SelectManager.clearSelect('#search_room', TRANSLATIONS.placeholders.selectRoom);
       });
   },
   populateAcademicTermsSelect: function() {
     ApiService.fetchAcademicTerms()
       .done(function(response) {
         if (response.success && response.data) {
-          SelectManager.populateSelect('#search_academic_term_id', response.data, 'name', TRANSLATIONS.placeholders.allTerms);
+          Utils.populateSelect('#search_academic_term', response.data, {
+            valueField: 'id',
+            textField: 'name',
+            placeholder: TRANSLATIONS.placeholders.selectTerm
+          }, true);
         } else {
-          SelectManager.clearSelect('#search_academic_term_id', TRANSLATIONS.placeholders.allTerms);
+          Select2Manager.resetSearchSelect2('#search_academic_term');
         }
       })
       .fail(function(xhr) {
-        Utils.handleAjaxError(xhr, @json(__('app.general.an_error_occurred')));
-        SelectManager.clearSelect('#search_academic_term_id', TRANSLATIONS.placeholders.allTerms);
+        Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
+        SelectManager.clearSelect('#search_academic_term', TRANSLATIONS.placeholders.selectTerm);
       });
-  },
-  populateSelect: function(selector, data, valueField, placeholder) {
-    var $select = $(selector);
-    $select.empty().append('<option value="">' + placeholder + '</option>');
-    data.forEach(function(item) {
-      $select.append('<option value="' + item.id + '">' + item[valueField] + '</option>');
-    });
   },
   clearSelect: function(selector, placeholder) {
     $(selector).empty().append('<option value="">' + placeholder + '</option>');
   },
   clearRoomSelect: function() {
-    this.clearSelect('#search_room_number', TRANSLATIONS.placeholders.selectRoom);
-  },
+    this.clearSelect('#search_room', TRANSLATIONS.placeholders.selectRoom);
+  }
 };
 
+// ===========================
+// SELECT2 MANAGER
+// ===========================
+var Select2Manager = {
+    /**
+     * Configuration for all Select2 elements
+     */
+    config: {
+        search: {
+            '#search_status': { placeholder: TRANSLATIONS.placeholders.selectStatus },
+            '#search_active': { placeholder: TRANSLATIONS.placeholders.selectStatus },
+            '#search_academic_term': { placeholder: TRANSLATIONS.placeholders.selectTerm },
+            '#search_building': { placeholder: TRANSLATIONS.placeholders.selectBuilding },
+            '#search_apartment': { placeholder: TRANSLATIONS.placeholders.selectApartment },
+            '#search_room': { placeholder: TRANSLATIONS.placeholders.selectRoom },
+            '#search_period_type': { placeholder: TRANSLATIONS.placeholders.selectPeriodType }
+        },
+        modal: {
+            // Add modal select2 configs here if needed
+        }
+    },
+
+    /**
+     * Initialize all search Select2 elements
+     */
+    initSearchSelect2: function() {
+        Object.keys(this.config.search).forEach(function(selector) {
+            Utils.initSelect2(selector, Select2Manager.config.search[selector]);
+        });
+    },
+
+    /**
+     * Initialize all modal Select2 elements
+     */
+    initModalSelect2: function() {
+        Object.keys(this.config.modal).forEach(function(selector) {
+            Utils.initSelect2(selector, Select2Manager.config.modal[selector]);
+        });
+    },
+
+    /**
+     * Initialize all Select2 elements
+     */
+    initAll: function() {
+        this.initSearchSelect2();
+        this.initModalSelect2();
+    },
+
+    /**
+     * Clear specific Select2 elements
+     * @param {Array} selectors - Array of selectors to clear
+     */
+    clearSelect2: function(selectors) {
+        selectors.forEach(function(selector) {
+            $(selector).val('').trigger('change.select2');
+        });
+    },
+
+    /**
+     * Reset modal Select2 elements
+     */
+    resetModalSelect2: function() {
+        this.clearSelect2(Object.keys(this.config.modal));
+    },
+
+    /**
+     * Reset search Select2 elements
+     */
+    resetSearchSelect2: function(selector) {
+        if (selector == null || selector === undefined) {
+            this.clearSelect2(Object.keys(this.config.search));
+        } else {
+            this.clearSelect2([selector]);
+        }
+    }
+};
 
 // ===========================
 // MAIN APP INITIALIZER
@@ -567,6 +637,7 @@ var ReservationApp = {
     ReservationManager.init();
     SearchManager.init();
     SelectManager.init();
+    Select2Manager.initAll();
   }
 };
 

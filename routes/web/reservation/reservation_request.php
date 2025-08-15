@@ -9,5 +9,6 @@ Route::prefix('reservation-requests')->name('reservation-requests.')->group(func
     Route::get('/datatable', [ReservationRequestController::class, 'datatable'])->name('datatable');
     Route::get('/{id}', [ReservationRequestController::class, 'show'])->name('show');
     Route::put('/{id}', [ReservationRequestController::class, 'update'])->name('update');
-    Route::delete('/{id}', [ReservationRequestController::class, 'destroy'])->name('destroy');
+    Route::post('/{id}', [ReservationRequestController::class, 'accept'])->name('accept');
+    Route::delete('/{id}', [ReservationRequestController::class, 'cancel'])->name('cancel');
 }); 

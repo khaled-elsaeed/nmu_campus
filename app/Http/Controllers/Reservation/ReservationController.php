@@ -49,7 +49,7 @@ class ReservationController extends Controller
     {
         try {
             $stats = $this->reservationService->getStats();
-            return successResponse('Stats fetched successfully.', $stats);
+            return successResponse('Reservation statistics fetched successfully.', $stats);
         } catch (Exception $e) {
             logError('ReservationController@stats', $e);
             return errorResponse('Internal server error.', [], 500);
@@ -145,6 +145,19 @@ class ReservationController extends Controller
         }
     }
 
+    public function checkIn(Request $request): JsonResponse
+    {
+        try {
+            $this->reservationService->checkIn($request->all());
+            return successResponse('Reservation checked in successfully.');
+        } catch (BusinessValidationException $e) {
+            return errorResponse($e->getMessage(), [], 422);
+        } catch (Exception $e) {
+            logError('ReservationController@checkIn', $e, []);
+            return errorResponse('Failed to check in reservation.', [$e->getMessage()]);
+        }
+    }
+
     /**
      * Complete (end) a reservation (checkout).
      *
@@ -154,10 +167,7 @@ class ReservationController extends Controller
     public function checkout(Request $request): JsonResponse
     {
         try {
-            $completed = $this->reservationService->completeReservation($request->all());
-            if (!$completed) {
-                return errorResponse('Reservation not found or cannot be completed.', [], 404);
-            }
+            $this->reservationService->checkOut($request->all());
             return successResponse('Reservation completed successfully.');
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage(), [], 422);

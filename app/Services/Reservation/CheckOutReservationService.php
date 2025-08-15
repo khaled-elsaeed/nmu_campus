@@ -3,38 +3,38 @@
 namespace App\Services\Reservation;
 
 use App\Models\Reservation\Reservation;
-use App\Services\Reservation\Complete\ReservationValidator;
-use App\Services\Reservation\Complete\ReservationComplete;
-use App\Services\Reservation\Complete\PaymentService;
-use App\Services\Reservation\Complete\EquipmentReturnService;
+use App\Services\Reservation\CheckOut\ReservationValidator;
+use App\Services\Reservation\CheckOut\ReservationCheckOut;
+use App\Services\Reservation\CheckOut\PaymentService;
+use App\Services\Reservation\CheckOut\EquipmentReturnService;
 
-class CompleteReservationService
+class CheckOutReservationService
 {
     protected ReservationValidator $validator;
-    protected ReservationComplete $reservationComplete;
+    protected ReservationCheckOut $reservationCheckOut;
     protected PaymentService $paymentService;
     protected EquipmentReturnService $equipmentService;
 
     public function __construct()
     {
         $this->validator = new ReservationValidator();
-        $this->reservationComplete = new ReservationComplete();
+        $this->reservationCheckOut = new ReservationCheckOut();
         $this->equipmentService = new EquipmentReturnService();
         $this->paymentService = new PaymentService();
     }
 
     /**
-     * Complete a new reservation (main entry point).
+     * Check out a reservation (main entry point).
      *
      * @param array $data
      * @return Reservation
      */
-    public function complete(array $data): Reservation
+    public function checkOut(array $data): Reservation
     {
-        $this->validator->validateBeforeComplete($data);
+        $this->validator->validateBeforeCheckOut($data);
         $damages = $this->equipmentService->returnEquipment($data);
 
-        $reservation = $this->reservationComplete->completeReservation($data);
+        $reservation = $this->reservationCheckOut->checkOutReservation($data);
 
         if (!empty($damages)) {
             $data['damages'] = $damages;

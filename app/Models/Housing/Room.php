@@ -57,6 +57,7 @@ class Room extends Model
         return $this->belongsTo(Apartment::class);
     }
 
+    
     /**
      * Get the accommodations (reservations) for this room.
      */

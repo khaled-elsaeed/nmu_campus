@@ -56,10 +56,12 @@ class Sidebar extends Component
         $user = Auth::user();
         $menuItems = $this->getMenuItems();
 
-        return array_values(array_filter(
+        $filteredItems = array_values(array_filter(
             array_map(fn($item) => $this->filterMenuItem($item, $user), $menuItems),
             fn($item) => !is_null($item)
         ));
+
+        return $filteredItems;
     }
 
     /**
@@ -91,7 +93,7 @@ class Sidebar extends Component
     private function getDashboardMenuItem(): array
     {
         return [
-            'title' => __('sidebar.dashboard'),
+            'title' => __('Dashboard'),
             'icon' => 'bx bx-home-circle',
             'route' => route('home'),
             'active' => in_array(request()->route()->getName(), ['home', 'admin.home', 'advisor.home']),
@@ -105,28 +107,28 @@ class Sidebar extends Component
     private function getAcademicMenuGroup(): array
     {
         return [
-            'title' => __('sidebar.academic'),
+            'title' => __('Academic'),
             'icon' => 'bx bx-book',
             'route' => '#',
             'type' => 'group',
             'active' => request()->routeIs('academic.*'),
             'children' => [
                 [
-                    'title' => __('sidebar.academic_terms'),
+                    'title' => __('Academic Terms'),
                     'icon' => 'bx bx-calendar-event',
                     'route' => route('academic.academic_terms.index'),
                     'active' => str_starts_with(request()->route()->getName(), 'academic.academic_terms.'),
                     'permission' => 'academic.academic_terms.view',
                 ],
                 [
-                    'title' => __('sidebar.faculties'),
+                    'title' => __('Faculties'),
                     'icon' => 'bx bx-building-house',
                     'route' => route('academic.faculties.index'),
                     'active' => str_starts_with(request()->route()->getName(), 'academic.faculties.'),
                     'permission' => 'academic.faculties.view',
                 ],
                 [
-                    'title' => __('sidebar.programs'),
+                    'title' => __('Programs'),
                     'icon' => 'bx bx-book-content',
                     'route' => route('academic.programs.index'),
                     'active' => str_starts_with(request()->route()->getName(), 'academic.programs.'),
@@ -142,28 +144,28 @@ class Sidebar extends Component
     private function getHousingMenuGroup(): array
     {
         return [
-            'title' => __('sidebar.housing_management'),
+            'title' => __('Housing Management'),
             'icon' => 'bx bx-buildings',
             'route' => '#',
             'type' => 'group',
             'active' => request()->routeIs('housing.*'),
             'children' => [
                 [
-                    'title' => __('sidebar.building'),
+                    'title' => __('Building'),
                     'icon' => 'bx bx-buildings',
                     'route' => route('housing.buildings.index'),
                     'active' => str_starts_with(request()->route()->getName(), 'housing.buildings.'),
                     'permission' => 'housing.buildings.view',
                 ],
                 [
-                    'title' => __('sidebar.apartment'),
+                    'title' => __('Apartment'),
                     'icon' => 'bx bx-building',
                     'route' => route('housing.apartments.index'),
                     'active' => str_starts_with(request()->route()->getName(), 'housing.apartments.'),
                     'permission' => 'housing.apartments.view',
                 ],
                 [
-                    'title' => __('sidebar.room'),
+                    'title' => __('Room'),
                     'icon' => 'bx bx-door-open',
                     'route' => route('housing.rooms.index'),
                     'active' => str_starts_with(request()->route()->getName(), 'housing.rooms.'),
@@ -179,21 +181,21 @@ class Sidebar extends Component
     private function getResidentsMenuGroup(): array
     {
         return [
-            'title' => __('sidebar.residents'),
+            'title' => __('Residents'),
             'icon' => 'bx bx-group',
             'route' => '#',
             'type' => 'group',
             'active' => request()->routeIs('resident.*'),
             'children' => [
                 [
-                    'title' => __('sidebar.students'),
+                    'title' => __('Students'),
                     'icon' => 'bx bx-user',
                     'route' => route('resident.students.index'),
                     'active' => str_starts_with(request()->route()->getName(), 'resident.students.'),
                     'permission' => 'resident.students.view',
                 ],
                 [
-                    'title' => __('sidebar.staff'),
+                    'title' => __('Staff'),
                     'icon' => 'bx bx-id-card',
                     'route' => route('resident.staff.index'),
                     'active' => str_starts_with(request()->route()->getName(), 'resident.staff.'),
@@ -208,8 +210,11 @@ class Sidebar extends Component
      */
     private function getReservationsMenuGroup(): array
     {
+        $route = request()->route();
+        $routeName = $route ? $route->getName() : '';
+
         return [
-            'title' => __('sidebar.reservations'),
+            'title' => __('Reservations'),
             'icon' => 'bx bx-calendar',
             'route' => route('reservations.index'),
             'active' => str_starts_with(request()->route()->getName(), 'reservations.') ||
@@ -217,36 +222,37 @@ class Sidebar extends Component
             'permission' => 'reservations.view',
             'children' => [
                 [
-                    'title' => __('sidebar.view_reservations'),
+                    'title' => __('View'),
                     'icon' => 'bx bx-list-ul',
                     'route' => route('reservations.index'),
                     'active' => request()->routeIs('reservations.index'),
                     'permission' => 'reservations.view',
                 ],
                 [
-                    'title' => __('sidebar.add_reservation'),
+                    'title' => __('Create'),
                     'icon' => 'bx bx-plus',
                     'route' => route('reservations.create'),
                     'active' => request()->routeIs('reservations.create'),
                     'permission' => 'reservations.create',
                 ],
                 [
-                    'title' => __('sidebar.check_in_out'),
+                    'title' => __('Check In/Out'),
                     'icon' => 'bx bx-log-in-circle',
                     'route' => '#',
-                    'active' => request()->routeIs('reservations.check-in') || request()->routeIs('reservations.check-out'),
                     'type' => 'group',
+                    'active' => request()->routeIs('reservations.check-in') || 
+                               request()->routeIs('reservations.check-out'),
                     'permission' => 'reservations.check_in_out',
                     'children' => [
                         [
-                            'title' => __('sidebar.check_in'),
+                            'title' => __('Check In'),
                             'icon' => 'bx bx-log-in',
                             'route' => route('reservations.check-in'),
                             'active' => request()->routeIs('reservations.check-in'),
                             'permission' => 'reservations.check_in_out',
                         ],
                         [
-                            'title' => __('sidebar.check_out'),
+                            'title' => __('Check Out'),
                             'icon' => 'bx bx-log-out',
                             'route' => route('reservations.check-out'),
                             'active' => request()->routeIs('reservations.check-out'),
@@ -255,11 +261,21 @@ class Sidebar extends Component
                     ],
                 ],
                 [
-                    'title' => __('sidebar.reservation_requests'),
+                    'title' => __('Requests'),
                     'icon' => 'bx bx-calendar-check',
-                    'route' => route('reservation-requests.index'),
-                    'active' => str_starts_with(request()->route()->getName(), 'reservation-requests.'),
+                    'route' => '#',
+                    'type' => 'group',
+                    'active' => str_starts_with($routeName, 'reservation-requests.'),
                     'permission' => 'reservation_requests.view',
+                    'children' => [
+                        [
+                            'title' => __('View'),
+                            'icon' => 'bx bx-list-check',
+                            'route' => route('reservation-requests.index'),
+                            'active' => request()->routeIs('reservation-requests.index'),
+                            'permission' => 'reservation_requests.view',
+                        ],
+                    ],
                 ],
             ],
         ];
@@ -271,22 +287,23 @@ class Sidebar extends Component
     private function getPaymentsMenuGroup(): array
     {
         return [
-            'title' => __('sidebar.payments'),
+            'title' => __('Payments'),
             'icon' => 'bx bx-money',
-            'route' => route('payments.index'),
+            'route' => '#',
+            'type' => 'group',
             'active' => str_starts_with(request()->route()->getName(), 'payments.') ||
                        str_starts_with(request()->route()->getName(), 'insurances.'),
             'permission' => 'payments.view',
             'children' => [
                 [
-                    'title' => __('sidebar.view_payments'),
+                    'title' => __('View Payments'),
                     'icon' => 'bx bx-money',
                     'route' => route('payments.index'),
                     'active' => request()->routeIs('payments.index'),
                     'permission' => 'payments.view',
                 ],
                 [
-                    'title' => __('sidebar.view_insurances'),
+                    'title' => __('View Insurances'),
                     'icon' => 'bx bx-shield',
                     'route' => route('insurances.index'),
                     'active' => request()->routeIs('insurances.index'),

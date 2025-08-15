@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Reservation\Complete;
+namespace App\Services\Reservation\CheckOut;
 
 use App\Models\Reservation\Reservation;
 use App\Exceptions\BusinessValidationException;
@@ -9,12 +9,12 @@ use Carbon\Carbon;
 class ReservationValidator
 {
     /**
-     * Validate reservation before completing or checking out.
+     * Validate reservation before checking out.
      *
      * @param Reservation $reservation
      * @throws BusinessValidationException
      */
-    public function validateBeforeComplete(array $data): void
+    public function validateBeforeCheckOut(array $data): void
     {
         $reservation = Reservation::find($data['reservation_id']);
 

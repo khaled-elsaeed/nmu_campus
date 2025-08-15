@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Reservation\Create;
+namespace App\Services\Reservation\CheckIn;
 
 use App\Models\Reservation\Reservation;
 use App\Models\Equipment;
@@ -8,6 +8,7 @@ use App\Models\EquipmentCheckout;
 use App\Models\EquipmentCheckoutDetail;
 use App\Exceptions\BusinessValidationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class EquipmentAssignmentService
 {
@@ -17,12 +18,23 @@ class EquipmentAssignmentService
      * This will create an EquipmentCheckout record (if not exists) and
      * corresponding EquipmentCheckoutDetail records for each equipment item.
      *
-     * @param Reservation $reservation
-     * @param array $equipmentData
+     * @param array $data
      * @throws BusinessValidationException
      */
-    public function assignEquipmentIfProvided(Reservation $reservation, array $equipmentData): void
+    public function assignEquipmentIfProvided(array $data): void
     {
+        $equipmentData = $data['equipment'] ?? [];
+        if (is_string($equipmentData)) {
+            $decoded = json_decode($equipmentData, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $equipmentData = $decoded;
+            } else {
+                $equipmentData = [];
+            }
+        }
+
+        $reservation = Reservation::findOrFail($data['reservation_id']);
+
         if (empty($equipmentData)) {
             return;
         }
@@ -41,7 +53,6 @@ class EquipmentAssignmentService
      */
     private function assignEquipmentToReservation(Reservation $reservation, array $equipmentData): void
     {
-        // Create or get the EquipmentCheckout record for this reservation
         $checkout = EquipmentCheckout::firstOrCreate(
             ['reservation_id' => $reservation->id],
             [

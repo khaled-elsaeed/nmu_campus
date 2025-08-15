@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Reservation\Complete;
+namespace App\Services\Reservation\CheckOut;
 
 use App\Models\Payment;
 use App\Models\Reservation\Reservation;
@@ -37,8 +37,7 @@ class PaymentService
             return null;
         }
 
-        $damageDetails = [];
-
+        $damageDescriptions = [];
         $totalAmount = 0;
 
         foreach ($damages as $damage) {
@@ -54,28 +53,39 @@ class PaymentService
             }
 
             $equipment = Equipment::find($equipmentId);
+            $equipmentName = $equipment ? $equipment->name : 'Unknown Equipment';
 
             $equipmentCheckout = $equipmentCheckoutId ? EquipmentCheckout::find($equipmentCheckoutId) : null;
 
-            $damageDetails[] = [
-                'equipment_id' => $equipmentId,
-                'equipment_name' => $equipment ? $equipment->name : 'Unknown Equipment',
-                'quantity_damaged' => $quantity,
-                'status' => $returnedStatus,
-                'estimated_cost' => $estimatedCost,
-                'notes' => $returnedNotes,
-                'checkout_detail_id' => $this->getCheckoutDetailId($equipmentCheckout, $equipmentId),
-            ];
+            $desc = $quantity . ' x ' . $equipmentName . ' damaged';
+            if ($returnedNotes) {
+                $desc .= ' (' . $returnedNotes . ')';
+            }
+            $desc .= ' - ' . number_format($estimatedCost, 2) . ' EGP';
+            $damageDescriptions[] = $desc;
 
             $totalAmount += $estimatedCost;
         }
+
+        $details = [
+            [
+                'type' => 'damage_fee',
+                'amount' => $totalAmount,
+                'description' => implode('; ', $damageDescriptions),
+            ],
+            [
+                'type' => 'total_amount',
+                'amount' => $totalAmount,
+                'description' => 'Total Payment Amount',
+            ],
+        ];
 
         return Payment::create([
             'reservation_id' => $reservation->id,
             'amount' => $totalAmount,
             'status' => 'pending',
             'notes' => 'Payment for equipment damages',
-            'details' => $damageDetails,
+            'details' => $details,
         ]);
     }
 

@@ -20,8 +20,8 @@ return new class extends Migration
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
             
             // Overall status of the equipment checkout
-            $table->enum('overall_status', ['pending', 'given', 'returned', 'completed'])->default('pending');
-            
+            $table->enum('overall_status', ['pending', 'given', 'returned', 'completed', 'canceled'])->default('pending');
+
             // Overall timestamps
             $table->timestamp('given_at')->nullable(); 
             $table->timestamp('returned_at')->nullable(); 
