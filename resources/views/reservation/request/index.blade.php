@@ -169,34 +169,34 @@
           </select>
         </div>
          <div class="col-md-6 mb-3" id="buildingDiv" style="display:none;">
-          <label for="accept_building" class="form-label">{{ __('Building') }} <span class="text-danger">*</span></label>
-          <select class="form-control" id="accept_building" name="building_id" required disabled>
+          <label for="building" class="form-label">{{ __('Building') }} <span class="text-danger">*</span></label>
+          <select class="form-control" id="building" name="building_id" required disabled>
             <option value="">{{ __('Select Building') }}</option>
           </select>
         </div>
         <div class="col-md-6 mb-3" id="apartmentDiv" style="display:none;">
-          <label for="accept_apartment" class="form-label">{{ __('Apartment') }} <span class="text-danger">*</span></label>
-          <select class="form-control" id="accept_apartment" name="accommodation_id" disabled>
+          <label for="apartment" class="form-label">{{ __('Apartment') }} <span class="text-danger">*</span></label>
+          <select class="form-control" id="apartment" name="accommodation_id" disabled>
             <option value="">{{ __('Select Apartment') }}</option>
           </select>
         </div>
         <div class="col-md-6 mb-3" id="roomDiv" style="display:none;">
-          <label for="accept_room" class="form-label">{{ __('Room') }} <span class="text-danger">*</span></label>
-          <select class="form-control" id="accept_room" name="accommodation_id" disabled>
+          <label for="room" class="form-label">{{ __('Room') }} <span class="text-danger">*</span></label>
+          <select class="form-control" id="room" name="accommodation_id" disabled>
             <option value="">{{ __('Select Room') }}</option>
           </select>
         </div>
         <div class="col-md-6 mb-3" id="isFullRoomDiv" style="display: none;">
-          <label for="is_full_room" class="form-label">{{ __('Room Option') }}</label>
-          <select class="form-control" id="is_full_room" name="is_full_room">
+          <label for="bed_count" class="form-label">{{ __('Room Option') }}</label>
+          <select class="form-control" id="bed_count" name="bed_count">
             <option value="">{{ __('Select Option') }}</option>
-            <option value="0">{{ __('Single Bedroom') }}</option>
-            <option value="1">{{ __('Both (Full Room)') }}</option>
+            <option value="1">{{ __('Single Bedroom') }}</option>
+            <option value="2">{{ __('Both (Full Room)') }}</option>
           </select>
         </div>
         <div class="col-12 mb-3">
-          <label for="accept_notes" class="form-label">{{ __('Notes') }}</label>
-          <textarea class="form-control" id="accept_notes" name="notes" rows="3" placeholder="{{ __('Optional notes for acceptance') }}"></textarea>
+          <label for="notes" class="form-label">{{ __('Notes') }}</label>
+          <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="{{ __('Optional notes for acceptance') }}"></textarea>
         </div>
       </div>
         </form>
@@ -338,27 +338,6 @@ var StatsManager = Utils.createStatsManager({
 // REQUEST MANAGER
 // ===========================
 var RequestManager = {
-  init: function() {
-    this.bindEvents();
-  },
-  bindEvents: function() {
-    var self = this;
-    $(document)
-      .on('click', '.cancelReservationRequestBtn', function(e) { self.handleCancelRequest(e); })
-      .on('click', '.acceptReservationRequestBtn', function(e) { self.handleAcceptRequest(e); })
-  },
-  
-  // --- Accept Request Handlers ---
-  handleAcceptRequest: function(e) {
-    var requestData = Utils.getElementData(e.currentTarget, ['id', 'user-name']);
-    AcceptRequestManager.openModal(requestData.id, requestData.userName);
-  },
-  
-  // --- Cancel Request Handlers ---
-  handleCancelRequest: function(e) {
-    var requestId = Utils.getElementData(e.currentTarget, ['id']);
-    this.confirmAndCancelRequest(requestId);
-  },
   confirmAndCancelRequest: function(requestId) {
     Utils.showConfirmDialog(
       {
@@ -394,9 +373,7 @@ var RequestManager = {
 // ===========================
 // ACCEPT REQUEST MANAGER
 // ===========================
-var AcceptRequestManager = {
-  currentRequestId: null,
-  
+var AcceptRequestManager = {  
   init: function() {
     this.bindEvents();
     this.initializeDropdowns();
@@ -406,15 +383,23 @@ var AcceptRequestManager = {
   bindEvents: function() {
     var self = this;
     // Modal events
-    $('#acceptRequestModal').on('show.bs.modal', function() {
+    $('#acceptRequestModal').on('show.bs.modal', function(event) {
+      var triggerButton = event.relatedTarget;
+      var accommodationType = triggerButton ? $(triggerButton).data('accommodation-type') : null;
+      var bedCount = triggerButton ? $(triggerButton).data('bed-count') : null;
+      var requestId = triggerButton ? $(triggerButton).data('id') : null;
       self.resetModal();
+      $('#accommodation_type').prop('disabled', false).val(accommodationType).trigger('change').prop('disabled', true);
+      $('#bed_count').val(bedCount).prop('disabled', true);
+      $('#request_id').val(requestId);
+      console.log(accommodationType, bedCount, requestId);
     });
     // Accommodation type change
     $('#accommodation_type').on('change', function() {
       self.handleAccommodationType();
     });
     // Building change event
-    $('#accept_building').on('change', function() {
+    $('#building').on('change', function() {
       var buildingId = $(this).val();
       if (buildingId) {
         self.loadApartments(buildingId);
@@ -425,7 +410,7 @@ var AcceptRequestManager = {
       }
     });
     // Apartment change event
-    $('#accept_apartment').on('change', function() {
+    $('#apartment').on('change', function() {
       var apartmentId = $(this).val();
       if (apartmentId) {
         self.loadRooms(apartmentId);
@@ -435,7 +420,7 @@ var AcceptRequestManager = {
       }
     });
     // Room change event
-    $('#accept_room').on('change', function() {
+    $('#room').on('change', function() {
       var roomId = $(this).val();
       var roomType = $(this).find('option:selected').data('type');
       if (roomId) {
@@ -457,27 +442,27 @@ var AcceptRequestManager = {
       $('#buildingDiv').show();
       $('#apartmentDiv').show();
       $('#roomDiv').show();
-      $('#accept_room').prop('disabled', true).attr('name', 'accommodation_id');
-      $('#accept_apartment').prop('disabled', true).removeAttr('name');
-      $('#accept_building').prop('disabled', false);
+      $('#room').prop('disabled', true).attr('name', 'accommodation_id');
+      $('#apartment').prop('disabled', true).removeAttr('name');
+      $('#building').prop('disabled', false);
       this.clearRooms();
       this.clearApartments();
     } else if (type === 'apartment') {
       $('#buildingDiv').show();
       $('#apartmentDiv').show();
       $('#roomDiv').hide();
-      $('#accept_apartment').prop('disabled', true).attr('name', 'accommodation_id');
-      $('#accept_room').prop('disabled', true).removeAttr('name');
-      $('#accept_building').prop('disabled', false);
+      $('#apartment').prop('disabled', true).attr('name', 'accommodation_id');
+      $('#room').prop('disabled', true).removeAttr('name');
+      $('#building').prop('disabled', false);
       this.clearRooms();
       this.clearApartments();
     } else {
       $('#buildingDiv').hide();
       $('#apartmentDiv').hide();
       $('#roomDiv').hide();
-      $('#accept_apartment').prop('disabled', true).removeAttr('name');
-      $('#accept_room').prop('disabled', true).removeAttr('name');
-      $('#accept_building').prop('disabled', true);
+      $('#apartment').prop('disabled', true).removeAttr('name');
+      $('#room').prop('disabled', true).removeAttr('name');
+      $('#building').prop('disabled', true);
       $('#bedroomSelectionDiv').hide();
       $('#isFullRoomDiv').hide();
       this.clearRooms();
@@ -489,17 +474,11 @@ var AcceptRequestManager = {
     this.loadBuildings();
   },
   
-  openModal: function(requestId, userName) {
-    this.currentRequestId = requestId;
-    $('#request_id').val(requestId);
-    $('#acceptRequestModal').modal('show');
-  },
-  
   resetModal: function() {
   $('#acceptRequestForm')[0].reset();
-  $('#accept_apartment').prop('disabled', true).empty().append('<option value="">' + TRANSLATIONS.placeholders.selectApartment + '</option>');
-  $('#accept_room').prop('disabled', true).empty().append('<option value="">' + TRANSLATIONS.placeholders.selectRoom + '</option>');
-  $('#accept_building').prop('disabled', true);
+  $('#apartment').prop('disabled', true).empty().append('<option value="">' + TRANSLATIONS.placeholders.selectApartment + '</option>');
+  $('#room').prop('disabled', true).empty().append('<option value="">' + TRANSLATIONS.placeholders.selectRoom + '</option>');
+  $('#building').prop('disabled', true);
   $('#buildingDiv').hide();
   $('#apartmentDiv').hide();
   $('#roomDiv').hide();
@@ -511,7 +490,7 @@ var AcceptRequestManager = {
     ApiService.fetchBuildings()
       .done(function(response) {
         if (response.success && response.data) {
-          Utils.populateSelect('#accept_building', response.data, {
+          Utils.populateSelect('#building', response.data, {
             valueField: 'id',
             textField: 'number',
             placeholder: TRANSLATIONS.placeholders.selectBuilding
@@ -528,12 +507,12 @@ var AcceptRequestManager = {
     ApiService.fetchApartments(buildingId)
       .done(function(response) {
         if (response.success && response.data) {
-          Utils.populateSelect('#accept_apartment', response.data, {
+          Utils.populateSelect('#apartment', response.data, {
             valueField: 'id',
             textField: 'number',
             placeholder: TRANSLATIONS.placeholders.selectApartment
           }, true);
-          $('#accept_apartment').prop('disabled', false); 
+          $('#apartment').prop('disabled', false); 
         } else {
           self.clearApartments();
         }
@@ -549,13 +528,13 @@ var AcceptRequestManager = {
     ApiService.fetchRooms(apartmentId)
       .done(function(response) {
         if (response.success && response.data) {
-          Utils.populateSelect('#accept_room', response.data, {
+          Utils.populateSelect('#room', response.data, {
             valueField: 'id',
             textField: 'number',
             placeholder: TRANSLATIONS.placeholders.selectRoom,
             dataAttributes: { type: 'type' }
           }, true);
-          $('#accept_room').prop('disabled', false);
+          $('#room').prop('disabled', false);
         } else {
           self.clearRooms();
         }
@@ -578,16 +557,16 @@ var AcceptRequestManager = {
   
   showBedroom: function() {
     $('#bedroomSelectionDiv').show();
-    $('#accept_bedroom').prop('required', true);
+    $('#bedroom').prop('required', true);
   },
   
   hideBedroom: function() {
     $('#bedroomSelectionDiv').hide();
-    $('#accept_bedroom').prop('required', false).val('');
+    $('#bedroom').prop('required', false).val('');
   },
   
   clearApartments: function() {
-    $('#accept_apartment')
+    $('#apartment')
       .prop('disabled', true)
       .empty()
       .append('<option value="">' + TRANSLATIONS.placeholders.selectApartment + '</option>');
@@ -595,7 +574,7 @@ var AcceptRequestManager = {
   },
   
   clearRooms: function() {
-    $('#accept_room')
+    $('#room')
       .prop('disabled', true)
       .empty()
       .append('<option value="">' + TRANSLATIONS.placeholders.selectRoom + '</option>');
@@ -603,11 +582,11 @@ var AcceptRequestManager = {
   },
   
   validateForm: function() {
-    var building = $('#accept_building').val();
+    var building = $('#building').val();
     var type = $('#accommodation_type').val();
-    var accommodationId = type === 'room' ? $('#accept_room').val() : $('#accept_apartment').val();
-    var bedroom = $('#accept_bedroom').val();
-    var isBedroomRequired = $('#accept_bedroom').prop('required');
+    var accommodationId = type === 'room' ? $('#room').val() : $('#apartment').val();
+    var bedroom = $('#bedroom').val();
+    var isBedroomRequired = $('#bedroom').prop('required');
     if (!building || !type || !accommodationId) {
       return false;
     }
@@ -626,19 +605,21 @@ var AcceptRequestManager = {
     }
     
     var type = $('#accommodation_type').val();
+    var requestId = $('#request_id').val(); 
+
     var formData = {
       accommodation_type: type,
-      accommodation_id: type === 'room' ? $('#accept_room').val() : $('#accept_apartment').val(),
-      is_full_room: $('#is_full_room').val() || null,
-      notes: $('#accept_notes').val() || null
+      accommodation_id: type === 'room' ? $('#room').val() : $('#apartment').val(),
+      bed_count: $('#bed_count').val() || null,
+      notes: $('#notes').val() || null
     };
-    
-    ApiService.acceptRequest(this.currentRequestId, formData)
+
+    ApiService.acceptRequest(requestId, formData)
       .done(function(response) {
         if (response.success) {
           $('#acceptRequestModal').modal('hide');
           Utils.reloadDataTable('#requests-table');
-          Utils.showSuccess(response.message || TRANSLATIONS.messages.requestAccepted);
+          Utils.showSuccess(response.message);
           StatsManager.refresh();
         } else {
           Utils.showError(response.message);
@@ -727,10 +708,10 @@ var Select2Manager = {
             '#search_academic_term': { placeholder: TRANSLATIONS.placeholders.selectTerm }
         },
         modal: {
-            '#accept_building': { placeholder: TRANSLATIONS.placeholders.selectBuilding, dropdownParent: $('#acceptRequestModal') },
-            '#accept_apartment': { placeholder: TRANSLATIONS.placeholders.selectApartment, dropdownParent: $('#acceptRequestModal') },
-            '#accept_room': { placeholder: TRANSLATIONS.placeholders.selectRoom, dropdownParent: $('#acceptRequestModal') },
-            '#accept_bedroom': { placeholder: TRANSLATIONS.placeholders.selectBedroom, dropdownParent: $('#acceptRequestModal') }
+            '#building': { placeholder: TRANSLATIONS.placeholders.selectBuilding, dropdownParent: $('#acceptRequestModal') },
+            '#apartment': { placeholder: TRANSLATIONS.placeholders.selectApartment, dropdownParent: $('#acceptRequestModal') },
+            '#room': { placeholder: TRANSLATIONS.placeholders.selectRoom, dropdownParent: $('#acceptRequestModal') },
+            '#bedroom': { placeholder: TRANSLATIONS.placeholders.selectBedroom, dropdownParent: $('#acceptRequestModal') }
         }
     },
 
@@ -795,7 +776,6 @@ var Select2Manager = {
 var RequestApp = {
   init: function() {
     StatsManager.init();
-    RequestManager.init();
     AcceptRequestManager.init();
     SearchManager.init();
     SelectManager.init();

@@ -39,6 +39,8 @@ const Utils = {
    */
   showError(message, toast = null, position = null) {
     const isRtl = document.documentElement.getAttribute('lang') === 'ar';
+    var isModalOpen = $('.modal.show').length > 0;
+
     if (toast === true) {
       Swal.fire({
         toast: true,
@@ -47,13 +49,13 @@ const Utils = {
         title: message,
         showConfirmButton: false,
         timer: 2500,
-        timerProgressBar: true
+        timerProgressBar: true,
       });
     } else {
       Swal.fire({
         icon: 'error',
         title: isRtl ? 'خطأ' : 'Error',
-        text: message
+        text: message,
       });
     }
   },
@@ -747,9 +749,6 @@ const Utils = {
 
     // Reset all form fields
     $form[0].reset();
-
-    // Clear validation states
-    this.clearValidation(`#${formId}`);
 
     // Reset any select2 fields
     $form.find('select').each(function() {

@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Reservation;
 
 use Illuminate\Http\{Request, JsonResponse};
 use Illuminate\View\View;
-use App\Services\Reservation\ReservationRequestService;
+use App\Services\Reservation\Request\ReservationRequestService;
 use App\Exceptions\BusinessValidationException;
 use Exception;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Reservation\Request\UpdateReservationRequest;
+use Illuminate\Support\Facades\DB;
 
 class ReservationRequestController extends Controller
 {
@@ -109,10 +110,29 @@ class ReservationRequestController extends Controller
     {
         try {
             $validated = $request->validate(
-                [   'building_id' => 'required|integer|exists:buildings,id',
-                    'room_id' => 'required|integer|exists:rooms,id',
-                    'apartment_id' => 'required|integer|exists:apartments,id',
-                    'comment' => 'nullable|string|max:255',
+                [   'accommodation_type' => 'required|string|in:room,apartment',
+                    'accommodation_id' => [
+                        'required',
+                        'integer',
+                        function ($attribute, $value, $fail) use ($request) {
+                            $type = $request->input('accommodation_type');
+
+                            if ($type === 'room') {
+                                if (!DB::table('rooms')->where('id', $value)->exists()) {
+                                    return $fail(__('The selected room does not exist.'));
+                                }
+                            } elseif ($type === 'apartment') {
+                                if (!DB::table('apartments')->where('id', $value)->exists()) {
+                                    return $fail(__('The selected apartment does not exist.'));
+                                }
+                            } else {
+                                return $fail(__('Invalid accommodation type.'));
+                            }
+                        },
+                    ],
+                    'bed_count' => 'nullable|string|max:255',
+                    'notes' => 'nullable|string|max:1000',
+
                 ]
             );
             $this->reservationRequestService->acceptRequest($validated, $id);

@@ -25,7 +25,7 @@ class StaffUpdateRequest extends FormRequest
             'name_en'           => 'required|string|max:255',
             'name_ar'           => 'nullable|string|max:255',
             'email'             => 'required|email|max:255|unique:users,email,' . ($userId ?? 'NULL'),
-            'staff_unit_type'        => 'required|in:faculty,administrative,campus',
+            'unit_type'        => 'required|in:faculty,administrative,campus',
             'unit_id'           => 'required|integer',
             'gender'            => 'required|in:male,female,other',
             'notes'             => 'nullable|string',
@@ -33,7 +33,7 @@ class StaffUpdateRequest extends FormRequest
         ];
 
         // Dynamic unit_id validation
-        switch ($this->input('staff_unit_type')) {
+        switch ($this->input('unit_type')) {
             case 'faculty':
                 $rules['unit_id'] .= '|exists:faculties,id';
                 break;

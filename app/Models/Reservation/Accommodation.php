@@ -21,7 +21,7 @@ class Accommodation extends Model
         'description',
         'apartment_id',
         'room_id',
-        'double_room_bed_option',
+        'bed_count',
         'reservation_id',
     ];
 

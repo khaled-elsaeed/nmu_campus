@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Services\Reservation;
+namespace App\Services\Reservation\Operation;
 
 use App\Models\Reservation\Reservation;
-use App\Services\Reservation\Create\ReservationValidator;
-use App\Services\Reservation\Create\ReservationCreator;
+use App\Services\Reservation\Shared\ReservationValidator;
+use App\Services\Reservation\Shared\ReservationCreator;
 use App\Services\Reservation\Shared\AccommodationService;
-use App\Services\Reservation\Create\PaymentService;
+use App\Services\Reservation\Shared\PaymentService;
 
 class CreateReservationService
 {

@@ -10,7 +10,6 @@ class Insurance extends Model
 {
     use HasFactory;
 
-    protected $table = 'insurances';
 
     protected $fillable = [
         'reservation_id',

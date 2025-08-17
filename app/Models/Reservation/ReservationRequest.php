@@ -18,11 +18,11 @@ class ReservationRequest extends Model
         'request_number',
         'user_id',
         'academic_term_id',
-        'requested_accommodation_type', 
+        'accommodation_type', 
         'room_type', 
-        'requested_double_room_bed_option',
-        'requested_check_in_date',
-        'requested_check_out_date',
+        'bed_count',
+        'check_in_date',
+        'check_out_date',
         'status',
         'resident_notes',
         'admin_notes',
@@ -31,9 +31,10 @@ class ReservationRequest extends Model
         'approved_at',
         'rejected_at',
         'rejection_reason',
-        'created_reservation_id',
+        'reservation_id',
         'period_type',
-    ];
+        'stay_with_sibling'
+        ];
 
     /**
      * The attributes that should be cast.

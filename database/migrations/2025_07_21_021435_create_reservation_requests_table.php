@@ -22,13 +22,13 @@ return new class extends Migration
             $table->foreignId('academic_term_id')->nullable()->constrained()->restrictOnDelete();
 
             // Requested accommodation details
-            $table->enum('requested_accommodation_type', ['room', 'apartment']);
+            $table->enum('accommodation_type', ['room', 'apartment']);
             $table->enum('room_type', ['single', 'double'])->nullable();
-            $table->string('requested_double_room_bed_option')->nullable();
+            $table->integer('bed_count')->nullable();
 
             // Requested dates
-            $table->date('requested_check_in_date')->nullable();
-            $table->date('requested_check_out_date')->nullable();
+            $table->date('check_in_date')->nullable();
+            $table->date('check_out_date')->nullable();
 
             // Request management
             $table->enum('status', ['pending', 'approved', 'rejected', 'cancelled'])->default('pending');
@@ -47,16 +47,14 @@ return new class extends Migration
             $table->text('rejection_reason')->nullable();
 
             // Link to created reservation (when approved)
-            $table->foreignId('created_reservation_id')->nullable()->constrained('reservations')->nullOnDelete();
+            $table->foreignId('reservation_id')->nullable()->constrained('reservations')->nullOnDelete();
+
+            // Stay with sibling option
+            $table->boolean('stay_with_sibling')->default(false);
 
             // Criteria points system
-            // Each request will be evaluated based on multiple criteria.
-            // The total points for the request are stored in this column.
             $table->unsignedInteger('total_points')->default(0);
-
-            // Optionally, you can store the breakdown of points per criterion as JSON
             $table->json('criteria_points_breakdown')->nullable();
-
 
             $table->timestamps();
         });

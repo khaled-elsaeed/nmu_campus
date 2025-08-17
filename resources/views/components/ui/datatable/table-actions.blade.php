@@ -35,7 +35,19 @@
         <!-- Multiple Single Action Buttons -->
         @foreach($singleActions as $singleAction)
             <div>
-                <button type="button"  class="btn rounded-pill btn-icon {{ $singleAction['class'] }} {{ $singleAction['action'] }}{{ $type }}Btn" @if($id) data-id="{{ $id }}" @endif title="{{ __($singleAction['label']) }}">
+                <button
+                    type="button"
+                    class="btn rounded-pill btn-icon {{ $singleAction['class'] }} {{ $singleAction['action'] }}{{ $type }}Btn"
+                    @if($id) data-id="{{ $id }}" @endif
+                    title="{{ __($singleAction['label']) }}"
+                    @if(isset($singleAction['modal_target'])) data-bs-target="{{ $singleAction['modal_target'] }}" @endif
+                    @if(isset($singleAction['modal_toggle'])) data-bs-toggle="{{ $singleAction['modal_toggle'] }}" @endif
+                    @if(isset($singleAction['data']) && is_array($singleAction['data']))
+                        @foreach($singleAction['data'] as $attr => $value)
+                            data-{{ $attr }}="{{ $value }}"
+                        @endforeach
+                    @endif
+                >
                     <i class="{{ $singleAction['icon'] }}"></i>
                 </button>
             </div>

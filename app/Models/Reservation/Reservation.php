@@ -128,6 +128,11 @@ class Reservation extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function insurance(): HasOne
+    {
+        return $this->hasOne(Insurance::class);
+    }
+    
     /**
      * Get the equipment tracking for the reservation.
      *
@@ -250,4 +255,164 @@ class Reservation extends Model
         $query->where('check_in_date', '<', $checkOutDate)
                 ->where('check_out_date', '>', $checkInDate);
     }
+
+    /**
+     * Check if reservation is long-term (academic term)
+     */
+    public function isLongTerm(): bool
+    {
+        return $this->period_type === 'academic';
+    }
+
+    /**
+     * Validate reservation dates
+     */
+    public function validateDates(): void
+    {
+        if ($this->period_type === 'calendar') {
+            if (!$this->check_in_date || !$this->check_out_date) {
+                throw new BusinessValidationException(__('Calendar-based reservations must have check-in and check-out dates.'));
+            }
+
+            $checkIn = Carbon::parse($this->check_in_date);
+            $checkOut = Carbon::parse($this->check_out_date);
+
+            if ($checkOut->lte($checkIn)) {
+                throw new BusinessValidationException(__('Check-out date must be after check-in date.'));
+            }
+
+            if ($checkIn->isPast()) {
+                throw new BusinessValidationException(__('Check-in date cannot be in the past.'));
+            }
+        } elseif ($this->period_type === 'academic') {
+            if (!$this->academic_term_id) {
+                throw new BusinessValidationException(__('Academic reservations must have a valid academic term ID.'));
+            }
+        } else {
+            throw new BusinessValidationException(__('Invalid period type. Must be either "academic" or "calendar".'));
+        }
+    }
+
+    /**
+     * Calculate short-term fee with optimal pricing
+     */
+    public function calculateShortTermFee(double $monthlyFee, double $weeklyFee, double $dailyFee): float
+    {
+        if ($this->period_type !== 'calendar' || !$this->check_in_date || !$this->check_out_date) {
+            return 0;
+        }
+
+        $checkIn = Carbon::parse($this->check_in_date);
+        $checkOut = Carbon::parse($this->check_out_date);
+        $totalDays = $checkIn->diffInDays($checkOut);
+
+        if ($totalDays <= 0) {
+            return 0;
+        }
+
+        return $this->calculateOptimalFee($monthlyFee, $weeklyFee, $dailyFee, $totalDays);
+    }
+
+    /**
+     * Calculate optimal fee breakdown for given days
+     */
+    private function calculateOptimalFee(double $monthlyFee,double $weeklyFee,double $dailyFee,int $totalDays): float
+    {
+        if ($totalDays <= 0) {
+            return 0;
+        }
+
+        $totalFee = 0;
+        $remainingDays = $totalDays;
+
+        // Calculate months (30 days each)
+        $months = intval($remainingDays / 30);
+        if ($months > 0) {
+            $totalFee += $months * $monthlyFee;
+            $remainingDays -= $months * 30;
+        }
+
+        // Calculate weeks (7 days each)
+        $weeks = intval($remainingDays / 7);
+        if ($weeks > 0) {
+            $totalFee += $weeks * $weeklyFee;
+            $remainingDays -= $weeks * 7;
+        }
+
+        // Calculate remaining days
+        if ($remainingDays > 0) {
+            $totalFee += $remainingDays * $dailyFee;
+        }
+
+        return $totalFee;
+    }
+
+    /**
+     * Get short-term reservation breakdown
+     */
+    public function getShortTermBreakdown(double $monthlyFee,double $weeklyFee,double $dailyFee): array
+    {
+        if ($this->period_type !== 'calendar' || !$this->check_in_date || !$this->check_out_date) {
+            return [];
+        }
+
+        $checkIn = Carbon::parse($this->check_in_date);
+        $checkOut = Carbon::parse($this->check_out_date);
+        $totalDays = $checkIn->diffInDays($checkOut);
+
+        if ($totalDays <= 0) {
+            return [];
+        }
+
+        return $this->getOptimalFeeBreakdown($monthlyFee, $weeklyFee, $dailyFee, $totalDays);
+    }
+
+    /**
+     * Get detailed breakdown of optimal fee calculation
+     */
+    private function getOptimalFeeBreakdown(double $monthlyFee,double $weeklyFee,double $dailyFee, int $totalDays): array
+    {
+        $breakdown = [];
+        $remainingDays = $totalDays;
+
+        // Months breakdown
+        $months = intval($remainingDays / 30);
+        if ($months > 0) {
+            $breakdown[] = [
+                'type' => 'monthly',
+                'quantity' => $months,
+                'unit_price' => $monthlyFee,
+                'amount' => $months * $monthlyFee,
+                'description' => $months . ' month' . ($months > 1 ? 's' : ''),
+            ];
+            $remainingDays -= $months * 30;
+        }
+
+        // Weeks breakdown
+        $weeks = intval($remainingDays / 7);
+        if ($weeks > 0) {
+            $breakdown[] = [
+                'type' => 'weekly',
+                'quantity' => $weeks,
+                'unit_price' => $weeklyFee,
+                'amount' => $weeks * $weeklyFee,
+                'description' => $weeks . ' week' . ($weeks > 1 ? 's' : ''),
+            ];
+            $remainingDays -= $weeks * 7;
+        }
+
+        // Days breakdown
+        if ($remainingDays > 0) {
+            $breakdown[] = [
+                'type' => 'daily',
+                'quantity' => $remainingDays,
+                'unit_price' => $dailyFee,
+                'amount' => $remainingDays * $dailyFee,
+                'description' => $remainingDays . ' day' . ($remainingDays > 1 ? 's' : ''),
+            ];
+        }
+
+        return $breakdown;
+    }
+
 }

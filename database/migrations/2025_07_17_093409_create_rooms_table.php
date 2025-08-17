@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('current_occupancy')->default(0);
             $table->integer('available_capacity');
             $table->enum('purpose', ['housing', 'staff_housing', 'office', 'storage'])->default('housing');
-            $table->enum('occupancy_status', ['available', 'occupied', 'maintenance', 'reserved']);
+            $table->enum('occupancy_status', ['available','partially_occupied',  'occupied', 'maintenance', 'reserved']);
             $table->text('description')->nullable();
             $table->boolean('active')->default(true);
             $table->timestamps();

@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('insurances', function (Blueprint $table) {
+        Schema::create('user_account_balances', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('reservation_id')->constrained('reservations')->cascadeOnDelete();
-            $table->decimal('amount', 10, 2);
-            $table->enum('status', ['inactive', 'active', 'refunded', 'carried_over', 'cancelled'])->default('inactive');
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->decimal('balance', 12, 2)->default(0.00);
             $table->timestamps();
+            
+            $table->unique('user_id');
         });
     }
 
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('insurances');
+        Schema::dropIfExists('user_account_balances');
     }
-}; 
+};

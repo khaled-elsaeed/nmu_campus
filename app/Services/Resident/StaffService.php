@@ -82,7 +82,7 @@ class StaffService
         $departmentId = null;
         $campusUnitId = null;
 
-        switch ($data['staff_unit_type']) {
+        switch ($data['unit_type']) {
             case 'faculty':
                 $facultyId = $data['unit_id'] ?? null;
                 break;
@@ -96,7 +96,7 @@ class StaffService
 
         return Staff::create([
             'user_id' => $user->id,
-            'unit_type' => $data['staff_unit_type'],
+            'unit_type' => $data['unit_type'],
             'faculty_id' => $facultyId,
             'department_id' => $departmentId,
             'campus_unit_id' => $campusUnitId,
@@ -151,7 +151,7 @@ class StaffService
         $departmentId = null;
         $campusUnitId = null;
 
-        switch ($data['staff_unit_type']) {
+        switch ($data['unit_type']) {
             case 'faculty':
                 $facultyId = $data['unit_id'] ?? null;
                 break;
@@ -164,7 +164,7 @@ class StaffService
         }
 
         $staff->update([
-            'unit_type' => $data['staff_unit_type'],
+            'unit_type' => $data['unit_type'],
             'faculty_id' => $facultyId,
             'department_id' => $departmentId,
             'campus_unit_id' => $campusUnitId,

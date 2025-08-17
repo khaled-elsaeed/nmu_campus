@@ -14,10 +14,10 @@ use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
-use App\Services\Reservation\CreateReservationService;
-use App\Services\Reservation\CancelReservationService;
-use App\Services\Reservation\CheckOutReservationService;
-use App\Services\Reservation\CheckInReservationService;
+use App\Services\Reservation\Operation\CreateReservationService;
+use App\Services\Reservation\Operation\CancelReservationService;
+use App\Services\Reservation\Operation\CheckOutReservationService;
+use App\Services\Reservation\Operation\CheckInReservationService;
 use Carbon\Carbon;
 
 class ReservationService

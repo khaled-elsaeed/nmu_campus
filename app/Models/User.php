@@ -183,6 +183,11 @@ class User extends Authenticatable
         return $this->hasOne(StudentArchive::class);
     }
 
+    public function accountBalance()
+    {
+        return $this->hasOne(UserAccountBalance::class);
+    }
+
     /**
      * Get the parent information associated with the user.
      *

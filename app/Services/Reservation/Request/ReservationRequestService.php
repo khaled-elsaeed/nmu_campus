@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Reservation;
+namespace App\Services\Reservation\Request;
 
 use App\Models\Reservation\ReservationRequest;
 use App\Models\User;
@@ -13,7 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
-use App\Services\Reservation\AcceptReservationRequestService;
+use App\Services\Reservation\Operation\AcceptReservationRequestService;
 
 class ReservationRequestService
 {
@@ -31,13 +31,12 @@ class ReservationRequestService
     public function updateReservation(ReservationRequest $reservationRequest, array $data): ReservationRequest
     {
         return DB::transaction(function () use ($reservationRequest, $data) {
-            // Update fields based on period_type: 'academic' or 'calendar'
             if (isset($data['period_type'])) {
                 if ($data['period_type'] === 'academic') {
                     $data['academic_term_id'] = null;
                 } elseif ($data['period_type'] === 'calendar') {
-                    $data['requested_check_in_date'] = null;
-                    $data['requested_check_out_date'] = null;
+                    $data['check_in_date'] = null;
+                    $data['check_out_date'] = null;
                 }
             }
             $reservationRequest->update($data);
@@ -203,8 +202,8 @@ class ReservationRequestService
             $query->where('academic_term_id', request('search_academic_term_id'));
         }
 
-        if (request()->filled('search_requested_accommodation_type')) {
-            $query->where('requested_accommodation_type', request('search_requested_accommodation_type'));
+        if (request()->filled('search_accommodation_type')) {
+            $query->where('accommodation_type', request('search_accommodation_type'));
         }
 
         return $query;
@@ -218,25 +217,36 @@ class ReservationRequestService
      */
     protected function renderActionButtons($request): string
     {
+        $actions = ['view', 'edit'];
+        $singleActions = [];
+
+        if ($request->status === 'pending') {
+            $singleActions[] = [
+                'action' => 'accept',
+                'icon' => 'bx bx-check',
+                'class' => 'btn-success',
+                'label' => __('Accept'),
+                'data' => [
+                    'accommodation-type' => $request->accommodation_type,
+                    'bed-count' => $request->bed_count,
+                ],
+                'modal_toggle' => 'modal',
+                'modal_target' => '#acceptRequestModal'
+            ];
+            $singleActions[] = [
+                'action' => 'reject',
+                'icon' => 'bx bx-x',
+                'class' => 'btn-danger',
+                'label' => __('Reject')
+            ];
+        }
+
         return view('components.ui.datatable.table-actions', [
             'mode' => 'both',
-            'actions' => ['view', 'edit'],
+            'actions' => $actions,
             'id' => $request->id,
             'type' => 'ReservationRequest',
-            'singleActions' => [
-                [
-                    'action' => 'accept',
-                    'icon' => 'bx bx-check',
-                    'class' => 'btn-success',
-                    'label' => __('Accept')
-                ],
-                [
-                    'action' => 'reject',
-                    'icon' => 'bx bx-x',
-                    'class' => 'btn-danger',
-                    'label' => __('Reject')
-                ]
-            ]
+            'singleActions' => $singleActions
         ])->render();
     }
 
@@ -255,9 +265,9 @@ class ReservationRequestService
                 $period = $request->academicTerm->name ?? 'N/A';
                 break;
             case 'calendar':
-                if ($request->requested_check_in_date && $request->requested_check_out_date) {
-                    $checkInDate = formatDate($request->requested_check_in_date);
-                    $checkOutDate = formatDate($request->requested_check_out_date);
+                if ($request->check_in_date && $request->check_out_date) {
+                    $checkInDate = formatDate($request->check_in_date);
+                    $checkOutDate = formatDate($request->check_out_date);
                     $period = $checkInDate . ' - ' . $checkOutDate;
                 }
                 break;
@@ -274,12 +284,12 @@ class ReservationRequestService
      */
     private function getAccommodationInfo(ReservationRequest $request): string
     {
-        if ($request->requested_accommodation_type === 'apartment') {
+        if ($request->accommodation_type === 'apartment') {
             return 'Apartment';
         }
-        if ($request->requested_accommodation_type === 'room') {
+        if ($request->accommodation_type === 'room') {
             if ($request->room_type === 'double') {
-                $bedOption = $request->requested_double_room_bed_option ? (', Bed: ' . $request->requested_double_room_bed_option) : '';
+                $bedOption = $request->double_room_bed_option ? (', Bed: ' . $request->double_room_bed_option) : '';
                 return 'Double Room' . $bedOption;
             }
             if ($request->room_type === 'single') {
@@ -332,11 +342,19 @@ class ReservationRequestService
     public function acceptRequest($data, $id): bool
     {
         $request = ReservationRequest::find($id);
+        
         if (!$request) {
             throw new BusinessValidationException(__('Reservation request not found.'));
         }
 
-        $this->acceptReservationRequestService->accept($request, $data);
+        $reservation = $this->acceptReservationRequestService->accept(
+            reservationRequestId: $request->id,
+            accommodationType: $data['accommodation_type'],
+            roomId: $data['accommodation_type'] === 'room' ? $data['accommodation_id'] : null,
+            apartmentId: $data['accommodation_type'] === 'apartment' ? $data['accommodation_id'] : null,
+            bedCount: $data['bed_count'] ?? null,
+            notes: $data['notes'] ?? null
+        );
 
         $request->update([
             'status' => 'approved',

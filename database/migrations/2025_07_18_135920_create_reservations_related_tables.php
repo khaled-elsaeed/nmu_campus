@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('apartment_id')->nullable()->constrained()->restrictOnDelete();
             $table->foreignId('room_id')->nullable()->constrained()->restrictOnDelete();
             $table->text('description')->nullable();
-            $table->string('double_room_bed_option')->nullable();
+            $table->integer('bed_count')->nullable();
             $table->foreignId('reservation_id')->nullable()->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
