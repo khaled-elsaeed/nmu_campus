@@ -13,12 +13,12 @@ use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
-use App\Services\Reservation\Operation\AcceptReservationRequestService;
+use App\Services\Reservation\Pipeline\Operations\AcceptReservationRequest;
 
 class ReservationRequestService
 {
     public function __construct(
-        protected AcceptReservationRequestService $acceptReservationRequestService
+        protected AcceptReservationRequest $acceptReservationRequestPipeline
     ) {}
 
     /**
@@ -347,7 +347,7 @@ class ReservationRequestService
             throw new BusinessValidationException(__('Reservation request not found.'));
         }
 
-        $reservation = $this->acceptReservationRequestService->accept(
+        $reservation = $this->acceptReservationRequestPipeline->execute(
             reservationRequestId: $request->id,
             accommodationType: $data['accommodation_type'],
             roomId: $data['accommodation_type'] === 'room' ? $data['accommodation_id'] : null,
@@ -361,6 +361,8 @@ class ReservationRequestService
             'created_reservation_id' => $reservation->id,
             'reviewer_id' => auth()->id(),
         ]);
+
+        return true;
     }
 
     public function cancelRequest($id): bool

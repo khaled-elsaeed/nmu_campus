@@ -275,6 +275,12 @@ class Sidebar extends Component
                             'active' => request()->routeIs('reservation-requests.index'),
                             'permission' => 'reservation_requests.view',
                         ],
+                        [
+                            'title' => __('Insights'),
+                            'icon' => 'bx bx-bar-chart-alt',
+                            'route' => route('reservation-requests.insights'),
+                            'active' => request()->routeIs('reservation-requests.insights'),
+                        ]
                     ],
                 ],
             ],

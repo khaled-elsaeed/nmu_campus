@@ -14,19 +14,21 @@ use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
-use App\Services\Reservation\Operation\CreateReservationService;
-use App\Services\Reservation\Operation\CancelReservationService;
-use App\Services\Reservation\Operation\CheckOutReservationService;
-use App\Services\Reservation\Operation\CheckInReservationService;
 use Carbon\Carbon;
+
+// Pipeline Operations
+use App\Services\Reservation\Pipeline\Operations\CreateReservation as CreateReservationPipeline;
+use App\Services\Reservation\Pipeline\Operations\CheckInReservation as CheckInReservationPipeline;
+use App\Services\Reservation\Pipeline\Operations\CheckOutReservation as CheckOutReservationPipeline;
+use App\Services\Reservation\Pipeline\Operations\CancelReservation as CancelReservationPipeline;
 
 class ReservationService
 {
     public function __construct(
-        protected CreateReservationService $createReservationService,
-        protected CheckInReservationService $checkInService,
-        protected CheckOutReservationService $checkOutService,
-        protected CancelReservationService $cancelReservationService
+        protected CreateReservationPipeline $createReservationPipeline,
+        protected CheckInReservationPipeline $checkInReservationPipeline,
+        protected CheckOutReservationPipeline $checkOutReservationPipeline,
+        protected CancelReservationPipeline $cancelReservationPipeline
     ) {}
 
     /**
@@ -35,7 +37,6 @@ class ReservationService
      * @param string $number
      * @return Reservation|null
      */
- 
     public function findByNumber(string $number): ?Reservation
     {
         $reservation = Reservation::with(['user', 'accommodation', 'academicTerm','equipmentTracking.equipmentDetails.equipment'])
@@ -52,49 +53,47 @@ class ReservationService
 
         return $reservation;
     }
+
     /**
-     * Create a new reservation.
+     * Create a new reservation using the pipeline.
      *
      * @param array $data
-     * @return Reservation|array
+     * @return Reservation
      */
-    public function createReservation(array $data)
+    public function createReservation(array $data): Reservation
     {
-            return DB::transaction(function () use ($data) {
-                return $this->createReservationService->create($data);
-            });
-    }
-
-    public function checkIn(array $data){
-        return DB::transaction(function () use ($data) {
-            return $this->checkInService->checkIn($data);
-        });
+        return $this->createReservationPipeline->execute($data);
     }
 
     /**
-     * Check out a reservation.
+     * Check in a reservation using the pipeline.
      *
      * @param array $data
      */
-    public function checkOut(array $data)
+    public function checkIn(array $data): void
     {
-        return DB::transaction(function () use ($data) {
-            return $this->checkOutService->checkOut($data);
-        });
+        $this->checkInReservationPipeline->execute($data);
     }
 
     /**
-     * Cancel a reservation.
+     * Check out a reservation using the pipeline.
+     *
+     * @param array $data
+     * @return Reservation
+     */
+    public function checkOut(array $data): Reservation
+    {
+        return $this->checkOutReservationPipeline->execute($data);
+    }
+
+    /**
+     * Cancel a reservation using the pipeline.
      *
      * @param int $reservationId
-     * @param CancelReservationService $cancelReservationService
-     * @throws BusinessValidationException
      */
     public function cancelReservation(int $reservationId): void
     {
-        DB::transaction(function () use ($reservationId) {
-            $this->cancelReservationService->cancel($reservationId);
-        });
+        $this->cancelReservationPipeline->execute($reservationId);
     }
 
     /**
@@ -184,7 +183,6 @@ class ReservationService
                 'female' => formatNumber($stats->checked_in_female),
                 'lastUpdateTime' => $checkedInLastUpdate
             ],
-            
         ];
     }
 
@@ -243,11 +241,9 @@ class ReservationService
             $query->where('status', request('search_status'));
         }
         
-        
         if (request()->filled('search_academic_term')) {
             $query->where('academic_term_id', request('search_academic_term'));
         }
-        
 
         // Search by building
         if (request()->filled('search_building')) {
@@ -326,7 +322,6 @@ class ReservationService
             case 'room':
                 $room = $reservation->accommodation->room;
                 $location = 'B' . $room->apartment->building->number . ' - A' . $room->apartment->number . ' - R' . $room->number;
-
                 break;
             case 'apartment':
                 $apartment = $reservation->accommodation->apartment;
