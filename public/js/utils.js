@@ -348,6 +348,17 @@ const Utils = {
           this.setAllStatsToNA();
         }
       },
+      debounce: function(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    },
 
       /**
        * Extract stats data from response
@@ -757,5 +768,272 @@ const Utils = {
       }
     });
   },
+  /**
+ * Show/hide loader elements
+ * @param {string} loaderId - Loader element ID (without #)
+ * @param {boolean} show - Whether to show (true) or hide (false)
+ */
+toggleLoader(loaderId, show = true) {
+  const $loader = $(`#${loaderId}`);
+  if (show) {
+    $loader.removeClass('d-none');
+  } else {
+    $loader.addClass('d-none');
+  }
+},
+
+/**
+ * Show loader
+ * @param {string} loaderId - Loader element ID (without #)
+ */
+showLoader(loaderId) {
+  this.toggleLoader(loaderId, true);
+},
+
+/**
+ * Hide loader
+ * @param {string} loaderId - Loader element ID (without #)
+ */
+hideLoader(loaderId) {
+  this.toggleLoader(loaderId, false);
+},
+
+/**
+ * Toggle no-data message visibility
+ * @param {string} noDataId - No-data element ID (without #)
+ * @param {boolean} show - Whether to show (true) or hide (false)
+ */
+toggleNoData(noDataId, show = true) {
+  const $noData = $(`#${noDataId}`);
+  if (show) {
+    $noData.removeClass('d-none');
+  } else {
+    $noData.addClass('d-none');
+  }
+},
+
+/**
+ * Show no-data message
+ * @param {string} noDataId - No-data element ID (without #)
+ */
+showNoData(noDataId) {
+  this.toggleNoData(noDataId, true);
+},
+
+/**
+ * Hide no-data message
+ * @param {string} noDataId - No-data element ID (without #)
+ */
+hideNoData(noDataId) {
+  this.toggleNoData(noDataId, false);
+},
+
+/**
+ * Create a chart loading state manager for analytics
+ * @param {Array} chartIds - Array of chart IDs to manage
+ * @returns {Object} - Chart loading manager
+ */
+createChartLoadingManager(chartIds = []) {
+  return {
+    charts: chartIds,
+    
+    showAll() {
+      this.charts.forEach(chartId => {
+        Utils.showLoader(`${chartId}-loader`);
+        Utils.hideNoData(`${chartId}-no-data`);
+      });
+    },
+    
+    hideAll() {
+      this.charts.forEach(chartId => {
+        Utils.hideLoader(`${chartId}-loader`);
+      });
+    },
+    
+    showNoDataFor(chartId) {
+      Utils.hideLoader(`${chartId}-loader`);
+      Utils.showNoData(`${chartId}-no-data`);
+    },
+    
+    hideNoDataFor(chartId) {
+      Utils.hideNoData(`${chartId}-no-data`);
+    }
+  };
+},
+
+/**
+ * Enhanced filter manager helper
+ * @param {Object} config - Configuration object
+ * @returns {Object} - Filter manager instance
+ */
+createFilterManager(config = {}) {
+  const defaults = {
+    filterSelectors: [],
+    onFilterChange: null,
+    debounceTime: 300,
+    clearButtonSelector: null
+  };
+  
+  const settings = { ...defaults, ...config };
+  let filterTimeout = null;
+  let isLoading = false;
+  
+  return {
+    init() {
+      this.bindEvents();
+    },
+    
+    bindEvents() {
+      const self = this;
+      
+      // Bind filter change events
+      settings.filterSelectors.forEach(selector => {
+        $(selector).on('change', function() {
+          if (isLoading) return;
+          
+          clearTimeout(filterTimeout);
+          filterTimeout = setTimeout(() => {
+            if (!isLoading && settings.onFilterChange) {
+              settings.onFilterChange();
+            }
+          }, settings.debounceTime);
+        });
+      });
+      
+      // Bind clear button if provided
+      if (settings.clearButtonSelector) {
+        $(settings.clearButtonSelector).on('click', function() {
+          if (!isLoading) {
+            self.clearFilters();
+          }
+        });
+      }
+    },
+    
+    getFilters() {
+      const filters = {};
+      settings.filterSelectors.forEach(selector => {
+        const $element = $(selector);
+        const name = $element.attr('name') || $element.attr('id');
+        if (name) {
+          filters[name] = $element.val();
+        }
+      });
+      return filters;
+    },
+    
+    clearFilters() {
+      isLoading = true;
+      
+      settings.filterSelectors.forEach(selector => {
+        const $element = $(selector);
+        if ($element.is('select')) {
+          $element.val('');
+          if ($element.hasClass('select2-hidden-accessible')) {
+            $element.trigger('change.select2');
+          }
+        } else {
+          $element.val('');
+        }
+      });
+      
+      setTimeout(() => {
+        if (settings.onFilterChange) {
+          settings.onFilterChange();
+        }
+      }, 100);
+    },
+    
+    setLoadingState(loading) {
+      isLoading = loading;
+    },
+    
+    isLoading() {
+      return isLoading;
+    }
+  };
+},
+
+/**
+ * Format numbers with thousands separator
+ * @param {number|string} num - Number to format
+ * @param {string} locale - Locale for formatting (default: 'en-US')
+ * @returns {string} - Formatted number
+ */
+formatNumber(num, locale = 'en-US') {
+  if (num === null || num === undefined || num === 'N/A') return 'N/A';
+  const number = typeof num === 'string' ? parseFloat(num) : num;
+  if (isNaN(number)) return 'N/A';
+  return new Intl.NumberFormat(locale).format(number);
+},
+
+/**
+ * Format percentage
+ * @param {number} value - Value to format as percentage
+ * @param {number} total - Total value for percentage calculation
+ * @param {number} decimals - Number of decimal places (default: 1)
+ * @returns {string} - Formatted percentage
+ */
+formatPercentage(value, total, decimals = 1) {
+  if (!value || !total || total === 0) return '0%';
+  const percentage = (value / total * 100).toFixed(decimals);
+  return `${percentage}%`;
+},
+
+/**
+ * Create a simple analytics data processor
+ * @param {Array} data - Raw data array
+ * @param {Object} config - Configuration object
+ * @returns {Object} - Processed data for charts
+ */
+processAnalyticsData(data, config = {}) {
+  const {
+    labelField = 'name',
+    valueField = 'count',
+    colors = ['#696cff', '#03c3ec', '#ffab00', '#71dd37', '#ff3e1d', '#8592a3'],
+    translations = {}
+  } = config;
+  
+  if (!data || !Array.isArray(data) || data.length === 0) {
+    return null;
+  }
+  
+  return {
+    labels: data.map(item => {
+      const label = item[labelField];
+      return translations[label] || label;
+    }),
+    datasets: [{
+      data: data.map(item => item[valueField] || 0),
+      backgroundColor: colors.slice(0, data.length),
+      borderColor: '#fff',
+      borderWidth: 2
+    }]
+  };
+},
+
+/**
+ * Safe element text setter that handles different element types
+ * @param {string} selector - Element selector
+ * @param {string|number} value - Value to set
+ * @param {boolean} fallbackToNA - Whether to fallback to 'N/A' for empty values
+ */
+safeSetText(selector, value, fallbackToNA = true) {
+  const $element = $(selector);
+  if ($element.length === 0) return;
+  
+  let displayValue = value;
+  if ((value === null || value === undefined || value === '') && fallbackToNA) {
+    displayValue = 'N/A';
+  }
+  
+  if ($element.is('input, textarea')) {
+    $element.val(displayValue);
+  } else if ($element.is('select')) {
+    $element.val(displayValue).trigger('change');
+  } else {
+    $element.text(displayValue);
+  }
+}
 
 };

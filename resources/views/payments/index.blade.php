@@ -432,7 +432,6 @@ var StatsManager = Utils.createStatsManager({
     'payments-completed': ['male', 'female'],
     'payments-cancelled': ['male', 'female']
   },
-  onError: translations.messages.failed_to_load_stats
 });
   
 

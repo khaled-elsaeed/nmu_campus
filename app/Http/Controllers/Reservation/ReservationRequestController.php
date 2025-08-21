@@ -165,14 +165,15 @@ class ReservationRequestController extends Controller
     /**
  * Get analytics overview data
  */
-public function analyticsOverview(Request $request)
+public function analyticsStats(Request $request)
 {
     // Mock data for overview statistics
     $data = [
-        'total' => 450,
-        'pending' => 85,
-        'approved' => 320,
-        'rejected' => 45
+        'reservation_requests' => 450,
+        'reservation_requests_pending' => 85,
+        'reservation_requests_approved' => 320,
+        'reservation_requests_rejected' => 45,
+        'reservation_requests_cancelled' => 30
     ];
 
     return response()->json(['success' => true, 'data' => $data]);
@@ -196,22 +197,42 @@ public function analyticsAccommodationTypes(Request $request)
  */
 public function analyticsRoomTypes(Request $request)
 {
-    $data = [
-        ['room_type' => 'single', 'count' => 180],
-        ['room_type' => 'double', 'count' => 270]
-    ];
 
+    $data = [
+        ['room_type' => 'single', 'count' => 80],
+        ['room_type' => 'double', 'count' => 120],
+        ['room_type' => 'single_bed', 'count' => 90],
+        ['room_type' => 'double_bed', 'count' => 100],
+        ['room_type' => 'both_bed', 'count' => 60]
+    ];
     return response()->json(['success' => true, 'data' => $data]);
 }
 
 /**
- * Get bed counts analytics
+ * Get parent abroad analytics
  */
-public function analyticsBedCounts(Request $request)
+public function analyticsParentAbroad(Request $request)
+{
+
+    $data = [
+        ['parent_abroad' => 1, 'count' => 70], // Yes
+        ['parent_abroad' => 0, 'count' => 380] // No
+    ];
+    return response()->json(['success' => true, 'data' => $data]);
+}
+
+/**
+ * Get governorates analytics
+ */
+public function analyticsGovernorates(Request $request)
 {
     $data = [
-        ['bed_count' => 1, 'count' => 200],
-        ['bed_count' => 2, 'count' => 250]
+        ['governorate' => 'North Governorate', 'count' => 120],
+        ['governorate' => 'South Governorate', 'count' => 95],
+        ['governorate' => 'East Governorate', 'count' => 75],
+        ['governorate' => 'West Governorate', 'count' => 85],
+        ['governorate' => 'Central Governorate', 'count' => 45],
+        ['governorate' => 'Capital Governorate', 'count' => 30]
     ];
 
     return response()->json(['success' => true, 'data' => $data]);

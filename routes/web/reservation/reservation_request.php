@@ -16,18 +16,14 @@ Route::prefix('reservation-requests')->name('reservation-requests.')->group(func
     
     // Analytics Routes
     Route::prefix('analytics')->name('analytics.')->group(function () {
-        Route::get('/overview', [ReservationRequestController::class, 'analyticsOverview'])->name('overview');
+        Route::get('/stats', [ReservationRequestController::class, 'analyticsStats'])->name('stats');
         Route::get('/accommodation-types', [ReservationRequestController::class, 'analyticsAccommodationTypes'])->name('accommodation-types');
         Route::get('/room-types', [ReservationRequestController::class, 'analyticsRoomTypes'])->name('room-types');
-        Route::get('/bed-counts', [ReservationRequestController::class, 'analyticsBedCounts'])->name('bed-counts');
         Route::get('/faculties', [ReservationRequestController::class, 'analyticsFaculties'])->name('faculties');
+        Route::get('/governorates', [ReservationRequestController::class, 'analyticsGovernorates'])->name('governorates');
         Route::get('/programs', [ReservationRequestController::class, 'analyticsPrograms'])->name('programs');
         Route::get('/genders', [ReservationRequestController::class, 'analyticsGenders'])->name('genders');
-        Route::get('/monthly-trends', [ReservationRequestController::class, 'analyticsMonthlyTrends'])->name('monthly-trends');
         Route::get('/sibling-preferences', [ReservationRequestController::class, 'analyticsSiblingPreferences'])->name('sibling-preferences');
-        Route::get('/status-timeline', [ReservationRequestController::class, 'analyticsStatusTimeline'])->name('status-timeline');
-        Route::get('/period-types', [ReservationRequestController::class, 'analyticsPeriodTypes'])->name('period-types');
-        Route::get('/summary-stats', [ReservationRequestController::class, 'analyticsSummaryStats'])->name('summary-stats');
-        Route::get('/export', [ReservationRequestController::class, 'analyticsExport'])->name('export');
+        Route::get('/parent-abroad', [ReservationRequestController::class, 'analyticsParentAbroad'])->name('parent-abroad');
     });
 });
