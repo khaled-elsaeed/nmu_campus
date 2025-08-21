@@ -52,6 +52,24 @@
                 <label for="filter_date_to" class="form-label">{{ __('Date To') }}:</label>
                 <input type="date" class="form-control" id="filter_date_to" name="filter_date_to">
             </div>
+            <div class="col-md-3">
+                <label for="filter_gender" class="form-label">{{ __('Gender') }}:</label>
+                <select class="form-control" id="filter_gender" name="filter_gender">
+                    <option value="">{{ __('All Genders') }}</option>
+                    <option value="male">{{ __('Male') }}</option>
+                    <option value="female">{{ __('Female') }}</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="filter_faculty" class="form-label">{{ __('Faculty') }}:</label>
+                <select class="form-control" id="filter_faculty" name="filter_faculty">
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="filter_governorate" class="form-label">{{ __('Governorate') }}:</label>
+                <select class="form-control" id="filter_governorate" name="filter_governorate">
+                </select>
+            </div>
             <div class="w-100"></div>
             <div class="col-12">
                 <button class="btn btn-outline-secondary mt-2 ms-2" id="clearAnalyticsFiltersBtn" type="button">
@@ -69,7 +87,7 @@
                 color="warning"
                 icon="bx bx-time"
                 :label="__('Total')"
-                id="reservation_requests"
+                id="reservation-requests"
                 :subStats="[
                     'male' => [
                         'label' => __('Total Male'),
@@ -89,7 +107,7 @@
                 color="warning"
                 icon="bx bx-time"
                 :label="__('Pending')"
-                id="reservation_requests_pending"
+                id="reservation-requests-pending"
                 :subStats="[
                     'male' => [
                         'label' => __('Male Pending'),
@@ -109,7 +127,7 @@
                 color="success"
                 icon="bx bx-check-circle"
                 :label="__('Approved')"
-                id="reservation_requests_approved"
+                id="reservation-requests-approved"
                 :subStats="[
                     'male' => [
                         'label' => __('Male Approved'),
@@ -129,7 +147,7 @@
                 color="danger"
                 icon="bx bx-x-circle"
                 :label="__('Rejected')"
-                id="reservation_requests_rejected"
+                id="reservation-requests-rejected"
                 :subStats="[
                     'male' => [
                         'label' => __('Male Rejected'),
@@ -151,7 +169,7 @@
                 color="secondary"
                 icon="bx bx-block"
                 :label="__('Cancelled')"
-                id="reservation_requests_cancelled"
+                id="reservation-requests-cancelled"
                 :subStats="[
                     'male' => [
                         'label' => __('Male Cancelled'),
@@ -411,6 +429,12 @@ var ROUTES = {
     },
     academicTerms: {
         all: '{{ route("academic.academic_terms.all") }}'
+    },
+    governorates: {
+        all: '{{ route("governorates.all") }}'
+    },
+    faculties: {
+        all: '{{ route("academic.faculties.all") }}'
     }
 };
 
@@ -453,6 +477,12 @@ var ApiService = {
     fetchAcademicTerms: function() {
         return ApiService.request(ROUTES.academicTerms.all);
     },
+    fetchGovernoratesForSelect: function() {
+        return ApiService.request(ROUTES.governorates.all);
+    },
+    fetchFacultiesForSelect: function() {
+        return ApiService.request(ROUTES.faculties.all);
+    }
 };
 
 // ===========================
@@ -461,19 +491,22 @@ var ApiService = {
 var StatsManager = Utils.createStatsManager({
   apiMethod: ApiService.fetchStats,
   statsKeys: [
-    'reservation_requests',
-    'reservation_requests_pending',
-    'reservation_requests_approved',
-    'reservation_requests_rejected',
-    'reservation_requests_cancelled'
+    'reservation-requests',
+    'reservation-requests-pending',
+    'reservation-requests-approved',
+    'reservation-requests-rejected',
+    'reservation-requests-cancelled'
   ],
   subStatsConfig: {
-    'reservation_requests': ['male', 'female'],
-    'reservation_requests_pending': ['male', 'female'],
-    'reservation_requests_approved': ['male', 'female'],
-    'reservation_requests_rejected': ['male', 'female'],
-    'reservation_requests_cancelled': ['male', 'female']
+    'reservation-requests': ['male', 'female'],
+    'reservation-requests-pending': ['male', 'female'],
+    'reservation-requests-approved': ['male', 'female'],
+    'reservation-requests-rejected': ['male', 'female'],
+    'reservation-requests-cancelled': ['male', 'female']
   },
+    urlParams: function() {
+        return FilterManager.getFilters();
+    }
 });
 
 // ===========================
@@ -649,12 +682,14 @@ var FilterManager = {
     
     init: function() {
         this.loadAcademicTerms();
+        this.loadGovernorates();
+        this.loadFaculties();
         this.bindEvents();
     },
     
     bindEvents: function() {
         const self = this;
-        const filterFields = ['#filter_academic_term', '#filter_status', '#filter_date_from', '#filter_date_to'];
+        const filterFields = ['#filter_academic_term', '#filter_status', '#filter_date_from', '#filter_date_to', '#filter_gender', '#filter_faculty', '#filter_governorate'];
         
         filterFields.forEach(field => {
             $(field).on('change', function() {
@@ -688,13 +723,44 @@ var FilterManager = {
                 }
             });
     },
-    
+
+    loadGovernorates: function(){
+        ApiService.fetchGovernoratesForSelect()
+            .done(function(response) {
+                if (response.success && response.data) {
+                    Utils.populateSelect('#filter_governorate', response.data, {
+                        valueField: 'id',
+                        textField: 'name',
+                        placeholder: '{{ __("All Governorates") }}'
+                    }, true);
+                }
+            });
+    },
+
+    loadFaculties: function(){
+        ApiService.fetchFacultiesForSelect()
+            .done(function(response) {
+                if (response.success && response.data) {
+                    Utils.populateSelect('#filter_faculty', response.data, {
+                        valueField: 'id',
+                        textField: 'name',
+                        placeholder: '{{ __("All Faculties") }}'
+                    }, true);
+                }
+            });
+    },
+
+
+
     getFilters: function() {
         return {
             academic_term: $('#filter_academic_term').val(),
             status: $('#filter_status').val(),
             date_from: $('#filter_date_from').val(),
-            date_to: $('#filter_date_to').val()
+            date_to: $('#filter_date_to').val(),
+            gender: $('#filter_gender').val(),
+            faculty: $('#filter_faculty').val(),
+            governorate: $('#filter_governorate').val()
         };
     },
     
@@ -703,6 +769,7 @@ var FilterManager = {
         
         $('#filter_academic_term, #filter_status').val('');
         $('#filter_date_from, #filter_date_to').val('');
+        $('#filter_gender, #filter_faculty, #filter_governorate').val('');
         
         setTimeout(() => {
             AnalyticsManager.refreshAllData();
@@ -718,6 +785,22 @@ var FilterManager = {
 // ANALYTICS MANAGER
 // ===========================
 var AnalyticsManager = {
+
+    isAllCountsZero: function(data, countKey = 'count') {
+
+        if (!Array.isArray(data) || data.length === 0) {
+            return true;
+        }
+
+        const result = data.every(item => {
+            const value = Number(item[countKey]) || 0; // convert to number
+            return value === 0;
+        });
+        return result;
+    },
+
+
+
     isLoading: false,
     currentFacultyView: 'bar', // Track current view type
     currentGovernorateView: 'bar', // Track current view type
@@ -777,44 +860,128 @@ var AnalyticsManager = {
         Utils.hideNoData('faculty-no-data');
         Utils.hideNoData('governorate-no-data');
         
-        const promises = [
-            ApiService.fetchGenders(filters),
-            ApiService.fetchRoomTypes(filters),
-            ApiService.fetchSiblingPreferences(filters),
-            ApiService.fetchParentAbroad(filters),
-            ApiService.fetchFaculties(filters),
-            ApiService.fetchGovernorates(filters) // Make sure this is included
-        ];
-        
-        Promise.all(promises)
-            .then(responses => {
-                try {
-                    this.renderGenders(responses[0]);
-                    this.renderRoomTypes(responses[1]);
-                    this.renderSiblingPreferences(responses[2]);
-                    this.renderParentAbroad(responses[3]);
-                    this.renderFaculties(responses[4]);
-                    this.renderGovernorates(responses[5]); // CALL GOVERNORATE RENDERER
-                } catch (error) {
-                    console.error('Error rendering analytics data:', error);
-                    Utils.showError('Error rendering analytics data: ' + error.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error loading analytics data:', error);
-                Utils.showError(TRANSLATIONS.messages.errorLoadingData);
-            })
-            .finally(() => {
+        let pending = 6;
+        const checkAllLoaded = () => {
+            pending--;
+            if (pending === 0) {
                 this.isLoading = false;
                 FilterManager.setLoadingState(false);
-                
-                // Hide all loaders
+                StatsManager.refresh();
+            }
+        };
+        
+        ApiService.fetchGenders(filters)
+            .done(response => {
+                try {
+                    this.renderGenders(response);
+                } catch (error) {
+                    console.error('Error rendering genders:', error);
+                    Utils.showNoData('gender-no-data');
+                }
+            })
+            .fail(error => {
+                console.error('Error loading genders:', error);
+                Utils.showError(TRANSLATIONS.messages.errorLoadingData);
+                Utils.showNoData('gender-no-data');
+            })
+            .always(() => {
                 Utils.hideLoader('gender-loader');
+                checkAllLoaded();
+            });
+        
+        ApiService.fetchRoomTypes(filters)
+            .done(response => {
+                try {
+                    this.renderRoomTypes(response);
+                } catch (error) {
+                    console.error('Error rendering room types:', error);
+                    Utils.showNoData('room-type-no-data');
+                }
+            })
+            .fail(error => {
+                console.error('Error loading room types:', error);
+                Utils.showError(TRANSLATIONS.messages.errorLoadingData);
+                Utils.showNoData('room-type-no-data');
+            })
+            .always(() => {
                 Utils.hideLoader('room-type-loader');
+                checkAllLoaded();
+            });
+        
+        ApiService.fetchSiblingPreferences(filters)
+            .done(response => {
+                try {
+                    this.renderSiblingPreferences(response);
+                } catch (error) {
+                    console.error('Error rendering sibling preferences:', error);
+                    Utils.showNoData('sibling-no-data');
+                }
+            })
+            .fail(error => {
+                console.error('Error loading sibling preferences:', error);
+                Utils.showError(TRANSLATIONS.messages.errorLoadingData);
+                Utils.showNoData('sibling-no-data');
+            })
+            .always(() => {
                 Utils.hideLoader('sibling-loader');
+                checkAllLoaded();
+            });
+        
+        ApiService.fetchParentAbroad(filters)
+            .done(response => {
+                try {
+                    this.renderParentAbroad(response);
+                } catch (error) {
+                    console.error('Error rendering parent abroad:', error);
+                    Utils.showNoData('parent-abroad-no-data');
+                }
+            })
+            .fail(error => {
+                console.error('Error loading parent abroad:', error);
+                Utils.showError(TRANSLATIONS.messages.errorLoadingData);
+                Utils.showNoData('parent-abroad-no-data');
+            })
+            .always(() => {
                 Utils.hideLoader('parent-abroad-loader');
+                checkAllLoaded();
+            });
+        
+        ApiService.fetchFaculties(filters)
+            .done(response => {
+                try {
+                    this.renderFaculties(response);
+                } catch (error) {
+                    console.error('Error rendering faculties:', error);
+                    Utils.showNoData('faculty-no-data');
+                }
+            })
+            .fail(error => {
+                console.error('Error loading faculties:', error);
+                Utils.showError(TRANSLATIONS.messages.errorLoadingData);
+                Utils.showNoData('faculty-no-data');
+            })
+            .always(() => {
                 Utils.hideLoader('faculty-loader');
+                checkAllLoaded();
+            });
+        
+        ApiService.fetchGovernorates(filters)
+            .done(response => {
+                try {
+                    this.renderGovernorates(response);
+                } catch (error) {
+                    console.error('Error rendering governorates:', error);
+                    Utils.showNoData('governorate-no-data');
+                }
+            })
+            .fail(error => {
+                console.error('Error loading governorates:', error);
+                Utils.showError(TRANSLATIONS.messages.errorLoadingData);
+                Utils.showNoData('governorate-no-data');
+            })
+            .always(() => {
                 Utils.hideLoader('governorate-loader');
+                checkAllLoaded();
             });
     },
     
@@ -837,7 +1004,7 @@ var AnalyticsManager = {
     },
     
     renderGenders: function(response) {
-        if (response.success && response.data && response.data.length > 0) {
+        if (response.success && response.data && response.data.length > 0 && !this.isAllCountsZero(response.data, 'count')) {
             const chartData = {
                 labels: response.data.map(item => TRANSLATIONS.labels[item.gender] || item.gender),
                 datasets: [{
@@ -847,7 +1014,6 @@ var AnalyticsManager = {
                     borderWidth: 2
                 }]
             };
-            
             ChartManager.createPieChart('gender-chart', chartData);
             Utils.hideNoData('gender-no-data');
         } else {
@@ -856,7 +1022,7 @@ var AnalyticsManager = {
     },
     
     renderRoomTypes: function(response) {
-        if (response.success && response.data && response.data.length > 0) {
+        if (response.success && response.data && response.data.length > 0 && !this.isAllCountsZero(response.data, 'count')) {
             const chartData = {
                 labels: response.data.map(item => TRANSLATIONS.labels[item.room_type] || item.room_type),
                 datasets: [{
@@ -866,7 +1032,6 @@ var AnalyticsManager = {
                     borderWidth: 2
                 }]
             };
-            
             ChartManager.createPieChart('room-type-chart', chartData);
             Utils.hideNoData('room-type-no-data');
         } else {
@@ -875,7 +1040,7 @@ var AnalyticsManager = {
     },
     
     renderSiblingPreferences: function(response) {
-        if (response.success && response.data && response.data.length > 0) {
+        if (response.success && response.data && response.data.length > 0 && !this.isAllCountsZero(response.data, 'count')) {
             const chartData = {
                 labels: response.data.map(item => item.stay_with_sibling ? 'Yes' : 'No'),
                 datasets: [{
@@ -893,7 +1058,7 @@ var AnalyticsManager = {
     },
 
     renderParentAbroad: function(response) {
-        if (response.success && response.data && response.data.length > 0) {
+        if (response.success && response.data && response.data.length > 0 && !this.isAllCountsZero(response.data, 'count')) {
             const chartData = {
                 labels: response.data.map(item => item.parent_abroad ? 'Yes' : 'No'),
                 datasets: [{
@@ -911,7 +1076,7 @@ var AnalyticsManager = {
     },
     
     renderFaculties: function(response) {
-        if (response.success && response.data && response.data.length > 0) {
+        if (response.success && response.data && response.data.length > 0 && !this.isAllCountsZero(response.data, 'count')) {
             const chartData = {
                 labels: response.data.map(item => item.faculty_name),
                 datasets: [{
@@ -922,7 +1087,6 @@ var AnalyticsManager = {
                     borderWidth: 1
                 }]
             };
-            
             ChartManager.createBarChart('faculty-chart', chartData, {
                 indexAxis: 'y',
                 scales: {
@@ -931,7 +1095,6 @@ var AnalyticsManager = {
                     }
                 }
             });
-            
             this.renderFacultyAccordion(response.data);
             Utils.hideNoData('faculty-no-data');
         } else {
@@ -943,10 +1106,8 @@ var AnalyticsManager = {
     // FIXED GOVERNORATE RENDERING
     renderGovernorates: function(response) {
         console.log('Governorate response:', response); // Debug log
-        
-        if (response.success && response.data && response.data.length > 0) {
-            console.log('Rendering governorate chart with data:', response.data); // Debug log
-            
+
+        if (response.success && response.data && response.data.length > 0 && !this.isAllCountsZero(response.data, 'count')) {
             const chartData = {
                 labels: response.data.map(item => item.governorate || item.name || 'Unknown'),
                 datasets: [{
@@ -957,7 +1118,6 @@ var AnalyticsManager = {
                     borderWidth: 1
                 }]
             };
-
             const success = ChartManager.createBarChart('governorate-chart', chartData, {
                 indexAxis: 'y',
                 scales: {
@@ -974,7 +1134,6 @@ var AnalyticsManager = {
                     }
                 }
             });
-            
             if (success) {
                 Utils.hideNoData('governorate-no-data');
                 console.log('Governorate chart created successfully');
@@ -1217,7 +1376,6 @@ var AnalyticsManager = {
 // ===========================
 var AnalyticsApp = {
     init: function() {
-        StatsManager.init();
         ChartManager.init();
         FilterManager.init();
         AnalyticsManager.init();

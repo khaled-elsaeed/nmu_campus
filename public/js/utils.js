@@ -304,7 +304,8 @@ const Utils = {
     const defaults = {
       apiMethod: null,           // Required: API method to call (e.g., ApiService.fetchTermStats)
       statsKeys: [],             // Required: Array of stat keys (e.g., ['terms', 'active', 'inactive'])
-      subStatsConfig: {},        // Optional: Object mapping stat keys to their sub-stats config
+      subStatsConfig: {},
+      urlParams: {},              // Optional: Object mapping stat keys to their sub-stats config
       onError: isRtl ? 'فشل تحميل الإحصائيات' : 'Failed to load statistics', // Error message
       dataPath: 'data',          // Path to data in response (default: response.data)
       successCheck: (response) => response.success !== false // Function to check if response is successful
@@ -328,13 +329,14 @@ const Utils = {
       /**
        * Load statistics data
        */
-      load() {
-        this.toggleAllLoadingStates(true);
-        settings.apiMethod()
-          .done(this.handleSuccess.bind(this))
-          .fail(this.handleError.bind(this))
-          .always(() => this.toggleAllLoadingStates(false));
-      },
+           load() {
+            this.toggleAllLoadingStates(true);
+            let params = typeof settings.urlParams === 'function' ? settings.urlParams() : settings.urlParams;
+            settings.apiMethod(params)
+                .done(this.handleSuccess.bind(this))
+                .fail(this.handleError.bind(this))
+                .always(() => this.toggleAllLoadingStates(false));
+        },
 
       /**
        * Handle successful stats fetch
