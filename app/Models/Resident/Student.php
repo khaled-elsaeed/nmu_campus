@@ -65,7 +65,6 @@ class Student extends Model
     {
         return [
             'is_profile_complete' => 'boolean',
-            'date_of_birth' => 'date:Y-m-d',
         ];
     }
 

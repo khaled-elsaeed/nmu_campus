@@ -36,11 +36,11 @@ return new class extends Migration
             $table->string('city', 100)->nullable();
             $table->string('street')->nullable();
 
-            // Parent info
-            $table->string('parent_name')->nullable();
-            $table->string('parent_phone', 20)->nullable();
-            $table->string('parent_email')->nullable();
-            $table->string('parent_country_name', 100)->nullable();
+            // Guardian info
+            $table->string('guardian_name')->nullable();
+            $table->string('guardian_phone', 20)->nullable();
+            $table->string('guardian_email')->nullable();
+            $table->string('guardian_country_name', 100)->nullable();
 
             // Certificate info
             $table->string('certificate_type_name')->nullable();

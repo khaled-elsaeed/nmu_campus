@@ -18,7 +18,7 @@ class ApiClientService
         $this->baseUrl = env('STUDENT_ARCHIVE_API_BASE_URL');
         $this->username = env('STUDENT_ARCHIVE_API_USERNAME');
         $this->password = env('STUDENT_ARCHIVE_API_PASSWORD');
-        $this->timeout = (int) env('STUDENT_ARCHIVE_API_TIMEOUT', 30);
+        $this->timeout = (int) (30000);
     }
 
     /**

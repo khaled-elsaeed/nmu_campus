@@ -102,13 +102,13 @@
         icon="bx bx-money"
     >
     <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
-                            <button class="btn btn-primary mx-2" id="addPaymentBtn">
+        <button class="btn btn-primary mx-2" id="addPaymentBtn">
             <i class="bx bx-plus me-1"></i> {{ __('Add Payment') }}
         </button>
-            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#paymentSearchCollapse" aria-expanded="false" aria-controls="paymentSearchCollapse">
-                <i class="bx bx-filter-alt me-1"></i> {{ __('Search') }}
-            </button>
-        </div>
+        <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#paymentSearchCollapse" aria-expanded="false" aria-controls="paymentSearchCollapse">
+            <i class="bx bx-filter-alt me-1"></i> {{ __('Search') }}
+        </button>
+    </div>
     </x-ui.page-header>
 
     {{-- ===== ADVANCED SEARCH SECTION ===== --}}
@@ -166,15 +166,14 @@
     />
 
     {{-- ===== MODALS SECTION ===== --}}
-    {{-- Add/Edit Payment Modal --}}
+    {{-- Add Payment Modal --}}
     <x-ui.modal 
-        id="paymentModal"
-        :title="__('Manage Payment')"
+        id="addPaymentModal"
+        :title="__('Add Payment')"
         :scrollable="true"
-        class="payment-modal"
     >
         <x-slot name="slot">
-            <form id="paymentForm">
+            <form id="addPaymentForm">
                 <div class="row">
                     <div class="col-md-12 mb-3">
                         <label for="payment_reservation_id" class="form-label">{{ __('Reservation Number') }}</label>
@@ -230,7 +229,7 @@
         </x-slot>
         <x-slot name="footer">
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
-            <button type="submit" class="btn btn-primary" form="paymentForm">{{ __('Save') }}</button>
+            <button type="submit" class="btn btn-primary" form="addPaymentForm">{{ __('Save') }}</button>
         </x-slot>
     </x-ui.modal>
 
@@ -297,38 +296,6 @@
 
 @push('scripts')
 <script>
-// ===========================
-// TRANSLATIONS
-// ===========================
-var translations = {
-    actions: {
-        viewDetails: "{{ __('View Details') }}",
-        loading: "{{ __('Loading...') }}",
-        saving: "{{ __('Saving...') }}",
-        save: "{{ __('Save') }}",
-    },
-    messages: {
-        failed_to_load_stats: "{{ __('Failed to load statistics') }}",
-        failed_to_load_data: "{{ __('Failed to load data') }}",
-        payment_saved: "{{ __('Payment saved successfully') }}",
-        failed_to_save: "{{ __('Failed to save payment') }}",
-        confirm_delete_title: "{{ __('Are you sure?') }}",
-        confirm_delete_text: "{{ __('You won\'t be able to revert this!') }}",
-        confirm_delete_button: "{{ __('Yes, delete it!') }}",
-        payment_deleted: "{{ __('Payment has been deleted') }}",
-        failed_to_delete: "{{ __('Failed to delete payment') }}",
-        failed_to_load_details: "{{ __('Failed to load payment details') }}",
-        no_details_available: "{{ __('No details available') }}",
-        filters_cleared: "{{ __('Filters cleared') }}",
-    },
-    modals: {
-        add_title: "{{ __('Add Payment') }}",
-        edit_title: "{{ __('Edit Payment') }}",
-    },
-    placeholders: {
-        select_status: "{{ __('Select Status') }}",
-    }
-};
 
 /**
  * Payment Management Page JS
@@ -350,9 +317,26 @@ var ROUTES = {
     stats: '{{ route('payments.stats') }}',
     show: '{{ route('payments.show', ':id') }}',
     store: '{{ route('payments.store') }}',
-    update: '{{ route('payments.update', ':id') }}',
-    destroy: '{{ route('payments.destroy', ':id') }}',
     details: '{{ route('payments.details', ':id') }}',
+  }
+};
+
+const TRANSLATIONS = {
+  placeholders: {
+    select_status: @json(__('Select Status'))
+  },
+  status: {
+    active: @json(__('Active')),
+    inactive: @json(__('Inactive'))
+  },
+  actions: {
+    viewDetails: @json(__('View Details')),
+    loading: @json(__('Loading...')),
+    saving: @json(__('Saving...')),
+    save: @json(__('Save'))
+  },
+  messages: {
+    no_details_available: @json(__('No details available.'))
   }
 };
 
@@ -366,8 +350,6 @@ var ApiService = {
    * @returns {jqXHR}
    */
   request: function(options) {
-    options.headers = options.headers || {};
-    options.headers['X-CSRF-TOKEN'] = $('meta[name="csrf-token"]').attr('content');
     return $.ajax(options);
   },
   /**
@@ -386,15 +368,6 @@ var ApiService = {
     return this.request({ url: Utils.replaceRouteId(ROUTES.payments.show, id), method: 'GET' });
   },
   /**
-   * Save (update) a payment
-   * @param {object} data
-   * @param {string|number} id
-   * @returns {jqXHR}
-   */
-  savePayment: function(data, id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.payments.update, id), method: 'PUT', data: data });
-  },
-  /**
    * Create a new payment
    * @param {object} data
    * @returns {jqXHR}
@@ -403,13 +376,10 @@ var ApiService = {
     return this.request({ url: ROUTES.payments.store, method: 'POST', data: data });
   },
   /**
-   * Delete a payment by ID
+   * Fetch payment details by ID
    * @param {string|number} id
    * @returns {jqXHR}
    */
-  deletePayment: function(id) {
-    return this.request({ url: Utils.replaceRouteId(ROUTES.payments.destroy, id), method: 'DELETE' });
-  },
   fetchPaymentDetails: function(id) {
     return this.request({ url: ROUTES.payments.details.replace(':id', id), method: 'GET' });
   }
@@ -452,11 +422,9 @@ var PaymentManager = {
    */
   bindEvents: function() {
     this.handleAddPayment();
-    this.handleEditPayment();
     this.handleViewPayment();
-    this.handleDeletePayment();
     this.handleFormSubmit();
-    this.handleVewPaymentDetails();
+    this.handleViewPaymentDetails();
   },
   /**
    * Handle add payment button click
@@ -464,31 +432,8 @@ var PaymentManager = {
   handleAddPayment: function() {
     var self = this;
     $(document).on('click', '#addPaymentBtn', function() {
-      Utils.resetForm('paymentForm');
-      $('#paymentModalTitle').text(translations.modals.add_title);
-      $('#paymentModal').modal('show');
-    });
-  },
-  /**
-   * Handle edit payment button click
-   */
-  handleEditPayment: function() {
-    var self = this;
-    $(document).on('click', '.editPaymentBtn', function(e) {
-      var paymentId = $(e.currentTarget).data('id');
-      Utils.resetForm('paymentForm');
-        $('#paymentModalTitle').text(translations.modals.edit_title);
-    ApiService.fetchPayment(paymentId)
-      .done(function(response) {
-        if (response.success) {
-          PaymentManager.populateEditForm(response.data);
-          $('#paymentModal').modal('show');
-        }
-      })
-      .fail(function(xhr) {
-        $('#paymentModal').modal('hide');
-          Utils.handleAjaxError(xhr, translations.messages.failed_to_load_data);
-      });
+      Utils.resetForm('addPaymentForm');
+      $('#addPaymentModal').modal('show');
     });
   },
   /**
@@ -501,27 +446,18 @@ var PaymentManager = {
     });
   },
   /**
-   * Handle delete payment button click
-   */
-  handleDeletePayment: function() {
-    $(document).on('click', '.deletePaymentBtn', function(e) {
-      var paymentId = $(e.currentTarget).data('id');
-      PaymentManager.deletePayment(paymentId);
-    });
-  },
-  /**
    * Handle form submit
    */
   handleFormSubmit: function() {
     var self = this;
-    $('#paymentForm').on('submit', function(e) {
+    $('#addPaymentForm').on('submit', function(e) {
       e.preventDefault();
-      Utils.clearValidation('#paymentForm');
+      Utils.clearValidation('#addPaymentForm');
       self.savePayment();
     });
   },
 
-  handleVewPaymentDetails(){
+  handleViewPaymentDetails: function() {
     var self = this;
     $(document).on('click', '.viewDetailsBtn', function(e) {
       var paymentId = $(e.currentTarget).data('id');
@@ -529,9 +465,6 @@ var PaymentManager = {
     });
   },
 
-  /**
-   * Populate edit form
-   */
   /**
    * Initialize payment details handlers
    */
@@ -607,46 +540,6 @@ var PaymentManager = {
   },
 
   /**
-   * Populate edit form
-   */
-  populateEditForm: function(payment) {
-    $('#payment_reservation_id').val(payment.reservation_number);
-    $('#payment_amount').val(payment.amount);
-    $('#payment_notes').val(payment.notes);
-    
-    // Clear existing payment details except the first one
-    var detailsContainer = $('#payment_details_container');
-    detailsContainer.find('.payment-detail-item:not(:first)').remove();
-    
-    // Reset the first item
-    var firstItem = detailsContainer.find('.payment-detail-item').first();
-    firstItem.find('select.payment-type').val('');
-    firstItem.find('input.payment-amount').val('');
-    firstItem.find('textarea.payment-description').val('');
-    
-    // Add payment details if they exist
-    if (payment.details && Array.isArray(payment.details)) {
-      payment.details.forEach((detail, index) => {
-        if (index === 0) {
-          // Update first item
-          firstItem.find('select.payment-type').val(detail.type || '');
-          firstItem.find('input.payment-amount').val(detail.amount || '');
-          firstItem.find('textarea.payment-description').val(detail.description || '');
-        } else {
-          // Add new items for remaining details
-          $('#add_payment_detail').click();
-          var newItem = detailsContainer.find('.payment-detail-item').last();
-          newItem.find('select.payment-type').val(detail.type || '');
-          newItem.find('input.payment-amount').val(detail.amount || '');
-          newItem.find('textarea.payment-description').val(detail.description || '');
-        }
-      });
-    }
-    
-    this.updateRemoveButtons();
-    this.updateTotalAmount();
-  },
-  /**
    * View payment details
    */
   viewPayment: function(paymentId) {
@@ -657,13 +550,9 @@ var PaymentManager = {
           $('#viewPaymentModal').modal('show');
         }
       })
-      .fail(function() {
+      .fail(function(xhr) {
         $('#viewPaymentModal').modal('hide');
-        if (Utils && typeof Utils.showError === 'function') {
-          Utils.showError(translations.messages.failed_to_load_data);
-        } else {
-          alert(translations.messages.failed_to_load_data);
-        }
+        Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
       });
   },
   /**
@@ -699,92 +588,37 @@ var PaymentManager = {
    * Save payment
    */
   savePayment: function() {
-    Utils.setLoadingState('#paymentForm button[type="submit"]', true, {
-      loadingText: translations.actions.saving,
+    Utils.setLoadingState('#addPaymentForm button[type="submit"]', true, {
+      loadingText: TRANSLATIONS.actions.saving,
       loadingIcon: 'bx bx-loader-alt bx-spin',
-      normalText: translations.actions.save,
+      normalText: TRANSLATIONS.actions.save,
       normalIcon: 'bx bx-save'
     });
 
-    var formData = $('#paymentForm').serialize();
-    var apiCall = this.currentPaymentId ? 
-      ApiService.savePayment(formData, this.currentPaymentId) :
-      ApiService.createPayment(formData);
+    var formData = $('#addPaymentForm').serialize();
 
-    apiCall
-      .done(() => {
-        Utils.showSuccess(translations.messages.payment_saved, true);
-        $('#paymentModal').modal('hide');
+    ApiService.createPayment(formData)
+      .done((response) => {
+        Utils.showSuccess(response.message, true);
+        $('#addPaymentModal').modal('hide');
         Utils.reloadDataTable('#payments-table');
         StatsManager.load();
       })
       .fail((xhr) => {
-        Utils.handleAjaxError(xhr, translations.messages.failed_to_save);
+        Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
       })
       .always(() => {
-        Utils.setLoadingState('#paymentForm button[type="submit"]', false, {
-          normalText: translations.actions.save,
+        Utils.setLoadingState('#addPaymentForm button[type="submit"]', false, {
+          normalText: TRANSLATIONS.actions.save,
           normalIcon: 'bx bx-save'
         });
       });
   },
-  /**
-   * Handle successful save
-   */
-  handleSaveSuccess: function() {
-    $('#paymentModal').modal('hide');
-    Utils.reloadDataTable('#payments-table');
-    Utils.showSuccess('Payment has been saved successfully.');
-    StatsManager.load();
-  },
-  /**
-   * Handle save error
-   */
-  handleSaveError: function(xhr) {
-    $('#paymentModal').modal('hide');
-    var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred. Please check your input.';
-    Utils.showError(message);
-  },
-  /**
-   * Delete payment
-   */
-  deletePayment: function(paymentId) {
-    if (Utils && typeof Utils.showConfirmDialog === 'function') {
-      Utils.showConfirmDialog({
-        title: translations.messages.confirm_delete_title,
-        text: translations.messages.confirm_delete_text,
-        confirmButtonText: translations.messages.confirm_delete_button
-      }).then(function(result) {
-        if (result.isConfirmed) {
-          PaymentManager.performDelete(paymentId);
-        }
-      });
-    } else {
-      if (confirm(translations.messages.confirm_delete_title)) {
-        PaymentManager.performDelete(paymentId);
-      }
-    }
-  },
-  /**
-   * Perform actual deletion
-   */
-  performDelete: function(paymentId) {
-    ApiService.deletePayment(paymentId)
-      .done(function() {
-    Utils.reloadDataTable('#payments-table');
-    Utils.showSuccess(translations.messages.payment_deleted);
-    StatsManager.load();
-      })
-      .fail(function(xhr) {
-    var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : translations.messages.failed_to_delete;
-    Utils.showError(message);
-      });
-  },
   viewDetails: function(paymentId) {
     Utils.setLoadingState('.viewDetailsBtn[data-id="' + paymentId + '"]', true, {
-      loadingText: translations.actions.loading,
+      loadingText: TRANSLATIONS.actions.loading,
       loadingIcon: 'bx bx-loader-alt bx-spin',
-      normalText: translations.actions.viewDetails,
+      normalText: TRANSLATIONS.actions.viewDetails,
       normalIcon: 'bx bx-info-circle'
     });
 
@@ -808,70 +642,108 @@ var PaymentManager = {
             });
             html += '</ul>';
           } else {
-            html = '<span class="text-muted">' + translations.messages.no_details_available + '</span>';
+            html = '<span class="text-muted">' + TRANSLATIONS.messages.no_details_available + '</span>';
           }
           $('#payment-details-json').html(html);
         } else {
-          Utils.showError(translations.messages.failed_to_load_details, true);
+          Utils.showError(response.message);
         }
       })
       .fail((xhr) => {
-        Utils.handleAjaxError(xhr, translations.messages.failed_to_load_details);
+        Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
       })
       .always(() => {
         Utils.setLoadingState('.viewDetailsBtn[data-id="' + paymentId + '"]', false, {
-          normalText: translations.actions.viewDetails,
+          normalText: TRANSLATIONS.actions.viewDetails,
           normalIcon: 'bx bx-info-circle'
         });
       });
   }
 };
 
+
 // ===========================
-// SEARCH FUNCTIONALITY
+// SELECT2 MANAGER
+// ===========================
+var Select2Manager = {
+    /**
+     * Configuration for all Select2 elements
+     */
+    config: {
+        search: {
+            '#search_status': { placeholder: TRANSLATIONS.placeholders.select_status }
+        }
+    },
+
+    /**
+     * Initialize all search Select2 elements
+     */
+    initSearchSelect2: function() {
+        Object.keys(this.config.search).forEach(function(selector) {
+            Utils.initSelect2(selector, Select2Manager.config.search[selector]);
+        });
+    },
+
+    /**
+     * Initialize all Select2 elements
+     */
+    initAll: function() {
+        this.initSearchSelect2();
+    },
+
+    /**
+     * Clear specific Select2 elements
+     * @param {Array} selectors - Array of selectors to clear
+     */
+    clearSelect2: function(selectors) {
+        selectors.forEach(function(selector) {
+            $(selector).val('').trigger('change.select2');
+        });
+    },
+
+    /**
+     * Reset search Select2 elements
+     */
+    resetSearchSelect2: function() {
+        this.clearSelect2(['#search_status']);
+    }
+};
+
+// ===========================
+// SEARCH MANAGER
 // ===========================
 var SearchManager = {
   /**
-   * Initialize search functionality
+   * Initialize search manager
    */
   init: function() {
     this.bindEvents();
   },
   /**
-   * Bind search events
+   * Bind search and clear events
    */
   bindEvents: function() {
-    this.initializeAdvancedSearch();
-    this.handleClearFilters();
+    var self = this;
+    $('#search_status, #search_reservation_id').on('change', function() { self.handleFilterChange(); });
+    $('#clearPaymentFiltersBtn').on('click', function() { self.clearFilters(); });
   },
   /**
-   * Initialize advanced search event listeners
+   * Handle filter change
    */
-  initializeAdvancedSearch: function() {
-    // Initialize select2 for status dropdown
-    Utils.initSelect2('#search_status', {
-      placeholder: translations.placeholders.select_status,
-      allowClear: true
-    });
-
-    // Handle search input changes
-    $('#search_status, #search_reservation_id').on('keyup change', function() {
-      Utils.reloadDataTable('#payments-table');
-    });
+  handleFilterChange: function() {
+    Utils.reloadDataTable('#payments-table');
   },
   /**
-   * Handle clear filters button click
+   * Clear all filters
    */
-  handleClearFilters: function() {
-    $('#clearPaymentFiltersBtn').on('click', function() {
-    Utils.clearValidation('#advancedPaymentSearch');
+  clearFilters: function() {
+    Select2Manager.resetSearchSelect2();
     $('#search_status').val('').trigger('change');
     $('#search_reservation_id').val('');
     Utils.reloadDataTable('#payments-table');
-    Utils.showSuccess(translations.messages.filters_cleared, true, 'top-end');
-    });
   }
 };
+
 
 // ===========================
 // MAIN APPLICATION
@@ -884,6 +756,7 @@ var PaymentApp = {
     StatsManager.init();
     PaymentManager.init();
     SearchManager.init();
+    Select2Manager.initAll();
   }
 };
 

@@ -150,13 +150,13 @@ class ProgramController extends Controller
 
     /**
      * Get all programs by faculty.
-     *
+     * @param int $id
      * @return JsonResponse
      */
-    public function all(): JsonResponse
+    public function all($id): JsonResponse
     {
         try {
-            $programs = $this->programService->getAll();
+            $programs = $this->programService->getAll($id);
             return successResponse(__('Programs fetched successfully'), $programs);
         } catch (Exception $e) {
             logError('ProgramController@all', $e);

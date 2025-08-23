@@ -9,7 +9,7 @@ use App\Exceptions\BusinessValidationException;
 class ProfileDataService
 {
     /**
-     * The country code for Egypt, used to determine if parent is local or abroad.
+     * The country code for Egypt, used to determine if guardian is local or abroad.
      */
     protected const EGYPT_COUNTRY_CODE = 'EG';
     protected const NEW_COMER_CERTIFICATE_YEAR = '2024 - 2025 (العام الحالي)';
@@ -61,7 +61,7 @@ class ProfileDataService
             'personal_info' => $this->getPersonalInfoFromStudent($student),
             'contact_info' => $this->getContactInfoFromStudent($student),
             'academic_info' => $this->getAcademicInfoFromStudent($student),
-            'parent_info' => $this->getParentInfoFromStudent($student),
+            'guardian_info' => $this->getGuardianInfoFromStudent($student),
             'sibling_info' => $this->getSiblingInfoFromStudent($student),
             'emergency_contact' => $this->getEmergencyContact($student),
         ];
@@ -79,7 +79,7 @@ class ProfileDataService
             'personal_info' => $this->getPersonalInfoFromArchive($studentArchive),
             'contact_info' => $this->getContactInfoFromArchive($studentArchive),
             'academic_info' => $this->getAcademicInfoFromArchive($studentArchive),
-            'parent_info' => $this->getParentInfoFromArchive($studentArchive),
+            'guardian_info' => $this->getGuardianInfoFromArchive($studentArchive),
             'sibling_info' => $this->getSiblingInfoFromArchive($studentArchive),
         ];
     }
@@ -144,16 +144,16 @@ class ProfileDataService
     }
 
     /**
-     * Get parent information from student record
+     * Get guardian information from student record
      *
      * @param Student $student
      * @return array
      */
-    private function getParentInfoFromStudent($student): array
+    private function getGuardianInfoFromStudent($student): array
     {
-        $parent = $student?->user?->parent;
+        $guardian = $student?->user?->guardians?->first();
         
-        if (!$parent) {
+        if (!$guardian) {
             return [
                 'relationship' => null,
                 'name_en' => null,
@@ -165,22 +165,22 @@ class ProfileDataService
                 'governorate_id' => null,
                 'city_id' => null,
                 'country_id' => null,
-                'living_with_parent' => true,
+                'living_with_guardian' => true,
             ];
         }
 
         return [
-            'relationship' => $parent?->relationship,
-            'name_en' => $parent?->name_en,
-            'name_ar' => $parent?->name_ar,
-            'national_id' => $parent?->national_id,
-            'phone' => $parent?->phone,
-            'email' => $parent?->email,
-            'is_abroad' => $parent?->is_abroad ?? false,
-            'governorate_id' => $parent?->governorate_id,
-            'city_id' => $parent?->city_id,
-            'country_id' => $parent?->country_id,
-            'living_with_parent' => $parent?->living_with_parent ?? true,
+            'relationship' => $guardian?->relationship,
+            'name_en' => $guardian?->name_en,
+            'name_ar' => $guardian?->name_ar,
+            'national_id' => $guardian?->national_id,
+            'phone' => $guardian?->phone,
+            'email' => $guardian?->email,
+            'is_abroad' => $guardian?->is_abroad ?? false,
+            'governorate_id' => $guardian?->governorate_id,
+            'city_id' => $guardian?->city_id,
+            'country_id' => $guardian?->country_id,
+            'living_with_guardian' => $guardian?->living_with_guardian ?? true,
         ];
     }
 
@@ -192,8 +192,8 @@ class ProfileDataService
      */
     private function getSiblingInfoFromStudent($student): array
     {
-        $sibling = $student?->user?->sibling;
-        
+        $sibling = $student?->user?->siblings?->first();
+
         if (!$sibling) {
             return [
                 'has_sibling_in_dorm' => 'no',
@@ -309,20 +309,20 @@ class ProfileDataService
     }
 
     /**
-     * Get parent information from archive record
+     * Get guardian information from archive record
      *
      * @param StudentArchive $studentArchive
      * @return array
      */
-    private function getParentInfoFromArchive(StudentArchive $studentArchive): array
+    private function getGuardianInfoFromArchive(StudentArchive $studentArchive): array
     {
-        $parentCountry = $this->lookupService->getCountry($studentArchive?->parent_country_name);
+        $guardianCountry = $this->lookupService->getCountry($studentArchive?->guardian_country_name);
         return [
-            'name' => $studentArchive?->parent_name,
-            'phone' => $studentArchive?->parent_phone,
-            'email' => $studentArchive?->parent_email,
-            'country_id' => $parentCountry?->id,
-            'is_abroad' => isset($parentCountry?->code) && ($parentCountry?->code !== self::EGYPT_COUNTRY_CODE),
+            'name' => $studentArchive?->guardian_name,
+            'phone' => $studentArchive?->guardian_phone,
+            'email' => $studentArchive?->guardian_email,
+            'country_id' => $guardianCountry?->id,
+            'is_abroad' => isset($guardianCountry?->code) && ($guardianCountry?->code !== self::EGYPT_COUNTRY_CODE),
         ];
     }
 

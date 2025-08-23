@@ -6,15 +6,10 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        // Create parents table
-        Schema::create('parents', function (Blueprint $table) {
+        Schema::create('guardians', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->enum('relationship', ['father', 'mother']);
             $table->string('name_en');
             $table->string('name_ar');
@@ -23,16 +18,22 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->boolean('is_abroad')->default(false);
             $table->foreignId('country_id')->nullable()->constrained()->restrictOnDelete();
-            $table->boolean('living_with_parent')->default(false);
+            $table->boolean('living_with_guardian')->default(false);
             $table->foreignId('governorate_id')->nullable()->constrained()->restrictOnDelete();
             $table->foreignId('city_id')->nullable()->constrained()->restrictOnDelete();
             $table->timestamps();
         });
 
-        // Create siblings table
+        Schema::create('guardian_user', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('guardian_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->timestamps();
+            $table->unique(['guardian_id', 'user_id']);
+        });
+
         Schema::create('siblings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('faculty_id')->nullable()->constrained()->restrictOnDelete();
             $table->string('name_en');
             $table->string('name_ar');
@@ -44,16 +45,21 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Create emergency contacts table
+        Schema::create('sibling_user', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('sibling_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->timestamps();
+            $table->unique(['sibling_id', 'user_id']);
+        });
+
         Schema::create('emergency_contacts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('name_en');
             $table->string('name_ar');
             $table->string('phone');
-            $table->enum('relationship', [
-                'uncle', 'aunt', 'grandparent', 'cousin', 'nephew', 'niece'
-            ]);
+            $table->string('relationship');
             $table->foreignId('governorate_id')->nullable()->constrained()->restrictOnDelete();
             $table->foreignId('city_id')->nullable()->constrained()->restrictOnDelete();
             $table->text('street');
@@ -62,13 +68,12 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('emergency_contacts');
+        Schema::dropIfExists('sibling_user');
         Schema::dropIfExists('siblings');
-        Schema::dropIfExists('parents');
+        Schema::dropIfExists('guardian_user');
+        Schema::dropIfExists('guardians');
     }
 };

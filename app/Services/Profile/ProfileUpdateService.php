@@ -3,7 +3,7 @@
 namespace App\Services\Profile;
 
 use App\Models\Resident\Student;
-use App\Models\StudentParent;
+use App\Models\Guardian;
 use App\Models\Sibling;
 use App\Models\EmergencyContact;
 use App\Models\StudentArchive;
@@ -49,7 +49,7 @@ class ProfileUpdateService
 
             // Update all sections
             $this->updateStudentBasicInfo($student, $data, $studentArchive);
-            $this->updateParentInfo($student, $data);
+            $this->updateGuardianInfo($student, $data);
             $this->updateSiblingInfo($student, $data);
             $this->updateEmergencyContact($student, $data);
 
@@ -85,7 +85,7 @@ class ProfileUpdateService
         $student->name_en = $studentArchive?->name_en;
         $student->national_id = $studentArchive?->national_id;
 
-        $student->date_of_birth = $studentArchive?->birthdate;
+        $student->date_of_birth = $studentArchive?->birthdate ? \Carbon\Carbon::parse($studentArchive->birthdate)->format('Y-m-d') : null;
         $student->academic_email = $studentArchive?->email;
         $student->academic_id = $studentArchive?->academic_id;
         $student->cum_gpa = $studentArchive?->cum_gpa ?? 0.0;
@@ -95,82 +95,115 @@ class ProfileUpdateService
     }
 
     /**
-     * Update parent information
+     * Update guardian information
      *
-     * @param Student $student
+     * @param \App\Models\Student $student
      * @param array $data
      */
-    private function updateParentInfo(Student $student, array $data): void
+    private function updateGuardianInfo(Student $student, array $data): void
     {
-        $parent = $student?->user?->parent;
+        $user = $student->user;
 
-        if (!$parent) {
-            $parent = new StudentParent();
-            $parent->user_id = $student?->user_id;
+        $guardian = $this->isGuardianFoundWithSameData($data);
+
+        if (!$guardian) {
+            $guardian = new Guardian();
         }
 
-        $parent->relationship = $data['parent_relationship'] ?? null;
-        $parent->name_en = $data['parent_name_en'] ?? null;
-        $parent->name_ar = $data['parent_name_ar'] ?? null;
-        $parent->phone = $data['parent_phone'] ?? null;
-        $parent->email = $data['parent_email'] ?? null;
-        $parent->national_id = $data['parent_national_id'] ?? null;
-        $parent->is_abroad = ($data['is_parent_abroad'] ?? false) === true || ($data['is_parent_abroad'] ?? 'no') === 'yes';
+        $guardian->fill([
+            'relationship'   => $data['guardian_relationship'] ?? null,
+            'name_en'        => $data['guardian_name_en'] ?? null,
+            'name_ar'        => $data['guardian_name_ar'] ?? null,
+            'phone'          => $data['guardian_phone'] ?? null,
+            'email'          => $data['guardian_email'] ?? null,
+            'national_id'    => $data['guardian_national_id'] ?? null,
+        ]);
 
-        if ($parent->is_abroad) {
-            $parent->country_id = $data['parent_abroad_country'] ?? null;
-            $parent->living_with_parent = false;
-            $parent->governorate_id = null;
-            $parent->city_id = null;
+        $isAbroad = ($data['is_guardian_abroad'] ?? false) === true 
+                || ($data['is_guardian_abroad'] ?? 'no') === 'yes';
+
+        $guardian->is_abroad = $isAbroad;
+
+        if ($isAbroad) {
+            $guardian->country_id         = $data['guardian_abroad_country'] ?? null;
+            $guardian->living_with_guardian = false;
+            $guardian->governorate_id     = null;
+            $guardian->city_id            = null;
         } else {
-            $parent->country_id = null;
-            $parent->living_with_parent = ($data['living_with_parent'] ?? 'no') === 'yes';
+            $guardian->country_id         = null;
+            $guardian->living_with_guardian = ($data['living_with_guardian'] ?? 'no') === 'yes';
 
-            if (($data['living_with_parent'] ?? 'no') === 'no') {
-                $parent->governorate_id = $data['parent_governorate'] ?? null;
-                $parent->city_id = $data['parent_city'] ?? null;
+            if (($data['living_with_guardian'] ?? 'no') === 'no') {
+                $guardian->governorate_id = $data['guardian_governorate'] ?? null;
+                $guardian->city_id        = $data['guardian_city'] ?? null;
             } else {
-                $parent->governorate_id = null;
-                $parent->city_id = null;
+                $guardian->governorate_id = null;
+                $guardian->city_id        = null;
             }
         }
 
-        $parent->save();
+        $guardian->save();
+
+        // Attach guardian to user if not already linked
+        if (!$user->guardians()->where('guardians.id', $guardian->id)->exists()) {
+            $user->guardians()->attach($guardian->id);
+        }
+    }
+
+    /**
+     * Find existing guardian by national_id
+     */
+    private function isGuardianFoundWithSameData(array $data): ?Guardian
+    {
+        return Guardian::where('national_id', $data['guardian_national_id'] ?? null)->first();
     }
 
     /**
      * Update sibling information
      *
-     * @param Student $student
+     * @param \App\Models\Student $student
      * @param array $data
-     * @return void
      */
     private function updateSiblingInfo(Student $student, array $data): void
     {
-        $sibling = $student?->user?->sibling;
+        $user = $student->user;
 
         if ($data['has_sibling_in_dorm'] === 'no') {
-            if ($sibling) {
-                $sibling->delete();
-            }
+            $user->siblings()->detach();
             return;
         }
 
         if ($data['has_sibling_in_dorm'] === 'yes') {
+
+            $sibling = $this->isSiblingFoundWithSameData($data);
+
             if (!$sibling) {
                 $sibling = new Sibling();
-                $sibling->user_id = $student?->user_id;
             }
 
-            $sibling->gender = $data['sibling_gender'] ?? null;
-            $sibling->relationship = isset($data['sibling_gender']) && $data['sibling_gender'] === 'male' ? 'brother' : 'sister';
-            $sibling->name_en = $data['sibling_name_en'] ?? null;
-            $sibling->name_ar = $data['sibling_name_ar'] ?? null;
-            $sibling->national_id = $data['sibling_national_id'] ?? null;
-            $sibling->faculty_id = $data['sibling_faculty'] ?? null;
+            $sibling->fill([
+                'gender'        => ($data['sibling_relationship'] === 'brother' ? 'male' : 'female'),
+                'relationship'  => $data['sibling_relationship'] ?? null,
+                'name_en'       => $data['sibling_name_en'] ?? null,
+                'name_ar'       => $data['sibling_name_ar'] ?? null,
+                'national_id'   => $data['sibling_national_id'] ?? null,
+                'faculty_id'    => $data['sibling_faculty'] ?? null,
+            ]);
+
             $sibling->save();
+
+            // Attach sibling to user if not already linked
+            if (!$user->siblings()->where('siblings.id', $sibling->id)->exists()) {
+                $user->siblings()->attach($sibling->id);
+            }
         }
     }
+
+    private function isSiblingFoundWithSameData(array $data): ?Sibling
+    {
+        return Sibling::where('national_id', $data['sibling_national_id'] ?? null)->first();
+    }
+
 
     /**
      * Update emergency contact information
@@ -183,14 +216,14 @@ class ProfileUpdateService
     {
         $emergencyContact = $student?->user?->emergencyContact;
 
-        if ($data['is_parent_abroad'] === 'no') {
+        if ($data['is_guardian_abroad'] === 'no') {
             if ($emergencyContact) {
                 $emergencyContact->delete();
             }
             return;
         }
 
-        if ($data['is_parent_abroad'] === 'yes') {
+        if ($data['is_guardian_abroad'] === 'yes') {
             if (!$emergencyContact) {
                 $emergencyContact = new EmergencyContact();
                 $emergencyContact->user_id = $student?->user_id;

@@ -9,11 +9,12 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\Resident\Student;
 use App\Models\Resident\Staff;
 use App\Models\Reservation\Reservation;
 use App\Models\StudentArchive;
-use App\Models\StudentParent;
+use App\Models\Guardian;
 use App\Models\Sibling;
 use App\Models\EmergencyContact;
 
@@ -189,23 +190,25 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the parent information associated with the user.
+     * Get the guardians information associated with the user.
      *
-     * @return HasOne
+     * @return BelongsToMany
      */
-    public function parent(): HasOne
+    public function guardians(): BelongsToMany
     {
-        return $this->hasOne(StudentParent::class);
+        return $this->belongsToMany(Guardian::class, 'guardian_user')
+            ->withTimestamps();
     }
 
     /**
-     * Get the sibling information associated with the user.
+     * Get the siblings information associated with the user.
      *
-     * @return HasOne
+     * @return BelongsToMany
      */
-    public function sibling(): HasOne
+    public function siblings(): BelongsToMany
     {
-        return $this->hasOne(Sibling::class);
+        return $this->belongsToMany(Sibling::class, 'sibling_user')
+            ->withTimestamps();
     }
 
     /**

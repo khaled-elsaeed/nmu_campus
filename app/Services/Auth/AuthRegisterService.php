@@ -135,7 +135,7 @@ class AuthRegisterService
             'name_en' => $formattedNameEn,
             'name_ar' => $formattedNameAr,
             'email' => $studentArchive->academic_email ?? $studentArchive->email,
-            'password' => Hash::make('password'),
+            'password' => Hash::make($studentArchive->national_id ?? $studentArchive->national_id ?? str::random(10)),
             'gender' => $studentArchive->gender,
             'force_change_password' => true,
         ]);

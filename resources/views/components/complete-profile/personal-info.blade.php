@@ -43,7 +43,6 @@
     <div class="col-md-6 mb-3">
         <label for="nationality" class="form-label">{{ __('Nationality') }}</label>
         <select class="form-select" id="nationality" name="nationality">
-            <option value="">{{ __('Select Nationality') }}</option>
         </select>
     </div>
 </div>

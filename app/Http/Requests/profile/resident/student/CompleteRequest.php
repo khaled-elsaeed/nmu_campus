@@ -121,64 +121,70 @@ class CompleteRequest extends FormRequest
             ],
 
             // ============================================
-            // Step 4: Parent Information
+            // Step 4: guardian Information
             // ============================================
-            'parent_relationship' => [
+            'guardian_relationship' => [
                 'required',
                 'in:father,mother'
             ],
-            'parent_name_ar' => [
+            'guardian_name_ar' => [
                 'required',
                 'string',
                 'max:255',
-                'regex:/^[\x{0600}-\x{06FF}\x{0020}]+$/u' // Arabic characters and spaces
+                'regex:/^[\x{0600}-\x{06FF}\x{0020}]+$/u'
             ],
-            'parent_name_en' => [
+            'guardian_name_en' => [
                 'required',
                 'string',
                 'max:255',
-                'regex:/^[A-Za-z\s]+$/' // English letters and spaces
+                'regex:/^[A-Za-z\s]+$/'
             ],
-            'parent_phone' => [
+            'guardian_phone' => [
                 'required',
                 'string'
             ],
-            'parent_email' => [
+            'guardian_email' => [
                 'nullable',
                 'email'
             ],
-            'parent_national_id' => [
+            'guardian_national_id' => [
                 'nullable',
                 'string',
                 'size:14',
                 'regex:/^[0-9]{14}$/',
             ],
-            'is_parent_abroad' => [
+            'is_guardian_abroad' => [
                 'required',
                 'in:yes,no'
             ],
 
-            // Conditional Parent Fields
-            'parent_abroad_country' => [
-                'required_if:is_parent_abroad,yes',
+            // Conditional guardian Fields
+            'guardian_abroad_country' => [
+                'required_if:is_guardian_abroad,yes',
                 'nullable',
                 'exists:countries,id'
             ],
-            'living_with_parent' => [
-                'required_if:is_parent_abroad,no',
+            'living_with_guardian' => [
+                'required_if:is_guardian_abroad,no',
                 'nullable',
                 'in:yes,no'
             ],
-            'parent_governorate' => [
-                'required_if:is_parent_abroad,no,living_with_parent,no',
+           'guardian_governorate' => [
+                'sometimes',
+                Rule::requiredIf(fn () => request('is_guardian_abroad') === 'no'
+                            && request('living_with_guardian') === 'no'),
                 'nullable',
-                'exists:governorates,id'
+                'exists:governorates,id',
             ],
-            'parent_city' => [
-                'required_if:is_parent_abroad,no,living_with_parent,no',
+
+            'guardian_city' => [
+                'sometimes',
+                Rule::requiredIf(fn () => request('is_guardian_abroad') === 'no'
+                            && request('living_with_guardian') === 'no'),
                 'nullable',
-                'exists:cities,id'
+                'exists:cities,id',
             ],
+
 
             // ============================================
             // Step 5: Sibling Information
@@ -187,10 +193,10 @@ class CompleteRequest extends FormRequest
                 'required',
                 'in:yes,no'
             ],
-            'sibling_gender' => [
+            'sibling_relationship' => [
                 'required_if:has_sibling_in_dorm,yes',
                 'nullable',
-                'in:male,female'
+                'in:brother,sister'
             ],
             'sibling_name_ar' => [
                 'required_if:has_sibling_in_dorm,yes',
@@ -224,43 +230,43 @@ class CompleteRequest extends FormRequest
             // Step 6: Emergency Contact
             // ============================================
             'emergency_contact_name_ar' => [
-                'required_if:is_parent_abroad,yes',
+                'required_if:is_guardian_abroad,yes',
                 'nullable',
                 'string',
                 'max:255',
                 'regex:/^[\x{0600}-\x{06FF}\x{0020}]+$/u' // Arabic characters and spaces
             ],
             'emergency_contact_name_en' => [
-                'required_if:is_parent_abroad,yes',
+                'required_if:is_guardian_abroad,yes',
                 'nullable',
                 'string',
                 'max:255',
                 'regex:/^[A-Za-z\s]+$/' // English letters and spaces
             ],
             'emergency_contact_relationship' => [
-                'required_if:is_parent_abroad,yes',
+                'required_if:is_guardian_abroad,yes',
                 'nullable',
                 'in:father,mother,brother,sister,other'
             ],
             'emergency_contact_phone' => [
-                'required_if:is_parent_abroad,yes',
+                'required_if:is_guardian_abroad,yes',
                 'nullable',
                 'string',
                 'regex:/^(010|011|012|015)[0-9]{8}$/', // Egyptian mobile format
                 'different:phone'
             ],
             'emergency_contact_governorate' => [
-                'required_if:is_parent_abroad,yes',
+                'required_if:is_guardian_abroad,yes',
                 'nullable',
                 'exists:governorates,id'
             ],
             'emergency_contact_city' => [
-                'required_if:is_parent_abroad,yes',
+                'required_if:is_guardian_abroad,yes',
                 'nullable',
                 'exists:cities,id'
             ],
             'emergency_contact_street' => [
-                'required_if:is_parent_abroad,yes',
+                'required_if:is_guardian_abroad,yes',
                 'nullable',
                 'string',
                 'min:5',
@@ -281,11 +287,11 @@ class CompleteRequest extends FormRequest
             ],
         ];
 
-        // Dynamic parent phone validation based on abroad status
-        if ($this->input('is_parent_abroad') === 'yes') {
-            $rules['parent_phone'][] = 'regex:/^\+?[1-9][0-9]{6,15}$/'; // International format
+        // Dynamic guardian phone validation based on abroad status
+        if ($this->input('is_guardian_abroad') === 'yes') {
+            $rules['guardian_phone'][] = 'regex:/^\+?[1-9][0-9]{6,15}$/'; // International format
         } else {
-            $rules['parent_phone'][] = 'regex:/^(010|011|012|015)[0-9]{8}$/'; // Egyptian format
+            $rules['guardian_phone'][] = 'regex:/^(010|011|012|015)[0-9]{8}$/'; // Egyptian format
         }
 
         return $rules;
@@ -336,26 +342,26 @@ class CompleteRequest extends FormRequest
             'academic_email.regex' => 'Please use your university email address (@nmu.edu.eg).',
 
             // ============================================
-            // Parent Information Messages
+            // Guardian Information Messages
             // ============================================
-            'parent_relationship.required' => 'Please select your relationship to the parent.',
-            'parent_name_ar.required' => 'Parent\'s Arabic name is required.',
-            'parent_name_ar.regex' => 'Parent\'s Arabic name must contain only Arabic characters and spaces.',
-            'parent_name_en.required' => 'Parent\'s English name is required.',
-            'parent_name_en.regex' => 'Parent\'s English name must contain only English letters and spaces.',
-            'parent_phone.required' => 'Parent\'s phone number is required.',
-            'parent_phone.regex' => 'Please enter a valid phone number format.',
-            'is_parent_abroad.required' => 'Please specify if parent lives abroad.',
-            'parent_abroad_country.required_if' => 'Please select the country where your parent lives.',
-            'living_with_parent.required_if' => 'Please specify if you live with your parent.',
-            'parent_governorate.required_if' => 'Please select parent\'s governorate.',
-            'parent_city.required_if' => 'Please select parent\'s city.',
+            'guardian_relationship.required' => 'Please select your relationship to the guardian.',
+            'guardian_name_ar.required' => 'Guardian\'s Arabic name is required.',
+            'guardian_name_ar.regex' => 'Guardian\'s Arabic name must contain only Arabic characters and spaces.',
+            'guardian_name_en.required' => 'Guardian\'s English name is required.',
+            'guardian_name_en.regex' => 'Guardian\'s English name must contain only English letters and spaces.',
+            'guardian_phone.required' => 'Guardian\'s phone number is required.',
+            'guardian_phone.regex' => 'Please enter a valid phone number format.',
+            'is_guardian_abroad.required' => 'Please specify if guardian lives abroad.',
+            'guardian_abroad_country.required_if' => 'Please select the country where your guardian lives.',
+            'living_with_guardian.required_if' => 'Please specify if you live with your guardian.',
+            'guardian_governorate.required_if' => 'Please select guardian\'s governorate.',
+            'guardian_city.required_if' => 'Please select guardian\'s city.',
 
             // ============================================
             // Sibling Information Messages
             // ============================================
             'has_sibling_in_dorm.required' => 'Please specify if you have a sibling in the dorm.',
-            'sibling_gender.required_if' => 'Please select sibling\'s gender.',
+            'sibling_relationship.required_if' => 'Please select sibling\'s relationship.',
             'sibling_name_ar.required_if' => 'Sibling\'s Arabic name is required.',
             'sibling_name_ar.regex' => 'Sibling\'s Arabic name must contain only Arabic characters and spaces.',
             'sibling_name_en.required_if' => 'Sibling\'s English name is required.',
@@ -369,12 +375,12 @@ class CompleteRequest extends FormRequest
             // ============================================
             // Emergency Contact Messages
             // ============================================
-            'emergency_contact_name_ar.required_if' => 'Emergency contact name is required when parent is abroad.',
+            'emergency_contact_name_ar.required_if' => 'Emergency contact name is required when guardian is abroad.',
             'emergency_contact_name_ar.regex' => 'Emergency contact name must contain only Arabic characters and spaces.',
-            'emergency_contact_name_en.required_if' => 'Emergency contact name is required when parent is abroad.',
+            'emergency_contact_name_en.required_if' => 'Emergency contact name is required when guardian is abroad.',
             'emergency_contact_name_en.regex' => 'Emergency contact name must contain only English letters and spaces.',
             'emergency_contact_relationship.required_if' => 'Please specify your relationship to the emergency contact.',
-            'emergency_contact_phone.required_if' => 'Emergency contact phone is required when parent is abroad.',
+            'emergency_contact_phone.required_if' => 'Emergency contact phone is required when guardian is abroad.',
             'emergency_contact_phone.regex' => 'Emergency contact phone must be a valid Egyptian mobile number.',
             'emergency_contact_phone.different' => 'Emergency contact number must be different from your mobile number.',
             'emergency_contact_governorate.required_if' => 'Please select emergency contact\'s governorate.',
@@ -407,16 +413,16 @@ class CompleteRequest extends FormRequest
             'phone' => 'Phone number',
             'academic_id' => 'Student ID',
             'academic_email' => 'University email',
-            'parent_name_ar' => 'Parent Arabic name',
-            'parent_name_en' => 'Parent English name',
-            'parent_phone' => 'Parent phone',
-            'parent_email' => 'Parent email',
-            'parent_national_id' => 'Parent National ID',
-            'is_parent_abroad' => 'Is parent abroad',
-            'parent_abroad_country' => 'Country where parent lives',
-            'living_with_parent' => 'Living with parent',
-            'parent_governorate' => 'Parent governorate',
-            'parent_city' => 'Parent city',
+            'guardian_name_ar' => 'Guardian Arabic name',
+            'guardian_name_en' => 'Guardian English name',
+            'guardian_phone' => 'Guardian phone',
+            'guardian_email' => 'Guardian email',
+            'guardian_national_id' => 'Guardian National ID',
+            'is_guardian_abroad' => 'Is guardian abroad',
+            'guardian_abroad_country' => 'Country where guardian lives',
+            'living_with_guardian' => 'Living with guardian',
+            'guardian_governorate' => 'Guardian governorate',
+            'guardian_city' => 'Guardian city',
             'governorate' => 'Your governorate',
             'city' => 'Your city',
             'street' => 'Street address',
@@ -441,23 +447,23 @@ class CompleteRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            $this->validateParentPhoneFormat($validator);
+            $this->validateGuardianPhoneFormat($validator);
             $this->validateCityGovernorateRelationship($validator);
-            $this->validateParentCityGovernorateRelationship($validator);
+            $this->validateGuardianCityGovernorateRelationship($validator);
             $this->validateEmergencyContactCityGovernorateRelationship($validator);
             $this->validateProgramFacultyRelationship($validator);
         });
     }
 
     /**
-     * Validate parent phone format based on abroad status.
+     * Validate guardian phone format based on abroad status.
      */
-    private function validateParentPhoneFormat($validator): void
+    private function validateGuardianPhoneFormat($validator): void
     {
-        if ($this->input('is_parent_abroad') === 'yes') {
-            $phone = $this->input('parent_phone');
+        if ($this->input('is_guardian_abroad') === 'yes') {
+            $phone = $this->input('guardian_phone');
             if ($phone && !preg_match('/^\+?[1-9][0-9]{6,15}$/', $phone)) {
-                $validator->errors()->add('parent_phone', 'Please enter a valid international phone number.');
+                $validator->errors()->add('guardian_phone', 'Please enter a valid international phone number.');
             }
         }
     }
@@ -476,14 +482,14 @@ class CompleteRequest extends FormRequest
     }
 
     /**
-     * Validate that parent city belongs to selected parent governorate.
+     * Validate that guardian city belongs to selected guardian governorate.
      */
-    private function validateParentCityGovernorateRelationship($validator): void
+    private function validateGuardianCityGovernorateRelationship($validator): void
     {
-        if ($this->input('parent_governorate') && $this->input('parent_city')) {
-            $city = City::find($this->input('parent_city'));
-            if ($city && $city->governorate_id != $this->input('parent_governorate')) {
-                $validator->errors()->add('parent_city', 'Selected parent city does not belong to the selected parent governorate.');
+        if ($this->input('guardian_governorate') && $this->input('guardian_city')) {
+            $city = City::find($this->input('guardian_city'));
+            if ($city && $city->governorate_id != $this->input('guardian_governorate')) {
+                $validator->errors()->add('guardian_city', 'Selected guardian city does not belong to the selected guardian governorate.');
             }
         }
     }

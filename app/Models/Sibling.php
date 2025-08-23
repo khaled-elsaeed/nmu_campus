@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Sibling extends Model
@@ -51,11 +52,12 @@ class Sibling extends Model
     /**
      * Get the user for the sibling.
      *
-     * @return BelongsTo
+     * @return BelongsToMany
      */
-    public function user(): BelongsTo
+    public function users(): BelongsToMany
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsToMany(User::class, 'sibling_user')
+            ->withTimestamps();
     }
 
     /**

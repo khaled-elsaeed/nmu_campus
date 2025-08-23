@@ -4,16 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
-class StudentParent extends Model
+class Guardian extends Model
 {
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'parents';
 
     /**
      * The attributes that are mass assignable.
@@ -32,7 +27,7 @@ class StudentParent extends Model
         'governorate_id',
         'city_id',
         'country_id',
-        'living_with_parent'
+        'living_with_guardian'
     ];
 
     /**
@@ -43,7 +38,7 @@ class StudentParent extends Model
     protected $appends = ['name'];
 
     /**
-     * Get the parent's name depending on locale.
+     * Get the guardian's name depending on locale.
      *
      * @return Attribute
      */
@@ -59,17 +54,17 @@ class StudentParent extends Model
     }
 
     /**
-     * Get the user for the parent.
+     * Get the user for the guardian.
      *
-     * @return BelongsTo
+     * @return BelongsToMany
      */
-    public function user(): BelongsTo
+    public function users(): BelongsToMany
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsToMany(User::class, 'guardians_user')->withTimestamps();
     }
 
     /**
-     * Get the governorate for the parent.
+     * Get the governorate for the guardian.
      *
      * @return BelongsTo
      */
@@ -79,7 +74,7 @@ class StudentParent extends Model
     }
 
     /**
-     * Get the city for the parent.
+     * Get the city for the guardian.
      *
      * @return BelongsTo
      */

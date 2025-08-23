@@ -7,54 +7,94 @@
         </div>
         <div class="col">
             <div class="fw-bold text-primary mb-1">{{ __('Sibling Information') }}</div>
-            <div class="text-muted">{{ __('Please provide details about your sibling in the dorm, if applicable.') }}</div>
+            <div class="text-muted">{{ __('Please provide details about your sibling(s) in the dorm, if applicable.') }}</div>
         </div>
     </div>
 </div>
+
 <div class="row">
     <div class="col-md-6 mb-3">
-        <label for="has-sibling-in-dorm" class="form-label">{{ __('Do you have a sibling in the dorm?') }}</label>
+        <label for="has-sibling-in-dorm" class="form-label">{{ __('Do you have sibling(s) in the dorm?') }}</label>
         <select class="form-select" id="has-sibling-in-dorm" name="has_sibling_in_dorm">
             <option value="">{{ __('Select') }}</option>
             <option value="yes">{{ __('Yes') }}</option>
             <option value="no">{{ __('No') }}</option>
         </select>
+        
     </div>
 </div>
+
 <div id="siblingDetails" class="d-none">
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <label for="sibling-gender" class="form-label">{{ __('Relationship') }}</label>
-            <select class="form-select" id="sibling-gender" name="sibling_gender">
-                <option value="">{{ __('Select') }}</option>
-                <option value="male">{{ __('Brother') }}</option>
-                <option value="female">{{ __('Sister') }}</option>
-            </select>
-        </div>
-        <div class="col-md-6 mb-3">
-            <label for="sibling-national-id" class="form-label">{{ __('National ID') }}</label>
-            <input type="text" class="form-control" id="sibling-national-id" name="sibling_national_id">
+    <!-- Siblings Container -->
+    <div id="siblings-container">
+        <!-- First sibling form (template) -->
+        <div class="sibling-group border rounded p-3 mb-3" data-sibling-index="0">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0 text-secondary">{{ __('Sibling') }} <span class="sibling-number">1</span></h6>
+                <button type="button" class="btn btn-outline-danger btn-sm remove-sibling-btn d-none">
+                    <i class='bx bx-trash'></i> {{ __('Remove') }}
+                </button>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="sibling-relationship-0" class="form-label">{{ __('Relationship') }}</label>
+                    <select class="form-select sibling-relationship" id="sibling-relationship-0" name="siblings[0][relationship]">
+                        <option value="">{{ __('Select') }}</option>
+                        <option value="brother">{{ __('Brother') }}</option>
+                        <option value="sister">{{ __('Sister') }}</option>
+                    </select>
+                    
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="sibling-national-id-0" class="form-label">{{ __('National ID') }} <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control sibling-national-id" id="sibling-national-id-0" name="siblings[0][national_id]" maxlength="14">
+                    
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="sibling-name-ar-0" class="form-label">{{ __('Name (Arabic)') }} <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control sibling-name-ar" id="sibling-name-ar-0" name="siblings[0][name_ar]">
+                    
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="sibling-name-en-0" class="form-label">{{ __('Name (English)') }} <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control sibling-name-en" id="sibling-name-en-0" name="siblings[0][name_en]">
+                    
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="sibling-faculty-0" class="form-label">{{ __('Faculty') }}</label>
+                    <select class="form-select sibling-faculty" id="sibling-faculty-0" name="siblings[0][faculty]">
+                        <option value="">{{ __('Select Faculty') }}</option>
+                    </select>
+                    
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="sibling-gender-0" class="form-label">{{ __('Gender') }} <span class="text-danger">*</span></label>
+                    <select class="form-select sibling-gender" id="sibling-gender-0" name="siblings[0][gender]">
+                        <option value="">{{ __('Select Gender') }}</option>
+                        <option value="male">{{ __('Male') }}</option>
+                        <option value="female">{{ __('Female') }}</option>
+                    </select>
+                    
+                </div>
+            </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <label for="sibling-name-ar" class="form-label">{{ __('Name (Arabic)') }}</label>
-            <input type="text" class="form-control" id="sibling-name-ar" name="sibling_name_ar">
-        </div>
-        <div class="col-md-6 mb-3">
-            <label for="sibling-name-en" class="form-label">{{ __('Name (English)') }}</label>
-            <input type="text" class="form-control" id="sibling-name-en" name="sibling_name_en">
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <label for="sibling-faculty" class="form-label">{{ __('Faculty') }}</label>
-            <select class="form-select" id="sibling-faculty" name="sibling_faculty">
-                <option value="">{{ __('Select Faculty') }}</option>
-            </select>
-        </div>
+    
+    <!-- Add Sibling Button -->
+    <div class="mb-3">
+        <button type="button" class="btn btn-outline-primary" id="add-sibling-btn">
+            <i class='bx bx-plus'></i> {{ __('Add Another Sibling') }}
+        </button>
     </div>
 </div>
+
 <div class="d-flex justify-content-between">
     <button type="button" class="btn btn-outline-secondary prev-Btn">
         <i class='bx bx-chevron-left'></i> {{ __('Previous') }}
@@ -63,3 +103,64 @@
         {{ __('Next') }} <i class='bx bx-chevron-right'></i>
     </button>
 </div>
+
+<!-- Hidden template for cloning new sibling forms -->
+<template id="sibling-template">
+    <div class="sibling-group border rounded p-3 mb-3" data-sibling-index="">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0 text-secondary">{{ __('Sibling') }} <span class="sibling-number"></span></h6>
+            <button type="button" class="btn btn-outline-danger btn-sm remove-sibling-btn">
+                <i class='bx bx-trash'></i> {{ __('Remove') }}
+            </button>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">{{ __('Relationship') }}</label>
+                <select class="form-select sibling-relationship" name="">
+                    <option value="">{{ __('Select') }}</option>
+                    <option value="brother">{{ __('Brother') }}</option>
+                    <option value="sister">{{ __('Sister') }}</option>
+                </select>
+                
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">{{ __('National ID') }} <span class="text-danger">*</span></label>
+                <input type="text" class="form-control sibling-national-id" name="" maxlength="14">
+                
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">{{ __('Name (Arabic)') }} <span class="text-danger">*</span></label>
+                <input type="text" class="form-control sibling-name-ar" name="">
+                
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">{{ __('Name (English)') }} <span class="text-danger">*</span></label>
+                <input type="text" class="form-control sibling-name-en" name="">
+                
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">{{ __('Faculty') }}</label>
+                <select class="form-select sibling-faculty" name="">
+                    <option value="">{{ __('Select Faculty') }}</option>
+                </select>
+                
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">{{ __('Gender') }} <span class="text-danger">*</span></label>
+                <select class="form-select sibling-gender" name="">
+                    <option value="">{{ __('Select Gender') }}</option>
+                    <option value="male">{{ __('Male') }}</option>
+                    <option value="female">{{ __('Female') }}</option>
+                </select>
+                
+            </div>
+        </div>
+    </div>
+</template>
