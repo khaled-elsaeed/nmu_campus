@@ -308,7 +308,10 @@ var TRANSLATIONS = {
       errorLoading: "Error loading programs",
       disableField: "Select a faculty first"
     },
-
+    sibling: {
+        select: "Select Sibling",
+    }
+    ,
     siblingToStayWith: {
       select: "Select Sibling to Stay With",
       noSiblings: "No siblings available",
