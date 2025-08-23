@@ -539,6 +539,19 @@ var SiblingsManager = {
     init: function() {
         this.bindEvents();
         this.fetchAndStoreFacultyOptions();
+
+        // Register validation rules for the default sibling group if present
+        if (typeof ValidationService !== 'undefined' && ValidationService.validator) {
+            $('#siblings-container .sibling-group').first().find('input, select').each(function() {
+                var $field = $(this);
+                var nameAttr = $field.attr('name');
+                if (nameAttr && !ValidationService.validator.settings.rules[nameAttr]) {
+                    var ruleObj = { required: $field.is('[required]') };
+                    ValidationService.validator.settings.rules[nameAttr] = ruleObj;
+                    $field.rules && $field.rules('add', ruleObj);
+                }
+            });
+        }
     },
 
     /**
@@ -567,6 +580,10 @@ var SiblingsManager = {
 
         $document.on('change', '.sibling-relationship', function() {
             self.autoSetGender($(this));
+            // Update reservation options when relationship (and thus gender) changes
+            if (typeof ConditionalFieldsManager !== 'undefined' && typeof ConditionalFieldsManager.updateReservationOptions === 'function') {
+                ConditionalFieldsManager.updateReservationOptions();
+            }
         });
 
         $document.on('input', '.sibling-name-en', function() {
@@ -575,6 +592,13 @@ var SiblingsManager = {
 
         $document.on('input', '.sibling-name-ar', function() {
             self.validateArabicName($(this));
+        });
+
+        // Listen for direct gender changes (if selectable)
+        $document.on('change', '.sibling-gender', function() {
+            if (typeof ConditionalFieldsManager !== 'undefined' && typeof ConditionalFieldsManager.updateReservationOptions === 'function') {
+                ConditionalFieldsManager.updateReservationOptions();
+            }
         });
     },
 
@@ -618,6 +642,24 @@ var SiblingsManager = {
 
         // Animate the new sibling form into view.
         $newSibling.hide().slideDown(300);
+
+        // Update validation rules for new fields
+        if (typeof ValidationService !== 'undefined' && ValidationService.validator) {
+            $newSibling.find('input, select').each(function() {
+                var $field = $(this);
+                var nameAttr = $field.attr('name');
+                if (nameAttr) {
+                    var ruleObj = { required: $field.is('[required]') };
+                    ValidationService.validator.settings.rules[nameAttr] = ruleObj;
+                    $field.rules && $field.rules('add', ruleObj);
+                }
+            });
+        }
+
+        // Re-evaluate reservation options after adding a sibling
+        if (typeof ConditionalFieldsManager !== 'undefined' && typeof ConditionalFieldsManager.updateReservationOptions === 'function') {
+            ConditionalFieldsManager.updateReservationOptions();
+        }
     },
 
     /**
@@ -629,6 +671,20 @@ var SiblingsManager = {
         $siblingGroup.slideUp(300, function() {
             $(this).remove();
             self.reorderSiblings();
+
+            // Remove associated validation rules
+            if (typeof ValidationService !== 'undefined' && ValidationService.validator) {
+                $(this).find('input, select').each(function() {
+                    var nameAttr = $(this).attr('name');
+                    if (nameAttr && ValidationService.validator.settings.rules[nameAttr]) {
+                        delete ValidationService.validator.settings.rules[nameAttr];
+                    }
+                });
+            }
+
+            if (typeof ConditionalFieldsManager !== 'undefined' && typeof ConditionalFieldsManager.updateReservationOptions === 'function') {
+                ConditionalFieldsManager.updateReservationOptions();
+            }
         });
     },
 
@@ -662,6 +718,7 @@ var SiblingsManager = {
         $siblingForm.find('input, select').each(function() {
             var $field = $(this);
             var baseName = $field.data('name'); // e.g., 'name_en', 'national_id'
+            var oldNameAttr = $field.attr('name');
             if (baseName) {
                 var newId = 'sibling-' + baseName.replace('_', '-') + '-' + index;
                 var newName = 'siblings[' + index + '][' + baseName + ']';
@@ -670,6 +727,15 @@ var SiblingsManager = {
                     name: newName
                 });
                 $field.closest('.form-group').find('label').attr('for', newId);
+
+                // Update validation rules to use new names
+                if (typeof ValidationService !== 'undefined' && ValidationService.validator) {
+                    var rules = ValidationService.validator.settings.rules;
+                    if (oldNameAttr && rules[oldNameAttr]) {
+                        rules[newName] = rules[oldNameAttr];
+                        delete rules[oldNameAttr];
+                    }
+                }
             }
         });
     },
@@ -1180,7 +1246,7 @@ var ValidationService = {
             var $el = $(element);
 
             if ($el.hasClass('select2-hidden-accessible')) {
-               // add invalid class to Select2’s visible selection
+               // add invalid class to Select2's visible selection
                $el.next('.select2').find('.select2-selection')
                   .addClass('is-invalid')
                   .removeClass('is-valid');
@@ -1193,7 +1259,7 @@ var ValidationService = {
             var $el = $(element);
 
             if ($el.hasClass('select2-hidden-accessible')) {
-               // add valid class to Select2’s visible selection
+               // add valid class to Select2's visible selection
                $el.next('.select2').find('.select2-selection')
                   .removeClass('is-invalid')
                   .addClass('is-valid');

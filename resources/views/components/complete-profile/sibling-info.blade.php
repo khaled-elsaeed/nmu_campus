@@ -37,46 +37,46 @@
             </div>
             
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-md-6 mb-3 form-group">
                     <label for="sibling-relationship-0" class="form-label">{{ __('Relationship') }}</label>
-                    <select class="form-select sibling-relationship" id="sibling-relationship-0" name="siblings[0][relationship]">
+                    <select class="form-select sibling-relationship" id="sibling-relationship-0" name="siblings[0][relationship]" data-name="relationship">
                         <option value="">{{ __('Select') }}</option>
                         <option value="brother">{{ __('Brother') }}</option>
                         <option value="sister">{{ __('Sister') }}</option>
                     </select>
                     
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-6 mb-3 form-group">
                     <label for="sibling-national-id-0" class="form-label">{{ __('National ID') }} <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control sibling-national-id" id="sibling-national-id-0" name="siblings[0][national_id]" maxlength="14">
+                    <input type="text" class="form-control sibling-national-id" id="sibling-national-id-0" name="siblings[0][national_id]" maxlength="14" data-name="national_id" required>
                     
                 </div>
             </div>
             
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-md-6 mb-3 form-group">
                     <label for="sibling-name-ar-0" class="form-label">{{ __('Name (Arabic)') }} <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control sibling-name-ar" id="sibling-name-ar-0" name="siblings[0][name_ar]">
+                    <input type="text" class="form-control sibling-name-ar" id="sibling-name-ar-0" name="siblings[0][name_ar]" data-name="name_ar" required>
                     
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-6 mb-3 form-group">
                     <label for="sibling-name-en-0" class="form-label">{{ __('Name (English)') }} <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control sibling-name-en" id="sibling-name-en-0" name="siblings[0][name_en]">
+                    <input type="text" class="form-control sibling-name-en" id="sibling-name-en-0" name="siblings[0][name_en]" data-name="name_en" required>
                     
                 </div>
             </div>
             
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-md-6 mb-3 form-group">
                     <label for="sibling-faculty-0" class="form-label">{{ __('Faculty') }}</label>
-                    <select class="form-select sibling-faculty" id="sibling-faculty-0" name="siblings[0][faculty]">
+                    <select class="form-select sibling-faculty" id="sibling-faculty-0" name="siblings[0][faculty]" data-name="faculty">
                         <option value="">{{ __('Select Faculty') }}</option>
                     </select>
                     
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-6 mb-3 form-group">
                     <label for="sibling-gender-0" class="form-label">{{ __('Gender') }} <span class="text-danger">*</span></label>
-                    <select class="form-select sibling-gender" id="sibling-gender-0" name="siblings[0][gender]">
+                    <select class="form-select sibling-gender" id="sibling-gender-0" name="siblings[0][gender]" data-name="gender" required>
                         <option value="">{{ __('Select Gender') }}</option>
                         <option value="male">{{ __('Male') }}</option>
                         <option value="female">{{ __('Female') }}</option>
@@ -115,46 +115,46 @@
         </div>
         
         <div class="row">
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6 mb-3 form-group">
                 <label class="form-label">{{ __('Relationship') }}</label>
-                <select class="form-select sibling-relationship" name="">
+                <select class="form-select sibling-relationship" name="" data-name="relationship">
                     <option value="">{{ __('Select') }}</option>
                     <option value="brother">{{ __('Brother') }}</option>
                     <option value="sister">{{ __('Sister') }}</option>
                 </select>
                 
             </div>
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6 mb-3 form-group">
                 <label class="form-label">{{ __('National ID') }} <span class="text-danger">*</span></label>
-                <input type="text" class="form-control sibling-national-id" name="" maxlength="14">
+                <input type="text" class="form-control sibling-national-id" name="" maxlength="14" data-name="national_id" required>
                 
             </div>
         </div>
         
         <div class="row">
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6 mb-3 form-group">
                 <label class="form-label">{{ __('Name (Arabic)') }} <span class="text-danger">*</span></label>
-                <input type="text" class="form-control sibling-name-ar" name="">
+                <input type="text" class="form-control sibling-name-ar" name="" data-name="name_ar" required>
                 
             </div>
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6 mb-3 form-group">
                 <label class="form-label">{{ __('Name (English)') }} <span class="text-danger">*</span></label>
-                <input type="text" class="form-control sibling-name-en" name="">
+                <input type="text" class="form-control sibling-name-en" name="" data-name="name_en" required>
                 
             </div>
         </div>
         
         <div class="row">
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6 mb-3 form-group">
                 <label class="form-label">{{ __('Faculty') }}</label>
-                <select class="form-select sibling-faculty" name="">
+                <select class="form-select sibling-faculty" name="" data-name="faculty">
                     <option value="">{{ __('Select Faculty') }}</option>
                 </select>
                 
             </div>
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6 mb-3 form-group">
                 <label class="form-label">{{ __('Gender') }} <span class="text-danger">*</span></label>
-                <select class="form-select sibling-gender" name="">
+                <select class="form-select sibling-gender" name="" data-name="gender" required>
                     <option value="">{{ __('Select Gender') }}</option>
                     <option value="male">{{ __('Male') }}</option>
                     <option value="female">{{ __('Female') }}</option>
