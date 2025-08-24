@@ -17,6 +17,7 @@ use App\Models\StudentArchive;
 use App\Models\Guardian;
 use App\Models\Sibling;
 use App\Models\EmergencyContact;
+use App\Events\UserCreated;
 
 class User extends Authenticatable
 {
@@ -83,6 +84,18 @@ class User extends Authenticatable
             'last_password_changed_at'  => 'datetime',
             'password'                  => 'hashed',
         ];
+    }
+
+        /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        static::created(function (User $user) {
+            $temporaryPassword = $user->getAttribute('temp_password');
+            UserCreated::dispatch($user, $temporaryPassword);
+        });
     }
 
     /**

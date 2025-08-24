@@ -210,7 +210,6 @@ var ProfileManager = {
         if (data.phone) $('#phone').val(data.phone);
         if (data.governorate_id) {
             $('#governorate').val(data.governorate_id).trigger('change');
-            // Store city_id to be selected after the cities dropdown is populated.
             if (data.city_id) {
                 $('#governorate').data('pending-city-id', data.city_id);
             }
@@ -250,12 +249,9 @@ var ProfileManager = {
         if (data.email) $('#guardian-email').val(data.email);
         if (data.national_id) $('#guardian-national-id').val(data.national_id);
         if (data.relationship) $('#guardian-relationship').val(data.relationship).trigger('change');
-        if (data.living_with_guardian !== undefined) {
-            $('#living-with-guardian').val(data.living_with_guardian ? 'yes' : 'no').trigger('change');
-        }
+        if (data.living_with_guardian) $('#living-with-guardian').val(data.living_with_guardian ? 'yes' : 'no').trigger('change');
 
         var isAbroad = !!data.is_abroad;
-        // Populate the conditional fields *before* triggering the change event.
         if (isAbroad) {
             if (data.country_id) {
                 $('#guardian-abroad-country').val(data.country_id).trigger('change');
@@ -276,20 +272,44 @@ var ProfileManager = {
      * @param {object} data - sibling_info object.
      */
     populateSiblingInfo: function(data) {
-        if (data.has_sibling_in_dorm) {
-            var hasSibling = data.has_sibling_in_dorm === 'yes';
-            // Populate fields before triggering the change event.
-            if (hasSibling && typeof SiblingsManager !== 'undefined') {
-                // NOTE: This assumes the first sibling is populated.
-                // For a multi-sibling setup, this would need to create sibling blocks.
-                if (data.relationship) $('#sibling-relationship').val(data.relationship).trigger('change');
-                if (data.name_ar) $('#sibling-name-ar').val(data.name_ar);
-                if (data.name_en) $('#sibling-name-en').val(data.name_en);
-                if (data.national_id) $('#sibling-national-id').val(data.national_id);
-                if (data.faculty_id) $('#sibling-faculty').val(data.faculty_id).trigger('change');
-            }
-            $('#has-sibling-in-dorm').val(data.has_sibling_in_dorm).trigger('change');
-        }
+      if (data.has_sibling_in_dorm) {
+         $('#has-sibling-in-dorm').val(data.has_sibling_in_dorm).trigger('change');
+
+         var $container = $('#siblings-container');
+         $container.find('.sibling-group').remove();
+
+         var siblings = Array.isArray(data.siblings) ? data.siblings : (data.sibling ? [data.sibling] : []);
+         if (siblings.length === 0 && data.relationship) {
+            siblings = [{
+               relationship: data.relationship,
+               name_ar: data.name_ar,
+               name_en: data.name_en,
+               national_id: data.national_id,
+               academic_level: data.academic_level,
+               faculty_id: data.faculty_id
+            }];
+         }
+
+         // Add sibling groups as needed
+         for (var i = 0; i < siblings.length; i++) {
+            SiblingsManager.addSibling();
+         }
+
+         // Populate each sibling group
+       $container.find('.sibling-group').each(function(idx) {
+         var sibling = siblings[idx];
+         if (!sibling) return;
+         var $group = $(this);
+         if (sibling.relationship) $group.find('.sibling-relationship').val(sibling.relationship).trigger('change');
+         if (sibling.name_ar) $group.find('.sibling-name-ar').val(sibling.name_ar);
+         if (sibling.name_en) $group.find('.sibling-name-en').val(sibling.name_en);
+         if (sibling.national_id) $group.find('.sibling-national-id').val(sibling.national_id);
+         if (sibling.academic_level) $group.find('.sibling-academic-level').val(sibling.academic_level).trigger('change');
+         if (sibling.faculty_id) {
+            $group.find('.sibling-faculty').val(sibling.faculty_id).trigger('change');
+         }
+       });
+      }
     },
 
     /**
@@ -316,9 +336,7 @@ var ProfileManager = {
      * @param {object} data - terms object.
      */
     populateTerms: function(data) {
-        if (data.terms_accepted !== undefined) {
             $('#terms-Checkbox').prop('checked', data.terms_accepted === true || data.terms_accepted === '1');
-        }
     },
 
     /**
@@ -428,38 +446,40 @@ var ProfileManager = {
      * @returns {Promise}
      */
     populateFaculties: function() {
-        return new Promise(function(resolve, reject) {
-            ApiService.fetchFaculty()
-                .done(function(response) {
-                    if (response.success && response.data) {
-                        var facultySelectors = [{
-                            id: '#faculty',
-                            placeholder: TRANSLATIONS.placeholders.select_faculty
-                        }, {
-                            id: '#sibling-faculty',
-                            placeholder: TRANSLATIONS.placeholders.select_sibling_faculty
-                        }];
+      return new Promise(function(resolve, reject) {
+         ApiService.fetchFaculty()
+            .done(function(response) {
+               if (response.success && response.data) {
+                  // Store in SiblingsManager for all sibling dropdowns
+                  SiblingsManager._facultyData = response.data;
+                  var facultySelectors = [{
+                     id: '#faculty',
+                     placeholder: TRANSLATIONS.placeholders.select_faculty
+                  }, {
+                     id: '#sibling-faculty',
+                     placeholder: TRANSLATIONS.placeholders.select_sibling_faculty
+                  }];
 
-                        facultySelectors.forEach(function(selectorInfo) {
-                            var $select = $(selectorInfo.id);
-                            if ($select.length && $select.children('option').length <= 1) {
-                                Utils.populateSelect($select, response.data, {
-                                    placeholder: selectorInfo.placeholder,
-                                    valueField: 'id',
-                                    textField: 'name'
-                                });
-                            }
+                  facultySelectors.forEach(function(selectorInfo) {
+                     var $select = $(selectorInfo.id);
+                     if ($select.length && $select.children('option').length <= 1) {
+                        Utils.populateSelect($select, response.data, {
+                           placeholder: selectorInfo.placeholder,
+                           valueField: 'id',
+                           textField: 'name'
                         });
-                        resolve(response);
-                    } else {
-                        reject(new Error(response.message || 'Failed to load faculties.'));
-                    }
-                })
-                .fail(function(xhr) {
-                    Utils.handleAjaxError(xhr, 'Failed to fetch faculties.');
-                    reject(xhr);
-                });
-        });
+                     }
+                  });
+                  resolve(response);
+               } else {
+                  reject(new Error(response.message || 'Failed to load faculties.'));
+               }
+            })
+            .fail(function(xhr) {
+               Utils.handleAjaxError(xhr, 'Failed to fetch faculties.');
+               reject(xhr);
+            });
+      });
     },
 
     /**
@@ -541,7 +561,7 @@ var SiblingsManager = {
         this.fetchAndStoreFacultyOptions();
 
         // Register validation rules for the default sibling group if present
-        if (typeof ValidationService !== 'undefined' && ValidationService.validator) {
+        if (ValidationService.validator) {
             $('#siblings-container .sibling-group').first().find('input, select').each(function() {
                 var $field = $(this);
                 var nameAttr = $field.attr('name');
@@ -580,10 +600,7 @@ var SiblingsManager = {
 
         $document.on('change', '.sibling-relationship', function() {
             self.autoSetGender($(this));
-            // Update reservation options when relationship (and thus gender) changes
-            if (typeof ConditionalFieldsManager !== 'undefined' && typeof ConditionalFieldsManager.updateReservationOptions === 'function') {
-                ConditionalFieldsManager.updateReservationOptions();
-            }
+            ConditionalFieldsManager.updateReservationOptions();
         });
 
         $document.on('input', '.sibling-name-en', function() {
@@ -607,19 +624,30 @@ var SiblingsManager = {
      */
     fetchAndStoreFacultyOptions: function() {
         var self = this;
-        ApiService.fetchFaculty()
-            .done(function(response) {
-                if (response.success && response.data) {
-                    self._facultyData = response.data;
-                    // Populate any pre-existing faculty dropdowns.
-                    $('.sibling-faculty').each(function() {
-                        self.populateFacultySelect($(this), self._facultyData);
-                    });
-                }
-            })
-            .fail(function(xhr) {
-                console.error('Failed to load faculties for siblings:', xhr);
-            });
+      if (self._facultyData && self._facultyData.length) {
+         $('.sibling-faculty').each(function() {
+            self.populateFacultySelect($(this), self._facultyData);
+            if (typeof Select2Manager !== 'undefined' && Select2Manager.config && Select2Manager.config.form && Select2Manager.config.form['.sibling-faculty']) {
+               Utils.initSelect2($(this), Select2Manager.config.form['.sibling-faculty']);
+            }
+         });
+         return;
+      }
+      ApiService.fetchFaculty()
+         .done(function(response) {
+            if (response.success && response.data) {
+               self._facultyData = response.data;
+               $('.sibling-faculty').each(function() {
+                  self.populateFacultySelect($(this), self._facultyData);
+                  if (typeof Select2Manager !== 'undefined' && Select2Manager.config && Select2Manager.config.form && Select2Manager.config.form['.sibling-faculty']) {
+                     Utils.initSelect2($(this), Select2Manager.config.form['.sibling-faculty']);
+                  }
+               });
+            }
+         })
+         .fail(function(xhr) {
+            console.error('Failed to load faculties for siblings:', xhr);
+         });
     },
 
     /**
@@ -635,16 +663,19 @@ var SiblingsManager = {
         var $newSibling = $(template);
 
         $('#siblings-container').append($newSibling);
-        this.reorderSiblings(); // Reorder to set correct names/IDs for the new element.
+        this.reorderSiblings();
 
-        // Populate the new faculty dropdown from cached data.
-        this.populateFacultySelect($newSibling.find('.sibling-faculty'), this._facultyData);
+      // Populate the new faculty dropdown from cached data and initialize Select2
+      this.populateFacultySelect($newSibling.find('.sibling-faculty'), this._facultyData);
+      if (typeof Select2Manager !== 'undefined' && Select2Manager.config && Select2Manager.config.form && Select2Manager.config.form['.sibling-faculty']) {
+         Utils.initSelect2($newSibling.find('.sibling-faculty'), Select2Manager.config.form['.sibling-faculty']);
+      }
 
         // Animate the new sibling form into view.
         $newSibling.hide().slideDown(300);
 
         // Update validation rules for new fields
-        if (typeof ValidationService !== 'undefined' && ValidationService.validator) {
+        if (ValidationService.validator) {
             $newSibling.find('input, select').each(function() {
                 var $field = $(this);
                 var nameAttr = $field.attr('name');
@@ -657,9 +688,7 @@ var SiblingsManager = {
         }
 
         // Re-evaluate reservation options after adding a sibling
-        if (typeof ConditionalFieldsManager !== 'undefined' && typeof ConditionalFieldsManager.updateReservationOptions === 'function') {
-            ConditionalFieldsManager.updateReservationOptions();
-        }
+         ConditionalFieldsManager.updateReservationOptions();
     },
 
     /**
@@ -673,7 +702,7 @@ var SiblingsManager = {
             self.reorderSiblings();
 
             // Remove associated validation rules
-            if (typeof ValidationService !== 'undefined' && ValidationService.validator) {
+            if (ValidationService.validator) {
                 $(this).find('input, select').each(function() {
                     var nameAttr = $(this).attr('name');
                     if (nameAttr && ValidationService.validator.settings.rules[nameAttr]) {
@@ -682,7 +711,7 @@ var SiblingsManager = {
                 });
             }
 
-            if (typeof ConditionalFieldsManager !== 'undefined' && typeof ConditionalFieldsManager.updateReservationOptions === 'function') {
+            if (ConditionalFieldsManager.updateReservationOptions) {
                 ConditionalFieldsManager.updateReservationOptions();
             }
         });
@@ -717,7 +746,7 @@ var SiblingsManager = {
     updateFieldAttributes: function($siblingForm, index) {
         $siblingForm.find('input, select').each(function() {
             var $field = $(this);
-            var baseName = $field.data('name'); // e.g., 'name_en', 'national_id'
+            var baseName = $field.data('name');
             var oldNameAttr = $field.attr('name');
             if (baseName) {
                 var newId = 'sibling-' + baseName.replace('_', '-') + '-' + index;
@@ -729,7 +758,7 @@ var SiblingsManager = {
                 $field.closest('.form-group').find('label').attr('for', newId);
 
                 // Update validation rules to use new names
-                if (typeof ValidationService !== 'undefined' && ValidationService.validator) {
+                if (ValidationService.validator) {
                     var rules = ValidationService.validator.settings.rules;
                     if (oldNameAttr && rules[oldNameAttr]) {
                         rules[newName] = rules[oldNameAttr];
@@ -749,7 +778,7 @@ var SiblingsManager = {
         var currentValue = $select.val();
         $select.empty().append($('<option>', {
             value: '',
-            text: TRANSLATIONS.placeholders.select_sibling_faculty || 'Select Faculty'
+            text: TRANSLATIONS.placeholders.select_sibling_faculty
         }));
 
         $.each(faculties, function(index, faculty) {
@@ -784,15 +813,14 @@ var SiblingsManager = {
         if (!currentValue || currentValue.length !== 14) return;
 
         var isDuplicate = false;
-        // Check against other siblings' national IDs
+
         $('.sibling-national-id').not($input).each(function() {
             if ($(this).val() === currentValue) {
                 isDuplicate = true;
-                return false; // Exit loop
+                return false; 
             }
         });
 
-        // Check against the user's own national ID
         var userNationalId = $('#national-id').val();
         if (userNationalId && currentValue === userNationalId) {
             isDuplicate = true;
@@ -872,24 +900,27 @@ var SiblingsManager = {
                 name_ar: $group.find('.sibling-name-ar').val() || '',
                 name_en: $group.find('.sibling-name-en').val() || '',
                 faculty: $group.find('.sibling-faculty').val() || '',
-                gender: $group.find('.sibling-gender').val() || ''
+                academic_level: $group.find('.sibling-academic-level').val() || ''
             };
             siblings.push(siblingData);
         });
         return siblings;
     },
 
-    /**
-     * Get all siblings whose gender matches the provided gender.
-     * @param {string} gender - The gender to filter by ('male' or 'female').
-     * @returns {Array<object>} An array of matching sibling objects.
-     */
-    getSiblingsByGender: function(gender) {
-        if (!gender) return [];
-        return this.getAllSiblings().filter(function(sibling) {
-            return sibling.gender === gender;
-        });
-    },
+   /**
+    * Get all siblings whose relationship matches the provided gender.
+    * @param {string} gender - The gender to filter by ('male' or 'female').
+    * @returns {Array<object>} An array of matching sibling objects.
+    */
+   getSiblingsByGender: function(gender) {
+      if (!gender) return [];
+      // Map gender to relationship: 'male' => 'brother', 'female' => 'sister'
+      var relationship = gender === 'male' ? 'brother' : (gender === 'female' ? 'sister' : '');
+      if (!relationship) return [];
+      return this.getAllSiblings().filter(function(sibling) {
+         return sibling.relationship === relationship;
+      });
+   },
 
     /**
      * Validate all sibling form groups.
@@ -978,15 +1009,7 @@ var Select2Manager = {
             placeholder: TRANSLATIONS.placeholders.guardianCity?.select,
             allowClear: true
          },
-         '#has-sibling-in-dorm': {
-            placeholder: 'Select',
-            allowClear: true
-         },
-         '#sibling-relationship': {
-            placeholder: TRANSLATIONS.validation.sibling_relationship,
-            allowClear: true
-         },
-         '#sibling-faculty': {
+         '.sibling-faculty':{
             placeholder: TRANSLATIONS.placeholders.select_sibling_faculty,
             allowClear: true
          },
@@ -1352,15 +1375,6 @@ var ValidationService = {
             },
             number: true
          },
-         academic_id: {
-            required: true,
-            academicId: true
-         },
-         academic_email: {
-            required: true,
-            email: true,
-            emailDomain: ['nmu.edu.eg']
-         },
 
          // Step 4: Guardian Information - Basic
          guardian_relationship: {
@@ -1423,48 +1437,6 @@ var ValidationService = {
          // Step 5: Sibling Information
          has_sibling_in_dorm: {
             required: true
-         },
-         sibling_gender: {
-            dependsOn: {
-               field: '#has-sibling-in-dorm',
-               value: 'yes',
-               operator: 'equals'
-            }
-         },
-         sibling_name_ar: {
-            dependsOn: {
-               field: '#has-sibling-in-dorm',
-               value: 'yes',
-               operator: 'equals'
-            },
-            arabicName: true
-         },
-         sibling_name_en: {
-            dependsOn: {
-               field: '#has-sibling-in-dorm',
-               value: 'yes',
-               operator: 'equals'
-            },
-            englishName: true
-         },
-         sibling_national_id: {
-            dependsOn: {
-               field: '#has-sibling-in-dorm',
-               value: 'yes',
-               operator: 'equals'
-            },
-            egyptianNationalId: true,
-            compareField: {
-               field: '#national-id',
-               operator: 'not_equals'
-            }
-         },
-         sibling_faculty: {
-            dependsOn: {
-               field: '#has-sibling-in-dorm',
-               value: 'yes',
-               operator: 'equals'
-            }
          },
 
          // Step 6: Emergency Contact (only when guardians are abroad)
@@ -1585,16 +1557,6 @@ var ValidationService = {
             dependsOn: TRANSLATIONS.validation.score.dependsOn,
             number: TRANSLATIONS.validation.number
          },
-         academic_id: {
-            required: TRANSLATIONS.validation.required.replace('{field}', TRANSLATIONS.fields.academic_id),
-            academicId: TRANSLATIONS.validation.academic_id
-         },
-         academic_email: {
-            required: TRANSLATIONS.validation.required.replace('{field}', TRANSLATIONS.fields.academic_email),
-            email: TRANSLATIONS.validation.email,
-            emailDomain: TRANSLATIONS.validation.emailDomain
-         },
-
          // Step 4: Guardian Information
          guardian_relationship: TRANSLATIONS.validation.guardian_relationship,
 
@@ -1627,21 +1589,6 @@ var ValidationService = {
 
          // Step 5: Sibling Information
          has_sibling_in_dorm: TRANSLATIONS.validation.has_sibling_in_dorm,
-         sibling_gender: TRANSLATIONS.validation.sibling_gender,
-         sibling_name_ar: {
-            dependsOn: TRANSLATIONS.validation.depends_on.replace('{field}', TRANSLATIONS.fields.sibling_name_ar),
-            arabicName: TRANSLATIONS.validation.arabic_name
-         },
-         sibling_name_en: {
-            dependsOn: TRANSLATIONS.validation.depends_on.replace('{field}', TRANSLATIONS.fields.sibling_name_en),
-            englishName: TRANSLATIONS.validation.english_name
-         },
-         sibling_national_id: {
-            dependsOn: TRANSLATIONS.validation.depends_on.replace('{field}', TRANSLATIONS.fields.sibling_national_id),
-            egyptianNationalId: TRANSLATIONS.validation.egyptian_national_id,
-            compareField: TRANSLATIONS.validation.compare_field.replace('{field}', TRANSLATIONS.fields.sibling_national_id)
-         },
-         sibling_faculty: TRANSLATIONS.validation.sibling_faculty,
 
          // Step 6: Emergency Contact
          emergency_contact_name_ar: {
@@ -1763,11 +1710,6 @@ var ValidationService = {
          '#guardian-abroad-country',
          '#guardian-governorate',
          '#guardian-city',
-         '#sibling-relationship',
-         '#sibling-name-ar',
-         '#sibling-name-en',
-         '#sibling-national-id',
-         '#sibling-faculty',
          '#emergency-contact-name_ar',
          '#emergency-contact-name_en',
          '#emergency-contact-relationship',
@@ -2404,10 +2346,7 @@ var ConditionalFieldsManager = {
 
          if (value === 'yes') {
             ConditionalFieldsManager.showSiblingDetails();
-            // Initialize siblings manager if not already done
-            if (typeof SiblingsManager !== 'undefined') {
                SiblingsManager.init();
-            }
          } else {
             ConditionalFieldsManager.hideSiblingDetails();
             // Hide reservation stay preference fields
@@ -2428,12 +2367,11 @@ var ConditionalFieldsManager = {
       var hasSiblings = $('#has-sibling-in-dorm').val() === 'yes';
       var currentUserGender = $('#gender').val();
 
-      if (hasSiblings && typeof SiblingsManager !== 'undefined') {
+      if (hasSiblings) {
          var sameGenderSiblings = SiblingsManager.getSiblingsByGender(currentUserGender);
 
          if (sameGenderSiblings.length > 0) {
             ConditionalFieldsManager.showReservationStayPreferenceFields();
-            // Update the sibling dropdown in reservation section
             this.updateReservationSiblingDropdown(sameGenderSiblings);
          } else {
             ConditionalFieldsManager.hideReservationStayPreferenceFields();
@@ -2452,12 +2390,10 @@ var ConditionalFieldsManager = {
    updateReservationSiblingDropdown: function (siblings) {
       var $siblingSelect = $('#sibling-to-stay-with');
       $siblingSelect.empty().append('<option value="">' + (TRANSLATIONS.placeholders.sibling.select || 'Select Sibling') + '</option>');
-
       $.each(siblings, function (index, sibling) {
          var displayName = sibling.name_en + (sibling.name_ar ? ' (' + sibling.name_ar + ')' : '');
          $siblingSelect.append('<option value="' + sibling.national_id + '">' + displayName + '</option>');
       });
-
       ConditionalFieldsManager.enableField('#sibling-to-stay-with');
    },
 

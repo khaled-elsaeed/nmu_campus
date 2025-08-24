@@ -2,6 +2,7 @@
 
 namespace App\Models\Reservation;
 
+use App\Events\ReservationRequestCreated;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\User;
@@ -19,7 +20,8 @@ class ReservationRequest extends Model
         'user_id',
         'academic_term_id',
         'accommodation_type', 
-        'room_type', 
+        'room_type',
+        'sibling_id',
         'bed_count',
         'check_in_date',
         'check_out_date',
@@ -64,6 +66,10 @@ class ReservationRequest extends Model
                 $request->request_number = static::generateRequestNumber();
             }
         });
+
+        static::created(function (ReservationRequest $reservationRequest) {
+            ReservationRequestCreated::dispatch($reservationRequest);
+        });
     }
 
     /**
@@ -92,6 +98,14 @@ class ReservationRequest extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the sibling which user requested to stay with.
+     */
+    public function sibling(): BelongsTo
+    {
+        return $this->belongsTo(Sibling::class);
     }
 
     /**

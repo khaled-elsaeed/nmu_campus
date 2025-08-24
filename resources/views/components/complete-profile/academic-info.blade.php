@@ -45,7 +45,7 @@
     </div>
     <div class="col-md-6 mb-3 d-none" id="score-div">
         <label for="score" class="form-label">{{ __('Score') }}</label>
-        <input type="number" step="0.01" min="0" max="100" class="form-control" id="score" name="score" value="0.00" readonly>
+        <input type="number" step="0.01" min="0" class="form-control" id="score" name="score" value="0.00" readonly>
     </div>
 </div>
 

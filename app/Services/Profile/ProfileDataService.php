@@ -192,32 +192,28 @@ class ProfileDataService
      */
     private function getSiblingInfoFromStudent($student): array
     {
-        $sibling = $student?->user?->siblings?->first();
+        $siblings = $student?->user?->siblings;
 
-        if (!$sibling) {
+        if (empty($siblings) || $siblings->isEmpty()) {
             return [
-                'has_sibling_in_dorm' => 'no',
-                'name_en' => null,
-                'name_ar' => null,
-                'national_id' => null,
-                'gender' => null,
-                'relationship' => null,
-                'academic_level' => null,
-                'notes' => null,
-                'faculty_id' => null,
+            'has_sibling_in_dorm' => 'no',
             ];
         }
 
-        return [
-            'has_sibling_in_dorm' => 'yes',
+        $siblings = $siblings->map(function ($sibling) {
+            return [
             'name_en' => $sibling?->name_en,
             'name_ar' => $sibling?->name_ar,
             'national_id' => $sibling?->national_id,
-            'gender' => $sibling?->gender,
             'relationship' => $sibling?->relationship,
             'academic_level' => $sibling?->academic_level,
-            'notes' => $sibling?->notes,
             'faculty_id' => $sibling?->faculty_id,
+            ];
+        })->all();
+
+        return [
+            'has_sibling_in_dorm' => 'yes',
+            'siblings' => $siblings,
         ];
     }
 

@@ -140,10 +140,10 @@ class AuthRegisterService
             'force_change_password' => true,
         ]);
 
-        // Assign Spatie role 'resident'
+        $user->setAttribute('temp_password', $studentArchive->national_id ?? str::random(10));
+
         $user->assignRole('resident');
 
-        // Link the student archive to this user
         $studentArchive->update(['user_id' => $user->id]);
 
         return $user;

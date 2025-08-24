@@ -75,13 +75,16 @@
                     
                 </div>
                 <div class="col-md-6 mb-3 form-group">
-                    <label for="sibling-gender-0" class="form-label">{{ __('Gender') }} <span class="text-danger">*</span></label>
-                    <select class="form-select sibling-gender" id="sibling-gender-0" name="siblings[0][gender]" data-name="gender" required>
-                        <option value="">{{ __('Select Gender') }}</option>
-                        <option value="male">{{ __('Male') }}</option>
-                        <option value="female">{{ __('Female') }}</option>
+                    <label for="sibling-academic-level-0" class="form-label">{{ __('Academic Level') }}</label>
+                    <select class="form-select sibling-academic-level" id="sibling-academic-level-0" name="siblings[0][academic_level]" data-name="academic_level">
+                        <option value="">{{ __('Select Academic Level') }}</option>
+                        <option value="0">{{ __('level 0 (For Engineering)') }}</option>
+                        <option value="1">{{ __('level 1') }}</option>
+                        <option value="2">{{ __('level 2') }}</option>
+                        <option value="3">{{ __('level 3') }}</option>
+                        <option value="4">{{ __('level 4') }}</option>
+                        <option value="5">{{ __('level 5') }}</option>
                     </select>
-                    
                 </div>
             </div>
         </div>
@@ -150,16 +153,18 @@
                 <select class="form-select sibling-faculty" name="" data-name="faculty">
                     <option value="">{{ __('Select Faculty') }}</option>
                 </select>
-                
             </div>
             <div class="col-md-6 mb-3 form-group">
-                <label class="form-label">{{ __('Gender') }} <span class="text-danger">*</span></label>
-                <select class="form-select sibling-gender" name="" data-name="gender" required>
-                    <option value="">{{ __('Select Gender') }}</option>
-                    <option value="male">{{ __('Male') }}</option>
-                    <option value="female">{{ __('Female') }}</option>
+                <label class="form-label">{{ __('Academic Level') }}</label>
+                <select class="form-select sibling-academic-level" name="" data-name="academic_level">
+                    <option value="">{{ __('Select Academic Level') }}</option>
+                    <option value="0">{{ __('level 0 (For Engineering)') }}</option>
+                    <option value="1">{{ __('level 1') }}</option>
+                    <option value="2">{{ __('level 2') }}</option>
+                    <option value="3">{{ __('level 3') }}</option>
+                    <option value="4">{{ __('level 4') }}</option>
+                    <option value="5">{{ __('level 5') }}</option>
                 </select>
-                
             </div>
         </div>
     </div>

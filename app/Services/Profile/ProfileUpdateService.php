@@ -7,8 +7,12 @@ use App\Models\Guardian;
 use App\Models\Sibling;
 use App\Models\EmergencyContact;
 use App\Models\StudentArchive;
+use App\Models\Reservation\ReservationRequest;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class ProfileUpdateService
 {
@@ -27,36 +31,36 @@ class ProfileUpdateService
      *
      * @param array $data
      * @return array
+     * @throws Exception
      */
     public function saveProfileData(array $data): array
     {
         $user = Auth::user();
 
         if (!$user) {
-            throw new \Exception('User not authenticated');
+            throw new Exception('User not authenticated');
         }
 
-        $studentArchive = $user?->studentArchive;
-
-        $user = $studentArchive?->user;
+        $studentArchive = $user->studentArchive;
+        $user = $studentArchive?->user ?? $user;
 
         return DB::transaction(function () use ($user, $data, $studentArchive) {
-            $student = Student::where('user_id', $user?->id)->first();
+            $student = Student::where('user_id', $user->id)->first();
             if (!$student) {
                 $student = new Student();
-                $student->user_id = $user?->id;
+                $student->user_id = $user->id;
             }
 
-            // Update all sections
             $this->updateStudentBasicInfo($student, $data, $studentArchive);
-            $this->updateGuardianInfo($student, $data);
-            $this->updateSiblingInfo($student, $data);
-            $this->updateEmergencyContact($student, $data);
+            $this->updateGuardianInfo($user, $data);
+            $this->updateSiblingInfo($user, $data);
+            $this->updateEmergencyContact($user, $data);
+            $this->createReservationRequest($user, $data);
 
-            $student?->save();
+            $student->save();
 
             return [
-                'student_id' => $student?->id,
+                'student_id' => $student->id,
                 'message' => 'Profile saved successfully'
             ];
         });
@@ -81,30 +85,30 @@ class ProfileUpdateService
         $student->is_profile_complete = true;
 
         // Use archive data for sensitive student information
-        $student->name_ar = $studentArchive?->name_ar;
-        $student->name_en = $studentArchive?->name_en;
-        $student->national_id = $studentArchive?->national_id;
-
-        $student->date_of_birth = $studentArchive?->birthdate ? \Carbon\Carbon::parse($studentArchive->birthdate)->format('Y-m-d') : null;
-        $student->academic_email = $studentArchive?->email;
-        $student->academic_id = $studentArchive?->academic_id;
-        $student->cum_gpa = $studentArchive?->cum_gpa ?? 0.0;
-        $student->score = $studentArchive?->actual_score ?? 0.0;
-        $student->faculty_id = $this->lookupService->getFacultyId($studentArchive?->candidated_faculty_name);
-        $student->nationality_id = $this->lookupService->getNationalityId($studentArchive?->nationality_name);
+        if ($studentArchive) {
+            $student->name_ar = $studentArchive->name_ar;
+            $student->name_en = $studentArchive->name_en;
+            $student->national_id = $studentArchive->national_id;
+            $student->date_of_birth = $studentArchive->birthdate ? 
+                \Carbon\Carbon::parse($studentArchive->birthdate)->format('Y-m-d') : null;
+            $student->academic_email = $studentArchive->email;
+            $student->academic_id = $studentArchive->academic_id;
+            $student->cum_gpa = $studentArchive->cum_gpa ?? 0.0;
+            $student->score = $studentArchive->actual_score ?? 0.0;
+            $student->faculty_id = $this->lookupService->getFacultyId($studentArchive->candidated_faculty_name);
+            $student->nationality_id = $this->lookupService->getNationalityId($studentArchive->nationality_name);
+        }
     }
 
     /**
      * Update guardian information
      *
-     * @param \App\Models\Student $student
+     * @param User $user    
      * @param array $data
      */
-    private function updateGuardianInfo(Student $student, array $data): void
+    private function updateGuardianInfo(User $user, array $data): void
     {
-        $user = $student->user;
-
-        $guardian = $this->isGuardianFoundWithSameData($data);
+        $guardian = $this->lookupService->findGuardianByNationalId($data['guardian_national_id'] ?? null);
 
         if (!$guardian) {
             $guardian = new Guardian();
@@ -125,20 +129,20 @@ class ProfileUpdateService
         $guardian->is_abroad = $isAbroad;
 
         if ($isAbroad) {
-            $guardian->country_id         = $data['guardian_abroad_country'] ?? null;
+            $guardian->country_id = $data['guardian_abroad_country'] ?? null;
             $guardian->living_with_guardian = false;
-            $guardian->governorate_id     = null;
-            $guardian->city_id            = null;
+            $guardian->governorate_id = null;
+            $guardian->city_id = null;
         } else {
-            $guardian->country_id         = null;
+            $guardian->country_id = null;
             $guardian->living_with_guardian = ($data['living_with_guardian'] ?? 'no') === 'yes';
 
             if (($data['living_with_guardian'] ?? 'no') === 'no') {
                 $guardian->governorate_id = $data['guardian_governorate'] ?? null;
-                $guardian->city_id        = $data['guardian_city'] ?? null;
+                $guardian->city_id = $data['guardian_city'] ?? null;
             } else {
                 $guardian->governorate_id = null;
-                $guardian->city_id        = null;
+                $guardian->city_id = null;
             }
         }
 
@@ -151,82 +155,81 @@ class ProfileUpdateService
     }
 
     /**
-     * Find existing guardian by national_id
-     */
-    private function isGuardianFoundWithSameData(array $data): ?Guardian
-    {
-        return Guardian::where('national_id', $data['guardian_national_id'] ?? null)->first();
-    }
-
-    /**
      * Update sibling information
      *
-     * @param \App\Models\Student $student
+     * @param User $user
      * @param array $data
      */
-    private function updateSiblingInfo(Student $student, array $data): void
+    private function updateSiblingInfo(User $user, array $data): void
     {
-        $user = $student->user;
-
-        if ($data['has_sibling_in_dorm'] === 'no') {
+        if (($data['has_sibling_in_dorm'] ?? 'no') === 'no') {
             $user->siblings()->detach();
             return;
         }
 
-        if ($data['has_sibling_in_dorm'] === 'yes') {
-
-            $sibling = $this->isSiblingFoundWithSameData($data);
-
-            if (!$sibling) {
-                $sibling = new Sibling();
-            }
-
-            $sibling->fill([
-                'gender'        => ($data['sibling_relationship'] === 'brother' ? 'male' : 'female'),
-                'relationship'  => $data['sibling_relationship'] ?? null,
-                'name_en'       => $data['sibling_name_en'] ?? null,
-                'name_ar'       => $data['sibling_name_ar'] ?? null,
-                'national_id'   => $data['sibling_national_id'] ?? null,
-                'faculty_id'    => $data['sibling_faculty'] ?? null,
-            ]);
-
-            $sibling->save();
-
-            // Attach sibling to user if not already linked
-            if (!$user->siblings()->where('siblings.id', $sibling->id)->exists()) {
-                $user->siblings()->attach($sibling->id);
+        if (($data['has_sibling_in_dorm'] ?? 'no') === 'yes' && isset($data['siblings'])) {
+            foreach ($data['siblings'] as $siblingData) {
+                $this->processSingleSibling($user, $siblingData);
             }
         }
     }
 
-    private function isSiblingFoundWithSameData(array $data): ?Sibling
+    /**
+     * Process a single sibling record
+     *
+     * @param User $user
+     * @param array $siblingData
+     */
+    private function processSingleSibling(User $user, array $siblingData): void
     {
-        return Sibling::where('national_id', $data['sibling_national_id'] ?? null)->first();
+        $sibling = $this->lookupService->findSiblingByNationalId($siblingData['national_id'] ?? null);
+
+        if (!$sibling) {
+            $sibling = new Sibling();
+        }
+
+        Log::info('Sibling data being processed:', $siblingData);
+
+        $sibling->fill([
+            'relationship' => $siblingData['relationship'] ?? null,
+            'name_en'      => $siblingData['name_en'] ?? null,
+            'name_ar'      => $siblingData['name_ar'] ?? null,
+            'national_id'  => $siblingData['national_id'] ?? null,
+            'faculty_id'   => $siblingData['faculty'] ?? null,
+            'gender'       => ($siblingData['relationship'] ?? null) === 'brother' ? 'male' : 'female',
+            'academic_level' => $siblingData['academic_level'] ?? null
+        ]);
+
+        $sibling->save();
+
+        // Attach sibling to user if not already linked
+        if (!$user->siblings()->where('siblings.id', $sibling->id)->exists()) {
+            $user->siblings()->attach($sibling->id);
+        }
     }
 
 
     /**
      * Update emergency contact information
      *
-     * @param Student $student
+     * @param User $user
      * @param array $data
-     * @return void
      */
-    private function updateEmergencyContact(Student $student, array $data): void
+    private function updateEmergencyContact(User $user, array $data): void
     {
-        $emergencyContact = $student?->user?->emergencyContact;
+        $emergencyContact = $user->emergencyContact;
 
-        if ($data['is_guardian_abroad'] === 'no') {
+        if (($data['is_guardian_abroad'] ?? 'no') === 'no') {
             if ($emergencyContact) {
                 $emergencyContact->delete();
             }
             return;
         }
 
-        if ($data['is_guardian_abroad'] === 'yes') {
+        if (($data['is_guardian_abroad'] ?? 'no') === 'yes') {
             if (!$emergencyContact) {
                 $emergencyContact = new EmergencyContact();
-                $emergencyContact->user_id = $student?->user_id;
+                $emergencyContact->user_id = $user->id;
             }
 
             $emergencyContact->relationship = $data['emergency_contact_relationship'] ?? null;
@@ -240,5 +243,72 @@ class ProfileUpdateService
 
             $emergencyContact->save();
         }
+    }
+
+    /**
+     * Create reservation request
+     *
+     * @param User $user
+     * @param array $data
+     */
+    private function createReservationRequest(User $user, array $data): void
+    {
+        $roomType = $this->getRoomType($data);
+        $bedCount = $this->getBedCount($data);
+        $sibling = $this->lookupService->findSiblingByNationalId($data['sibling_to_stay_with'] ?? null);
+
+        $reservationRequest = new ReservationRequest();
+        $reservationRequest->user_id = $user->id;
+        $reservationRequest->academic_term_id = $this->lookupService->getCurrentAcademicTermId();
+        $reservationRequest->accommodation_type = 'room';
+        $reservationRequest->room_type = $roomType;
+        $reservationRequest->bed_count = $bedCount;
+        $reservationRequest->period_type = 'academic';
+        $reservationRequest->stay_with_sibling = ($data['stay_preference'] ?? null) === 'stay_with_sibling';
+        $reservationRequest->sibling_id = $sibling ? $sibling->id : null;
+        $reservationRequest->status = 'pending';
+
+        $reservationRequest->save();
+    }
+
+    /**
+     * Determine room type based on user preferences
+     *
+     * @param array $data
+     * @return string|null
+     */
+    private function getRoomType(array $data): ?string
+    {
+        if (isset($data['stay_preference']) && $data['stay_preference'] === 'stay_with_sibling') {
+            return 'double';
+        }
+        return $data['room_type'] ?? null;
+    }
+
+    /**
+     * Determine bed count based on room type and preferences
+     *
+     * @param array $data
+     * @return int|null
+     */
+    private function getBedCount(array $data): ?int
+    {
+        if (isset($data['stay_preference']) && $data['stay_preference'] === 'stay_with_sibling') {
+            return 1;
+        }
+        
+        if (($data['room_type'] ?? null) === 'single') {
+            return 1;
+        }
+        
+        if (($data['room_type'] ?? null) === 'double') {
+            if (($data['double_room_preference'] ?? null) === 'double_bed') {
+                return 2;
+            } elseif (($data['double_room_preference'] ?? null) === 'single_bed') {
+                return 1;
+            }
+        }
+
+        return null;
     }
 }

@@ -6,7 +6,10 @@ use App\Models\Governorate;
 use App\Models\City;
 use App\Models\Country;
 use App\Models\Nationality;
+use App\Models\Guardian;
+use App\Models\Sibling;
 use App\Models\Academic\Faculty;
+use App\Models\Academic\AcademicTerm;
 
 class LookupService
 {
@@ -110,5 +113,45 @@ class LookupService
         }
 
         return $nationality?->id;
+    }
+
+    /**
+     * Get the current academic term ID
+     *
+     * @return int|null
+     */
+    public function getCurrentAcademicTermId(): ?int
+    {
+        return AcademicTerm::where('current', true)->first()?->id;
+    }
+
+    /**
+     * Find guardian by national ID
+     *
+     * @param string|null $nationalId
+     * @return Guardian|null
+     */
+    public function findGuardianByNationalId(?string $nationalId): ?Guardian
+    {
+        if (!$nationalId) {
+            return null;
+        }
+        
+        return Guardian::where('national_id', $nationalId)->first();
+    }
+
+    /**
+     * Get sibling by national ID
+     *
+     * @param string|null $nationalId
+     * @return Sibling|null
+     */
+    public function findSiblingByNationalId(?string $nationalId): ?Sibling
+    {
+        if (!$nationalId) {
+            return null;
+        }
+
+        return Sibling::where('national_id', $nationalId)->first();
     }
 }

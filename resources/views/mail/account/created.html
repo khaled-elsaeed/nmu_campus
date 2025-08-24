@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Welcome to {{ config('app.name') }}</title>
+    <style>
+        :root {
+            --bs-primary: #931a23;
+            --bs-secondary: #1a4d72;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .email-header {
+            background: linear-gradient(135deg, var(--bs-primary), var(--bs-secondary));
+            color: white;
+            padding: 40px 30px;
+            text-align: left;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        
+        .header-logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 0;
+            margin-right: 24px;
+            gap: 0;
+        }
+        
+        .university-logo {
+            width: 70px;
+            height: 70px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        
+        .header-illustration {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            opacity: 0.3;
+        }
+        
+        .header-illustration svg {
+            width: 80px;
+            height: 80px;
+            fill: white;
+        }
+        
+        .email-header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .email-header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .email-body {
+            padding: 40px 30px;
+        }
+        
+        .welcome-message {
+            margin-bottom: 30px;
+        }
+        
+        .welcome-message h2 {
+            color: var(--bs-primary);
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        
+        .credentials-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 25px 0;
+            border-left: 5px solid var(--bs-primary);
+        }
+        
+        .credentials-card h3 {
+            color: var(--bs-primary);
+            margin-bottom: 20px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .credentials-card h3::before {
+            content: "🔐";
+            margin-right: 10px;
+        }
+        
+        .credential-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .credential-item:last-child {
+            border-bottom: none;
+        }
+        
+        .credential-label {
+            font-weight: 600;
+            color: #495057;
+            flex: 1;
+        }
+        
+        .credential-value {
+            font-family: 'Courier New', monospace;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+            font-size: 14px;
+            color: var(--bs-secondary);
+            font-weight: 600;
+            flex: 2;
+            text-align: right;
+        }
+        
+        .login-button {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--bs-primary), var(--bs-secondary));
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 25px 0;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(147, 26, 35, 0.3);
+        }
+        
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(147, 26, 35, 0.4);
+        }
+        
+        .security-notice {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            border-left: 5px solid #f39c12;
+        }
+        
+        .security-notice h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .security-notice h4::before {
+            content: "⚠️";
+            margin-right: 10px;
+        }
+        
+        .security-notice ul {
+            margin: 15px 0;
+            padding-left: 20px;
+            color: #856404;
+        }
+        
+        .security-notice li {
+            margin-bottom: 5px;
+        }
+        
+        .next-steps {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            border-left: 5px solid var(--bs-secondary);
+        }
+        
+        .next-steps h4 {
+            color: var(--bs-secondary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .next-steps h4::before {
+            content: "🚀";
+            margin-right: 10px;
+        }
+        
+        .next-steps ol {
+            margin: 15px 0;
+            padding-left: 20px;
+            color: #0c5460;
+        }
+        
+        .next-steps li {
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .email-footer {
+            background: #343a40;
+            color: #ffffff;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .footer-content {
+            margin-bottom: 20px;
+        }
+        
+        .footer-links {
+            margin: 20px 0;
+        }
+        
+        .footer-links a {
+            color: #adb5bd;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 14px;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+        }
+        
+        .support-info {
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        
+        .support-info h4 {
+            color: var(--bs-secondary);
+            margin-bottom: 10px;
+        }
+
+        .support-info strong {
+            color: var(--bs-primary);
+        }
+        
+        @media (max-width: 600px) {
+            .email-container {
+                margin: 10px;
+                border-radius: 8px;
+            }
+            
+            .email-header, .email-body {
+                padding: 20px;
+            }
+            
+            .header-illustration {
+                display: none;
+            }
+            
+            .credential-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .credential-value {
+                margin-top: 5px;
+                width: 100%;
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="email-header">
+            <!-- Logo Section -->
+            <div class="header-logo-section">
+                <div class="university-logo">
+                    <img src="https://www.nmu.edu.eg/frontend/assets/img/logo2.png" alt="University Logo" style="max-width: 100%; height: auto;">
+                </div>
+            </div>
+            <div style="flex:1;">
+                <h1 style="margin-top:0;">Welcome to {{ config('app.name') }}!</h1>
+                <p style="margin-bottom:0;">Your account has been successfully created</p>
+            </div>
+            <!-- Header Illustration (small, positioned top right) -->
+            <div class="header-illustration">
+                <svg viewBox="0 0 100 100">
+                    <path d="M20 20h60v10H20zm0 20h60v10H20zm0 20h40v10H20zm50 0h10v10h-10z"/>
+                    <circle cx="85" cy="25" r="8" fill="white" opacity="0.5"/>
+                    <path d="M10 70L50 45L90 70L50 95z" fill="white" opacity="0.3"/>
+                </svg>
+            </div>
+        </div>
+        
+        <!-- Body -->
+        <div class="email-body">
+            <!-- Welcome Message -->
+            <div class="welcome-message">
+                <h2>Welcome {{ $user->name }}!</h2>
+                <p>We're excited to have you join our platform. Your account has been created successfully and you can now access all our features.</p>
+            </div>
+            
+            <!-- Account Credentials -->
+            <div class="credentials-card">
+                <h3>Your Account Credentials</h3>
+                
+                <div class="credential-item">
+                    <div class="credential-label">Email Address:</div>
+                    <div class="credential-value">{{ $user->email }}</div>
+                </div>
+                
+                <div class="credential-item">
+                    <div class="credential-label">Temporary Password:</div>
+                    <div class="credential-value">{{ $temporaryPassword }}</div>
+                </div>
+            </div>
+            
+            <!-- Login Button -->
+            <div style="text-align: center;">
+                <a href="{{ url('/login') }}" class="login-button">Login to Your Account</a>
+            </div>
+            
+            <!-- Security Notice -->
+            <div class="security-notice">
+                <h4>Important Security Information</h4>
+                <p>For your security, please note the following:</p>
+                <ul>
+                    <li>This is a temporary password - change it immediately after your first login</li>
+                </ul>
+            </div>
+            
+            <!-- Next Steps -->
+            <div class="next-steps">
+                <h4>What's Next?</h4>
+                <ol>
+                    <li>Click the "Login to Your Account" button above</li>
+                    <li>Use your email and temporary password to sign in</li>
+                    <li>Complete your profile setup</li>
+                    <li>Change your password to something secure</li>
+                </ol>
+            </div>
+            
+            <!-- Support Information -->
+            <div class="support-info">
+                <h4>Need Help?</h4>
+                <p>Our support team is here to help you get started.</p>
+                <p>Email us at: <strong>housing@nmu.edu.eg</strong></p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="email-footer">
+            <div class="footer-content">
+                <p>&copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</p>
+            </div>
+            
+            
+            <p style="font-size: 12px; color: #adb5bd; margin-top: 15px;">
+                This email was sent because an account was created for {{ $user->email }}.
+                <br>If you didn't create this account, please contact our support team immediately.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

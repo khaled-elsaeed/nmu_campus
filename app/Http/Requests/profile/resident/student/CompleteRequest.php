@@ -32,13 +32,13 @@ class CompleteRequest extends FormRequest
                 'sometimes',
                 'string',
                 'max:255',
-                'regex:/^[\x{0600}-\x{06FF}\x{0020}]+$/u' // Arabic characters and spaces
+                'regex:/^[\x{0600}-\x{06FF}\x{0020}]+$/u'
             ],
             'name_en' => [
                 'sometimes',
                 'string',
                 'max:255',
-                'regex:/^[A-Za-z\s]+$/' // English letters and spaces
+                'regex:/^[A-Za-z\s]+$/' 
             ],
             'national_id' => [
                 'sometimes',
@@ -108,16 +108,6 @@ class CompleteRequest extends FormRequest
                 'required_if:is_new_comer,true',
                 'numeric',
                 'between:0,100'
-            ],
-            'academic_id' => [
-                'required',
-                'string',
-                'regex:/^[0-9]{8,12}$/' // 8-12 digits
-            ],
-            'academic_email' => [
-                'required',
-                'email',
-                'regex:/^[A-Za-z0-9._%+-]+@nmu\.edu\.eg$/' // University email format
             ],
 
             // ============================================
@@ -193,37 +183,49 @@ class CompleteRequest extends FormRequest
                 'required',
                 'in:yes,no'
             ],
-            'sibling_relationship' => [
+            'siblings' => 'sometimes|nullable|array|min:1',
+            'siblings.*.name_ar' => [
                 'required_if:has_sibling_in_dorm,yes',
                 'nullable',
                 'in:brother,sister'
             ],
-            'sibling_name_ar' => [
+            'siblings.*.name_ar' => [
                 'required_if:has_sibling_in_dorm,yes',
                 'nullable',
                 'string',
                 'max:255',
-                'regex:/^[\x{0600}-\x{06FF}\x{0020}]+$/u' // Arabic characters and spaces
+                'regex:/^[\x{0600}-\x{06FF}\x{0020}]+$/u' 
             ],
-            'sibling_name_en' => [
+            'siblings.*.name_en' => [
                 'required_if:has_sibling_in_dorm,yes',
                 'nullable',
                 'string',
                 'max:255',
-                'regex:/^[A-Za-z\s]+$/' // English letters and spaces
+                'regex:/^[A-Za-z\s]+$/' 
             ],
-            'sibling_national_id' => [
+            'siblings.*.national_id' => [
                 'required_if:has_sibling_in_dorm,yes',
                 'nullable',
                 'string',
                 'size:14',
-                'regex:/^[0-9]{14}$/', // Exactly 14 digits
+                'regex:/^[0-9]{14}$/',
                 'different:national_id'
             ],
-            'sibling_faculty' => [
+            'siblings.*.relationship' => [
+                'required_if:has_sibling_in_dorm,yes',
+                'string',
+                'max:255',
+                'in:brother,sister'
+            ],
+            'siblings.*.faculty' => [
                 'required_if:has_sibling_in_dorm,yes',
                 'nullable',
                 'exists:faculties,id'
+            ],
+            'siblings.*.academic_level' => [
+                'required_if:has_sibling_in_dorm,yes',
+                'nullable',
+                'in:0,1,2,3,4,5'
             ],
 
             // ============================================
@@ -277,9 +279,43 @@ class CompleteRequest extends FormRequest
                 'string',
                 'max:1000'
             ],
+            // ===========================================
+            // step 7: Reservation Request
+            // ===========================================
+           'stay_preference' => [
+                'nullable',
+                'string',
+                'max:255',
+                'in:stay_with_sibling,stay_alone'
+            ],
+            'sibling_to_stay_with' => [
+                'required_if:stay_preference,stay_with_sibling',
+                'nullable',
+                'regex:/^[0-9]{14}$/',
+                'different:national_id'
+            ],
+            'room_type' => [
+                'required_if:stay_preference,stay_alone',
+                'nullable',
+                'string',
+                'max:255',
+                'in:single,double'
+            ],
+
+            'single_room_preference' => [
+                'required_if:room_type,single',
+                'nullable',
+                'in:old_room,random'
+            ],
+            'double_room_preference' => [
+                'required_if:room_type,double',
+                'nullable',
+                'in:single_bed,double_bed',
+            ],
+
 
             // ============================================
-            // Step 7: Terms and Conditions
+            // Step 8: Terms and Conditions
             // ============================================
             'terms_checkbox' => [ // Fixed naming convention
                 'required',
@@ -335,11 +371,7 @@ class CompleteRequest extends FormRequest
             'academic_year.between' => 'Academic year must be between 1 and 5.',
             'gpa.required' => 'GPA is required.',
             'gpa.between' => 'GPA must be between 0.0 and 4.0.',
-            'academic_id.required' => 'Student ID is required.',
-            'academic_id.regex' => 'Student ID must be 8-12 digits.',
-            'academic_email.required' => 'University email is required.',
-            'academic_email.email' => 'Please enter a valid email address.',
-            'academic_email.regex' => 'Please use your university email address (@nmu.edu.eg).',
+            
 
             // ============================================
             // Guardian Information Messages
@@ -411,8 +443,6 @@ class CompleteRequest extends FormRequest
             'national_id' => 'National ID',
             'birth_date' => 'Birth date',
             'phone' => 'Phone number',
-            'academic_id' => 'Student ID',
-            'academic_email' => 'University email',
             'guardian_name_ar' => 'Guardian Arabic name',
             'guardian_name_en' => 'Guardian English name',
             'guardian_phone' => 'Guardian phone',

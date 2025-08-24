@@ -51,6 +51,7 @@ return new class extends Migration
 
             // Stay with sibling option
             $table->boolean('stay_with_sibling')->default(false);
+            $table->foreignId('sibling_id')->nullable()->constrained()->nullOnDelete();
 
             // Criteria points system
             $table->unsignedInteger('total_points')->default(0);
