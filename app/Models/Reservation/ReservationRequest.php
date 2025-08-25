@@ -2,10 +2,10 @@
 
 namespace App\Models\Reservation;
 
-use App\Events\ReservationRequestCreated;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\User;
+use App\Models\Sibling;
 use App\Models\Academic\AcademicTerm;
 
 class ReservationRequest extends Model
@@ -65,10 +65,6 @@ class ReservationRequest extends Model
             if (empty($request->request_number)) {
                 $request->request_number = static::generateRequestNumber();
             }
-        });
-
-        static::created(function (ReservationRequest $reservationRequest) {
-            ReservationRequestCreated::dispatch($reservationRequest);
         });
     }
 

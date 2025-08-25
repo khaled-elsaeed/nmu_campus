@@ -5,7 +5,6 @@ namespace App\Services\Auth;
 use App\Models\User;
 use App\Models\UserBan;
 use App\Models\StudentArchive;
-use App\Events\UserRegistered;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -28,14 +27,13 @@ class AuthRegisterService
 
         $user = DB::transaction(function () use ($userData) {
             $user = $this->createUser($userData);
-            UserRegistered::dispatch($user);
             return $user;
         });
 
         return $this->buildResponse(
             true,
             null,
-            __('Registration successful. Please check your email for verification.'),
+            __('Registration successful.'),
             $user
         );
     }
@@ -139,8 +137,6 @@ class AuthRegisterService
             'gender' => $studentArchive->gender,
             'force_change_password' => true,
         ]);
-
-        $user->setAttribute('temp_password', $studentArchive->national_id ?? str::random(10));
 
         $user->assignRole('resident');
 

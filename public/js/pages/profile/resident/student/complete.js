@@ -33,6 +33,7 @@ var ApiService = {
         });
     },
 
+
     /**
      * Submit the completed profile.
      * @param {object} data - The form data to submit.
@@ -43,8 +44,8 @@ var ApiService = {
             url: ROUTES.profile.submit,
             method: 'POST',
             data: data,
-            processData: false, // Required for FormData
-            contentType: false // Required for FormData
+            processData: false, 
+            contentType: false 
         });
     },
 
@@ -378,17 +379,17 @@ var ProfileManager = {
                 .done(function(response) {
                     if (response.success) {
                         Utils.showSuccess(response.message);
-                        resolve(response); // Resolve the promise on success
+                        window.location.href = response.data.redirect;
                     } else {
                         FormManager.hideLoader();
                         Utils.showError(response.message);
-                        reject(response); // Reject on API-level failure
+                        reject(response);
                     }
                 })
                 .fail(function(xhr) {
                     Utils.handleAjaxError(xhr, xhr.responseJSON?.message);
                     FormManager.hideLoader();
-                    reject(xhr); // Reject on AJAX failure
+                    reject(xhr);
                 })
                 .always(function() {
                     Utils.setLoadingState($submitButton, false, {
@@ -598,24 +599,12 @@ var SiblingsManager = {
             self.checkDuplicateNationalId($(this));
         });
 
-        $document.on('change', '.sibling-relationship', function() {
-            self.autoSetGender($(this));
-            ConditionalFieldsManager.updateReservationOptions();
-        });
-
         $document.on('input', '.sibling-name-en', function() {
             self.validateEnglishName($(this));
         });
 
         $document.on('input', '.sibling-name-ar', function() {
             self.validateArabicName($(this));
-        });
-
-        // Listen for direct gender changes (if selectable)
-        $document.on('change', '.sibling-gender', function() {
-            if (typeof ConditionalFieldsManager !== 'undefined' && typeof ConditionalFieldsManager.updateReservationOptions === 'function') {
-                ConditionalFieldsManager.updateReservationOptions();
-            }
         });
     },
 
@@ -686,9 +675,6 @@ var SiblingsManager = {
                 }
             });
         }
-
-        // Re-evaluate reservation options after adding a sibling
-         ConditionalFieldsManager.updateReservationOptions();
     },
 
     /**
@@ -709,10 +695,6 @@ var SiblingsManager = {
                         delete ValidationService.validator.settings.rules[nameAttr];
                     }
                 });
-            }
-
-            if (ConditionalFieldsManager.updateReservationOptions) {
-                ConditionalFieldsManager.updateReservationOptions();
             }
         });
     },
@@ -829,21 +811,6 @@ var SiblingsManager = {
         this.setFieldValidation($input, !isDuplicate, TRANSLATIONS.validation.duplicateNationalId || 'This National ID is already used.');
     },
 
-    /**
-     * Automatically set the hidden gender field based on the selected relationship (brother/sister).
-     * @param {jQuery} $relationshipSelect - The relationship select field.
-     */
-    autoSetGender: function($relationshipSelect) {
-        var relationship = $relationshipSelect.val();
-        var $genderSelect = $relationshipSelect.closest('.sibling-group').find('.sibling-gender');
-        if (relationship === 'brother') {
-            $genderSelect.val('male');
-        } else if (relationship === 'sister') {
-            $genderSelect.val('female');
-        } else {
-            $genderSelect.val('');
-        }
-    },
 
     /**
      * Validate that the input contains only English characters and spaces.
@@ -982,7 +949,7 @@ var Select2Manager = {
             allowClear: true
          },
          '#academic-year': {
-            placeholder: 'Select Level',
+            placeholder: TRANSLATIONS.placeholders.academic_year.select,
             allowClear: true
          },
          '#guardian-relationship': {
@@ -998,7 +965,7 @@ var Select2Manager = {
             allowClear: true
          },
          '#living-with-guardian': {
-            placeholder: 'Select',
+            placeholder: TRANSLATIONS.placeholders.select,
             allowClear: true
          },
          '#guardian-governorate': {
@@ -2128,9 +2095,6 @@ var ConditionalFieldsManager = {
       this.handleGuardianAbroadChange();
       this.handleLivingWithGuardianChange();
       this.handleSiblingInDormChange();
-      this.handleReservationStayPreferenceChange();
-      this.handleReservationRoomTypeChange();
-      this.handleReservationSingleRoomOptionsChange();
    },
 
    /**
@@ -2349,131 +2313,12 @@ var ConditionalFieldsManager = {
                SiblingsManager.init();
          } else {
             ConditionalFieldsManager.hideSiblingDetails();
-            // Hide reservation stay preference fields
-            ConditionalFieldsManager.hideReservationStayPreferenceFields();
-            ConditionalFieldsManager.hideReservationSiblingDetails();
-            ConditionalFieldsManager.showReservationRoomType();
          }
 
-         // Update reservation options based on sibling availability
-         ConditionalFieldsManager.updateReservationOptions();
       });
    },
 
-   /**
-    * Update reservation options based on available siblings
-    */
-   updateReservationOptions: function () {
-      var hasSiblings = $('#has-sibling-in-dorm').val() === 'yes';
-      var currentUserGender = $('#gender').val();
 
-      if (hasSiblings) {
-         var sameGenderSiblings = SiblingsManager.getSiblingsByGender(currentUserGender);
-
-         if (sameGenderSiblings.length > 0) {
-            ConditionalFieldsManager.showReservationStayPreferenceFields();
-            this.updateReservationSiblingDropdown(sameGenderSiblings);
-         } else {
-            ConditionalFieldsManager.hideReservationStayPreferenceFields();
-            ConditionalFieldsManager.showReservationRoomType();
-         }
-      } else {
-         ConditionalFieldsManager.hideReservationStayPreferenceFields();
-         ConditionalFieldsManager.showReservationRoomType();
-      }
-   },
-
-   /**
-    * Update reservation sibling dropdown with available siblings
-    * @param {Array} siblings - Array of same-gender siblings
-    */
-   updateReservationSiblingDropdown: function (siblings) {
-      var $siblingSelect = $('#sibling-to-stay-with');
-      $siblingSelect.empty().append('<option value="">' + (TRANSLATIONS.placeholders.sibling.select || 'Select Sibling') + '</option>');
-      $.each(siblings, function (index, sibling) {
-         var displayName = sibling.name_en + (sibling.name_ar ? ' (' + sibling.name_ar + ')' : '');
-         $siblingSelect.append('<option value="' + sibling.national_id + '">' + displayName + '</option>');
-      });
-      ConditionalFieldsManager.enableField('#sibling-to-stay-with');
-   },
-
-   /**
-    * Handle reservation stay preference change (updated)
-    */
-   handleReservationStayPreferenceChange: function () {
-      $('#stay-preference').change(function () {
-         var value = $(this).val();
-         if (value === 'stay_with_sibling') {
-            ConditionalFieldsManager.showReservationSiblingDetails();
-            ConditionalFieldsManager.hideReservationRoomType();
-            ConditionalFieldsManager.hideReservationSingleRoomOptions();
-            ConditionalFieldsManager.hideReservationDoubleRoomOptions();
-
-            // Update sibling dropdown with current siblings
-            ConditionalFieldsManager.updateReservationOptions();
-         } else if (value === 'stay_alone') {
-            ConditionalFieldsManager.hideReservationSiblingDetails();
-            ConditionalFieldsManager.showReservationRoomType();
-         } else {
-            ConditionalFieldsManager.hideReservationSiblingDetails();
-            ConditionalFieldsManager.hideReservationRoomType();
-            ConditionalFieldsManager.hideReservationSingleRoomOptions();
-            ConditionalFieldsManager.hideReservationDoubleRoomOptions();
-         }
-      });
-   },
-
-   /**
-    * Handle reservation room type change
-    */
-   handleReservationRoomTypeChange: function () {
-      $('#room-type').change(function () {
-         var value = $(this).val();
-         if (value === 'single') {
-            ConditionalFieldsManager.showReservationSingleRoomOptions();
-            ConditionalFieldsManager.hideReservationDoubleRoomOptions();
-         } else if (value === 'double') {
-            ConditionalFieldsManager.hideReservationSingleRoomOptions();
-            ConditionalFieldsManager.hideReservationSingleRoomOldRoomDetails();
-            ConditionalFieldsManager.showReservationDoubleRoomOptions();
-         } else {
-            ConditionalFieldsManager.hideReservationSingleRoomOptions();
-            ConditionalFieldsManager.hideReservationDoubleRoomOptions();
-            ConditionalFieldsManager.hideReservationSingleRoomOldRoomDetails();
-         }
-      });
-   },
-
-   /**
-    * Handle reservation single room options change
-    */
-   handleReservationSingleRoomOptionsChange: function () {
-      $('#single-room-preference').change(function () {
-         var value = $(this).val();
-         if (value === 'old_room') {
-            ConditionalFieldsManager.showReservationSingleRoomOldRoomDetails();
-            ConditionalFieldsManager.loadOldRoomDetails();
-         } else {
-            ConditionalFieldsManager.hideReservationSingleRoomOldRoomDetails();
-         }
-      });
-   },
-
-   /**
-    * Load and display old room details
-    */
-   loadOldRoomDetails: function () {
-      // This should fetch the user's previous room details from the server
-      var oldRoomInfo = ProfileManager.getOldRoomDetails();
-      if (oldRoomInfo) {
-         var roomInfoHtml = '<strong>' + TRANSLATIONS.labels.roomNumber + ':</strong> ' + oldRoomInfo.roomNumber + '<br>' +
-            '<strong>' + TRANSLATIONS.labels.building + ':</strong> ' + oldRoomInfo.building + '<br>' +
-            '<strong>' + TRANSLATIONS.labels.floor + ':</strong> ' + oldRoomInfo.floor;
-         $('#old-room-info').html(roomInfoHtml);
-      } else {
-         $('#old-room-info').html('<span class="text-muted">' + TRANSLATIONS.messages.noOldRoomFound + '</span>');
-      }
-   },
 
    /**
     * Show abroad country fields
@@ -2532,89 +2377,7 @@ var ConditionalFieldsManager = {
       $('#siblingDetails').addClass('d-none');
    },
 
-   /**
-    * Show reservation stay preference fields
-    */
-   showReservationStayPreferenceFields: function () {
-      $('#stay-preference-div').removeClass('d-none');
-   },
-
-   /**
-    * Hide reservation stay preference fields
-    */
-   hideReservationStayPreferenceFields: function () {
-      $('#stay-preference-div').addClass('d-none');
-   },
-
-   /**
-    * Show reservation sibling details
-    */
-   showReservationSiblingDetails: function () {
-      $('#sibling-details-div').removeClass('d-none');
-   },
-
-   /**
-    * Hide reservation sibling details
-    */
-   hideReservationSiblingDetails: function () {
-      $('#sibling-details-div').addClass('d-none');
-   },
-
-   /**
-    * Show reservation room type
-    */
-   showReservationRoomType: function () {
-      $('#room-type-div').removeClass('d-none');
-   },
-
-   /**
-    * Hide reservation room type
-    */
-   hideReservationRoomType: function () {
-      $('#room-type-div').addClass('d-none');
-   },
-
-   /**
-    * Show reservation single room type options
-    */
-   showReservationSingleRoomOptions: function () {
-      $('#single-room-options-div').removeClass('d-none');
-   },
-
-   /**
-    * Hide reservation single room type options
-    */
-   hideReservationSingleRoomOptions: function () {
-      $('#single-room-options-div').addClass('d-none');
-   },
-
-   /**
-    * Show reservation double room type options
-    */
-   showReservationDoubleRoomOptions: function () {
-      $('#double-room-options-div').removeClass('d-none');
-   },
-
-   /**
-    * Hide reservation double room type options
-    */
-   hideReservationDoubleRoomOptions: function () {
-      $('#double-room-options-div').addClass('d-none');
-   },
-
-   /**
-    * Show reservation single room old room details
-    */
-   showReservationSingleRoomOldRoomDetails: function () {
-      $('#old-room-details-div').removeClass('d-none');
-   },
-
-   /**
-    * Hide reservation single room old room details
-    */
-   hideReservationSingleRoomOldRoomDetails: function () {
-      $('#old-room-details-div').addClass('d-none');
-   },
+   
 
    /**
     * Check and enable fields based on their dependencies when data is loaded
@@ -2649,24 +2412,6 @@ var ConditionalFieldsManager = {
 
       this.checkAndEnableFields();
    },
-
-   /**
-    * Reset reservation fields
-    */
-   resetReservationFields: function () {
-      $('#stay-preference').val('');
-      $('#sibling-to-stay-with').val('');
-      $('#room-type').val('');
-      $('#single-room-preference').val('');
-      $('#double-room-preference').val('');
-
-      this.hideReservationStayPreferenceFields();
-      this.hideReservationSiblingDetails();
-      this.hideReservationRoomType();
-      this.hideReservationSingleRoomOptions();
-      this.hideReservationDoubleRoomOptions();
-      this.hideReservationSingleRoomOldRoomDetails();
-   }
 };
 
 // ===========================
@@ -2717,7 +2462,7 @@ var FormManager = {
             if (result.isConfirmed) {
                resolve();
             } else {
-               reject();
+               window.location.href = '/';
             }
          });
       });

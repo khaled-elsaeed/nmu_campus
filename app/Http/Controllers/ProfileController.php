@@ -38,11 +38,11 @@ class ProfileController extends Controller
     {
         try {
             $profileData = $this->profileService->getProfileData();
-            return successResponse('Profile data retrieved successfully.', $profileData);
+            return successResponse(__('Profile data retrieved successfully.'), $profileData);
 
         } catch (Exception $e) {
             logError('ProfileController@fetch', $e);
-            return errorResponse('Internal server error.', [], 500);
+            return errorResponse(__('Internal server error.'), [], 500);
         }
     }
 
@@ -55,18 +55,19 @@ class ProfileController extends Controller
     public function submit(CompleteRequest $request): JsonResponse
     {
         try {
-            // Get validated data from the form request
             $validatedData = $request->validated();
 
             $result = $this->profileService->saveProfileData($validatedData);
 
-            return successResponse('Profile updated successfully.', $result);
+            $result['redirect'] = route('resident.students.home');
+
+            return successResponse(__('Profile updated successfully.'), $result);
 
         } catch (BusinessValidationException $e) {
             return errorResponse($e->getMessage());
         } catch (Exception $e) {
             logError('ProfileController@submit', $e);
-            return errorResponse('Failed to save profile: ' . $e->getMessage(), [], 500);
+            return errorResponse(__('Internal server error.'), [], 500);
         }
     }
 }

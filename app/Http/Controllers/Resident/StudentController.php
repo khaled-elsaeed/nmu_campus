@@ -27,9 +27,9 @@ class StudentController extends Controller
      *
      * @return View
      */
-    public function index(): View
+    public function home(): View
     {
-        return view('residents.student');
+        return view('home.resident');
     }
 
     /**
@@ -136,22 +136,6 @@ class StudentController extends Controller
         } catch (Exception $e) {
             logError('StudentController@destroy', $e, ['student_id' => $id]);
             return errorResponse('Internal server error.', ['deleted' => false], 500);
-        }
-    }
-
-    /**
-     * Get all students (for dropdown and forms).
-     *
-     * @return JsonResponse
-     */
-    public function all(): JsonResponse
-    {
-        try {
-            $students = $this->studentService->getAll();
-            return successResponse('Students fetched successfully.', $students);
-        } catch (Exception $e) {
-            logError('StudentController@all', $e);
-            return errorResponse('Internal server error.', [], 500);
         }
     }
 }

@@ -9,7 +9,7 @@
     @endif
 >
     <div class="app-brand demo">
-        <a href="{{ route('home') }}" class="app-brand-link">
+        <a href="{{ auth()->user()->hasRole('admin') ? route('dashboard.admin.index') : route('resident.students.home') }}" class="app-brand-link">
             <span class="app-brand-text demo menu-text fw-bolder text-primary ms-2">{{ __('Housing') }}</span>
         </a>
 

@@ -37,9 +37,9 @@
 </div>
 <div class="d-flex justify-content-between">
     <button type="button" class="btn btn-outline-secondary prev-Btn">
-        <i class='bx bx-chevron-left'></i> {{ __('Previous') }}
+        <i class='bx bx-chevron-{{ app()->getLocale() == 'ar' ? 'right' : 'left' }}'></i> {{ __('Previous') }}
     </button>
     <button type="button" class="btn btn-primary next-Btn">
-        {{ __('Next') }} <i class='bx bx-chevron-right'></i>
+        {{ __('Next') }} <i class='bx bx-chevron-{{ app()->getLocale() == 'ar' ? 'left' : 'right' }}'></i>
     </button>
 </div>

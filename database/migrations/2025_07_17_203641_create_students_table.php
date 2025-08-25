@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('students', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('academic_id')->unique();
+            $table->string('academic_id')->nullable()->unique();
             $table->string('national_id')->unique();
             $table->string('name_en');
             $table->string('name_ar')->nullable();
-            $table->string('academic_email')->unique();
+            $table->string('academic_email')->nullable()->unique();
             $table->string('phone')->unique();
             $table->date('date_of_birth');
             $table->enum('gender', ['male', 'female', 'other']);

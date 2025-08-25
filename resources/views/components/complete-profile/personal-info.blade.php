@@ -48,6 +48,6 @@
 </div>
 <div class="d-flex justify-content-end">
     <button type="button" class="btn btn-primary next-Btn">
-        {{ __('Next') }} <i class='bx bx-chevron-right'></i>
+        {{ __('Next') }} <i class='bx bx-chevron-{{ app()->getLocale() == 'ar' ? 'left' : 'right' }}'></i>
     </button>
 </div>

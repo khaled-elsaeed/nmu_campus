@@ -10,6 +10,7 @@ use App\Exceptions\BusinessValidationException;
 use Exception;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Reservation\Request\UpdateReservationRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Exports\ReservationInsightsExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -40,6 +41,34 @@ class ReservationRequestController extends Controller
     public function insights(): View
     {
         return view('reservation.request.insights');
+    }
+
+    /**
+     * Store a newly created reservation request from student UI.
+     */
+    public function store(Request $request): JsonResponse
+    {
+        try {
+            $data = $request->validate([
+                'period_type' => 'required|in:academic,calendar',
+                'academic_term_id' => 'nullable|integer|exists:academic_terms,id',
+                'accommodation_type' => 'required|in:room,apartment',
+                'room_type' => 'required_if:accommodation_type,room|in:single,double',
+                'bed_count' => 'nullable|integer|min:1|max:2',
+                'stay_with_sibling' => 'nullable|boolean',
+                'sibling_id' => 'nullable|integer|exists:siblings,id',
+                'last_term_choice' => 'nullable|in:old,random',
+            ]);
+
+            $data['user_id'] = Auth::id();
+            $created = $this->reservationRequestService->createFromStudent($data);
+            return successResponse(__('Reservation request created successfully.'), $created);
+        } catch (BusinessValidationException $e) {
+            return errorResponse($e->getMessage(), [], 422);
+        } catch (Exception $e) {
+            logError('ReservationRequestController@store', $e, ['request' => $request->all()]);
+            return errorResponse(__('Failed to create reservation request.'), [], 422);
+        }
     }
 
     /**

@@ -62,25 +62,12 @@ class LoginController extends Controller
 
             // Handle different error cases with appropriate redirects
             if (!$result['success']) {
-                Log::warning('Login attempt failed', [
-                    'email' => $credentials['email'],
-                    'error' => $result['error'],
-                    'message' => $result['message'],
-                    'ip_address' => $request->ip()
-                ]);
                 return $this->handleLoginError($result, $request);
             }
 
-            Log::info('Login successful', [
-                'email' => $credentials['email'],
-                'user_id' => Auth::id(),
-                'ip_address' => $request->ip(),
-                'redirect_to' => $result['redirect_to'] ?? route('home')
-            ]);
-
             $request->session()->regenerate();
 
-            $redirectTo = $result['redirect_to'] ?? route('home');
+            $redirectTo = $result['redirect_to'] ?? route('login');
 
             return redirect()->intended($redirectTo);
 

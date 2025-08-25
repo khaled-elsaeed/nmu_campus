@@ -77,15 +77,25 @@ class Sidebar extends Component
      */
     private function getMenuItems(): array
     {
-        return [
-            $this->getDashboardMenuItem(),
-            $this->getAcademicMenuGroup(),
-            $this->getHousingMenuGroup(),
-            $this->getResidentsMenuGroup(),
-            $this->getReservationsMenuGroup(),
-            $this->getPaymentsMenuGroup(),
-        ];
+        $user = Auth::user();
+
+        $menu = [];
+
+        if ($user && $user->hasRole('admin')) {
+            $menu[] = $this->getDashboardMenuItem();
+        } elseif ($user && $user->hasRole('resident')) {
+            $menu[] = $this->getHomeMenuItem();
+        }
+
+        $menu[] = $this->getAcademicMenuGroup();
+        $menu[] = $this->getHousingMenuGroup();
+        $menu[] = $this->getResidentsMenuGroup();
+        $menu[] = $this->getReservationsMenuGroup();
+        $menu[] = $this->getPaymentsMenuGroup();
+
+        return $menu;
     }
+
 
     /**
      * Get dashboard menu item.
@@ -95,9 +105,20 @@ class Sidebar extends Component
         return [
             'title' => __('Dashboard'),
             'icon' => 'bx bx-home-circle',
-            'route' => route('home'),
-            'active' => in_array(request()->route()->getName(), ['home', 'admin.home', 'advisor.home']),
+            'route' => route('dashboard.admin.index'),
+            'active' => in_array(request()->route()->getName(), ['admin.home']),
             'permission' => 'dashboard.view',
+        ];
+    }
+
+    private function getHomeMenuItem(): array
+    {
+        return [
+            'title' => __('Home'),
+            'icon' => 'bx bx-home',
+            'route' => route('resident.students.home'),
+            'active' => in_array(request()->route()->getName(), ['resident.students.home']),
+            'permission' => 'home.view',
         ];
     }
 

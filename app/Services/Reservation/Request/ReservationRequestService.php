@@ -20,6 +20,46 @@ class ReservationRequestService
     public function __construct(
         protected AcceptReservationRequest $acceptReservationRequestPipeline
     ) {}
+    /**
+     * Create reservation request coming from student UI
+     */
+    public function createFromStudent(array $data): array
+    {
+        $userId = $data['user_id'] ?? null;
+        if (!$userId) {
+            throw new BusinessValidationException(__('User not authenticated.'));
+        }
+
+        if (($data['period_type'] ?? 'academic') === 'academic' && empty($data['academic_term_id'])) {
+            throw new BusinessValidationException(__('Academic term is required.'));
+        }
+
+        // Enforce sibling rules
+        $stayWithSibling = !empty($data['stay_with_sibling']) ? 1 : 0;
+        $roomType = $data['room_type'] ?? 'single';
+        $bedCount = (int)($data['bed_count'] ?? 1);
+        if ($stayWithSibling) {
+            $roomType = 'double';
+            $bedCount = 1;
+        }
+
+        $request = new ReservationRequest();
+        $request->user_id = $userId;
+        $request->period_type = $data['period_type'];
+        $request->academic_term_id = $data['academic_term_id'] ?? null;
+        $request->accommodation_type = $data['accommodation_type'] ?? 'room';
+        $request->room_type = $roomType;
+        $request->bed_count = $bedCount;
+        $request->stay_with_sibling = $stayWithSibling;
+        $request->sibling_id = $stayWithSibling ? ($data['sibling_id'] ?? null) : null;
+        $request->status = 'pending';
+        $request->save();
+
+        return [
+            'id' => $request->id,
+            'request_number' => $request->request_number,
+        ];
+    }
 
     /**
      * Update an existing reservation request.

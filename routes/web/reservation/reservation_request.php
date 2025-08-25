@@ -5,6 +5,7 @@ use App\Http\Controllers\Reservation\ReservationRequestController;
 
 Route::prefix('reservation-requests')->name('reservation-requests.')->group(function () {
     Route::get('/', [ReservationRequestController::class, 'index'])->name('index');
+    Route::post('/', [ReservationRequestController::class, 'store'])->name('store');
     Route::get('/insights', [ReservationRequestController::class, 'insights'])->name('insights');
     Route::get('/analysis', [ReservationRequestController::class, 'analysis'])->name('analysis');
     Route::get('/stats', [ReservationRequestController::class, 'stats'])->name('stats');

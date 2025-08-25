@@ -23,7 +23,7 @@
 </div>
 <div class="d-flex justify-content-between">
 <button type="button" class="btn btn-outline-secondary prev-Btn">
-        <i class='bx bx-chevron-left'></i> {{ __('Previous') }}
+        <i class='bx bx-chevron-{{ app()->getLocale() == 'ar' ? 'right' : 'left' }}'></i> {{ __('Previous') }}
     </button>
     <button type="submit" class="btn btn-success">
         <i class='bx bx-check me-2'></i>{{ __('Complete Profile') }}

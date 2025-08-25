@@ -175,14 +175,14 @@ class AuthLoginService
             );
         }
 
-        if (!$user->hasVerifiedEmail()) {
-            return $this->buildResponse(
-                false,
-                'email_not_verified',
-                'Please verify your email address before logging in.',
-                $user
-            );
-        }
+        // if (!$user->hasVerifiedEmail()) {
+        //     return $this->buildResponse(
+        //         false,
+        //         'email_not_verified',
+        //         'Please verify your email address before logging in.',
+        //         $user
+        //     );
+        // }
 
         return $this->buildResponse(true, null, __('General validation passed.'), $user);
     }
@@ -319,7 +319,7 @@ class AuthLoginService
         }
 
         // Default fallback
-        return route('dashboard');
+        return route('login');
     }
 
     // =============================================

@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Resident\StudentController;
 
 Route::prefix('students')->name('students.')->controller(StudentController::class)->group(function () {
+    Route::get('home', 'home')->name('home');
     Route::get('datatable', 'datatable')->name('datatable');
     Route::get('stats', 'stats')->name('stats');
     Route::get('/', 'index')->name('index');

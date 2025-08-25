@@ -2,11 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LanguageController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ProfileController;
-use App\Models\Reservation\Reservation;
-use App\Notifications\ReservationActivated;
 
 // ====================
 // Language Routes (Global)
@@ -14,11 +9,6 @@ use App\Notifications\ReservationActivated;
 Route::get('/language/{locale}', [LanguageController::class, 'switchLanguage'])
     ->name('language.switch')
     ->where('locale', '[a-zA-Z]{2}');
-
-// ====================
-// Auth Routes (Global - Outside Locale)
-// ====================
-require __DIR__.'/web/auth/email_verification.php';
 
 // ====================
 // Authentication Routes
@@ -31,10 +21,11 @@ require __DIR__.'/web/auth/password.php';
 // Protected Routes (Require Authentication)
 // ====================
 Route::middleware(['auth'])->group(function () {
-    
-    // Dashboard & Main Pages
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
-    Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+
+    //=====================
+    // Home Management
+    //=====================
+    require __DIR__.'/web/home/student.php';
 
     //=====================
     // Dashboard Management
@@ -111,18 +102,3 @@ Route::middleware(['auth'])->group(function () {
     require __DIR__.'/web/geography/governorate.php';
 });
 
-// ====================
-// Test/Debug Routes (Development Only)
-// ====================
-Route::get('/notification', function () {
-    $reservation = Reservation::find(1);
-    if (!$reservation || !$reservation->user) {
-        abort(404, 'Reservation or user not found.');
-    }
-    return (new ReservationActivated($reservation))
-        ->toMail($reservation->user);
-});
-
-Route::get('/complete-profile', function () {
-    return view('complete-profile');
-});

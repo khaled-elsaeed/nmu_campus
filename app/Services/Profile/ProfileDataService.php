@@ -4,6 +4,7 @@ namespace App\Services\Profile;
 
 use App\Models\Resident\Student;
 use App\Models\StudentArchive;
+use App\Models\Academic\AcademicTerm;
 use App\Exceptions\BusinessValidationException;
 
 class ProfileDataService
@@ -216,6 +217,7 @@ class ProfileDataService
             'siblings' => $siblings,
         ];
     }
+
 
     /**
      * Get emergency contact information from student record

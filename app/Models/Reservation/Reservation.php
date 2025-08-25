@@ -167,6 +167,7 @@ class Reservation extends Model
             ->exists();
     }
 
+
     /**
      * Get user's conflicting reservations for a date range
      *
@@ -227,6 +228,7 @@ class Reservation extends Model
             })
             ->first();
     }
+
 
      /**
      * Scope a query to only include active reservations.

@@ -158,27 +158,14 @@
                                 </div>
                             </button>
                         </li>
-                     <li class="nav-item" role="presentation">
-                            <button class="nav-link d-flex align-items-center" id="step7-tab" data-bs-target="#step7" type="button" role="tab" aria-controls="step7" aria-selected="false">
-                                <div class="d-flex align-items-center">
-                                    <div class="me-2 d-flex align-items-center justify-content-center" style="width: 32px;">
-                                        <i class='bx bx-first-aid fs-4'></i>
-                                    </div>
-                                    <div class="d-flex flex-column text-start">
-                                        <span class="fw-bold">{{ __('Step 7') }}</span>
-                                        <span class="small">{{ __('Reservation Info') }}</span>
-                                    </div>
-                                </div>
-                            </button>
-                        </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link d-flex align-items-center" id="step8-tab" data-bs-target="#step8" type="button" role="tab" aria-controls="step8" aria-selected="false">
+                            <button class="nav-link d-flex align-items-center" id="step7-tab" data-bs-target="#step7" type="button" role="tab" aria-controls="step7" aria-selected="false">
                                 <div class="d-flex align-items-center">
                                     <div class="me-2 d-flex align-items-center justify-content-center" style="width: 32px;">
                                         <i class='bx bx-check-shield fs-4'></i>
                                     </div>
                                     <div class="d-flex flex-column text-start">
-                                        <span class="fw-bold">{{ __('Step 8') }}</span>
+                                        <span class="fw-bold">{{ __('Step 7') }}</span>
                                         <span class="small">{{ __('Terms') }}</span>
                                     </div>
                                 </div>
@@ -221,12 +208,8 @@
                             <div class="tab-pane fade" id="step6" role="tabpanel" aria-labelledby="step6-tab" tabindex="0">
                                 <x-complete-profile.emergency-contact />
                             </div>
-                            <!-- Reservation Information step -->
-                            <div class="tab-pane fade" id="step7" role="tabpanel" aria-labelledby="step7-tab" tabindex="0">
-                                <x-complete-profile.reservation-info />
-                            </div>
                             <!-- Terms and Conditions step -->
-                            <div class="tab-pane fade" id="step8" role="tabpanel" aria-labelledby="step8-tab" tabindex="0">
+                            <div class="tab-pane fade" id="step7" role="tabpanel" aria-labelledby="step7-tab" tabindex="0">
                                 <x-complete-profile.terms />
                             </div>
                         </div> <!-- End of Tab content -->
@@ -268,150 +251,150 @@ var ROUTES = {
 };
 
 var TRANSLATIONS = {
-  // Placeholder translations for dropdowns and input fields
   placeholders: {
-    select_governorate: "Select Governorate",
-    select_guardian_governorate: "Select Guardian Governorate",
-    select_emergency_contact_governorate: "Select Emergency Contact Governorate",
-    select_faculty: "Select Faculty",
-    select_sibling_faculty: "Select Sibling Faculty",
-    select_country: "Select Country",
-    select_nationality: "Select Nationality",
-    select_academic_year: "Select Academic Year",
-    select_sibling_relationship: "Select Sibling Relationship",
-
+    select_governorate: @json(__("Select Governorate")),
+    select_guardian_governorate: @json(__("Select Guardian Governorate")),
+    select_emergency_contact_governorate: @json(__("Select Emergency Contact Governorate")),
+    select_faculty: @json(__("Select Faculty")),
+    select_sibling_faculty: @json(__("Select Sibling Faculty")),
+    select_country: @json(__("Select Country")),
+    select_nationality: @json(__("Select Nationality")),
+    select_academic_year: @json(__("Select Academic Year")),
+    select_sibling_relationship: @json(__("Select Sibling Relationship")),
+    select: @json(__("Select")),
 
     city: {
-      select: "Select City",
-      noCities: "No cities available",
-      errorLoading: "Error loading cities",
-      disableField: "Select a governorate first"
+      select: @json(__('Select City')),
+      noCities: @json(__('No cities available')),
+      errorLoading: @json(__('Error loading cities')),
+      disableField: @json(__('Select a governorate first'))
     },
 
     guardianCity: {
-      select: "Select Guardian City",
-      noCities: "No cities available",
-      errorLoading: "Error loading guardian cities",
-      disableField: "Select a guardian governorate first"
+      select: @json(__('Select Guardian City')),
+      noCities: @json(__('No cities available')),
+      errorLoading: @json(__('Error loading guardian cities')),
+      disableField: @json(__('Select a guardian governorate first'))
     },
 
     emergencyContactCity: {
-      select: "Select Emergency Contact City",
-      noCities: "No cities available",
-      errorLoading: "Error loading emergency contact cities",
-      disableField: "Select an emergency contact governorate first"
+      select: @json(__('Select Emergency Contact City')),
+      noCities: @json(__('No cities available')),
+      errorLoading: @json(__('Error loading emergency contact cities')),
+      disableField: @json(__('Select an emergency contact governorate first'))
     },
 
     program: {
-      select: "Select Program",
-      noPrograms: "No programs available",
-      errorLoading: "Error loading programs",
-      disableField: "Select a faculty first"
+      select: @json(__('Select Program')),
+      noPrograms: @json(__('No programs available')),
+      errorLoading: @json(__('Error loading programs')),
+      disableField: @json(__('Select a faculty first'))
+    },
+    academic_year: {
+      select: @json(__('Select Level')),
     },
     sibling: {
-        select: "Select Sibling",
-    }
-    ,
+        select: @json(__('Select Sibling')),
+    },
     siblingToStayWith: {
-      select: "Select Sibling to Stay With",
-      noSiblings: "No siblings available",
-      errorLoading: "Error loading siblings",
+      select: @json(__('Select Sibling to Stay With')),
+      noSiblings: @json(__('No siblings available')),
+      errorLoading: @json(__('Error loading siblings')),
     }
   },
 
-  // Validation messages
   validation: {
-    required: "{field} is required",
-    required_conditional: "This field is required based on your previous selection",
-    required_checked: "You must agree to the terms",
-    egyptian_national_id: "Please enter a valid 14-digit Egyptian National ID",
-    international_phone: "Please enter a valid international phone number",
-    egyptian_phone: "Please enter a valid Egyptian phone number starting with 010, 011, 012, or 015 followed by 8 digits",
-    academic_id: "Please enter a valid academic ID (8-12 digits)",
-    arabic_name: "Please enter a valid Arabic name using Arabic characters only",
-    english_name: "Please enter a valid English name using English letters only",
-    minimum_age: "You must be at least {0} years old",
-    gpa_range: "GPA must be between {0} and {1}",
-    dependency_required: "This field is required based on your previous selection",
-    field_comparison_failed: "{field} must be different from the primary field",
-    email_domain: "Please use an email address with a valid domain (e.g., nmu.edu.eg)",
-    date: "Please enter a valid date",
-    number: "Please enter a valid number",
-    minlength: "{field} must be at least {min} characters long",
-    email: "Please enter a valid email address",
-    gender: "Please select a gender",
-    nationality: "Please select a nationality",
-    governorate: "Please select a governorate",
-    city: "Please select a city",
-    faculty: "Please select a faculty",
-    program: "Please select a program",
-    academic_year: "Please select an academic year",
-    guardian_relationship: "Please select a relationship",
-    is_guardianan_abroad: "Please specify if the guardian is abroad",
-    guardian_abroad_country: "Please select a country",
-    living_with_guardian: "Please specify if you live with the guardian",
-    guardian_governorate: "Please select a guardian governorate",
-    guardian_city: "Please select a guardian city",
-    guardian_country: "Please select a guardian country",
-    has_sibling_in_dorm: "Please specify if you have a sibling in the dorm",
-    sibling_gender: "Please select the sibling's gender",
-    sibling_faculty: "Please select the sibling's faculty",
-    emergency_contact_relationship: "Please select the emergency contact relationship",
-    emergency_contact_governorate: "Please select the emergency contact governorate",
-    emergency_contact_city: "Please select the emergency contact city",
-    emergency_contact_street: "Please enter the emergency contact street address",
-    terms_checkbox: "You must accept the terms and conditions",
-    default: "This field is invalid",
+    required: @json(__('This field is required')),
+    required_conditional: @json(__('This field is required based on your previous selection')),
+    required_checked: @json(__('You must agree to the terms')),
+    egyptian_national_id: @json(__('Please enter a valid 14-digit Egyptian National ID')),
+    international_phone: @json(__('Please enter a valid international phone number')),
+    egyptian_phone: @json(__('Please enter a valid Egyptian phone number starting with 010 or 011 or 012 or 015 followed by 8 digits')),
+    arabic_name: @json(__('Please enter a valid Arabic name using Arabic characters only')),
+    english_name: @json(__('Please enter a valid English name using English letters only')),
+    minimum_age: @json(__('You must be at least {0} years old')),
+    gpa_range: @json(__('GPA must be between {0} and {1}')),
+    dependency_required: @json(__('This field is required based on your previous selection')),
+    field_comparison_failed: @json(__('Field must be different from the primary field')),
+    email_domain: @json(__('Please use an email address with a valid domain (e.g., nmu.edu.eg)')),
+    date: @json(__('Please enter a valid date')),
+    number: @json(__('Please enter a valid number')),
+    minlength: @json(__('Field must be at least {min} characters long')),
+    email: @json(__('Please enter a valid email address')),
+    gender: @json(__('Please select a gender')),
+    nationality: @json(__('Please select a nationality')),
+    governorate: @json(__('Please select a governorate')),
+    city: @json(__('Please select a city')),
+    faculty: @json(__('Please select a faculty')),
+    program: @json(__('Please select a program')),
+    academic_year: @json(__('Please select an academic year')),
+    guardian_relationship: @json(__('Please select a relationship')),
+    is_guardianan_abroad: @json(__('Please specify if the guardian is abroad')),
+    guardian_abroad_country: @json(__('Please select a country')),
+    living_with_guardian: @json(__('Please specify if you live with the guardian')),
+    guardian_governorate: @json(__('Please select a guardian governorate')),
+    guardian_city: @json(__('Please select a guardian city')),
+    guardian_country: @json(__('Please select a guardian country')),
+    has_sibling_in_dorm: @json(__('Please specify if you have a sibling in the dorm')),
+    sibling_gender: @json(__('Please select the sibling\'s gender')),
+    sibling_faculty: @json(__('Please select the sibling\'s faculty')),
+    emergency_contact_relationship: @json(__('Please select the emergency contact relationship')),
+    emergency_contact_governorate: @json(__('Please select the emergency contact governorate')),
+    emergency_contact_city: @json(__('Please select the emergency contact city')),
+    emergency_contact_street: @json(__('Please enter the emergency contact street address')),
+    terms_checkbox: @json(__('You must accept the terms and conditions')),
+    default: @json(__('This field is invalid')),
 
     gpa: {
-      dependsOn: "GPA is required when available",
-      gpaRange: "GPA must be between 0.0 and 4.0"
+      dependsOn: @json(__('GPA is required when available')),
+      gpaRange: @json(__('GPA must be between 0.0 and 4.0'))
     },
 
     score: {
-      dependsOn: "Score is required for new students",
-      number: "Please enter a valid score"
+      dependsOn: @json(__('Score is required for new students')),
+      number: @json(__('Please enter a valid score'))
     },
 
-    depends_on: "{field} is required based on your previous selection",
-    compare_field: "{field} must be different from the primary field"
+    depends_on: @json(__('This field is required based on your previous selection')),
+    compare_field: @json(__('This field must be different from the primary field'))
   },
 
   // Field labels for validation messages
   fields: {
-    national_id: "National ID",
-    name_ar: "Arabic Name",
-    name_en: "English Name",
-    birth_date: "Birth Date",
-    phone: "Phone Number",
-    street: "Street Address",
-    academic_id: "Academic ID",
-    academic_email: "Academic Email",
-    guardian_name_ar: "Guardian Arabic Name",
-    guardian_name_en: "Guardian English Name",
-    guardian_phone: "Guardian Phone Number",
-    guardian_national_id: "Guardian National ID",
-    sibling_name_ar: "Sibling Arabic Name",
-    sibling_name_en: "Sibling English Name",
-    sibling_national_id: "Sibling National ID",
-    emergency_contact_name_ar: "Emergency Contact Arabic Name",
-    emergency_contact_name_en: "Emergency Contact English Name",
-    emergency_contact_phone: "Emergency Contact Phone Number"
+    national_id: @json(__('National ID')),
+    name_ar: @json(__('Arabic Name')),
+    name_en: @json(__('English Name')),
+    birth_date: @json(__('Birth Date')),
+    phone: @json(__('Phone Number')),
+    street: @json(__('Street Address')),
+    academic_id: @json(__('Academic ID')),
+    academic_email: @json(__('Academic Email')),
+    guardian_name_ar: @json(__('Guardian Arabic Name')),
+    guardian_name_en: @json(__('Guardian English Name')),
+    guardian_phone: @json(__('Guardian Phone Number')),
+    guardian_national_id: @json(__('Guardian National ID')),
+    sibling_name_ar: @json(__('Sibling Arabic Name')),
+    sibling_name_en: @json(__('Sibling English Name')),
+    sibling_national_id: @json(__('Sibling National ID')),
+    emergency_contact_name_ar: @json(__('Emergency Contact Arabic Name')),
+    emergency_contact_name_en: @json(__('Emergency Contact English Name')),
+    emergency_contact_phone: @json(__('Emergency Contact Phone Number'))
   },
 
   // Action button texts
   actions: {
-    submitting: "Submitting...",
-    submit: "Submit"
+    submitting: @json(__('Submitting...')),
+    submit: @json(__('Submit'))
   },
 
   // Messages for dialogs and alerts
   messages: {
-    validationError: "Please complete all required fields correctly",
+    stay_in_old_room_not_available: @json(__('Stay in Previous Room (Not Available)')),
+    validationError: @json(__('Please complete all required fields correctly')),
     dataResponsibility: {
-      title: "Data Responsibility",
-      message: "You are responsible for providing accurate information. Ensure all details are correct before submission.",
-      confirmButtonText: "I Understand"
+      title: @json(__('Data Responsibility')),
+      message: @json(__('You are responsible for providing accurate information. If any data is incorrect, you will not be able to complete the form. Submitting false or misleading information may result in your account being suspended in accordance with university policies.')),
+      confirmButtonText: @json(__('I Understand'))
     }
   }
 };

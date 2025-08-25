@@ -279,43 +279,9 @@ class CompleteRequest extends FormRequest
                 'string',
                 'max:1000'
             ],
-            // ===========================================
-            // step 7: Reservation Request
-            // ===========================================
-           'stay_preference' => [
-                'nullable',
-                'string',
-                'max:255',
-                'in:stay_with_sibling,stay_alone'
-            ],
-            'sibling_to_stay_with' => [
-                'required_if:stay_preference,stay_with_sibling',
-                'nullable',
-                'regex:/^[0-9]{14}$/',
-                'different:national_id'
-            ],
-            'room_type' => [
-                'required_if:stay_preference,stay_alone',
-                'nullable',
-                'string',
-                'max:255',
-                'in:single,double'
-            ],
-
-            'single_room_preference' => [
-                'required_if:room_type,single',
-                'nullable',
-                'in:old_room,random'
-            ],
-            'double_room_preference' => [
-                'required_if:room_type,double',
-                'nullable',
-                'in:single_bed,double_bed',
-            ],
-
 
             // ============================================
-            // Step 8: Terms and Conditions
+            // Step 7: Terms and Conditions
             // ============================================
             'terms_checkbox' => [ // Fixed naming convention
                 'required',

@@ -12,7 +12,7 @@
   <div class="layout-container">
     <div class="layout-page">
       <!-- Navbar -->
-      <x-navigation.navbar />
+      <x-navigation.navbar-without-toggle />
       <!-- / Navbar -->
 
       <div class="content-wrapper">

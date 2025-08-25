@@ -10,13 +10,17 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Hash;
 use App\Models\Resident\Student;
 use App\Models\Resident\Staff;
 use App\Models\Reservation\Reservation;
+use App\Models\Reservation\ReservationRequest;
 use App\Models\StudentArchive;
 use App\Models\Guardian;
 use App\Models\Sibling;
 use App\Models\EmergencyContact;
+use App\Models\UserAccountBalance;
+use App\Models\UserBan;
 use App\Events\UserCreated;
 
 class User extends Authenticatable
@@ -69,6 +73,7 @@ class User extends Authenticatable
         'force_change_password' => true,
     ];
 
+
     /**
      * The attributes that should be cast.
      *
@@ -86,17 +91,6 @@ class User extends Authenticatable
         ];
     }
 
-        /**
-     * Boot the model.
-     */
-    protected static function boot()
-    {
-        parent::boot();
-        static::created(function (User $user) {
-            $temporaryPassword = $user->getAttribute('temp_password');
-            UserCreated::dispatch($user, $temporaryPassword);
-        });
-    }
 
     /**
      * Get the user's name depending on locale.
@@ -152,8 +146,10 @@ class User extends Authenticatable
     protected function profileType(): Attribute
     {
         return Attribute::make(
-            get: fn ($value, $attributes) =>
-                $this->profile() ? class_basename($this->profile()->getModel()) : null
+            get: function ($value, $attributes) {
+                $profile = $this->profile();
+                return $profile ? class_basename($profile->getRelated()) : null;
+            }
         );
     }
 
@@ -188,6 +184,17 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the reservation requests associated with the user.
+     * 
+     * @return HasMany
+     */
+    public function reservationRequests(): HasMany
+    {
+        return $this->hasMany(ReservationRequest::class);
+    }
+
+
+    /**
      * Get the student archive associated with the user.
      *
      * @return HasOne
@@ -197,7 +204,12 @@ class User extends Authenticatable
         return $this->hasOne(StudentArchive::class);
     }
 
-    public function accountBalance()
+    /**
+     * Get the user's account balance.
+     *
+     * @return HasOne
+     */
+    public function accountBalance(): HasOne
     {
         return $this->hasOne(UserAccountBalance::class);
     }
@@ -245,24 +257,6 @@ class User extends Authenticatable
     }
 
     /**
-     * OPTION 1: Keep as relationship but with proper constraints
-     * Get the current active ban for the user.
-     *
-     * @return HasOne
-     */
-    public function currentBan(): HasOne
-    {
-        return $this->hasOne(UserBan::class)
-            ->where('is_active', true)
-            ->where(function ($query) {
-                $query->whereNull('expires_at') // Permanent bans
-                      ->orWhere('expires_at', '>', now()); // Non-expired temporary bans
-            })
-            ->latest('banned_at');
-    }
-
-    /**
-     * OPTION 2: Use a method instead (RECOMMENDED)
      * Get the current active ban for the user.
      *
      * @return UserBan|null
@@ -277,25 +271,6 @@ class User extends Authenticatable
             })
             ->latest('banned_at')
             ->first();
-    }
-
-    /**
-     * OPTION 3: Alternative method using the UserBan model's isActive() logic
-     * Get the current active ban for the user.
-     *
-     * @return UserBan|null
-     */
-    public function getActiveBan(): ?UserBan
-    {
-        $activeBans = $this->bans()
-            ->where('is_active', true)
-            ->latest('banned_at')
-            ->get();
-
-        // Filter using the model's isActive() method to handle expiry logic
-        return $activeBans->first(function ($ban) {
-            return $ban->isActive();
-        });
     }
 
     /**
@@ -401,24 +376,12 @@ class User extends Authenticatable
 
     /**
      * Check if the user is currently banned.
-     * Updated to use the new method approach.
      *
      * @return bool
      */
     public function isBanned(): bool
     {
-        $ban = $this->getCurrentBan(); // Using the method instead
+        $ban = $this->getCurrentBan();
         return $ban !== null;
-    }
-
-    /**
-     * Legacy method - kept for backward compatibility
-     * But now uses the new getCurrentBan() method
-     *
-     * @return UserBan|null
-     */
-    public function getActiveBanLegacy(): ?UserBan
-    {
-        return $this->getCurrentBan();
     }
 }
